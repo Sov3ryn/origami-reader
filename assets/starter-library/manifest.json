@@ -1,85 +1,153 @@
 {
-  "version": 2,
+  "version": 3,
   "prepared": "2026-10-13",
   "distributionIntent": "Pay what you want, including paid copies. No noncommercial-only text in this selection.",
   "globalClearance": false,
   "format": "Five historical text EPUBs and one commercially licensed contemporary story collection; third-party artwork excluded",
   "books": [
     {
-      "id": "starter-enchanted-castle",
-      "title": "The Enchanted Castle",
-      "author": "E. Nesbit",
-      "authorDeath": 1924,
-      "published": 1907,
-      "category": "Fantasy",
-      "repository": "e-nesbit_the-enchanted-castle",
-      "source": "https://standardebooks.org/ebooks/e-nesbit/the-enchanted-castle",
-      "catalog": "https://www.gutenberg.org/ebooks/3536",
-      "why": "A magic ring turns a holiday adventure into increasingly strange trouble. Funny, imaginative and occasionally eerie, with a low barrier to entry. This selection leans toward younger readers.",
+      "id": "starter-dracula",
+      "title": "Dracula",
+      "author": "Bram Stoker",
+      "authorDeath": 1912,
+      "published": 1897,
+      "category": "Gothic horror",
+      "repository": "bram-stoker_dracula",
+      "source": "https://standardebooks.org/ebooks/bram-stoker/dracula",
+      "catalog": "https://www.gutenberg.org/ebooks/345",
+      "why": "Diaries, letters and newspaper reports follow a group confronting a predatory vampire. A serious supernatural selection with suspense, recognizable characters and contrasting narrators for listening. Gothic horror replaces the earlier children's fantasy slot.",
       "sourceKind": "standard-ebooks",
       "license": "Public-domain-text-and-CC0-edition",
       "commercialRedistribution": true,
       "rightsBasis": "Published before 1931; all known text authors and translators died before 1925. Country-specific public-domain fees and moral rights still require release review.",
-      "lastContributorDeath": 1924,
-      "revision": "c6bd811c0c5414d4cc957d31700b4215b9ef25f1",
-      "filename": "enchanted-castle.epub",
-      "sha256": "aa4ec9542be41ab3f2979fe6e9cdd14959a4e13aeea00fbc98f4abd124a78393",
-      "bytes": 170756,
-      "chapterCount": 12,
-      "finalContentFile": "text/chapter-12.xhtml",
-      "wordCount": 67679,
+      "lastContributorDeath": 1912,
+      "revision": "e9e81aadf8b235fb6498728bce54b0967e224612",
+      "filename": "dracula.epub",
+      "sha256": "f18c5e269ef298d1d5fcaa27a657a3322077b70470e0de6551cfd7832882a33e",
+      "bytes": 379295,
+      "chapterCount": 27,
+      "finalContentFile": "text/epilogue.xhtml",
+      "wordCount": 160221,
       "contentFiles": [
         {
           "file": "text/dedication.xhtml",
-          "sha256": "7ba51721d047fa2e4dec5dfcd92adbaa1d10d7249a334003e0e04d87ecc32263"
+          "sha256": "090d1d43d4fbcfd1c6a02cbb2c5c11441fe7f8856a00cdf3b795d7013c31a759"
+        },
+        {
+          "file": "text/preface.xhtml",
+          "sha256": "305e4191968b079d644796b2e1a3ab91c6c3c97a599c2099cfce29700158fbb4"
         },
         {
           "file": "text/chapter-1.xhtml",
-          "sha256": "d0f423f9723be07c1bad2738ee53ed1f724306abbf1b67144bc6c78c47a7457f"
+          "sha256": "1845c6809542ca397b6c1df3651ee614af8097cd14127b7479b5f88dbc2c1503"
         },
         {
           "file": "text/chapter-2.xhtml",
-          "sha256": "50b44efb8faa00b83148bed364134d75de2f496190e80bdc9984e066f5f918a1"
+          "sha256": "b633e317993385bbe136dc2e3f5376c10c009f5aa66ef6300e15a8e5a45d9bd8"
         },
         {
           "file": "text/chapter-3.xhtml",
-          "sha256": "8430645d66fece7eff08bab0becda15909601b50c39d8af45e7858703b573550"
+          "sha256": "2ead6746e81eb3735695c00f8a5e623c5142fd546884cacc075e2852243f3a71"
         },
         {
           "file": "text/chapter-4.xhtml",
-          "sha256": "94436ff7effce67531111809df17fa6821e7283b47c83a69400588ab891c85a4"
+          "sha256": "e155b94398ad19cb8b0dee2a84d76e55de0b0f5141912df85b7e800fdbd5f312"
         },
         {
           "file": "text/chapter-5.xhtml",
-          "sha256": "21e0d9c2cf4811faf3c4d9024a74dffa45476dbb1ce39e6c98ce0884bb6e3a06"
+          "sha256": "3d6defdd7bbc77525f01cfc9d2f912c00ef53a8923608f406d212f44204f75d3"
         },
         {
           "file": "text/chapter-6.xhtml",
-          "sha256": "b9775166eb657ad4c9376867882b52301ba250a08e712cbfbb78755cb3d6f9d0"
+          "sha256": "51c59026271424900d38808acd7d24297d3d162a2b66ebb10f3e19529f2cb43e"
         },
         {
           "file": "text/chapter-7.xhtml",
-          "sha256": "805b211a4abe0310c3cffe1206d901b3d5bff0e7910e6b2362ea5dc3b07b98bb"
+          "sha256": "8b5600586057fb5ba664530472ac4548dd321dc45e0208d15ab6e26c6123ae4f"
         },
         {
           "file": "text/chapter-8.xhtml",
-          "sha256": "4185f84169d1ba70f47af38f80e6e9177a60298e7d75efa00594a57e72f40687"
+          "sha256": "9fd1af83be71873ee38851a99de42e58461bc27b12d28fa267f27398bae1ff67"
         },
         {
           "file": "text/chapter-9.xhtml",
-          "sha256": "58506f56978faf4177e744b7ebbd9496d9f8328092f70ddff3063d28e239763a"
+          "sha256": "b5c38a694513bf6ffd9eddf075a4cf4ee1201a6c07566265b099fc413a87995d"
         },
         {
           "file": "text/chapter-10.xhtml",
-          "sha256": "2a28fe77c76bee8e82f95ce03f968c56aa9aca315c407548eb95fbd5cb1a11b1"
+          "sha256": "bee3af68bc8b22ccdffdbe9922ef1e5e9e626e2858441dfc14717f8be10fc59c"
         },
         {
           "file": "text/chapter-11.xhtml",
-          "sha256": "972d98224c0f08a53f53504bf9be66bcde27afdbfd166edea2987a0fa0367783"
+          "sha256": "99bdd55d311fa8e7d0498c75c67c2579c249f517479a0f31f1a02ca2a43b437f"
         },
         {
           "file": "text/chapter-12.xhtml",
-          "sha256": "86fde602d76aec71395be99a29d6e18614625d3a00e2d7d5e4e20ccf1e278e2a"
+          "sha256": "0e3bdd4b7be8c137d7f6af1cee2a0caae2024715cfceecb6a975001632ad456a"
+        },
+        {
+          "file": "text/chapter-13.xhtml",
+          "sha256": "e11d9773247c49c9ead10971214023909a69dccbd22abd7cd60df8d59aefe8be"
+        },
+        {
+          "file": "text/chapter-14.xhtml",
+          "sha256": "8ef5f7d9f85d74e301efc0474a7416189fcf335a12de7011e0a31bfd7b8d098d"
+        },
+        {
+          "file": "text/chapter-15.xhtml",
+          "sha256": "2df18a24efbc0223e3f8d4d6cd0f4b01a1c437bf8c415ca92d36981625901de5"
+        },
+        {
+          "file": "text/chapter-16.xhtml",
+          "sha256": "f9cd2f64fdad8ef13ff62a70e870e8c2b6ac23ef04a10173798ddbc597a79d2c"
+        },
+        {
+          "file": "text/chapter-17.xhtml",
+          "sha256": "660b992db64221d842e1ab5c3d3032b04b617e51d7f5644b0b97337f38eba645"
+        },
+        {
+          "file": "text/chapter-18.xhtml",
+          "sha256": "de91a5cb691fa3c83245c82bfd2007ac44667752217ae03c0172e2a7f3e8f7ba"
+        },
+        {
+          "file": "text/chapter-19.xhtml",
+          "sha256": "c881f7612378919cba1247742e8229ab39c0a90a4fc7b3fe2d439555fd7b0dc8"
+        },
+        {
+          "file": "text/chapter-20.xhtml",
+          "sha256": "244ac2f386738cbdfd3074907150071d4e7fa2dde2ff41cfb45330a7bf4b1087"
+        },
+        {
+          "file": "text/chapter-21.xhtml",
+          "sha256": "9f48ce991338a3d6e6e8128615bde8af2d2e3b41ac90d795973b7b9b8c8cb491"
+        },
+        {
+          "file": "text/chapter-22.xhtml",
+          "sha256": "abead2668ce9dd764eb9fb9b59d50f85142dba92098afb90ad7c1b4ef744b60a"
+        },
+        {
+          "file": "text/chapter-23.xhtml",
+          "sha256": "e6330b206a08cb71974c60900376d09303ecb579e1b9969fb2ba31de493ed51b"
+        },
+        {
+          "file": "text/chapter-24.xhtml",
+          "sha256": "3c7af02f3756b0660f0732146d2124cf4256c9925623acf12a6723a9078163a6"
+        },
+        {
+          "file": "text/chapter-25.xhtml",
+          "sha256": "0496bcfac1e3b9557aca16c210ffde0beb745f44bdfaaae015498e75edbb4b0f"
+        },
+        {
+          "file": "text/chapter-26.xhtml",
+          "sha256": "065e0e1f415c43495d2b7321a6edc79e528f03255fe033bfff5f6a7ea729251a"
+        },
+        {
+          "file": "text/chapter-27.xhtml",
+          "sha256": "e4ac844dd4ea1cc90fc1309dddc14a7f635f430588ca7fe4aed9384ddc21ea16"
+        },
+        {
+          "file": "text/epilogue.xhtml",
+          "sha256": "d4d1bc48f5893294bb362252eb876641186f0dd69a2d44755f137ed926a71b18"
         }
       ],
       "artworkIncluded": false

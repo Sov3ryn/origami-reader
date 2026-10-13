@@ -1,6 +1,6 @@
-Origami starter library, version 2
+Origami starter library, version 3
 
-Fantasy: The Enchanted Castle, E. Nesbit.
+Gothic horror: Dracula, Bram Stoker.
 Science fiction: Journey to the Center of the Earth, Jules Verne,
   F. A. Malleson's 1877 English translation.
 Detective mystery: The Moonstone, Wilkie Collins.

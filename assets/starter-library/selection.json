@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "reviewed": "2026-10-13",
   "language": "en",
   "distributionIntent": "Pay what you want, including paid copies. No noncommercial-only text in this selection.",
@@ -7,21 +7,21 @@
   "territorialReview": "See RIGHTS.txt and international-review.json. Do not advertise universal fee-free public-domain clearance.",
   "books": [
     {
-      "id": "starter-enchanted-castle",
-      "title": "The Enchanted Castle",
-      "author": "E. Nesbit",
-      "authorDeath": 1924,
-      "published": 1907,
-      "category": "Fantasy",
-      "repository": "e-nesbit_the-enchanted-castle",
-      "source": "https://standardebooks.org/ebooks/e-nesbit/the-enchanted-castle",
-      "catalog": "https://www.gutenberg.org/ebooks/3536",
-      "why": "A magic ring turns a holiday adventure into increasingly strange trouble. Funny, imaginative and occasionally eerie, with a low barrier to entry. This selection leans toward younger readers.",
+      "id": "starter-dracula",
+      "title": "Dracula",
+      "author": "Bram Stoker",
+      "authorDeath": 1912,
+      "published": 1897,
+      "category": "Gothic horror",
+      "repository": "bram-stoker_dracula",
+      "source": "https://standardebooks.org/ebooks/bram-stoker/dracula",
+      "catalog": "https://www.gutenberg.org/ebooks/345",
+      "why": "Diaries, letters and newspaper reports follow a group confronting a predatory vampire. A serious supernatural selection with suspense, recognizable characters and contrasting narrators for listening. Gothic horror replaces the earlier children's fantasy slot.",
       "sourceKind": "standard-ebooks",
       "license": "Public-domain-text-and-CC0-edition",
       "commercialRedistribution": true,
       "rightsBasis": "Published before 1931; all known text authors and translators died before 1925. Country-specific public-domain fees and moral rights still require release review.",
-      "lastContributorDeath": 1924
+      "lastContributorDeath": 1912
     },
     {
       "sourceKind": "standard-ebooks",

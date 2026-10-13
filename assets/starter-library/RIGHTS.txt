@@ -1,5 +1,5 @@
 Origami starter library: commercial and international edition record
-Reviewed 13 October 2026. Pack version 2, English.
+Reviewed 13 October 2026. Pack version 3, English.
 
 The intended release is pay what you want, including paid copies. No
 selected text has a NonCommercial-only license. Origami code remains
@@ -8,7 +8,7 @@ This is a prepared import pack. Automatic starter seeding remains planned,
 and existing user libraries and annotations are not modified.
 
 CURRENT TITLES AND TEXT CONTRIBUTORS
-The Enchanted Castle (1907), E. Nesbit, died 1924.
+Dracula (1897), Bram Stoker, died 1912.
 Journey to the Center of the Earth (1864), Jules Verne, died 1905.
   F. A. Malleson, English translation, Ward, Lock 1877; died 1897.
 The Moonstone (1868), Wilkie Collins, died 1889.
@@ -22,7 +22,7 @@ The Count of Monte Cristo (1844-1846), Alexandre Dumas, died 1870.
 HISTORICAL EDITIONS
 All five historical texts and the selected translations were published
 before 1931. Every identified original author, collaborator and translator
-died before 1925. The latest death is Nesbit in 1924: even an ordinary
+died before 1925. The latest death is Stoker in 1912: even an ordinary
 life-plus-100-year economic term ends before 2026. The anonymous 1846
 translation is much older than publication-based terms. This avoids relying
 on complex shorter-term, non-revival or transitional arguments for Wells,
@@ -82,6 +82,8 @@ claimed. The development ZIP is a prepared source pack with these notices,
 not proof of unconditional worldwide clearance.
 
 REMOVED FROM THIS SELECTION
+The Enchanted Castle was replaced with Dracula at the user's request for
+a more serious supernatural selection. The slot is now Gothic horror.
 Little Brother is excluded because its NC license does not clear the paid
 bundle. The Time Machine, The Hound of the Baskervilles and The Blue Castle
 were replaced for the broader term strategy. Old source-pack files are
