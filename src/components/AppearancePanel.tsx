@@ -78,6 +78,25 @@ export function AppearancePanel({
         Paper texture
       </label>
       <label>
+        Page brightness <output>{prefs.pageBrightness}%</output>
+        <input
+          aria-label="Page brightness"
+          type="range"
+          min="50"
+          max="150"
+          step="5"
+          value={prefs.pageBrightness}
+          onChange={(e) => onChange({ pageBrightness: +e.target.value })}
+        />
+        <span className="range-endpoints" aria-hidden="true">
+          <span>Darker</span>
+          <span>Brighter</span>
+        </span>
+      </label>
+      <p className="hint">
+        Adjusts the paper area. Text and app controls keep their colors.
+      </p>
+      <label>
         Text size <output>{prefs.fontSize}px</output>
         <input
           aria-label="Text size"

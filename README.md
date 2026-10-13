@@ -7,11 +7,13 @@ A local desktop reader and text-to-speech workspace for Windows and Linux. MIT-l
 ## Available now
 
 - Library with search, sorting, collections, favorites, bulk selection and recoverable Trash.
+- Create or delete collections from the sidebar, including empty collections. Deletion moves their books to Unsorted and offers Undo. New imports use the selected collection; Reader details can change a document's collection.
 - TXT, UTF-8 Markdown and unprotected text EPUB import. Quick Read for pasted text.
 - Reader with chapter navigation, saved narration position, bounded page rendering and adjustable page width, including full width.
 - Colored underlines, margin notes, bookmarks, grouping and annotation export.
 - Independently collapsible/resizable panels and a contextual tabbed inspector. Library keeps the full workspace without an inspector.
 - Twelve app palettes; separate white, paper, sepia and textured night reading surfaces.
+- Page brightness from 50% to 150%, applied to the paper and texture while text and controls keep their colors. Each scene remembers its paper brightness.
 - Background opacity control, windblown petals, mountain fog, lake mist and ripples, subtle cabin lights and an occasional cloud across the moon. Each effect can be switched off. Motion defaults on for new settings, respects reduced motion and pauses while hidden.
 - Four seasonal versions of the lake: spring morning, summer evening, autumn dusk and winter daylight. Brighter fireflies, denser petals, leaves and snowfall, and occasional summer fish-feeding rings. Scenes remember their own palette, reading surface, texture, opacity and effects.
 - Optional automatic scene selection by local season, with northern/southern hemisphere support, or a different lake scene at each startup.

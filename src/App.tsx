@@ -3,6 +3,11 @@ import { CoverDialog } from "./components/CoverDialog";
 import { coverPrompt } from "./covers";
 import { useCovers } from "./useCovers";
 import { startupVoice } from "./voiceCatalog";
+import {
+  checkedCollectionName,
+  collectionNames,
+  builtInCollections,
+} from "./collections";
 import { AppearancePanel } from "./components/AppearancePanel";
 import { BackgroundScene } from "./components/BackgroundScene";
 import { changeAppearance, startupBackground } from "./backgrounds";
@@ -100,6 +105,14 @@ export default function App() {
   const [filter, setFilter] = useState("All");
   const [sort, setSort] = useState("recent");
   const [collection, setCollection] = useState("All books");
+  const [addingCollection, setAddingCollection] = useState(false);
+  const [collectionName, setCollectionName] = useState("");
+  const [collectionError, setCollectionError] = useState("");
+  const [collectionBusy, setCollectionBusy] = useState(false);
+  const [collectionUndo, setCollectionUndo] = useState<{
+    name: string;
+    ids: string[];
+  } | null>(null);
   const [list, setList] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
@@ -168,6 +181,7 @@ export default function App() {
     "--reader-size": prefs.fontSize + "px",
     "--reader-leading": prefs.lineHeight,
     "--reader-width": prefs.pageWidth === 0 ? "100%" : prefs.pageWidth + "px",
+    "--page-brightness": prefs.pageBrightness / 100,
   } as CSSProperties;
   const error = (e: unknown) =>
     notify(e instanceof Error ? e.message : String(e));
@@ -186,6 +200,7 @@ export default function App() {
         if (active) {
           setBooks(rows);
           const merged = { ...defaultPreferences, ...saved };
+          merged.collections = collectionNames(merged.collections, rows);
           if (available.length && !available.some((v) => v.id === merged.voice))
             merged.voice = available[0].id;
           setPrefs(startupBackground(startupVoice(merged, available)));
@@ -268,6 +283,58 @@ export default function App() {
     setBook((old) => (old?.meta.id === meta.id ? { ...old, meta } : old));
     await store.saveMeta(meta);
   }
+  const namedCollections = collectionNames(prefs.collections, books);
+  function addCollection() {
+    try {
+      const name = checkedCollectionName(collectionName, namedCollections);
+      patchPrefs({ collections: [...namedCollections, name] });
+      setCollection(name);
+      setPage("library");
+      setSelected(new Set());
+      setAddingCollection(false);
+      setCollectionName("");
+      setCollectionError("");
+    } catch (e) {
+      setCollectionError(e instanceof Error ? e.message : String(e));
+    }
+  }
+  async function deleteCollection(name: string) {
+    if (builtInCollections.includes(name) || collectionBusy) return;
+    setCollectionBusy(true);
+    try {
+      const current = await store.listBooks();
+      const affected = current.filter((b) => b.collection === name);
+      for (const meta of affected)
+        await updateMeta({ ...meta, collection: "Unsorted" });
+      patchPrefs({ collections: namedCollections.filter((c) => c !== name) });
+      setCollectionUndo({ name, ids: affected.map((b) => b.id) });
+      setUndo(null);
+      if (collection === name) setCollection("All books");
+      setSelected(new Set());
+      notify('Deleted "' + name + '". Its books are in Unsorted.');
+    } finally {
+      setCollectionBusy(false);
+    }
+  }
+  async function undoCollectionDeletion() {
+    if (!collectionUndo || collectionBusy) return;
+    setCollectionBusy(true);
+    try {
+      const current = await store.listBooks();
+      for (const meta of current.filter(
+        (b) => collectionUndo.ids.includes(b.id) && b.collection === "Unsorted",
+      )) {
+        await updateMeta({ ...meta, collection: collectionUndo.name });
+      }
+      patchPrefs({
+        collections: [...new Set([...namedCollections, collectionUndo.name])],
+      });
+      setCollectionUndo(null);
+      notify("Collection restored.");
+    } finally {
+      setCollectionBusy(false);
+    }
+  }
   async function editCover(meta: BookMeta) {
     coverFocus.current = document.activeElement as HTMLElement;
     setCoverEditor(await store.readBook(meta.id));
@@ -336,6 +403,8 @@ export default function App() {
       for (const file of Array.from(files)) {
         try {
           const b = await importDocument(file);
+          if (namedCollections.includes(collection))
+            b.meta.collection = collection;
           const existing = known.find(
             (k) => k.sourceHash === b.meta.sourceHash,
           );
@@ -371,6 +440,7 @@ export default function App() {
       paragraphsFromText(quickText),
       "Text",
     );
+    if (namedCollections.includes(collection)) b.meta.collection = collection;
     await store.saveBook(b);
     covers.enqueue(b.meta);
     setQuick(false);
@@ -959,10 +1029,21 @@ export default function App() {
                 </label>
                 <label>
                   Collection
-                  <input
+                  <select
+                    aria-label="Collection"
                     name="collection"
                     defaultValue={book.meta.collection}
-                  />
+                  >
+                    {[
+                      ...new Set([
+                        "Unsorted",
+                        ...namedCollections,
+                        book.meta.collection,
+                      ]),
+                    ].map((name) => (
+                      <option key={name}>{name}</option>
+                    ))}
+                  </select>
                 </label>
                 <button type="submit" className="primary">
                   Save details
@@ -1123,49 +1204,131 @@ export default function App() {
                 </button>
               ))}
             </nav>
-            <div className="nav-label">Collections</div>
+            <div className="collection-heading">
+              <div className="nav-label">Collections</div>
+              <IconButton
+                label="Add collection"
+                disabled={collectionBusy}
+                onClick={() => {
+                  setAddingCollection(!addingCollection);
+                  setCollectionError("");
+                }}
+              >
+                <Plus size={16} />
+              </IconButton>
+            </div>
+            {addingCollection && (
+              <form
+                className="collection-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  addCollection();
+                }}
+              >
+                <input
+                  autoFocus
+                  aria-label="Collection name"
+                  placeholder="Collection name"
+                  maxLength={64}
+                  value={collectionName}
+                  onChange={(e) => setCollectionName(e.target.value)}
+                />
+                <div>
+                  <IconButton
+                    label="Save collection"
+                    onClick={addCollection}
+                    disabled={collectionBusy}
+                  >
+                    <Check size={16} />
+                  </IconButton>
+                  <IconButton
+                    label="Cancel adding collection"
+                    onClick={() => {
+                      setAddingCollection(false);
+                      setCollectionError("");
+                    }}
+                  >
+                    <X size={16} />
+                  </IconButton>
+                </div>
+                {collectionError && (
+                  <p className="hint" role="alert">
+                    {collectionError}
+                  </p>
+                )}
+              </form>
+            )}
             <nav className="collections">
               {[
                 "All books",
                 "Favorites",
-                ...new Set(
-                  books.filter((b) => !b.deleted).map((b) => b.collection),
-                ),
+                ...namedCollections,
+                "Unsorted",
                 "Trash",
               ].map((c, i) => (
-                <button
+                <div
                   key={c}
                   className={
-                    page === "library" && collection === c ? "active" : ""
+                    "collection-row" +
+                    (page === "library" && collection === c ? " selected" : "")
                   }
-                  onClick={() => {
-                    setCollection(c);
-                    setPage("library");
-                    setSelected(new Set());
-                  }}
                 >
-                  {c === "Trash" ? (
-                    <Trash2 size={15} />
-                  ) : (
-                    <span className={"collection-dot dot-" + (i % 4)} />
-                  )}
-                  {c}
-                  <span className="count">
-                    {
-                      books.filter((b) =>
-                        c === "Trash"
-                          ? b.deleted
-                          : !b.deleted &&
-                            (c === "All books" ||
-                              (c === "Favorites"
-                                ? b.favorite
-                                : b.collection === c)),
-                      ).length
+                  <button
+                    className={
+                      page === "library" && collection === c ? "active" : ""
                     }
-                  </span>
-                </button>
+                    onClick={() => {
+                      setCollection(c);
+                      setPage("library");
+                      setSelected(new Set());
+                    }}
+                  >
+                    {c === "Trash" ? (
+                      <Trash2 size={15} />
+                    ) : (
+                      <span className={"collection-dot dot-" + (i % 4)} />
+                    )}
+                    <span className="collection-title">{c}</span>
+                    <span className="count">
+                      {
+                        books.filter((b) =>
+                          c === "Trash"
+                            ? b.deleted
+                            : !b.deleted &&
+                              (c === "All books" ||
+                                (c === "Favorites"
+                                  ? b.favorite
+                                  : b.collection === c)),
+                        ).length
+                      }
+                    </span>
+                  </button>
+                  {!builtInCollections.includes(c) && (
+                    <IconButton
+                      label={"Delete collection " + c}
+                      disabled={collectionBusy}
+                      onClick={() => {
+                        void deleteCollection(c).catch(error);
+                      }}
+                    >
+                      <Trash2 size={14} />
+                    </IconButton>
+                  )}
+                </div>
               ))}
             </nav>
+            {collectionUndo && (
+              <button
+                className="collection-undo"
+                disabled={collectionBusy}
+                onClick={() => {
+                  void undoCollectionDeletion().catch(error);
+                }}
+              >
+                <RotateCcw size={14} />
+                Undo collection deletion
+              </button>
+            )}
             <div className="sidebar-bottom">
               <button
                 className={page === "settings" ? "active" : ""}

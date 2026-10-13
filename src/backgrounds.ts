@@ -89,6 +89,7 @@ function sceneAppearance(prefs: Preferences): SceneAppearance {
     theme: prefs.theme,
     surface: prefs.surface,
     texture: prefs.texture,
+    pageBrightness: prefs.pageBrightness,
     backgroundOpacity: prefs.backgroundOpacity,
     motion: prefs.motion,
     mist: prefs.mist,

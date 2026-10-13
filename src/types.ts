@@ -50,6 +50,8 @@ export type Preferences = {
   theme: string;
   surface: string;
   texture: boolean;
+  pageBrightness: number;
+  collections: string[];
   scene: string;
   backgroundMode: "manual" | "seasonal" | "random";
   seasonHemisphere: "north" | "south";
@@ -91,6 +93,7 @@ export type SceneAppearance = Pick<
   | "theme"
   | "surface"
   | "texture"
+  | "pageBrightness"
   | "backgroundOpacity"
   | "motion"
   | "mist"
@@ -121,6 +124,8 @@ export const defaultPreferences: Preferences = {
   theme: "plum",
   surface: "dark",
   texture: true,
+  pageBrightness: 100,
+  collections: [],
   scene: "lake",
   backgroundMode: "manual",
   seasonHemisphere: "north",

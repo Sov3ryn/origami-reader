@@ -629,6 +629,76 @@ p {
   gap: 10px;
   text-align: left;
 }
+.collection-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26px 9px 10px 13px;
+}
+.collection-heading .nav-label {
+  padding: 0;
+}
+.collection-heading .icon-button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+.collection-form {
+  padding: 0 9px 10px;
+}
+.collection-form input {
+  width: 100%;
+}
+.collection-form > div {
+  display: flex;
+  gap: 5px;
+  margin-top: 6px;
+}
+.collection-form .icon-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+.collection-form .hint {
+  margin: 7px 0 0;
+}
+.collection-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.collection-row > button:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.collection-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.collection-row .collection-dot {
+  flex-shrink: 0;
+}
+.collections .collection-row > .icon-button {
+  width: 24px;
+  height: 26px;
+  flex-shrink: 0;
+  padding: 0;
+  margin-right: 3px;
+  opacity: 0;
+  pointer-events: none;
+}
+.collection-row:hover > .icon-button,
+.collection-row:focus-within > .icon-button,
+.collection-row.selected > .icon-button {
+  opacity: 1;
+  pointer-events: auto;
+}
+.collection-undo {
+  margin-top: 9px;
+  font-size: 11px;
+  padding: 8px 5px;
+}
 .count {
   margin-left: auto;
   color: var(--muted);
@@ -1553,6 +1623,8 @@ progress::-webkit-progress-value {
   scroll-behavior: smooth;
 }
 .reading-page {
+  position: relative;
+  isolation: isolate;
   width: 100%;
   max-width: var(--reader-width, 850px);
   min-height: calc(100% - 10px);
@@ -1565,6 +1637,16 @@ progress::-webkit-progress-value {
   --page-muted: #777163;
   --mark-bg: #d9c9eb;
   --mark-ink: #31203f;
+}
+.reading-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: inherit;
+  border-radius: inherit;
+  filter: brightness(var(--page-brightness, 1));
+  pointer-events: none;
 }
 .surface-paper {
   background-color: #f4efe3;
