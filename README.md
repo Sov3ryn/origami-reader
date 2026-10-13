@@ -19,6 +19,9 @@ A local desktop reader and text-to-speech workspace for Windows and Linux. MIT-l
 - Optional isolated Qwen worker, passage playback, pause, stop, passage seek, speed/volume and one-passage read-ahead.
 - Optional startup preloading of the last voice used for playback. Opening a book preserves an idle loaded model. Closing the app stops its speech worker and releases its GPU resources.
 - Voice catalog with language, voice gender and style filters, accent/name search, favorites and sorting.
+- Selecting a new voice immediately unloads the previous worker. Play repeats the current sentence using the new voice, without selecting text again. Optional startup default-voice randomization stays within the last selected language.
+- Change covers from the Library cover's hover button or Reader details. Import embedded EPUB artwork, upload a raster cover, or generate local SD-Turbo artwork. Missing-cover generation defaults on and can be disabled; the image model exits after each job.
+- Reader focus mode toggles to a collapse icon and restores saved panel widths and visibility.
 
 No cloud account is required. Voice models and reference recordings are not included. Linux source/build support is provided; Linux execution has not yet been validated on the development machine. See [progress](docs/PROGRESS.md) for exact test status and limitations.
 
@@ -58,6 +61,8 @@ Open the printed localhost address. Browser preview supports library and annotat
 ## Local speech
 
 See [speech setup](docs/LOCAL-SPEECH.md). The model manager and packaged dependency installation are still planned. Without a configured engine the reader remains usable.
+
+See [cover generation setup](docs/COVER-GENERATION.md) for local artwork. Powered by Stability AI. This optional model retains its own license and is excluded from the source repository.
 
 ## Checks and builds
 

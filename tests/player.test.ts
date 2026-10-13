@@ -58,6 +58,86 @@ afterEach(async () => {
 });
 
 describe("preloaded voice lifetime", () => {
+  it("unloads an idle voice immediately when its selection changes", async () => {
+    await act(async () => {
+      await player.changeVoice();
+    });
+    expect(storage.cancelSpeech).toHaveBeenCalledTimes(1);
+    expect(storage.synthesize).not.toHaveBeenCalled();
+  });
+  it("restarts the current sentence with a new voice and discards old read-ahead audio", async () => {
+    const audio: { onended: (() => void) | null; pause: () => void }[] = [];
+    class PlayingAudio extends AudioStub {
+      constructor() {
+        super();
+        audio.push(this);
+      }
+      play() {
+        return Promise.resolve();
+      }
+      pause = vi.fn();
+    }
+    vi.stubGlobal("Audio", PlayingAudio);
+    vi.mocked(storage.synthesize).mockResolvedValue({
+      audio: "AA==",
+      rate: 24000,
+      duration: 1,
+    });
+    const original = {
+      meta: { id: "story", voice: "old" },
+      paragraphs: [
+        {
+          text: "First sentence. Second sentence. Third sentence.",
+          kind: "paragraph",
+        },
+      ],
+    } as Book;
+    let first!: Promise<void>;
+    await act(async () => {
+      first = player.start(original, 0, defaultPreferences, vi.fn());
+      await flush();
+    });
+    await act(async () => {
+      audio[0].onended!();
+      await flush();
+    });
+    expect(player.currentText).toBe("Second sentence.");
+    await act(async () => {
+      await player.changeVoice();
+      await first;
+    });
+    expect(audio[1].pause).toHaveBeenCalled();
+    expect(storage.cancelSpeech).toHaveBeenCalledTimes(1);
+    let second!: Promise<void>;
+    await act(async () => {
+      second = player.start(
+        { ...original, meta: { ...original.meta, voice: "new" } },
+        0,
+        defaultPreferences,
+        vi.fn(),
+        undefined,
+        true,
+      );
+      await flush();
+    });
+    expect(player.currentText).toBe("Second sentence.");
+    expect(
+      vi
+        .mocked(storage.synthesize)
+        .mock.calls.filter(([, voice]) => voice === "new")
+        .map(([text]) => text),
+    ).toEqual(["Second sentence.", "Third sentence."]);
+    await act(async () => {
+      audio[2].onended!();
+      await flush();
+    });
+    expect(player.currentText).toBe("Third sentence.");
+    await act(async () => {
+      audio[3].onended!();
+      await second;
+    });
+    expect(player.status).toBe("idle");
+  });
   it("retains an idle worker when stopping or opening another book", async () => {
     await act(async () => {
       await player.stop();

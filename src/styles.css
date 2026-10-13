@@ -871,6 +871,7 @@ p {
   font-size: 21px;
 }
 .continue-card {
+  border: 1px solid var(--line);
   width: 100%;
   display: flex;
   justify-content: flex-start;
@@ -1000,6 +1001,111 @@ p {
 }
 .cover.small .cover-rule {
   inset: 4px;
+}
+.cover-image {
+  color: #fff7ec;
+}
+.cover-image .cover-title,
+.cover-image .cover-author {
+  text-shadow: 0 1px 3px #000000c0;
+}
+.cover-control {
+  position: relative;
+  isolation: isolate;
+  width: max-content;
+  flex-shrink: 0;
+}
+.cover-open {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 4px;
+}
+.cover-open:hover {
+  background: transparent;
+}
+.cover-edit {
+  position: absolute;
+  z-index: 3;
+  left: 5px;
+  bottom: 6px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 7px;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.cover-control:hover .cover-edit,
+.cover-control:focus-within .cover-edit,
+.cover-control-visible .cover-edit {
+  opacity: 1;
+  pointer-events: auto;
+}
+.book-entry {
+  display: flex;
+  gap: 19px;
+  align-items: flex-start;
+}
+.book-entry .book-open {
+  flex: 1;
+  min-width: 0;
+}
+.continue-body {
+  display: flex;
+  flex: 1;
+  text-align: left;
+  border: 0;
+  background: none;
+  padding: 0;
+  gap: 20px;
+}
+.continue-body:hover {
+  background: none;
+}
+.cover-dialog {
+  width: min(700px, calc(100vw - 40px));
+  max-height: calc(100dvh - 60px);
+  overflow: auto;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 24px 70px #00000070;
+}
+.cover-dialog-body {
+  display: flex;
+  gap: 26px;
+}
+.cover-dialog-body > div:last-child {
+  flex: 1;
+  min-width: 0;
+}
+.cover-dialog textarea {
+  min-height: 135px;
+  resize: vertical;
+}
+.cover-dialog .dialog-actions {
+  justify-content: flex-start;
+}
+.cover-dialog .hint {
+  margin-top: 12px;
+}
+.list-view .book-entry {
+  width: 100%;
+  align-items: center;
+}
+.list-view .cover-edit {
+  width: 24px;
+  height: 24px;
+  left: 2px;
+  bottom: 3px;
 }
 .book-grid {
   display: grid;

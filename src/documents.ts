@@ -1,5 +1,6 @@
 import { unzipSync, strFromU8 } from "fflate";
 import type { Book, BookMeta, Paragraph } from "./types";
+import { coverImage } from "./covers";
 export const MAX_IMPORT_BYTES = 32 * 1024 * 1024;
 const MAX_EXPANDED = 64 * 1024 * 1024;
 export function paragraphsFromText(text: string): Paragraph[] {
@@ -178,6 +179,35 @@ export async function importDocument(file: File): Promise<Book> {
     book.meta.author =
       pkg.getElementsByTagNameNS("*", "creator")[0]?.textContent ||
       "Unknown author";
+    const items = Array.from(pkg.getElementsByTagName("item"));
+    const coverId = Array.from(pkg.getElementsByTagName("meta"))
+      .find((m) => m.getAttribute("name") === "cover")
+      ?.getAttribute("content");
+    const cover =
+      items.find((item) =>
+        item.getAttribute("properties")?.split(/\s+/).includes("cover-image"),
+      ) || items.find((item) => coverId && item.getAttribute("id") === coverId);
+    const coverHref = cover?.getAttribute("href");
+    if (coverHref) {
+      const resolved = new URL(coverHref, "https://book.invalid/" + base);
+      if (resolved.origin === "https://book.invalid") {
+        const coverPath = decodeURIComponent(resolved.pathname.slice(1));
+        const art = unzipSync(bytes, {
+          filter: (entry) =>
+            entry.name === coverPath && entry.originalSize <= 10 * 1024 * 1024,
+        })[coverPath];
+        if (art) {
+          try {
+            book.meta.coverImage = await coverImage(
+              new Blob([art.slice().buffer]),
+            );
+            book.meta.coverOrigin = "imported";
+          } catch {
+            /* Unreadable artwork leaves the normal placeholder available. */
+          }
+        }
+      }
+    }
     return book;
   }
   if (!["txt", "md", "markdown"].includes(ext || ""))

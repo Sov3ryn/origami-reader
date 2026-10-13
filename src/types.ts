@@ -21,6 +21,8 @@ export type BookMeta = {
   favorite: boolean;
   deleted: boolean;
   cover: string;
+  coverImage?: string;
+  coverOrigin?: "imported" | "custom" | "generated";
   voice: string;
   sourceHash: string;
 };
@@ -80,6 +82,9 @@ export type Preferences = {
   preloadAtStartup: boolean;
   lastVoice: string;
   voiceFavorites: string[];
+  voiceLanguage: string;
+  randomVoiceAtStartup: boolean;
+  autoGenerateCovers: boolean;
 };
 export type SceneAppearance = Pick<
   Preferences,
@@ -148,4 +153,7 @@ export const defaultPreferences: Preferences = {
   preloadAtStartup: true,
   lastVoice: "",
   voiceFavorites: [],
+  voiceLanguage: "English",
+  randomVoiceAtStartup: false,
+  autoGenerateCovers: true,
 };

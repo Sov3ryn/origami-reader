@@ -1,4 +1,19 @@
-import type { Voice } from "./types";
+import type { Preferences, Voice } from "./types";
+export function startupVoice(
+  prefs: Preferences,
+  voices: Voice[],
+  random = Math.random,
+): Preferences {
+  if (!prefs.randomVoiceAtStartup) return prefs;
+  const matches = voices.filter(
+    (v) => v.available && v.languages.includes(prefs.voiceLanguage),
+  );
+  const choices =
+    matches.length > 1 ? matches.filter((v) => v.id !== prefs.voice) : matches;
+  if (!choices.length) return prefs;
+  const voice = choices[Math.floor(random() * choices.length)].id;
+  return { ...prefs, voice, lastVoice: voice };
+}
 export type VoiceFilters = {
   query: string;
   language: string;

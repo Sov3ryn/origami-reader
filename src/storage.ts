@@ -94,6 +94,25 @@ export async function cancelSpeech() {
 export async function prepareVoice(voice: string) {
   if (desktop) await invoke("prepare_voice", { voice });
 }
+export async function coverEngineStatus(): Promise<{
+  installed: boolean;
+  name: string;
+}> {
+  return desktop
+    ? invoke("cover_engine_status")
+    : { installed: false, name: "SD-Turbo · local" };
+}
+export async function generateCover(
+  prompt: string,
+  seed: number,
+): Promise<string> {
+  if (!desktop)
+    throw new Error("Cover generation is available in the desktop app.");
+  return invoke("generate_cover", { prompt, seed });
+}
+export async function cancelCover() {
+  if (desktop) await invoke("cancel_cover");
+}
 export async function exportText(name: string, text: string) {
   if (desktop) return invoke("export_text", { name, text });
   const u = URL.createObjectURL(new Blob([text], { type: "text/plain" }));

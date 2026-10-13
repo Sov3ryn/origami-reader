@@ -20,7 +20,12 @@ export function usePlayer(
   const urls = useRef(new Set<string>());
   const activePrefs = useRef<Preferences | null>(null);
   const pending = useRef(0);
-  async function stop() {
+  const session = useRef<{
+    bookId: string;
+    units: Unit[];
+    index: number;
+  } | null>(null);
+  async function stop(unload = false) {
     const token = ++generation.current;
     audio.current?.pause();
     audio.current = null;
@@ -31,7 +36,8 @@ export function usePlayer(
     setStatus("idle");
     setTime(0);
     setDuration(0);
-    if (pending.current > 0) await storage.cancelSpeech().catch(() => {});
+    if (pending.current > 0 || unload)
+      await storage.cancelSpeech().catch(() => {});
     return token;
   }
   function setPlayback(speed: number, volume: number) {
@@ -49,6 +55,7 @@ export function usePlayer(
     prefs: Preferences,
     onPosition: (n: number) => void,
     selection?: string,
+    resumeCurrent = false,
   ) {
     const token = await stop();
     if (generation.current !== token) return;
@@ -59,14 +66,21 @@ export function usePlayer(
       return;
     }
     activePrefs.current = prefs;
-    const units: Unit[] = selection
-      ? splitSpeech(selection).map((text) => ({ text, paragraph: position }))
-      : book.paragraphs.slice(position).flatMap((p, i) =>
-          splitSpeech(p.text).map((text) => ({
-            text,
-            paragraph: position + i,
-          })),
-        );
+    const units: Unit[] =
+      resumeCurrent && session.current?.bookId === book.meta.id
+        ? session.current.units.slice(session.current.index)
+        : selection
+          ? splitSpeech(selection).map((text) => ({
+              text,
+              paragraph: position,
+            }))
+          : book.paragraphs.slice(position).flatMap((p, i) =>
+              splitSpeech(p.text).map((text) => ({
+                text,
+                paragraph: position + i,
+              })),
+            );
+    session.current = { bookId: book.meta.id, units, index: 0 };
     const voice = book.meta.voice || prefs.voice;
     const get = async (unit: Unit) => {
       pending.current++;
@@ -103,6 +117,7 @@ export function usePlayer(
         urls.current.add(url);
         const player = new Audio(url);
         audio.current = player;
+        session.current!.index = i;
         player.volume = activePrefs.current!.volume;
         player.playbackRate = activePrefs.current!.speed;
         setCurrent(units[i].paragraph);
@@ -171,5 +186,6 @@ export function usePlayer(
     toggle,
     seek,
     setPlayback,
+    changeVoice: () => stop(true),
   };
 }

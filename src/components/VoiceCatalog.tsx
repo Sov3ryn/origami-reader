@@ -14,6 +14,8 @@ type Props = {
   onSelect: (id: string) => void;
   onFavorite: (id: string) => void;
   documentScope: boolean;
+  language: string;
+  onLanguage: (language: string) => void;
 };
 export function VoiceCatalog({
   voices,
@@ -22,8 +24,13 @@ export function VoiceCatalog({
   onSelect,
   onFavorite,
   documentScope,
+  language,
+  onLanguage,
 }: Props) {
-  const [filters, setFilters] = useState<VoiceFilters>(emptyVoiceFilters);
+  const [filters, setFilters] = useState<VoiceFilters>({
+    ...emptyVoiceFilters,
+    language,
+  });
   const patch = (next: Partial<VoiceFilters>) =>
     setFilters((old) => ({ ...old, ...next }));
   const languages = useMemo(
@@ -65,7 +72,10 @@ export function VoiceCatalog({
           <select
             aria-label="Voice language"
             value={filters.language}
-            onChange={(e) => patch({ language: e.target.value })}
+            onChange={(e) => {
+              patch({ language: e.target.value });
+              if (e.target.value !== "all") onLanguage(e.target.value);
+            }}
           >
             <option value="all">All languages</option>
             {languages.map((l) => (
@@ -199,7 +209,7 @@ export function VoiceCatalog({
       <p className="hint">
         {documentScope
           ? "This choice applies to the current document."
-          : "This choice is the default for documents without their own voice."}
+          : "This choice sets the default voice and applies to any open document."}
       </p>
     </div>
   );

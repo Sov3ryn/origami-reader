@@ -1,4 +1,8 @@
-import { IconButton, Cover } from "./components/Primitives";
+import { IconButton, Cover, CoverControl } from "./components/Primitives";
+import { CoverDialog } from "./components/CoverDialog";
+import { coverPrompt } from "./covers";
+import { useCovers } from "./useCovers";
+import { startupVoice } from "./voiceCatalog";
 import { AppearancePanel } from "./components/AppearancePanel";
 import { BackgroundScene } from "./components/BackgroundScene";
 import { changeAppearance, startupBackground } from "./backgrounds";
@@ -51,6 +55,7 @@ import {
   List,
   LoaderCircle,
   Maximize2,
+  Minimize2,
 } from "lucide-react";
 import type {
   Book,
@@ -116,12 +121,29 @@ export default function App() {
   const [readerPage, setReaderPage] = useState(0);
   const [bookQuery, setBookQuery] = useState("");
   const [editingMeta, setEditingMeta] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
+  const [coverEditor, setCoverEditor] = useState<Book | null>(null);
+  const coverFocus = useRef<HTMLElement | null>(null);
+  const resumeVoice = useRef(false);
+  const voiceBarrier = useRef<Promise<unknown>>(Promise.resolve());
   const fileInput = useRef<HTMLInputElement>(null);
   const article = useRef<HTMLElement>(null);
   const focusTitle = useRef<HTMLHeadingElement>(null);
   const notify = (s: string) => setNotice(s);
   const player = usePlayer(notify, (voice) =>
     setPrefs((old) => ({ ...old, lastVoice: voice })),
+  );
+  const covers = useCovers(
+    prefs.autoGenerateCovers,
+    player.status === "idle",
+    (meta) => {
+      setBooks((old) => old.map((b) => (b.id === meta.id ? meta : b)));
+      setBook((old) => (old?.meta.id === meta.id ? { ...old, meta } : old));
+      setCoverEditor((old) =>
+        old?.meta.id === meta.id ? { ...old, meta } : old,
+      );
+    },
+    notify,
   );
   const [startupSpeech, setStartupSpeech] = useState("");
   const prefRef = useRef(prefs);
@@ -130,7 +152,9 @@ export default function App() {
   bookRef.current = book;
   const theme = themes.find((t) => t.id === prefs.theme) || themes[0];
   const inspectorAvailable = page !== "library" && page !== "settings";
-  const inspectorOpen = inspectorAvailable && prefs.rightOpen;
+  const focused = page === "reader" && focusMode;
+  const navigationOpen = prefs.leftOpen && !focused;
+  const inspectorOpen = inspectorAvailable && prefs.rightOpen && !focused;
   const variables = {
     "--bg": theme.bg,
     "--panel": theme.panel,
@@ -139,7 +163,7 @@ export default function App() {
     "--accent": theme.accent,
     "--accent-ink": theme.contrast,
     "--line": theme.line,
-    "--left-width": prefs.leftOpen ? prefs.leftWidth + "px" : "0px",
+    "--left-width": navigationOpen ? prefs.leftWidth + "px" : "0px",
     "--right-width": inspectorOpen ? prefs.rightWidth + "px" : "0px",
     "--reader-size": prefs.fontSize + "px",
     "--reader-leading": prefs.lineHeight,
@@ -164,7 +188,7 @@ export default function App() {
           const merged = { ...defaultPreferences, ...saved };
           if (available.length && !available.some((v) => v.id === merged.voice))
             merged.voice = available[0].id;
-          setPrefs(startupBackground(merged));
+          setPrefs(startupBackground(startupVoice(merged, available)));
           setVoices(available);
           setAnnotations(await store.listAnnotations());
           setReady(true);
@@ -233,19 +257,63 @@ export default function App() {
       if (e.key === "Escape") {
         setQuick(false);
         setSelection(null);
+        setFocusMode(false);
       }
     };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
   }, []);
   async function updateMeta(meta: BookMeta) {
-    await store.saveMeta(meta);
     setBooks((old) => old.map((b) => (b.id === meta.id ? meta : b)));
     setBook((old) => (old?.meta.id === meta.id ? { ...old, meta } : old));
+    await store.saveMeta(meta);
+  }
+  async function editCover(meta: BookMeta) {
+    coverFocus.current = document.activeElement as HTMLElement;
+    setCoverEditor(await store.readBook(meta.id));
+  }
+  function closeCoverEditor() {
+    setCoverEditor(null);
+    requestAnimationFrame(() => coverFocus.current?.focus());
+  }
+  async function chooseCoverImage(image: string) {
+    if (!coverEditor) return;
+    const current = (await store.readBook(coverEditor.meta.id)).meta;
+    const meta = {
+      ...current,
+      coverImage: image,
+      coverOrigin: "custom" as const,
+    };
+    await updateMeta(meta);
+    setCoverEditor((old) => (old ? { ...old, meta } : old));
+  }
+  function selectVoice(id: string, documentScope: boolean) {
+    const chosen = voices.find((v) => v.id === id);
+    if (!chosen?.available) return;
+    const current = book ? book.meta.voice || prefs.voice : prefs.voice;
+    if (current === id && (documentScope || prefs.voice === id)) return;
+    if (current !== id) {
+      resumeVoice.current = true;
+      voiceBarrier.current = player.changeVoice();
+    }
+    const language = chosen.languages.includes(prefs.voiceLanguage)
+      ? prefs.voiceLanguage
+      : chosen.languages[0] || prefs.voiceLanguage;
+    patchPrefs({ voiceLanguage: language });
+    setStartupSpeech("");
+    if (book) {
+      const meta = { ...book.meta, voice: id };
+      setBook({ ...book, meta });
+      setBooks((old) => old.map((b) => (b.id === meta.id ? meta : b)));
+      void store.saveMeta(meta).catch(error);
+    }
+    if (!documentScope || !book) patchPrefs({ voice: id });
   }
   async function openBook(id: string, position?: number) {
     if (draft && !window.confirm("Discard the unfinished note?")) return;
     await player.stop();
+    resumeVoice.current = false;
+    setFocusMode(false);
     const b = await store.readBook(id);
     b.meta.opened = Date.now();
     if (position !== undefined) b.meta.position = position;
@@ -280,6 +348,7 @@ export default function App() {
             continue;
           }
           await store.saveBook(b);
+          covers.enqueue(b.meta);
           known = [...known, b.meta];
           count++;
         } catch (e) {
@@ -303,6 +372,7 @@ export default function App() {
       "Text",
     );
     await store.saveBook(b);
+    covers.enqueue(b.meta);
     setQuick(false);
     setQuickText("");
     await openBook(b.meta.id);
@@ -327,6 +397,7 @@ export default function App() {
     notify("Restored to the library.");
   }
   function chooseTab(tab: InspectorTab) {
+    setFocusMode(false);
     if (tab === "appearance" && !inspectorAvailable) {
       setPage("settings");
       return;
@@ -434,12 +505,46 @@ export default function App() {
       const n = book.paragraphs.findIndex(
         (p) => p.id === selection.paragraphId,
       );
-      await player.start(book, n, prefs, () => {}, selection.text);
+      await covers.cancel();
+      await voiceBarrier.current;
+      resumeVoice.current = false;
+      await player.start(
+        bookRef.current!,
+        n,
+        prefRef.current,
+        () => {},
+        selection.text,
+      );
     }
   }
   async function startBook() {
-    if (book)
-      await player.start(book, book.meta.position, prefs, positionChanged);
+    if (book) {
+      await covers.cancel();
+      await voiceBarrier.current;
+      const current = bookRef.current!;
+      const resume = resumeVoice.current;
+      resumeVoice.current = false;
+      await player.start(
+        current,
+        current.meta.position,
+        prefRef.current,
+        positionChanged,
+        undefined,
+        resume,
+      );
+    }
+  }
+  async function startFrom(position: number) {
+    await covers.cancel();
+    await voiceBarrier.current;
+    resumeVoice.current = false;
+    if (bookRef.current)
+      await player.start(
+        bookRef.current,
+        position,
+        prefRef.current,
+        positionChanged,
+      );
   }
   function paragraphText(p: Book["paragraphs"][number]) {
     const marks = annotations.filter(
@@ -730,7 +835,7 @@ export default function App() {
                 const n = book.paragraphs.findIndex(
                   (p) => p.id === selection.paragraphId,
                 );
-                void player.start(book, n, prefs, positionChanged);
+                void startFrom(n);
               }
             }}
           >
@@ -790,7 +895,25 @@ export default function App() {
         <h3>Document</h3>
         {book ? (
           <>
-            <Cover book={book.meta} small />
+            <CoverControl
+              book={book.meta}
+              onEdit={() => {
+                void editCover(book.meta).catch(error);
+              }}
+              always
+            />
+            {covers.active === book.meta.id && (
+              <p className="hint" role="status">
+                Generating cover...
+              </p>
+            )}
+            <button
+              onClick={() => {
+                void editCover(book.meta).catch(error);
+              }}
+            >
+              Change cover
+            </button>
             <h4>{book.meta.title}</h4>
             <p className="hint">{book.meta.author}</p>
             <dl>
@@ -892,9 +1015,9 @@ export default function App() {
         }}
       />
       <aside
-        className={"sidebar " + (!prefs.leftOpen ? "collapsed" : "")}
-        aria-hidden={!prefs.leftOpen}
-        inert={!prefs.leftOpen}
+        className={"sidebar " + (!navigationOpen ? "collapsed" : "")}
+        aria-hidden={!navigationOpen}
+        inert={!navigationOpen}
       >
         <button
           className="brand"
@@ -1064,7 +1187,7 @@ export default function App() {
           </>
         )}
       </aside>
-      {prefs.leftOpen && (
+      {navigationOpen && (
         <div
           role="separator"
           aria-label="Resize navigation"
@@ -1092,17 +1215,20 @@ export default function App() {
           <div className="header-left">
             <IconButton
               label={
-                prefs.leftOpen ? "Collapse navigation" : "Expand navigation"
+                navigationOpen ? "Collapse navigation" : "Expand navigation"
               }
-              onClick={() => patchPrefs({ leftOpen: !prefs.leftOpen })}
+              onClick={() => {
+                if (focused) setFocusMode(false);
+                else patchPrefs({ leftOpen: !prefs.leftOpen });
+              }}
             >
-              {prefs.leftOpen ? (
+              {navigationOpen ? (
                 <PanelLeftClose size={19} />
               ) : (
                 <PanelLeftOpen size={19} />
               )}
             </IconButton>
-            {!prefs.leftOpen && (
+            {!navigationOpen && (
               <img className="mini-crane" src="/crane.png" alt="Origami" />
             )}
             <span className="breadcrumb">
@@ -1135,12 +1261,11 @@ export default function App() {
                   <Bookmark size={18} />
                 </IconButton>
                 <IconButton
-                  label="Focus mode"
-                  onClick={() =>
-                    patchPrefs({ leftOpen: false, rightOpen: false })
-                  }
+                  label={focused ? "Exit focus mode" : "Focus mode"}
+                  active={focused}
+                  onClick={() => setFocusMode(!focusMode)}
                 >
-                  <Maximize2 size={18} />
+                  {focused ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
                 </IconButton>
               </>
             )}
@@ -1155,7 +1280,12 @@ export default function App() {
                 label={
                   inspectorOpen ? "Collapse inspector" : "Expand inspector"
                 }
-                onClick={() => patchPrefs({ rightOpen: !prefs.rightOpen })}
+                onClick={() => {
+                  if (focused) {
+                    setFocusMode(false);
+                    patchPrefs({ rightOpen: true });
+                  } else patchPrefs({ rightOpen: !prefs.rightOpen });
+                }}
               >
                 {prefs.rightOpen ? (
                   <PanelRightClose size={19} />
@@ -1305,34 +1435,45 @@ export default function App() {
                   filter === "All" && (
                     <section className="continue-section">
                       <h2>Continue reading</h2>
-                      <button
-                        className="continue-card"
-                        onClick={() => {
-                          void openBook(latest.id).catch(error);
-                        }}
-                      >
-                        <Cover book={latest} small />
-                        <span className="continue-info">
-                          <strong>{latest.title}</strong>
-                          <span>{latest.author}</span>
-                          <span className="book-progress">
-                            <progress
-                              value={latest.position}
-                              max={Math.max(1, latest.paragraphCount - 1)}
-                            />
-                            {Math.round(
-                              (latest.position /
-                                Math.max(1, latest.paragraphCount - 1)) *
-                                100,
-                            )}
-                            %
+                      <div className="continue-card">
+                        <CoverControl
+                          book={latest}
+                          small
+                          onOpen={() => {
+                            void openBook(latest.id).catch(error);
+                          }}
+                          onEdit={() => {
+                            void editCover(latest).catch(error);
+                          }}
+                        />
+                        <button
+                          className="continue-body"
+                          onClick={() => {
+                            void openBook(latest.id).catch(error);
+                          }}
+                        >
+                          <span className="continue-info">
+                            <strong>{latest.title}</strong>
+                            <span>{latest.author}</span>
+                            <span className="book-progress">
+                              <progress
+                                value={latest.position}
+                                max={Math.max(1, latest.paragraphCount - 1)}
+                              />
+                              {Math.round(
+                                (latest.position /
+                                  Math.max(1, latest.paragraphCount - 1)) *
+                                  100,
+                              )}
+                              %
+                            </span>
                           </span>
-                        </span>
-                        <span className="continue-open">
-                          <BookOpen size={17} />
-                          Open book
-                        </span>
-                      </button>
+                          <span className="continue-open">
+                            <BookOpen size={17} />
+                            Open book
+                          </span>
+                        </button>
+                      </div>
                     </section>
                   )}
                 <div className="section-row shelf-heading">
@@ -1377,35 +1518,46 @@ export default function App() {
                           />
                         </IconButton>
                       </div>
-                      <button
-                        className="book-open"
-                        onClick={() => {
-                          if (b.deleted) void restore([b]).catch(error);
-                          else void openBook(b.id).catch(error);
-                        }}
-                      >
-                        <Cover book={b} />
-                        <div className="book-card-info">
-                          <h3>{b.title}</h3>
-                          <p>{b.author}</p>
-                          <span className="format-badge">{b.format}</span>
-                          <div className="book-progress">
-                            <progress
-                              value={b.position}
-                              max={Math.max(1, b.paragraphCount - 1)}
-                            />
-                            <span>
-                              {Math.round(
-                                (b.position /
-                                  Math.max(1, b.paragraphCount - 1)) *
-                                  100,
-                              )}
-                              %
-                            </span>
+                      <div className="book-entry">
+                        <CoverControl
+                          book={b}
+                          onOpen={() => {
+                            if (b.deleted) void restore([b]).catch(error);
+                            else void openBook(b.id).catch(error);
+                          }}
+                          onEdit={() => {
+                            void editCover(b).catch(error);
+                          }}
+                        />
+                        <button
+                          className="book-open"
+                          onClick={() => {
+                            if (b.deleted) void restore([b]).catch(error);
+                            else void openBook(b.id).catch(error);
+                          }}
+                        >
+                          <div className="book-card-info">
+                            <h3>{b.title}</h3>
+                            <p>{b.author}</p>
+                            <span className="format-badge">{b.format}</span>
+                            <div className="book-progress">
+                              <progress
+                                value={b.position}
+                                max={Math.max(1, b.paragraphCount - 1)}
+                              />
+                              <span>
+                                {Math.round(
+                                  (b.position /
+                                    Math.max(1, b.paragraphCount - 1)) *
+                                    100,
+                                )}
+                                %
+                              </span>
+                            </div>
+                            <small>{b.wordCount.toLocaleString()} words</small>
                           </div>
-                          <small>{b.wordCount.toLocaleString()} words</small>
-                        </div>
-                      </button>
+                        </button>
+                      </div>
                     </article>
                   ))}
                 </div>
@@ -1610,7 +1762,11 @@ export default function App() {
                       selected={prefs.voice}
                       favorites={prefs.voiceFavorites}
                       documentScope={false}
-                      onSelect={(id) => patchPrefs({ voice: id })}
+                      onSelect={(id) => selectVoice(id, false)}
+                      language={prefs.voiceLanguage}
+                      onLanguage={(voiceLanguage) =>
+                        patchPrefs({ voiceLanguage })
+                      }
                       onFavorite={(id) =>
                         patchPrefs({
                           voiceFavorites: prefs.voiceFavorites.includes(id)
@@ -1655,6 +1811,64 @@ export default function App() {
                         {startupSpeech}
                       </p>
                     )}
+                    <label className="check-label">
+                      <input
+                        type="checkbox"
+                        checked={prefs.randomVoiceAtStartup}
+                        onChange={(e) =>
+                          patchPrefs({ randomVoiceAtStartup: e.target.checked })
+                        }
+                      />
+                      Randomize voice at startup
+                    </label>
+                    <label>
+                      Startup voice language
+                      <select
+                        aria-label="Startup voice language"
+                        value={prefs.voiceLanguage}
+                        onChange={(e) =>
+                          patchPrefs({ voiceLanguage: e.target.value })
+                        }
+                      >
+                        {[
+                          ...new Set([
+                            prefs.voiceLanguage,
+                            ...voices.flatMap((v) => v.languages),
+                          ]),
+                        ]
+                          .sort()
+                          .map((language) => (
+                            <option key={language}>{language}</option>
+                          ))}
+                      </select>
+                    </label>
+                    <p className="hint">
+                      Uses an installed voice in your last selected language
+                      when Origami opens. The selected voice is loaded at
+                      startup only if preloading is enabled.
+                    </p>
+                    <h3>Cover art</h3>
+                    <label className="check-label">
+                      <input
+                        type="checkbox"
+                        checked={prefs.autoGenerateCovers}
+                        onChange={(e) =>
+                          patchPrefs({ autoGenerateCovers: e.target.checked })
+                        }
+                      />
+                      Generate missing covers automatically
+                    </label>
+                    <p className="hint">
+                      Creates artwork for new imports and pasted documents
+                      without a cover. Imported artwork is kept. Generation runs
+                      while playback is stopped and unloads afterward.
+                    </p>
+                    <p className="hint">
+                      {covers.installed
+                        ? "SD-Turbo cover engine is installed."
+                        : "Cover engine setup is required for local generation. See docs/COVER-GENERATION.md."}{" "}
+                      Powered by Stability AI.
+                    </p>
                     <h3>Workspace</h3>
                     <p>
                       Library data, notes and preferences are stored{" "}
@@ -1711,9 +1925,9 @@ export default function App() {
       )}
       {inspectorAvailable && (
         <aside
-          className={"inspector " + (!prefs.rightOpen ? "collapsed" : "")}
-          aria-hidden={!prefs.rightOpen}
-          inert={!prefs.rightOpen}
+          className={"inspector " + (!inspectorOpen ? "collapsed" : "")}
+          aria-hidden={!inspectorOpen}
+          inert={!inspectorOpen}
         >
           <div className="inspector-header">
             <span>Inspector</span>
@@ -1796,11 +2010,11 @@ export default function App() {
                 }
                 favorites={prefs.voiceFavorites}
                 documentScope={page === "reader" && Boolean(book)}
-                onSelect={(id) => {
-                  if (page === "reader" && book)
-                    void updateMeta({ ...book.meta, voice: id }).catch(error);
-                  else patchPrefs({ voice: id });
-                }}
+                onSelect={(id) =>
+                  selectVoice(id, page === "reader" && Boolean(book))
+                }
+                language={prefs.voiceLanguage}
+                onLanguage={(voiceLanguage) => patchPrefs({ voiceLanguage })}
                 onFavorite={(id) =>
                   patchPrefs({
                     voiceFavorites: prefs.voiceFavorites.includes(id)
@@ -1855,8 +2069,7 @@ export default function App() {
               if (book) {
                 const n = Math.max(0, book.meta.position - 1);
                 positionChanged(n);
-                if (player.status !== "idle")
-                  void player.start(book, n, prefs, positionChanged);
+                if (player.status !== "idle") void startFrom(n);
               }
             }}
           >
@@ -1896,8 +2109,7 @@ export default function App() {
                   book.meta.position + 1,
                 );
                 positionChanged(n);
-                if (player.status !== "idle")
-                  void player.start(book, n, prefs, positionChanged);
+                if (player.status !== "idle") void startFrom(n);
               }
             }}
           >
@@ -1979,6 +2191,19 @@ export default function App() {
             <X size={15} />
           </IconButton>
         </div>
+      )}
+      {coverEditor && (
+        <CoverDialog
+          book={coverEditor.meta}
+          prompt={coverPrompt(coverEditor)}
+          installed={covers.installed}
+          active={covers.active === coverEditor.meta.id}
+          idle={player.status === "idle"}
+          onClose={closeCoverEditor}
+          onImage={chooseCoverImage}
+          onGenerate={(prompt) => covers.generate(coverEditor.meta.id, prompt)}
+          onCancel={covers.cancel}
+        />
       )}
       {quick && (
         <div

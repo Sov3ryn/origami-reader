@@ -1,7 +1,32 @@
 import { describe, it, expect } from "vitest";
 import { filterVoices, emptyVoiceFilters } from "../src/voiceCatalog";
+import { startupVoice } from "../src/voiceCatalog";
+import { defaultPreferences } from "../src/types";
 import type { Voice } from "../src/types";
 const base = { description: "", available: true, engine: "test", accent: "" };
+it("random startup voices stay inside the last selected language and require availability", () => {
+  const candidates = [
+    { ...base, id: "english", languages: ["English"] },
+    { ...base, id: "french1", languages: ["French"] },
+    { ...base, id: "french2", languages: ["French", "English"] },
+    { ...base, id: "offline", languages: ["French"], available: false },
+  ] as Voice[];
+  const prefs = {
+    ...defaultPreferences,
+    voice: "french1",
+    voiceLanguage: "French",
+    randomVoiceAtStartup: true,
+  };
+  expect(startupVoice(prefs, candidates, () => 0)).toMatchObject({
+    voice: "french2",
+    lastVoice: "french2",
+    voiceLanguage: "French",
+  });
+  expect(
+    startupVoice({ ...prefs, voiceLanguage: "Japanese" }, candidates),
+  ).toMatchObject({ voice: "french1" });
+  expect(startupVoice(defaultPreferences, candidates)).toBe(defaultPreferences);
+});
 const voices: Voice[] = [
   {
     ...base,

@@ -1,3 +1,4 @@
+mod covers;
 mod speech;
 mod store;
 use serde_json::Value;
@@ -57,6 +58,7 @@ fn list_voices(app: tauri::AppHandle) -> Vec<Value> {
 #[tauri::command]
 async fn synthesize(app: tauri::AppHandle, text: String, voice: String) -> Result<Value> {
     tauri::async_runtime::spawn_blocking(move || {
+        app.state::<covers::Covers>().cancel()?;
         let state = app.state::<speech::Speech>();
         state.synthesize(app.clone(), text, voice)
     })
@@ -66,11 +68,30 @@ async fn synthesize(app: tauri::AppHandle, text: String, voice: String) -> Resul
 #[tauri::command]
 async fn prepare_voice(app: tauri::AppHandle, voice: String) -> Result<Value> {
     tauri::async_runtime::spawn_blocking(move || {
+        app.state::<covers::Covers>().cancel()?;
         let state = app.state::<speech::Speech>();
         state.prepare(app.clone(), voice)
     })
     .await
     .map_err(|_| "Voice preload task failed")?
+}
+#[tauri::command]
+fn cover_engine_status(app: tauri::AppHandle) -> Value {
+    covers::status(&app)
+}
+#[tauri::command]
+async fn generate_cover(app: tauri::AppHandle, prompt: String, seed: u32) -> Result<String> {
+    let epoch = app.state::<covers::Covers>().generation_epoch();
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<covers::Covers>()
+            .generate(app.clone(), prompt, seed, epoch)
+    })
+    .await
+    .map_err(|_| "Cover generation task failed")?
+}
+#[tauri::command]
+fn cancel_cover(state: State<covers::Covers>) -> Result<()> {
+    state.cancel()
 }
 #[tauri::command]
 fn cancel_speech(state: State<speech::Speech>) -> Result<()> {
@@ -96,11 +117,14 @@ async fn export_text(name: String, text: String) -> Result<bool> {
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
-            let path = app.path().app_data_dir()?;
+            let path = std::env::var_os("ORIGAMI_DATA_DIR")
+                .map(std::path::PathBuf::from)
+                .unwrap_or(app.path().app_data_dir()?);
             std::fs::create_dir_all(&path)?;
             let db = Store::open(&path.join("origami.sqlite3")).map_err(std::io::Error::other)?;
             app.manage(Database(Mutex::new(db)));
             app.manage(speech::Speech::default());
+            app.manage(covers::Covers::default());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -117,6 +141,9 @@ pub fn run() {
             synthesize,
             prepare_voice,
             cancel_speech,
+            cover_engine_status,
+            generate_cover,
+            cancel_cover,
             export_text
         ])
         .build(tauri::generate_context!())
@@ -124,6 +151,7 @@ pub fn run() {
         .run(|app, event| {
             if let tauri::RunEvent::Exit = event {
                 let _ = app.state::<speech::Speech>().shutdown();
+                let _ = app.state::<covers::Covers>().shutdown();
             }
         });
 }

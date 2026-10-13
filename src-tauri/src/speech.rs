@@ -150,6 +150,16 @@ impl Speech {
         if needs_new {
             if let Some(old) = guard.take() {
                 let mut p = old.process.lock().map_err(|_| "Process lock failed")?;
+                #[cfg(windows)]
+                if p.try_wait().ok().flatten().is_none() {
+                    use std::os::windows::process::CommandExt;
+                    let _ = Command::new("taskkill.exe")
+                        .args(["/PID", &p.id().to_string(), "/T", "/F"])
+                        .creation_flags(0x08000000)
+                        .stdout(Stdio::null())
+                        .stderr(Stdio::null())
+                        .status();
+                }
                 let _ = p.kill();
                 let _ = p.wait();
             }

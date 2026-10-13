@@ -4,6 +4,8 @@ import { spawn } from "node:child_process";
 const local = resolve(".local/worker.json");
 const env = { ...process.env };
 if (existsSync(local)) env.ORIGAMI_WORKER_CONFIG = local;
+const covers = resolve(".local/cover-engine.json");
+if (existsSync(covers)) env.ORIGAMI_COVER_CONFIG = covers;
 const cargo = resolve("../work/origami-tools/cargo");
 const rustup = resolve("../work/origami-tools/rustup");
 if (existsSync(cargo) && existsSync(rustup)) {

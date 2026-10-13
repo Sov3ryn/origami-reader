@@ -1,0 +1,5 @@
+{
+  "executable": "/absolute/path/to/sd-cli",
+  "model": "/absolute/path/to/sd-turbo-f16.gguf",
+  "backend": "vulkan0"
+}
