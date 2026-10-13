@@ -3,7 +3,10 @@ use std::{
     io::{BufRead, BufReader, Write},
     path::PathBuf,
     process::{Child, ChildStdin, ChildStdout, Command, Stdio},
-    sync::{Arc, Mutex},
+    sync::{
+        atomic::{AtomicBool, AtomicU64, Ordering},
+        Arc, Mutex,
+    },
 };
 use tauri::{AppHandle, Manager};
 type Result<T> = std::result::Result<T, String>;
@@ -17,6 +20,8 @@ struct Worker {
 pub struct Speech {
     worker: Mutex<Option<Worker>>,
     active: Mutex<Option<Arc<Mutex<Child>>>>,
+    closing: AtomicBool,
+    generation: AtomicU64,
 }
 fn config_path(app: &AppHandle) -> Result<PathBuf> {
     if let Some(p) = std::env::var_os("ORIGAMI_WORKER_CONFIG") {
@@ -72,6 +77,7 @@ pub fn voices(app: &AppHandle) -> Vec<Value> {
 }
 impl Speech {
     pub fn cancel(&self) -> Result<()> {
+        self.generation.fetch_add(1, Ordering::SeqCst);
         if let Some(child) = self
             .active
             .lock()
@@ -79,19 +85,58 @@ impl Speech {
             .as_ref()
         {
             let mut c = child.lock().map_err(|_| "Process lock failed")?;
+            #[cfg(windows)]
+            if c.try_wait().ok().flatten().is_none() {
+                use std::os::windows::process::CommandExt;
+                // A Windows virtual-environment launcher can own a second Python
+                // process. Stop only this worker's tree, including its GPU process.
+                let _ = Command::new("taskkill.exe")
+                    .args(["/PID", &c.id().to_string(), "/T", "/F"])
+                    .creation_flags(0x08000000)
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null())
+                    .status();
+            }
             let _ = c.kill();
+            let _ = c.wait();
         }
         Ok(())
+    }
+    pub fn shutdown(&self) -> Result<()> {
+        self.closing.store(true, Ordering::SeqCst);
+        self.cancel()
+    }
+    pub fn prepare(&self, app: AppHandle, voice: String) -> Result<Value> {
+        self.request(app, voice, json!({"version":1,"action":"prepare"}), "ready")
     }
     pub fn synthesize(&self, app: AppHandle, text: String, voice: String) -> Result<Value> {
         if text.trim().is_empty() || text.chars().count() > 1200 {
             return Err("Read a passage of 1 to 1,200 characters.".into());
+        }
+        self.request(app, voice, json!({"version":1,"text":text}), "audio")
+    }
+    fn request(
+        &self,
+        app: AppHandle,
+        voice: String,
+        request: Value,
+        expected: &str,
+    ) -> Result<Value> {
+        let generation = self.generation.load(Ordering::SeqCst);
+        if self.closing.load(Ordering::SeqCst) {
+            return Err("Origami is closing.".into());
         }
         let c = config(&app)?;
         if c["voices"].get(&voice).is_none() {
             return Err("Voice is not installed.".into());
         }
         let mut guard = self.worker.lock().map_err(|_| "Worker lock failed")?;
+        if self.closing.load(Ordering::SeqCst) {
+            return Err("Origami is closing.".into());
+        }
+        if generation != self.generation.load(Ordering::SeqCst) {
+            return Err("Speech request cancelled.".into());
+        }
         let needs_new = guard
             .as_mut()
             .map(|w| {
@@ -133,13 +178,22 @@ impl Speech {
                 use std::os::windows::process::CommandExt;
                 command.creation_flags(0x08000000);
             }
+            // Shutdown and process registration share this lock, so a new child
+            // cannot slip through after the window has closed.
+            let mut active = self.active.lock().map_err(|_| "Process lock failed")?;
+            if self.closing.load(Ordering::SeqCst) {
+                return Err("Origami is closing.".into());
+            }
+            if generation != self.generation.load(Ordering::SeqCst) {
+                return Err("Speech request cancelled.".into());
+            }
             let mut p = command
                 .spawn()
                 .map_err(|_| "Could not start local speech worker".to_string())?;
             let input = p.stdin.take().ok_or("Missing worker input")?;
             let output = BufReader::new(p.stdout.take().ok_or("Missing worker output")?);
             let process = Arc::new(Mutex::new(p));
-            *self.active.lock().map_err(|_| "Process lock failed")? = Some(process.clone());
+            *active = Some(process.clone());
             *guard = Some(Worker {
                 process,
                 input,
@@ -148,7 +202,7 @@ impl Speech {
             });
         }
         let worker = guard.as_mut().ok_or("Worker unavailable")?;
-        let request = json!({"version":1,"text":text}).to_string();
+        let request = request.to_string();
         worker
             .input
             .write_all((request + "\n").as_bytes())
@@ -174,7 +228,9 @@ impl Speech {
                 .unwrap_or("Speech generation failed")
                 .into());
         }
-        if result["event"] != "audio" || result["audio"].as_str().is_none() {
+        if result["event"] != expected
+            || (expected == "audio" && result["audio"].as_str().is_none())
+        {
             return Err("Unexpected worker response".into());
         }
         Ok(result)
@@ -182,6 +238,48 @@ impl Speech {
 }
 impl Drop for Speech {
     fn drop(&mut self) {
-        let _ = self.cancel();
+        let _ = self.shutdown();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn shutdown_terminates_and_reaps_the_registered_child() {
+        #[cfg(windows)]
+        let mut command = {
+            use std::os::windows::process::CommandExt;
+            let mut c = Command::new("powershell.exe");
+            c.args([
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                "Start-Sleep -Seconds 60",
+            ]);
+            c.creation_flags(0x08000000);
+            c
+        };
+        #[cfg(not(windows))]
+        let mut command = {
+            let mut c = Command::new("sleep");
+            c.arg("60");
+            c
+        };
+        let child = Arc::new(Mutex::new(
+            command
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn()
+                .unwrap(),
+        ));
+        let speech = Speech::default();
+        *speech.active.lock().unwrap() = Some(child.clone());
+        speech.shutdown().unwrap();
+        assert!(speech.closing.load(Ordering::SeqCst));
+        assert!(child.lock().unwrap().try_wait().unwrap().is_some());
+        speech.shutdown().unwrap();
     }
 }

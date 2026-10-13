@@ -49,6 +49,7 @@ export type Preferences = {
   surface: string;
   texture: boolean;
   scene: string;
+  scenePreferences: Record<string, SceneAppearance>;
   backgroundOpacity: number;
   motion: boolean;
   mist: boolean;
@@ -57,6 +58,10 @@ export type Preferences = {
   ripples: boolean;
   cabinLights: boolean;
   moonCloud: boolean;
+  skyClouds: boolean;
+  fireflies: boolean;
+  leaves: boolean;
+  snow: boolean;
   fontSize: number;
   lineHeight: number;
   pageWidth: number;
@@ -69,8 +74,26 @@ export type Preferences = {
   volume: number;
   voice: string;
   follow: boolean;
+  preloadAtStartup: boolean;
+  lastVoice: string;
   voiceFavorites: string[];
 };
+export type SceneAppearance = Pick<
+  Preferences,
+  | "theme"
+  | "backgroundOpacity"
+  | "motion"
+  | "mist"
+  | "petals"
+  | "mountainFog"
+  | "ripples"
+  | "cabinLights"
+  | "moonCloud"
+  | "skyClouds"
+  | "fireflies"
+  | "leaves"
+  | "snow"
+>;
 export type Voice = {
   id: string;
   name: string;
@@ -88,6 +111,7 @@ export const defaultPreferences: Preferences = {
   surface: "paper",
   texture: true,
   scene: "lake",
+  scenePreferences: {},
   backgroundOpacity: 0.21,
   motion: true,
   mist: true,
@@ -96,6 +120,10 @@ export const defaultPreferences: Preferences = {
   ripples: true,
   cabinLights: true,
   moonCloud: true,
+  skyClouds: true,
+  fireflies: true,
+  leaves: true,
+  snow: true,
   fontSize: 21,
   lineHeight: 1.8,
   pageWidth: 850,
@@ -108,5 +136,7 @@ export const defaultPreferences: Preferences = {
   volume: 0.8,
   voice: "maeve-crimson-desert",
   follow: true,
+  preloadAtStartup: true,
+  lastVoice: "",
   voiceFavorites: [],
 };

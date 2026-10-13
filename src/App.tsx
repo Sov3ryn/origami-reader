@@ -1,6 +1,7 @@
 import { IconButton, Cover } from "./components/Primitives";
 import { AppearancePanel } from "./components/AppearancePanel";
 import { BackgroundScene } from "./components/BackgroundScene";
+import { switchBackground } from "./backgrounds";
 import { VoiceCatalog } from "./components/VoiceCatalog";
 import {
   useEffect,
@@ -112,7 +113,10 @@ export default function App() {
   const article = useRef<HTMLElement>(null);
   const focusTitle = useRef<HTMLHeadingElement>(null);
   const notify = (s: string) => setNotice(s);
-  const player = usePlayer(notify);
+  const player = usePlayer(notify, (voice) =>
+    setPrefs((old) => ({ ...old, lastVoice: voice })),
+  );
+  const [startupSpeech, setStartupSpeech] = useState("");
   const prefRef = useRef(prefs);
   prefRef.current = prefs;
   const bookRef = useRef(book);
@@ -137,7 +141,10 @@ export default function App() {
   const error = (e: unknown) =>
     notify(e instanceof Error ? e.message : String(e));
   const patchPrefs = (p: Partial<Preferences>) =>
-    setPrefs((old) => ({ ...old, ...p }));
+    setPrefs((old) => ({
+      ...(p.scene ? switchBackground(old, p.scene) : old),
+      ...p,
+    }));
   async function refresh() {
     setBooks(await store.listBooks());
   }
@@ -170,6 +177,32 @@ export default function App() {
     if (!ready) return;
     void store.saveSettings(prefs).catch(error);
   }, [prefs, ready]);
+  useEffect(() => {
+    if (!ready || !store.desktop || !prefs.preloadAtStartup) return;
+    const available = voices.filter((voice) => voice.available);
+    const voice =
+      available.find((v) => v.id === prefs.lastVoice) ||
+      available.find((v) => v.id === prefs.voice) ||
+      available[0];
+    if (!voice) return;
+    let active = true;
+    setStartupSpeech("Preparing " + voice.name + " for playback...");
+    void store
+      .prepareVoice(voice.id)
+      .then(() => {
+        if (active) setStartupSpeech("Loaded " + voice.name + " at startup.");
+      })
+      .catch(() => {
+        if (active)
+          setStartupSpeech(
+            "Startup preload failed. Playback will retry when needed.",
+          );
+      });
+    return () => {
+      active = false;
+    };
+    // Startup only; changing appearance or voice preferences must not reload the engine.
+  }, [ready]);
   useEffect(() => {
     const visibility = () => {
       document.documentElement.dataset.hidden = String(document.hidden);
@@ -843,17 +876,7 @@ export default function App() {
         if (e.dataTransfer.files.length) void importFiles(e.dataTransfer.files);
       }}
     >
-      <BackgroundScene
-        scene={prefs.scene}
-        opacity={prefs.backgroundOpacity}
-        motion={prefs.motion}
-        mist={prefs.mist}
-        petals={prefs.petals}
-        mountainFog={prefs.mountainFog}
-        ripples={prefs.ripples}
-        cabinLights={prefs.cabinLights}
-        moonCloud={prefs.moonCloud}
-      />
+      <BackgroundScene prefs={prefs} />
       <input
         className="hidden"
         ref={fileInput}
@@ -1607,6 +1630,27 @@ export default function App() {
                 <div className="settings-grid">
                   {<AppearancePanel prefs={prefs} onChange={patchPrefs} />}
                   <div className="inspector-content">
+                    <h3>Speech</h3>
+                    <label className="check-label">
+                      <input
+                        type="checkbox"
+                        checked={prefs.preloadAtStartup}
+                        onChange={(e) =>
+                          patchPrefs({ preloadAtStartup: e.target.checked })
+                        }
+                      />
+                      Preload last used voice at startup
+                    </label>
+                    <p className="hint">
+                      Loads the local model and voice into memory when Origami
+                      opens. Changes apply the next time you open the app.
+                      Closing Origami releases the model.
+                    </p>
+                    {startupSpeech && (
+                      <p className="hint" role="status">
+                        {startupSpeech}
+                      </p>
+                    )}
                     <h3>Workspace</h3>
                     <p>
                       Library data, notes and preferences are stored{" "}

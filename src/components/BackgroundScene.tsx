@@ -1,4 +1,6 @@
 import { memo, type CSSProperties } from "react";
+import { enabledEffects, getBackground } from "../backgrounds";
+import type { Preferences } from "../types";
 
 const petals = [
   {
@@ -123,113 +125,178 @@ const petals = [
   },
 ];
 
+const snowflakes = Array.from({ length: 24 }, (_, i) => ({
+  left: 3 + ((i * 37) % 108),
+  size: 3 + (i % 4),
+  seconds: 36 + (i % 9) * 3,
+  delay: -((i * 17) % 57),
+  drift: -12 - (i % 5) * 4,
+}));
+const fireflies = [
+  { left: 13, top: 48, seconds: 17, delay: -4 },
+  { left: 20, top: 46, seconds: 23, delay: -15 },
+  { left: 30, top: 49, seconds: 19, delay: -8 },
+  { left: 67, top: 47, seconds: 26, delay: -20 },
+  { left: 75, top: 48, seconds: 21, delay: -12 },
+  { left: 88, top: 46, seconds: 29, delay: -3 },
+];
+
 export const BackgroundScene = memo(function BackgroundScene({
-  scene,
-  opacity,
-  motion,
-  mist,
-  petals: showPetals,
-  mountainFog,
-  ripples,
-  cabinLights,
-  moonCloud,
+  prefs,
 }: {
-  scene: string;
-  opacity: number;
-  motion: boolean;
-  mist: boolean;
-  petals: boolean;
-  mountainFog: boolean;
-  ripples: boolean;
-  cabinLights: boolean;
-  moonCloud: boolean;
+  prefs: Preferences;
 }) {
-  if (scene === "none" || opacity <= 0) return null;
-  const animate = scene === "lake" && motion;
+  const scene = getBackground(prefs.scene);
+  if (scene.id === "none" || prefs.backgroundOpacity <= 0) return null;
+  const active = new Set(enabledEffects(prefs));
+  const stageEffects = [...active].some(
+    (key) => key !== "petals" && key !== "leaves" && key !== "snow",
+  );
+  const wind = active.has("petals") || active.has("leaves");
+  const leaves = active.has("leaves");
   return (
     <div
-      className={"background-art background-" + scene}
-      style={{ opacity }}
+      className={"background-art background-" + scene.id}
+      style={{ opacity: prefs.backgroundOpacity }}
       aria-hidden="true"
     >
-      <div className={scene === "lake" ? "lake-stage" : "still-stage"}>
-        <div className="background-still" />
-        {animate &&
-          (mist || mountainFog || ripples || cabinLights || moonCloud) && (
-            <div className="ambient-effects">
-              {mist && (
-                <>
-                  <img
-                    className="ambient-layer ambient-mist mist-near"
-                    src="/ambient/mist.svg"
-                    alt=""
-                    draggable="false"
-                  />
-                  <img
-                    className="ambient-layer ambient-mist mist-far"
-                    src="/ambient/mist.svg"
-                    alt=""
-                    draggable="false"
-                  />
-                </>
-              )}
-              {mountainFog && (
-                <>
-                  <img
-                    className="ambient-layer mountain-fog fog-west"
-                    src="/ambient/mist.svg"
-                    alt=""
-                    draggable="false"
-                  />
-                  <img
-                    className="ambient-layer mountain-fog fog-east"
-                    src="/ambient/mist.svg"
-                    alt=""
-                    draggable="false"
-                  />
-                </>
-              )}
-              {ripples &&
-                ["near", "middle", "far"].map((position) => (
-                  <img
-                    key={position}
-                    className={"ambient-layer lake-ripple ripple-" + position}
-                    src="/ambient/ripples.svg"
-                    alt=""
-                    draggable="false"
-                  />
-                ))}
-              {cabinLights && <div className="ambient-layer cabin-light" />}
-              {moonCloud && (
+      <div className={scene.image ? "lake-stage" : "still-stage"}>
+        <div
+          className="background-still"
+          style={
+            scene.image
+              ? { backgroundImage: 'url("' + scene.image + '")' }
+              : undefined
+          }
+        />
+        {stageEffects && (
+          <div className="ambient-effects">
+            {active.has("mist") && (
+              <>
                 <img
-                  className="ambient-layer moon-cloud"
-                  src="/ambient/cloud.svg"
+                  className="ambient-layer ambient-mist mist-near"
+                  src="/ambient/mist.svg"
                   alt=""
                   draggable="false"
                 />
-              )}
-            </div>
-          )}
+                <img
+                  className="ambient-layer ambient-mist mist-far"
+                  src="/ambient/mist.svg"
+                  alt=""
+                  draggable="false"
+                />
+              </>
+            )}
+            {active.has("mountainFog") && (
+              <>
+                <img
+                  className="ambient-layer mountain-fog fog-west"
+                  src="/ambient/mist.svg"
+                  alt=""
+                  draggable="false"
+                />
+                <img
+                  className="ambient-layer mountain-fog fog-east"
+                  src="/ambient/mist.svg"
+                  alt=""
+                  draggable="false"
+                />
+              </>
+            )}
+            {active.has("ripples") &&
+              ["near", "middle", "far"].map((position) => (
+                <img
+                  key={position}
+                  className={"ambient-layer lake-ripple ripple-" + position}
+                  src="/ambient/ripples.svg"
+                  alt=""
+                  draggable="false"
+                />
+              ))}
+            {active.has("cabinLights") && (
+              <div className="ambient-layer cabin-light" />
+            )}
+            {active.has("moonCloud") && (
+              <img
+                className="ambient-layer moon-cloud"
+                src="/ambient/cloud.svg"
+                alt=""
+                draggable="false"
+              />
+            )}
+            {active.has("skyClouds") && (
+              <>
+                <img
+                  className="ambient-layer sky-cloud sky-cloud-high"
+                  src="/ambient/day-cloud.svg"
+                  alt=""
+                  draggable="false"
+                />
+                <img
+                  className="ambient-layer sky-cloud sky-cloud-low"
+                  src="/ambient/day-cloud.svg"
+                  alt=""
+                  draggable="false"
+                />
+              </>
+            )}
+            {active.has("fireflies") &&
+              fireflies.map((fly, i) => (
+                <span
+                  key={i}
+                  className="ambient-layer ambient-firefly"
+                  style={{
+                    left: fly.left + "%",
+                    top: fly.top + "%",
+                    animationDuration: fly.seconds + "s",
+                    animationDelay: fly.delay + "s",
+                  }}
+                />
+              ))}
+          </div>
+        )}
       </div>
-      {animate && showPetals && (
+      {wind && (
         <div className="ambient-effects petal-field">
           {petals.map((petal, i) => (
             <img
               key={i}
-              className="ambient-layer ambient-petal"
-              src="/ambient/petal.svg"
+              className={
+                "ambient-layer " + (leaves ? "ambient-leaf" : "ambient-petal")
+              }
+              src={leaves ? "/ambient/leaf.svg" : "/ambient/petal.svg"}
               alt=""
               draggable="false"
               style={
                 {
                   left: petal.left + "%",
                   top: petal.top + "%",
-                  width: petal.size + "px",
+                  width: petal.size + (leaves ? 5 : 0) + "px",
                   "--petal-drift": petal.drift + "vw",
                   "--petal-fall": petal.fall + "vh",
                   "--petal-turn": petal.turn + "deg",
                   animationDuration: petal.seconds + "s",
                   animationDelay: petal.delay + "s",
+                } as CSSProperties
+              }
+            />
+          ))}
+        </div>
+      )}
+      {active.has("snow") && (
+        <div className="ambient-effects snow-field">
+          {snowflakes.map((flake, i) => (
+            <span
+              key={i}
+              className="ambient-layer ambient-snow"
+              style={
+                {
+                  left: flake.left + "%",
+                  width: flake.size + "px",
+                  height: flake.size + "px",
+                  "--snow-drift": flake.drift + "vw",
+                  animationDuration: flake.seconds + "s",
+                  animationDelay: flake.delay + "s",
                 } as CSSProperties
               }
             />

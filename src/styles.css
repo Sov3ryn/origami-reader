@@ -203,9 +203,6 @@ p {
   background-size: cover;
   background-position: center;
 }
-.background-lake .background-still {
-  background-image: url("/moonlit-lake.png");
-}
 .background-paper .background-still {
   background:
     linear-gradient(150deg, transparent 55%, #5c526c 55.2%, transparent 82%),
@@ -236,7 +233,8 @@ p {
   animation-delay: -31s;
   animation-direction: alternate-reverse;
 }
-.ambient-petal {
+.ambient-petal,
+.ambient-leaf {
   height: auto;
   animation: petal-wind 60s linear infinite;
 }
@@ -308,6 +306,99 @@ p {
   object-fit: fill;
   animation: cloud-pass 154s linear infinite;
   animation-delay: -34s;
+}
+.sky-cloud {
+  object-fit: fill;
+  animation: sky-drift 138s ease-in-out infinite alternate;
+}
+.sky-cloud-high {
+  left: 22%;
+  top: 8%;
+  width: 43%;
+  height: 11%;
+  animation-delay: -53s;
+}
+.sky-cloud-low {
+  left: 57%;
+  top: 17%;
+  width: 29%;
+  height: 7%;
+  animation-duration: 173s;
+  animation-delay: -112s;
+}
+.ambient-firefly {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #fff1a6 0%,
+    #dfd48099 20%,
+    #d6d67d30 40%,
+    #d6d67d00 70%
+  );
+  animation: firefly-drift 23s ease-in-out infinite;
+}
+.ambient-snow {
+  top: -5%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #ffffffed 0%,
+    #edf3fa9c 35%,
+    #edf3fa00 72%
+  );
+  animation: snowfall 42s linear infinite;
+}
+@keyframes sky-drift {
+  from {
+    transform: translate3d(16%, 0, 0);
+    opacity: 0.3;
+  }
+  to {
+    transform: translate3d(-23%, 2%, 0);
+    opacity: 0.65;
+  }
+}
+@keyframes firefly-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  23% {
+    opacity: 0.65;
+  }
+  46% {
+    transform: translate3d(-14px, -11px, 0);
+    opacity: 0.12;
+  }
+  68% {
+    opacity: 0.8;
+  }
+  85% {
+    transform: translate3d(-29px, -4px, 0);
+    opacity: 0;
+  }
+}
+@keyframes snowfall {
+  0% {
+    transform: translate3d(0, -3vh, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.75;
+  }
+  55% {
+    transform: translate3d(calc(var(--snow-drift) * 0.6), 53vh, 0);
+  }
+  88% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: translate3d(var(--snow-drift), 109vh, 0);
+    opacity: 0;
+  }
 }
 @keyframes mountain-drift {
   from {
@@ -1149,7 +1240,8 @@ progress::-webkit-progress-value {
   bottom: 2px;
 }
 .scene-options {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 .scene {
@@ -1168,9 +1260,6 @@ progress::-webkit-progress-value {
   background-position: center;
   transition: transform 180ms ease;
   z-index: -1;
-}
-.preview-lake {
-  background-image: url("/moonlit-lake.png");
 }
 .preview-paper {
   background:

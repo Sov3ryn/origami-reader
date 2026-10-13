@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
 import { themes } from "../themes";
+import { backgrounds, effectLabels, getBackground } from "../backgrounds";
 import type { Preferences } from "../types";
 export function AppearancePanel({
   prefs,
@@ -8,6 +9,7 @@ export function AppearancePanel({
   prefs: Preferences;
   onChange: (p: Partial<Preferences>) => void;
 }) {
+  const background = getBackground(prefs.scene);
   return (
     <div className="inspector-content">
       <h3>Appearance</h3>
@@ -118,12 +120,11 @@ export function AppearancePanel({
         Use full reading width
       </label>
       <h4>Background</h4>
+      <p className="hint">
+        Each scene remembers its palette, opacity and motion settings.
+      </p>
       <div className="scene-options">
-        {[
-          { id: "none", name: "None" },
-          { id: "lake", name: "Moonlit lake" },
-          { id: "paper", name: "Paper hills" },
-        ].map((s) => (
+        {backgrounds.map((s) => (
           <button
             key={s.id}
             onClick={() => onChange({ scene: s.id })}
@@ -134,6 +135,9 @@ export function AppearancePanel({
           >
             <span
               className={"scene-preview preview-" + s.id}
+              style={
+                s.image ? { backgroundImage: `url("${s.image}")` } : undefined
+              }
               aria-hidden="true"
             />
             <span className="scene-label">{s.name}</span>
@@ -161,38 +165,29 @@ export function AppearancePanel({
         <input
           type="checkbox"
           checked={prefs.motion}
-          disabled={prefs.scene !== "lake"}
+          disabled={!background.effects.length}
           onChange={(e) => onChange({ motion: e.target.checked })}
         />
         Subtle background motion
       </label>
-      {prefs.scene === "lake" && prefs.motion && (
+      {background.effects.length > 0 && prefs.motion && (
         <div className="ambient-options">
-          {(
-            [
-              ["mist", "Drifting mist"],
-              ["petals", "Windblown petals"],
-              ["mountainFog", "Mountain fog"],
-              ["ripples", "Lake ripples"],
-              ["cabinLights", "Cabin lights"],
-              ["moonCloud", "Cloud across the moon"],
-            ] as const
-          ).map(([key, name]) => (
+          {background.effects.map((key) => (
             <label className="check-label" key={key}>
               <input
                 type="checkbox"
                 checked={prefs[key]}
                 onChange={(e) => onChange({ [key]: e.target.checked })}
               />
-              {name}
+              {effectLabels[key]}
             </label>
           ))}
         </div>
       )}
       <p className="hint">
-        {prefs.scene === "lake"
+        {background.effects.length > 0
           ? "Motion pauses when hidden and follows reduced-motion preferences."
-          : "Background motion is available with Moonlit lake."}
+          : "Background motion is available with the lake scenes."}
       </p>
       <label className="check-label">
         <input

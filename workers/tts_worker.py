@@ -38,6 +38,9 @@ def main():
         model.warmup(prefill_len=100)
     for line in sys.stdin:
         request = json.loads(line)
+        if request.get("version") == 1 and request.get("action") == "prepare":
+            send({"event": "ready", "voice": sys.argv[2]})
+            continue
         text = request.get("text", "")
         if request.get("version") != 1 or not 0 < len(text) <= 1200:
             send({"event": "error", "message": "Invalid speech request."})

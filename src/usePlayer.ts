@@ -3,7 +3,10 @@ import * as storage from "./storage";
 import { splitSpeech } from "./documents";
 import type { Book, Preferences } from "./types";
 type Unit = { text: string; paragraph: number };
-export function usePlayer(report: (s: string) => void) {
+export function usePlayer(
+  report: (s: string) => void,
+  onVoiceUsed: (voice: string) => void,
+) {
   const [status, setStatus] = useState<
     "idle" | "generating" | "playing" | "paused"
   >("idle");
@@ -16,6 +19,7 @@ export function usePlayer(report: (s: string) => void) {
   const finish = useRef<(() => void) | null>(null);
   const urls = useRef(new Set<string>());
   const activePrefs = useRef<Preferences | null>(null);
+  const pending = useRef(0);
   async function stop() {
     const token = ++generation.current;
     audio.current?.pause();
@@ -27,7 +31,7 @@ export function usePlayer(report: (s: string) => void) {
     setStatus("idle");
     setTime(0);
     setDuration(0);
-    await storage.cancelSpeech().catch(() => {});
+    if (pending.current > 0) await storage.cancelSpeech().catch(() => {});
     return token;
   }
   function setPlayback(speed: number, volume: number) {
@@ -65,6 +69,7 @@ export function usePlayer(report: (s: string) => void) {
         );
     const voice = book.meta.voice || prefs.voice;
     const get = async (unit: Unit) => {
+      pending.current++;
       try {
         return {
           result: await storage.synthesize(unit.text, voice),
@@ -72,6 +77,8 @@ export function usePlayer(report: (s: string) => void) {
         };
       } catch (error) {
         return { result: null, error };
+      } finally {
+        pending.current--;
       }
     };
     try {
@@ -86,6 +93,7 @@ export function usePlayer(report: (s: string) => void) {
         if (generation.current !== token) return;
         if (!response.result) throw response.error;
         const result = response.result;
+        if (i === 0) onVoiceUsed(voice);
         const bytes = Uint8Array.from(atob(result.audio), (c) =>
           c.charCodeAt(0),
         );

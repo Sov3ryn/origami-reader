@@ -64,6 +64,15 @@ async fn synthesize(app: tauri::AppHandle, text: String, voice: String) -> Resul
     .map_err(|_| "Speech task failed")?
 }
 #[tauri::command]
+async fn prepare_voice(app: tauri::AppHandle, voice: String) -> Result<Value> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<speech::Speech>();
+        state.prepare(app.clone(), voice)
+    })
+    .await
+    .map_err(|_| "Voice preload task failed")?
+}
+#[tauri::command]
 fn cancel_speech(state: State<speech::Speech>) -> Result<()> {
     state.cancel()
 }
@@ -106,6 +115,7 @@ pub fn run() {
             delete_annotation,
             list_voices,
             synthesize,
+            prepare_voice,
             cancel_speech,
             export_text
         ])
@@ -113,7 +123,7 @@ pub fn run() {
         .expect("Could not build Origami")
         .run(|app, event| {
             if let tauri::RunEvent::Exit = event {
-                let _ = app.state::<speech::Speech>().cancel();
+                let _ = app.state::<speech::Speech>().shutdown();
             }
         });
 }

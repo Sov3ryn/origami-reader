@@ -1,0 +1,390 @@
+{
+  "browser": "156.0.8078.4",
+  "description": "Four-second steady-state samples in headless Chromium. Not a GPU-power or TTS-throughput benchmark.",
+  "results": [
+    {
+      "scene": "Spring morning",
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "static",
+      "seconds": 4,
+      "mainThreadTaskMs": 0.28,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [],
+      "animations": []
+    },
+    {
+      "scene": "Spring morning",
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "animated",
+      "seconds": 4.01,
+      "mainThreadTaskMs": 1.69,
+      "layouts": 0,
+      "styleRecalculations": 1,
+      "layerPaints": 0,
+      "animationReasons": [
+        "Has an active accelerated transform animation or transition.",
+        "Has an active accelerated opacity animation or transition."
+      ],
+      "animations": [
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running"
+      ]
+    },
+    {
+      "scene": "Spring morning",
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "hidden",
+      "seconds": 4,
+      "mainThreadTaskMs": 0.36,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [
+        "Has an active accelerated transform animation or transition.",
+        "Has an active accelerated opacity animation or transition."
+      ],
+      "animations": [
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused"
+      ]
+    },
+    {
+      "scene": "Summer evening",
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "static",
+      "seconds": 4.02,
+      "mainThreadTaskMs": 0.3,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [],
+      "animations": []
+    },
+    {
+      "scene": "Summer evening",
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "animated",
+      "seconds": 4.01,
+      "mainThreadTaskMs": 1.74,
+      "layouts": 0,
+      "styleRecalculations": 1,
+      "layerPaints": 0,
+      "animationReasons": [
+        "Has an active accelerated transform animation or transition.",
+        "Has an active accelerated opacity animation or transition."
+      ],
+      "animations": [
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running"
+      ]
+    },
+    {
+      "scene": "Summer evening",
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "hidden",
+      "seconds": 4.01,
+      "mainThreadTaskMs": 0.16,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [
+        "Has an active accelerated transform animation or transition.",
+        "Has an active accelerated opacity animation or transition."
+      ],
+      "animations": [
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused"
+      ]
+    },
+    {
+      "scene": "Autumn dusk",
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "static",
+      "seconds": 4.01,
+      "mainThreadTaskMs": 0.29,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [],
+      "animations": []
+    },
+    {
+      "scene": "Autumn dusk",
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "animated",
+      "seconds": 4,
+      "mainThreadTaskMs": 2.07,
+      "layouts": 0,
+      "styleRecalculations": 1,
+      "layerPaints": 0,
+      "animationReasons": [
+        "Has an active accelerated transform animation or transition.",
+        "Has an active accelerated opacity animation or transition."
+      ],
+      "animations": [
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running"
+      ]
+    },
+    {
+      "scene": "Autumn dusk",
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "hidden",
+      "seconds": 4.01,
+      "mainThreadTaskMs": 0.37,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [
+        "Has an active accelerated transform animation or transition.",
+        "Has an active accelerated opacity animation or transition."
+      ],
+      "animations": [
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused"
+      ]
+    },
+    {
+      "scene": "Winter daylight",
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "static",
+      "seconds": 4,
+      "mainThreadTaskMs": 0.28,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [],
+      "animations": []
+    },
+    {
+      "scene": "Winter daylight",
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "animated",
+      "seconds": 4.01,
+      "mainThreadTaskMs": 2.99,
+      "layouts": 0,
+      "styleRecalculations": 3,
+      "layerPaints": 0,
+      "animationReasons": [
+        "Has an active accelerated transform animation or transition.",
+        "Has an active accelerated opacity animation or transition."
+      ],
+      "animations": [
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running"
+      ]
+    },
+    {
+      "scene": "Winter daylight",
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "hidden",
+      "seconds": 4.01,
+      "mainThreadTaskMs": 0.3,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [
+        "Has an active accelerated transform animation or transition.",
+        "Has an active accelerated opacity animation or transition."
+      ],
+      "animations": [
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused"
+      ]
+    }
+  ]
+}

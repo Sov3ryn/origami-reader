@@ -13,8 +13,10 @@ A local desktop reader and text-to-speech workspace for Windows and Linux. MIT-l
 - Independently collapsible/resizable panels and a contextual tabbed inspector. Library keeps the full workspace without an inspector.
 - Twelve app palettes; separate white, paper, sepia and textured night reading surfaces.
 - Background opacity control, windblown petals, mountain fog, lake mist and ripples, subtle cabin lights and an occasional cloud across the moon. Each effect can be switched off. Motion defaults on for new settings, respects reduced motion and pauses while hidden.
+- Four seasonal versions of the lake: spring morning, summer evening, autumn dusk and winter daylight. Each has five optional effects. Scenes remember their own palette, opacity, motion switch and individual effects.
 - Windows desktop SQLite persistence. Browser preview uses separate IndexedDB storage.
 - Optional isolated Qwen worker, passage playback, pause, stop, passage seek, speed/volume and one-passage read-ahead.
+- Optional startup preloading of the last voice used for playback. Opening a book preserves an idle loaded model. Closing the app stops its speech worker and releases its GPU resources.
 - Voice catalog with language, voice gender and style filters, accent/name search, favorites and sorting.
 
 No cloud account is required. Voice models and reference recordings are not included. Linux source/build support is provided; Linux execution has not yet been validated on the development machine. See [progress](docs/PROGRESS.md) for exact test status and limitations.

@@ -91,6 +91,9 @@ export async function synthesize(
 export async function cancelSpeech() {
   if (desktop) await invoke("cancel_speech");
 }
+export async function prepareVoice(voice: string) {
+  if (desktop) await invoke("prepare_voice", { voice });
+}
 export async function exportText(name: string, text: string) {
   if (desktop) return invoke("export_text", { name, text });
   const u = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
