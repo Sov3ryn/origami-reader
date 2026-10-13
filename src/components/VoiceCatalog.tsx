@@ -83,7 +83,6 @@ export function VoiceCatalog({
             <option value="all">All voices</option>
             <option value="female">Female</option>
             <option value="male">Male</option>
-            <option value="androgynous">Androgynous</option>
             <option value="unspecified">Unspecified</option>
           </select>
         </label>

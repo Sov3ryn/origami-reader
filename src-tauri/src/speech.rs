@@ -36,7 +36,39 @@ fn config(app: &AppHandle) -> Result<Value> {
 }
 pub fn voices(app: &AppHandle) -> Vec<Value> {
     let Ok(c) = config(app) else { return vec![] };
-    c["voices"].as_object().map(|vs|vs.iter().map(|(id,v)|json!({"id":id,"name":v["name"],"description":v["description"],"available":true,"engine":"Qwen · local","languages":v.get("languages").cloned().unwrap_or_else(||json!([v["language"].as_str().unwrap_or("Unspecified")])),"gender":v["gender"].as_str().unwrap_or("unspecified"),"styles":v.get("styles").cloned().unwrap_or_else(||json!([])),"accent":v["accent"].as_str().unwrap_or("")})).collect()).unwrap_or_default()
+    c["voices"]
+        .as_object()
+        .map(|vs| {
+            vs.iter()
+                .map(|(id, v)| {
+                    let gender = match v["gender"]
+                        .as_str()
+                        .unwrap_or("")
+                        .trim()
+                        .to_ascii_lowercase()
+                        .as_str()
+                    {
+                        "female" => "female",
+                        "male" => "male",
+                        _ => "unspecified",
+                    };
+                    json!({
+                        "id": id,
+                        "name": v["name"],
+                        "description": v["description"],
+                        "available": true,
+                        "engine": "Qwen · local",
+                        "languages": v.get("languages").cloned().unwrap_or_else(||
+                            json!([v["language"].as_str().unwrap_or("Unspecified")])
+                        ),
+                        "gender": gender,
+                        "styles": v.get("styles").cloned().unwrap_or_else(|| json!([])),
+                        "accent": v["accent"].as_str().unwrap_or("")
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default()
 }
 impl Speech {
     pub fn cancel(&self) -> Result<()> {

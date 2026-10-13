@@ -1,0 +1,138 @@
+{
+  "browser": "156.0.8078.4",
+  "description": "Four-second steady-state samples in headless Chromium. Not a GPU-power or TTS-throughput benchmark.",
+  "results": [
+    {
+      "viewport": {
+        "width": 1480,
+        "height": 950
+      },
+      "mode": "static",
+      "seconds": 4.01,
+      "mainThreadTaskMs": 0.29,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [],
+      "animations": []
+    },
+    {
+      "viewport": {
+        "width": 1480,
+        "height": 950
+      },
+      "mode": "animated",
+      "seconds": 4.01,
+      "mainThreadTaskMs": 2.9,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [
+        "Has an active accelerated transform animation or transition.",
+        "Has an active accelerated opacity animation or transition."
+      ],
+      "animations": [
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running"
+      ]
+    },
+    {
+      "viewport": {
+        "width": 1480,
+        "height": 950
+      },
+      "mode": "hidden",
+      "seconds": 4,
+      "mainThreadTaskMs": 0.18,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [
+        "Has an active accelerated transform animation or transition.",
+        "Has an active accelerated opacity animation or transition."
+      ],
+      "animations": [
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused"
+      ]
+    },
+    {
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "static",
+      "seconds": 4.02,
+      "mainThreadTaskMs": 0.26,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [],
+      "animations": []
+    },
+    {
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "animated",
+      "seconds": 4.01,
+      "mainThreadTaskMs": 1.29,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [
+        "Has an active accelerated transform animation or transition.",
+        "Has an active accelerated opacity animation or transition."
+      ],
+      "animations": [
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running",
+        "running"
+      ]
+    },
+    {
+      "viewport": {
+        "width": 3840,
+        "height": 2160
+      },
+      "mode": "hidden",
+      "seconds": 4.01,
+      "mainThreadTaskMs": 0.17,
+      "layouts": 0,
+      "styleRecalculations": 0,
+      "layerPaints": 0,
+      "animationReasons": [
+        "Has an active accelerated transform animation or transition.",
+        "Has an active accelerated opacity animation or transition."
+      ],
+      "animations": [
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused",
+        "paused"
+      ]
+    }
+  ]
+}

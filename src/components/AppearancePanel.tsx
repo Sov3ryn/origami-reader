@@ -111,16 +111,56 @@ export function AppearancePanel({
           </button>
         ))}
       </div>
+      <label>
+        Background opacity{" "}
+        <output>{Math.round(prefs.backgroundOpacity * 100)}%</output>
+        <input
+          aria-label="Background opacity"
+          aria-valuetext={Math.round(prefs.backgroundOpacity * 100) + "%"}
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          value={Math.round(prefs.backgroundOpacity * 100)}
+          disabled={prefs.scene === "none"}
+          onChange={(e) =>
+            onChange({ backgroundOpacity: +e.target.value / 100 })
+          }
+        />
+      </label>
       <label className="check-label">
         <input
           type="checkbox"
           checked={prefs.motion}
+          disabled={prefs.scene !== "lake"}
           onChange={(e) => onChange({ motion: e.target.checked })}
         />
         Subtle background motion
       </label>
+      {prefs.scene === "lake" && prefs.motion && (
+        <div className="ambient-options">
+          <label className="check-label">
+            <input
+              type="checkbox"
+              checked={prefs.mist}
+              onChange={(e) => onChange({ mist: e.target.checked })}
+            />
+            Drifting mist
+          </label>
+          <label className="check-label">
+            <input
+              type="checkbox"
+              checked={prefs.petals}
+              onChange={(e) => onChange({ petals: e.target.checked })}
+            />
+            Falling petals
+          </label>
+        </div>
+      )}
       <p className="hint">
-        Motion pauses when hidden and follows reduced-motion preferences.
+        {prefs.scene === "lake"
+          ? "Motion pauses when hidden and follows reduced-motion preferences."
+          : "Mist and petals are available with Moonlit lake."}
       </p>
       <label className="check-label">
         <input

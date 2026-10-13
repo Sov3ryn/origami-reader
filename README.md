@@ -12,7 +12,7 @@ A local desktop reader and text-to-speech workspace for Windows and Linux. MIT-l
 - Colored underlines, margin notes, bookmarks, grouping and annotation export.
 - Independently collapsible/resizable panels and a contextual tabbed inspector.
 - Twelve app palettes; separate white, paper, sepia and textured night reading surfaces.
-- Optional background artwork/motion, reduced-motion support and texture-off mode.
+- Background opacity control, optional drifting mist and petal overlays, reduced-motion support and texture-off mode.
 - Windows desktop SQLite persistence. Browser preview uses separate IndexedDB storage.
 - Optional isolated Qwen worker, passage playback, pause, stop, passage seek, speed/volume and one-passage read-ahead.
 - Voice catalog with language, voice gender and style filters, accent/name search, favorites and sorting.

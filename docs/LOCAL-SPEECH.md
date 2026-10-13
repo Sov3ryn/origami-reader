@@ -5,7 +5,7 @@ The first worker adapter uses faster-qwen3-tts and a locally downloaded Qwen bas
 1. Prepare a separate compatible faster-qwen3-tts Python environment and model directory. Verify its upstream requirements on the intended platform.
 2. Copy workers/worker.example.json to .local/worker.json.
 3. Set the absolute interpreter, model and reference WAV paths. Use a voice reference with an accurate transcript and complete speech boundaries.
-4. Set unique voice IDs, display names and descriptions. Add `languages` (an array), `gender`, `styles` (an array) and `accent` for the catalog filters. The separate `language` field controls synthesis in this initial adapter. Label only languages that have been verified for that voice. The adapter uses the configured CUDA device.
+4. Set unique voice IDs, display names and descriptions. Add `languages` (an array), `gender` (`female`, `male` or `unspecified`), `styles` (an array) and `accent` for the catalog filters. Other or missing gender values are grouped under Unspecified. The separate `language` field controls synthesis in this initial adapter. Label only languages that have been verified for that voice. The adapter uses the configured CUDA device.
 5. Run npm run desktop:dev. The launcher reads .local/worker.json automatically.
 
 Alternatively set ORIGAMI_WORKER_CONFIG to an absolute configuration path before launching, or place worker.json in the Tauri application configuration directory for app.origami.reader. On Windows the local convenience launcher is scripts/open-local.ps1 after building.

@@ -1,5 +1,6 @@
 import { IconButton, Cover } from "./components/Primitives";
 import { AppearancePanel } from "./components/AppearancePanel";
+import { BackgroundScene } from "./components/BackgroundScene";
 import { VoiceCatalog } from "./components/VoiceCatalog";
 import {
   useEffect,
@@ -826,9 +827,7 @@ export default function App() {
   }
   return (
     <div
-      className={
-        "app scene-bg-" + prefs.scene + (prefs.motion ? " ambient-motion" : "")
-      }
+      className="app"
       style={variables}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
@@ -836,7 +835,13 @@ export default function App() {
         if (e.dataTransfer.files.length) void importFiles(e.dataTransfer.files);
       }}
     >
-      <div className="background-art" />
+      <BackgroundScene
+        scene={prefs.scene}
+        opacity={prefs.backgroundOpacity}
+        motion={prefs.motion}
+        mist={prefs.mist}
+        petals={prefs.petals}
+      />
       <input
         className="hidden"
         ref={fileInput}

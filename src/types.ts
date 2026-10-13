@@ -49,7 +49,10 @@ export type Preferences = {
   surface: string;
   texture: boolean;
   scene: string;
+  backgroundOpacity: number;
   motion: boolean;
+  mist: boolean;
+  petals: boolean;
   fontSize: number;
   lineHeight: number;
   leftOpen: boolean;
@@ -70,7 +73,7 @@ export type Voice = {
   available: boolean;
   engine: string;
   languages: string[];
-  gender: "female" | "male" | "androgynous" | "unspecified";
+  gender: "female" | "male" | "unspecified";
   styles: string[];
   accent: string;
 };
@@ -80,7 +83,10 @@ export const defaultPreferences: Preferences = {
   surface: "paper",
   texture: true,
   scene: "lake",
+  backgroundOpacity: 0.21,
   motion: false,
+  mist: true,
+  petals: true,
   fontSize: 21,
   lineHeight: 1.8,
   leftOpen: true,

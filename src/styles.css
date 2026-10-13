@@ -182,23 +182,101 @@ p {
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  overflow: hidden;
+  contain: layout paint;
+}
+.background-still,
+.ambient-effects {
+  position: absolute;
+  inset: 0;
+}
+.background-still {
   background-size: cover;
   background-position: center;
-  opacity: 0.21;
 }
-.scene-bg-lake .background-art {
+.background-lake .background-still {
   background-image: url("/moonlit-lake.png");
 }
-.scene-bg-paper .background-art {
-  opacity: 0.4;
+.background-paper .background-still {
   background:
     linear-gradient(150deg, transparent 55%, #5c526c 55.2%, transparent 82%),
     linear-gradient(210deg, transparent 40%, #776883 40.3%, transparent 85%),
     linear-gradient(135deg, #38313e, transparent 45%);
 }
-.ambient-motion .background-art {
-  animation: drift 40s ease-in-out infinite alternate;
-  transform-origin: center;
+.ambient-layer {
+  position: absolute;
+  user-select: none;
+}
+.ambient-mist {
+  width: 76%;
+  height: 20%;
+  object-fit: fill;
+  animation: mist-drift 56s ease-in-out infinite alternate;
+}
+.mist-near {
+  left: -8%;
+  top: 44%;
+}
+.mist-far {
+  left: 38%;
+  top: 35%;
+  width: 60%;
+  height: 15%;
+  animation-duration: 73s;
+  animation-delay: -31s;
+  animation-direction: alternate-reverse;
+}
+.ambient-petal {
+  top: 0;
+  height: auto;
+  animation: petal-fall 60s linear infinite;
+}
+@keyframes mist-drift {
+  0% {
+    transform: translate3d(-4vw, 0, 0);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate3d(8vw, 1.5vh, 0);
+    opacity: 0.4;
+  }
+}
+@keyframes petal-fall {
+  0% {
+    transform: translate3d(0, -5vh, 0) rotate(0deg) scaleX(0.8);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.7;
+  }
+  35% {
+    transform: translate3d(calc(var(--petal-drift) * 0.45), 32vh, 0)
+      rotate(calc(var(--petal-turn) * 0.4)) scaleX(0.35);
+  }
+  65% {
+    transform: translate3d(calc(var(--petal-drift) * 0.6), 65vh, 0)
+      rotate(calc(var(--petal-turn) * 0.7)) scaleX(0.9);
+  }
+  88% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate3d(var(--petal-drift), 103vh, 0)
+      rotate(var(--petal-turn)) scaleX(0.45);
+    opacity: 0;
+  }
+}
+.ambient-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0 0 14px;
+}
+.ambient-options .check-label {
+  margin: 0;
 }
 .sidebar {
   grid-column: 1;
@@ -1554,14 +1632,6 @@ progress::-webkit-progress-value {
     transform: rotate(360deg);
   }
 }
-@keyframes drift {
-  from {
-    transform: scale(1.015) translateY(0);
-  }
-  to {
-    transform: scale(1.035) translateY(-5px);
-  }
-}
 @media (max-width: 1150px) {
   .workspace {
     padding: 28px;
@@ -1692,7 +1762,10 @@ progress::-webkit-progress-value {
     scroll-behavior: auto !important;
     transition: none !important;
   }
-  .ambient-motion .background-art {
+  .ambient-effects {
+    display: none;
+  }
+  .ambient-layer {
     animation: none;
   }
   .spin {
@@ -1703,7 +1776,7 @@ progress::-webkit-progress-value {
 .texture-off {
   background-image: none !important;
 }
-html[data-hidden="true"] .ambient-motion .background-art {
+html[data-hidden="true"] .ambient-layer {
   animation-play-state: paused;
 }
 .brand img {
