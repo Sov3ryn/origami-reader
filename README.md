@@ -95,6 +95,8 @@ Changes should include validation appropriate to the behavior. Maintain platform
 
 ## License and assets
 
-App source: [MIT](LICENSE). Dependencies retain their licenses. Model weights, voice references and user documents have separate terms and are not relicensed by this repository. The included sample passages are original demo text with fictional author names. See [asset provenance](docs/ASSETS.md).
+App source: [MIT](LICENSE). Dependencies retain their licenses. Model weights, voice references and user documents have separate terms and are not relicensed by this repository. The current demo passages are original text with fictional author names. See [asset provenance](docs/ASSETS.md).
+
+Six complete text EPUBs are prepared in [the starter-library pack](assets/starter-library/README.txt) for the planned preloaded library. See its [rights record](assets/starter-library/RIGHTS.txt) and source manifest before redistributing. These historical texts have been reviewed for the US, Canada and UK; this is not a worldwide copyright clearance. Third-party covers and fonts are excluded. The pack can be imported now and has not replaced existing libraries or the current demo seed.
 
 The project does not modify or take over an existing Maeve installation.

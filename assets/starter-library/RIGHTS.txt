@@ -1,0 +1,92 @@
+Origami starter library: rights and edition record
+Reviewed 13 October 2026
+
+This pack contains six complete English text editions. It does not contain
+the source editions' cover artwork, illustrations, title-page images, fonts,
+logos or promotional pages. The historical book text and modern editorial
+contributions have separate rights. Origami's MIT code license does not
+relicense someone else's text, translation or artwork.
+
+REVIEWED TERRITORIES
+
+The selected historical texts are public domain in the United States,
+Canada and the United Kingdom as of this review. They can be bundled with
+the app and read aloud in those territories, including in commercial
+distributions. The anonymous 1846 English translation of The Count of
+Monte Cristo is the selected translation. Modern commercial translations,
+including Robin Buss's translation, are not included or covered here.
+
+Book                              Publication   Author's death
+The Enchanted Castle               1907          E. Nesbit, 1924
+The Time Machine                  1895          H. G. Wells, 1946
+The Hound of the Baskervilles      1902          Arthur Conan Doyle, 1930
+The Blue Castle                   1926          L. M. Montgomery, 1942
+The Great Gatsby                  1925          F. Scott Fitzgerald, 1940
+The Count of Monte Cristo         1844-1846     Alexandre Dumas, 1870
+  English translation             1846          Anonymous, Chapman and Hall
+  Collaborator                                  Auguste Maquet, 1888
+
+The book catalog pages linked in selection.json record the authors' dates
+and US public-domain status. The source colophons record publication and
+translation editions. Source revisions, content-file hashes and prepared
+EPUB hashes are in manifest.json.
+
+Do not describe this as a worldwide clearance. National terms differ.
+Other distribution territories require local review before bundling.
+Spain has a legacy term for authors who died before 7 December 1987;
+The Time Machine needs that territorial check. Longer terms elsewhere
+also mean a US public-domain determination alone is insufficient.
+Original-author attribution and any continuing moral rights still matter.
+
+EDITION CONTRIBUTIONS
+
+The source editions are produced by Standard Ebooks. Their contributors
+dedicate their contributions to the worldwide public domain under CC0 1.0.
+The dedication applies to their own contributions; it cannot waive another
+party's surviving copyright. Each source repository's LICENSE.md statement
+is retained in sources/*-license.txt. The official CC0 legal text is retained
+as CC0-1.0.txt. Plain-text source colophons preserve the transcription and
+editorial credits. Do not imply that Standard Ebooks endorses Origami.
+
+These are complete text editions, not photographic replicas of original
+publications. Unused styling links and non-story publisher pages have been
+removed. Original chapter XHTML, dedications, epigraphs, epilogues and
+endnotes are retained where present. No abridgment or prose modernization
+was performed. Original historical language is retained.
+
+ARTWORK EXCLUSION
+
+In particular, The Great Gatsby's source cover uses Francis Cugat's
+Celestial Eyes, and The Count of Monte Cristo's uses Mead Schaeffer's art.
+US public-domain status does not establish that those paintings can be
+used in Canada or the UK. No art from any of the six source editions is
+included. Origami may use its own separately licensed cover designs.
+
+PRIMARY REFERENCES
+
+United States Copyright Office, public-domain threshold:
+https://www.copyright.gov/what-is-copyright/
+
+Canadian Intellectual Property Office, guide and non-revival of expired terms:
+https://ised-isde.canada.ca/site/canadian-intellectual-property-office/en/guide-copyright
+
+UK Intellectual Property Office, term of written works:
+https://www.gov.uk/copyright/how-long-copyright-lasts
+
+Spain, copyright law and fourth transitional provision:
+https://www.boe.es/buscar/act.php?id=BOE-A-1996-8930
+
+Standard Ebooks, dedication and scope of public-domain determinations:
+https://standardebooks.org/about/standard-ebooks-and-the-public-domain
+
+Creative Commons, CC0 1.0:
+https://creativecommons.org/publicdomain/zero/1.0/
+https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+Book sources:
+https://standardebooks.org/ebooks/e-nesbit/the-enchanted-castle
+https://standardebooks.org/ebooks/h-g-wells/the-time-machine
+https://standardebooks.org/ebooks/arthur-conan-doyle/the-hound-of-the-baskervilles
+https://standardebooks.org/ebooks/l-m-montgomery/the-blue-castle
+https://standardebooks.org/ebooks/f-scott-fitzgerald/the-great-gatsby
+https://standardebooks.org/ebooks/alexandre-dumas/the-count-of-monte-cristo/chapman-and-hall

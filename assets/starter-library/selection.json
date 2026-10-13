@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "reviewed": "2026-10-13",
+  "language": "en",
+  "books": [
+    {
+      "id": "starter-enchanted-castle",
+      "title": "The Enchanted Castle",
+      "author": "E. Nesbit",
+      "authorDeath": 1924,
+      "published": 1907,
+      "category": "Fantasy",
+      "repository": "e-nesbit_the-enchanted-castle",
+      "source": "https://standardebooks.org/ebooks/e-nesbit/the-enchanted-castle",
+      "catalog": "https://www.gutenberg.org/ebooks/3536",
+      "why": "A magic ring turns a holiday adventure into increasingly strange trouble. Funny, imaginative and occasionally eerie, with a low barrier to entry. This selection leans toward younger readers."
+    },
+    {
+      "id": "starter-time-machine",
+      "title": "The Time Machine",
+      "author": "H. G. Wells",
+      "authorDeath": 1946,
+      "published": 1895,
+      "category": "Science fiction",
+      "repository": "h-g-wells_the-time-machine",
+      "source": "https://standardebooks.org/ebooks/h-g-wells/the-time-machine",
+      "catalog": "https://www.gutenberg.org/ebooks/35",
+      "why": "A short, unsettling journey into humanity's distant future. Its mysteries and survival scenes provide an immediate hook, while its ideas give readers something to think about afterward."
+    },
+    {
+      "id": "starter-hound-baskervilles",
+      "title": "The Hound of the Baskervilles",
+      "author": "Arthur Conan Doyle",
+      "authorDeath": 1930,
+      "published": 1902,
+      "category": "Detective mystery",
+      "repository": "arthur-conan-doyle_the-hound-of-the-baskervilles",
+      "source": "https://standardebooks.org/ebooks/arthur-conan-doyle/the-hound-of-the-baskervilles",
+      "catalog": "https://www.gutenberg.org/ebooks/2852",
+      "why": "Sherlock Holmes, an apparently supernatural curse and a dangerous investigation on the moors. A strong standalone introduction to Holmes, with suspense that should work particularly well aloud."
+    },
+    {
+      "id": "starter-blue-castle",
+      "title": "The Blue Castle",
+      "author": "L. M. Montgomery",
+      "authorDeath": 1942,
+      "published": 1926,
+      "category": "Romance",
+      "repository": "l-m-montgomery_the-blue-castle",
+      "source": "https://standardebooks.org/ebooks/l-m-montgomery/the-blue-castle",
+      "catalog": "https://www.gutenberg.org/ebooks/67979",
+      "why": "A woman who has spent her life obeying an oppressive family decides to live on her own terms. Warm, witty and romantic, with a satisfying emotional arc and approachable prose."
+    },
+    {
+      "id": "starter-great-gatsby",
+      "title": "The Great Gatsby",
+      "author": "F. Scott Fitzgerald",
+      "authorDeath": 1940,
+      "published": 1925,
+      "category": "Realistic social drama",
+      "repository": "f-scott-fitzgerald_the-great-gatsby",
+      "source": "https://standardebooks.org/ebooks/f-scott-fitzgerald/the-great-gatsby",
+      "catalog": "https://www.gutenberg.org/ebooks/64317",
+      "why": "Wealth, extravagant parties, reinvention and obsession, followed by consequences. The shortest full-length novel in the group and a different, darker emotional register. Set in the 1920s, not the present day."
+    },
+    {
+      "id": "starter-count-monte-cristo",
+      "title": "The Count of Monte Cristo",
+      "author": "Alexandre Dumas",
+      "authorDeath": 1870,
+      "collaborator": "Auguste Maquet",
+      "collaboratorDeath": 1888,
+      "published": 1844,
+      "translation": "Anonymous English translation published by Chapman and Hall, 1846",
+      "category": "Historical adventure",
+      "repository": "alexandre-dumas_the-count-of-monte-cristo_chapman-and-hall",
+      "source": "https://standardebooks.org/ebooks/alexandre-dumas/the-count-of-monte-cristo/chapman-and-hall",
+      "catalog": "https://www.gutenberg.org/ebooks/1184",
+      "why": "Betrayal, imprisonment, escape, hidden wealth and an elaborate revenge. The substantial surprise selection, chosen for its momentum and intrigue. The nineteenth-century English translation is older in style than modern commercial translations."
+    }
+  ]
+}

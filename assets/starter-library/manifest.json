@@ -1,0 +1,1004 @@
+{
+  "version": 1,
+  "prepared": "2026-10-13",
+  "format": "Complete text EPUBs, with original dedications, epigraphs, epilogues and endnotes where present",
+  "books": [
+    {
+      "id": "starter-enchanted-castle",
+      "title": "The Enchanted Castle",
+      "author": "E. Nesbit",
+      "authorDeath": 1924,
+      "published": 1907,
+      "category": "Fantasy",
+      "repository": "e-nesbit_the-enchanted-castle",
+      "source": "https://standardebooks.org/ebooks/e-nesbit/the-enchanted-castle",
+      "catalog": "https://www.gutenberg.org/ebooks/3536",
+      "why": "A magic ring turns a holiday adventure into increasingly strange trouble. Funny, imaginative and occasionally eerie, with a low barrier to entry. This selection leans toward younger readers.",
+      "revision": "c6bd811c0c5414d4cc957d31700b4215b9ef25f1",
+      "filename": "enchanted-castle.epub",
+      "sha256": "b1a360b16f5e892bc35033282d36b54d5e40353e82ab8275783f8fe9316c68af",
+      "bytes": 170640,
+      "chapterCount": 12,
+      "wordCount": 67679,
+      "contentFiles": [
+        {
+          "file": "text/dedication.xhtml",
+          "sha256": "7ba51721d047fa2e4dec5dfcd92adbaa1d10d7249a334003e0e04d87ecc32263"
+        },
+        {
+          "file": "text/chapter-1.xhtml",
+          "sha256": "d0f423f9723be07c1bad2738ee53ed1f724306abbf1b67144bc6c78c47a7457f"
+        },
+        {
+          "file": "text/chapter-2.xhtml",
+          "sha256": "50b44efb8faa00b83148bed364134d75de2f496190e80bdc9984e066f5f918a1"
+        },
+        {
+          "file": "text/chapter-3.xhtml",
+          "sha256": "8430645d66fece7eff08bab0becda15909601b50c39d8af45e7858703b573550"
+        },
+        {
+          "file": "text/chapter-4.xhtml",
+          "sha256": "94436ff7effce67531111809df17fa6821e7283b47c83a69400588ab891c85a4"
+        },
+        {
+          "file": "text/chapter-5.xhtml",
+          "sha256": "21e0d9c2cf4811faf3c4d9024a74dffa45476dbb1ce39e6c98ce0884bb6e3a06"
+        },
+        {
+          "file": "text/chapter-6.xhtml",
+          "sha256": "b9775166eb657ad4c9376867882b52301ba250a08e712cbfbb78755cb3d6f9d0"
+        },
+        {
+          "file": "text/chapter-7.xhtml",
+          "sha256": "805b211a4abe0310c3cffe1206d901b3d5bff0e7910e6b2362ea5dc3b07b98bb"
+        },
+        {
+          "file": "text/chapter-8.xhtml",
+          "sha256": "4185f84169d1ba70f47af38f80e6e9177a60298e7d75efa00594a57e72f40687"
+        },
+        {
+          "file": "text/chapter-9.xhtml",
+          "sha256": "58506f56978faf4177e744b7ebbd9496d9f8328092f70ddff3063d28e239763a"
+        },
+        {
+          "file": "text/chapter-10.xhtml",
+          "sha256": "2a28fe77c76bee8e82f95ce03f968c56aa9aca315c407548eb95fbd5cb1a11b1"
+        },
+        {
+          "file": "text/chapter-11.xhtml",
+          "sha256": "972d98224c0f08a53f53504bf9be66bcde27afdbfd166edea2987a0fa0367783"
+        },
+        {
+          "file": "text/chapter-12.xhtml",
+          "sha256": "86fde602d76aec71395be99a29d6e18614625d3a00e2d7d5e4e20ccf1e278e2a"
+        }
+      ],
+      "artworkIncluded": false
+    },
+    {
+      "id": "starter-time-machine",
+      "title": "The Time Machine",
+      "author": "H. G. Wells",
+      "authorDeath": 1946,
+      "published": 1895,
+      "category": "Science fiction",
+      "repository": "h-g-wells_the-time-machine",
+      "source": "https://standardebooks.org/ebooks/h-g-wells/the-time-machine",
+      "catalog": "https://www.gutenberg.org/ebooks/35",
+      "why": "A short, unsettling journey into humanity's distant future. Its mysteries and survival scenes provide an immediate hook, while its ideas give readers something to think about afterward.",
+      "revision": "9fd22d612e6ed35cd07a8ed5e3ccdc4856c05088",
+      "filename": "time-machine.epub",
+      "sha256": "eef628a9173087032dd1d0040c2034f28c3a4c82b2e817c38c048d6fe5a659d1",
+      "bytes": 87186,
+      "chapterCount": 12,
+      "wordCount": 32302,
+      "contentFiles": [
+        {
+          "file": "text/chapter-1.xhtml",
+          "sha256": "271ade0cbef9469a3b6afac85e6b76d49f632398ff35dae08c7cf1f63ee268ee"
+        },
+        {
+          "file": "text/chapter-2.xhtml",
+          "sha256": "cb7ed8ceec4b08ad13b4bd0d80890e1fdf6d981344d02213c9185db12ff4194a"
+        },
+        {
+          "file": "text/chapter-3.xhtml",
+          "sha256": "a41554ea42988f9dfbabccf0fbc64f4ddec47dc7b79b4ef4c8d4d8e1002eea5b"
+        },
+        {
+          "file": "text/chapter-4.xhtml",
+          "sha256": "f48797e9353fb8322148d77cfde4e4178823428fdb21acc96d89876877c79bca"
+        },
+        {
+          "file": "text/chapter-5.xhtml",
+          "sha256": "e330e4c088d3c8bcc5f8a779be31295afd486dba83ce6eca6bf9d5009da9c91c"
+        },
+        {
+          "file": "text/chapter-6.xhtml",
+          "sha256": "e9b36771d39be05b6916313f51f98f23ae0c970d6c9b34c133a7297a1ff5da21"
+        },
+        {
+          "file": "text/chapter-7.xhtml",
+          "sha256": "3e62c3d055ad95cbacbb234ac1adb49d1d446cb34dab5f2dd093fda56c0888c2"
+        },
+        {
+          "file": "text/chapter-8.xhtml",
+          "sha256": "db2ef974cf9eb3ae9d7626195b8f9d67463c5da03668cc06da59b958c89736b6"
+        },
+        {
+          "file": "text/chapter-9.xhtml",
+          "sha256": "3cb59e4348986f5050c8f43f5682c426d72460788f3d9fd89e8fb7b7b7624248"
+        },
+        {
+          "file": "text/chapter-10.xhtml",
+          "sha256": "d315e566f89f0fa0ed58c8ace8f9fff33e07e1b0fc570da5986ebf8d07ad1a52"
+        },
+        {
+          "file": "text/chapter-11.xhtml",
+          "sha256": "c0e832ef3520e178011267eda3030340383ab29d8a75fa7584ac3ca49ca1ae2b"
+        },
+        {
+          "file": "text/chapter-12.xhtml",
+          "sha256": "a0da3f5b5159ce7e9acc38b616f03e270aa73d3f69ac8559d2b984791e450675"
+        },
+        {
+          "file": "text/epilogue.xhtml",
+          "sha256": "b0160019ef31fdba4683bb66ddf954f0a81743cfb0e853db44ca4b9af59b9d92"
+        },
+        {
+          "file": "text/endnotes.xhtml",
+          "sha256": "54ddad93104df2944c34350ca3d02ca4f7e98b11620b691a02b0013c97f00d21"
+        }
+      ],
+      "artworkIncluded": false
+    },
+    {
+      "id": "starter-hound-baskervilles",
+      "title": "The Hound of the Baskervilles",
+      "author": "Arthur Conan Doyle",
+      "authorDeath": 1930,
+      "published": 1902,
+      "category": "Detective mystery",
+      "repository": "arthur-conan-doyle_the-hound-of-the-baskervilles",
+      "source": "https://standardebooks.org/ebooks/arthur-conan-doyle/the-hound-of-the-baskervilles",
+      "catalog": "https://www.gutenberg.org/ebooks/2852",
+      "why": "Sherlock Holmes, an apparently supernatural curse and a dangerous investigation on the moors. A strong standalone introduction to Holmes, with suspense that should work particularly well aloud.",
+      "revision": "4f080d1fa42a98a70c29bff9088678472e503295",
+      "filename": "hound-baskervilles.epub",
+      "sha256": "09b81544efb5d941c86e1ae578b175145a151f97a66027be4200fe39afa10045",
+      "bytes": 149850,
+      "chapterCount": 15,
+      "wordCount": 59140,
+      "contentFiles": [
+        {
+          "file": "text/dedication.xhtml",
+          "sha256": "f5dd6a730290fda1ba53e4e489adecfd979c77be4ab86d76af07bb2593cca659"
+        },
+        {
+          "file": "text/chapter-1.xhtml",
+          "sha256": "eb77aee61774b51d4e0f78244f92fdf474b0cf8bd70899e394716b55a6e11f5a"
+        },
+        {
+          "file": "text/chapter-2.xhtml",
+          "sha256": "006a3171481b0523619659225c6069c4b3e5425b9c26e023f9f31cd9422ee5e0"
+        },
+        {
+          "file": "text/chapter-3.xhtml",
+          "sha256": "667b127b54089499826ae21c87a6f2acb256a9abde6b48c3daed3bc93b28ad47"
+        },
+        {
+          "file": "text/chapter-4.xhtml",
+          "sha256": "f4da9209653c340c97f35cab326f3bc9c205954281f5f2d321b5ce299c7d1536"
+        },
+        {
+          "file": "text/chapter-5.xhtml",
+          "sha256": "2966c97e6f2a902d4435683a310e579d5bca36925565df947c2e7ad8a4b4e57e"
+        },
+        {
+          "file": "text/chapter-6.xhtml",
+          "sha256": "ba8f8742378bc7af4c059a00d502c36989fff13fdeb721d580096ba7a226d1ef"
+        },
+        {
+          "file": "text/chapter-7.xhtml",
+          "sha256": "a1810ae222ed3bcea2b91ad3313af8372075ae8065d4e49e4a81d7fb98c965b8"
+        },
+        {
+          "file": "text/chapter-8.xhtml",
+          "sha256": "3427b10ab109bcbab1085abfee80b2aa2bb2c8181319015d0b7493c04e19ab06"
+        },
+        {
+          "file": "text/chapter-9.xhtml",
+          "sha256": "33b30fd0af843a70edb50d006a82c1a3f6b91f337fc61b3be60a3b3743e4de4f"
+        },
+        {
+          "file": "text/chapter-10.xhtml",
+          "sha256": "ae71b72233ca75512705323df3339d6568231774e6e0e6a35ea13f81b899f240"
+        },
+        {
+          "file": "text/chapter-11.xhtml",
+          "sha256": "b01633e658a0ac0fd3f2965cce4152a84118fc9701777198aea486248404df56"
+        },
+        {
+          "file": "text/chapter-12.xhtml",
+          "sha256": "5ed0c18534c64ff4e7b613c5399808d613bad79f8440b0a51496278d8ddad45b"
+        },
+        {
+          "file": "text/chapter-13.xhtml",
+          "sha256": "b82eeab589d9bb38dcdf5bb3a8d443b36173fa926428c3757d8e768b13f8a866"
+        },
+        {
+          "file": "text/chapter-14.xhtml",
+          "sha256": "88a7967eb4ddbf6f4183b92088ba18045ef5f7ea36b96551ae5dcbe17b00585f"
+        },
+        {
+          "file": "text/chapter-15.xhtml",
+          "sha256": "b0feb2948072c358139c8df60fd8e58b50b381541025575b8e1b8bb603de841d"
+        }
+      ],
+      "artworkIncluded": false
+    },
+    {
+      "id": "starter-blue-castle",
+      "title": "The Blue Castle",
+      "author": "L. M. Montgomery",
+      "authorDeath": 1942,
+      "published": 1926,
+      "category": "Romance",
+      "repository": "l-m-montgomery_the-blue-castle",
+      "source": "https://standardebooks.org/ebooks/l-m-montgomery/the-blue-castle",
+      "catalog": "https://www.gutenberg.org/ebooks/67979",
+      "why": "A woman who has spent her life obeying an oppressive family decides to live on her own terms. Warm, witty and romantic, with a satisfying emotional arc and approachable prose.",
+      "revision": "fbd21a9a79a0e652c5985b7e1e08cddb1e5498a0",
+      "filename": "blue-castle.epub",
+      "sha256": "0da96041773d303433d60384acf09f365339cfd770b901e795b03b4ffa0a56f6",
+      "bytes": 204061,
+      "chapterCount": 45,
+      "wordCount": 68087,
+      "contentFiles": [
+        {
+          "file": "text/chapter-1.xhtml",
+          "sha256": "6ce364685662922baef85e62415cd72aaa9d18348ef8817c452e7aa4f3582b99"
+        },
+        {
+          "file": "text/chapter-2.xhtml",
+          "sha256": "564c5c48398b33d71aa590b6e4cf7f5ab5b6d12f3198920ccc3a34c049055f8d"
+        },
+        {
+          "file": "text/chapter-3.xhtml",
+          "sha256": "4e91fb54ef3e7a7c6d82d4c3da16fe036873e8cd58cf0608db40a2489096b5be"
+        },
+        {
+          "file": "text/chapter-4.xhtml",
+          "sha256": "42802c3d36e01b38ce6db81f2001a8d061eac74f30ea23ff8edd14bf1306e9b0"
+        },
+        {
+          "file": "text/chapter-5.xhtml",
+          "sha256": "c8d1b2572c70925cd203ce6aa2c2a74768258aa832077928562cb5b22647c8ee"
+        },
+        {
+          "file": "text/chapter-6.xhtml",
+          "sha256": "47a525a62634c82d44d614a2df5b3780eae5bc201ebfc3049f6f01274e34fce7"
+        },
+        {
+          "file": "text/chapter-7.xhtml",
+          "sha256": "97836632ba716a85b69e3c4d7374787692148917e047db766cf5a1495ee04ce9"
+        },
+        {
+          "file": "text/chapter-8.xhtml",
+          "sha256": "e5ddbd4a5172d934aef34a623a0464f88d6942032ab8186ca78b1828aa4ba60e"
+        },
+        {
+          "file": "text/chapter-9.xhtml",
+          "sha256": "77ab2347fd60c2b2376c2ce681f27228b2a4eddc3c1919e11c382fb07d9b155d"
+        },
+        {
+          "file": "text/chapter-10.xhtml",
+          "sha256": "b7d6b71f2333a71563e943f1b610adbafb3df9ebcd51ba336830b2ee783eabfa"
+        },
+        {
+          "file": "text/chapter-11.xhtml",
+          "sha256": "80c6d8260f959be1540f2a15f50e85ae45941d25f9326cfd5cb4d3ceb4969ce1"
+        },
+        {
+          "file": "text/chapter-12.xhtml",
+          "sha256": "1382ac3963fe887455e9e871efbbeaa017cb9d3ddb7069068e941ff9cc982d79"
+        },
+        {
+          "file": "text/chapter-13.xhtml",
+          "sha256": "7ecd75eec755421236b2016ff2ad822ec1f1fc3823c588681551bac3e906c0e5"
+        },
+        {
+          "file": "text/chapter-14.xhtml",
+          "sha256": "cd135422179a00e97a4200082689c22defd437f8bfee08b50c9c49348a034cdd"
+        },
+        {
+          "file": "text/chapter-15.xhtml",
+          "sha256": "dc52ec9c5cd7e56a45bab7e11e11ed8377b790bade780739c0860756ab5cb203"
+        },
+        {
+          "file": "text/chapter-16.xhtml",
+          "sha256": "decb12bfb2ea6e78fa32c73fb5c42f2be75540e830c2bd9635cfbbff1abf33f9"
+        },
+        {
+          "file": "text/chapter-17.xhtml",
+          "sha256": "8d99192c4b44a414a8bed30f25155691352773950729d7c50e9d51b13d51603f"
+        },
+        {
+          "file": "text/chapter-18.xhtml",
+          "sha256": "a6afca4602b2c1da3f96c02d0e67b8a6cd90132d85d12c39b1e2dff945db00df"
+        },
+        {
+          "file": "text/chapter-19.xhtml",
+          "sha256": "e5b24896f1abbb59381fbf2e27b1b7f4153946a4e5cc6f9e30fd3aba05668379"
+        },
+        {
+          "file": "text/chapter-20.xhtml",
+          "sha256": "1ca5909327146a03d247f181469952e16a2d9264c1e073cbb7e8c9e7763b61c5"
+        },
+        {
+          "file": "text/chapter-21.xhtml",
+          "sha256": "72965ba84acab6c762f1b0fb0ca09affdef25592d86c237e44186d8e71cacad7"
+        },
+        {
+          "file": "text/chapter-22.xhtml",
+          "sha256": "42a413af4a08e32752471414fa75847bd3b2e3a4a25cc18b82c3b897c6f637ea"
+        },
+        {
+          "file": "text/chapter-23.xhtml",
+          "sha256": "b096e5faf982bdb4e6b581497fb148dd0930ee32e9612319c54f8c55b464f263"
+        },
+        {
+          "file": "text/chapter-24.xhtml",
+          "sha256": "422c158441158b3b216b7c1793eff92b3d7731cbd0eba3905c23dfbfa368f559"
+        },
+        {
+          "file": "text/chapter-25.xhtml",
+          "sha256": "145dd3dd4772512e1fac259d0ea79a5b22cd2858666ec0ac7e1912eb3756e991"
+        },
+        {
+          "file": "text/chapter-26.xhtml",
+          "sha256": "c3dc2f2a9256724509516c7f2f7b41bf3c5b116f16d4a59c0d9c79e4f52d2a4f"
+        },
+        {
+          "file": "text/chapter-27.xhtml",
+          "sha256": "06c3c88fb5e4be0548ca5b2b89b64109ded0de629849ee9fe78302aeda3f9651"
+        },
+        {
+          "file": "text/chapter-28.xhtml",
+          "sha256": "e39185a0d5a920e54817e2f4ba86763c7a734bcabfc946e9ac0a15cfc4bc8b05"
+        },
+        {
+          "file": "text/chapter-29.xhtml",
+          "sha256": "7733ba3c52d092e0c76200bd3f6bbf447a9c05a930adcfb1ede06b45700bcb6c"
+        },
+        {
+          "file": "text/chapter-30.xhtml",
+          "sha256": "0e88240bb82b9ee9160fd4af69f79e64a144e216395161f14feffd2902704f22"
+        },
+        {
+          "file": "text/chapter-31.xhtml",
+          "sha256": "6b837b41b43f0395ea046b13542982c61016e86bd8e02672932566273c60e56e"
+        },
+        {
+          "file": "text/chapter-32.xhtml",
+          "sha256": "935905e2677d499837a80e8df5f77d5ab4145981b840895eea26604f80bd7eb9"
+        },
+        {
+          "file": "text/chapter-33.xhtml",
+          "sha256": "fc264ca8d8aa987aeca0182aa3dbf9bb75e0bce840599c2c97da03223bd37963"
+        },
+        {
+          "file": "text/chapter-34.xhtml",
+          "sha256": "b1d58a90385abcd4f9d6a7e41374f2a61068acc9b72d819d02f7c2cfbeb90c7a"
+        },
+        {
+          "file": "text/chapter-35.xhtml",
+          "sha256": "61afa44c2ea8887ae885a573ef1bba73e18cef527c3084ead25cc94c3c98e55d"
+        },
+        {
+          "file": "text/chapter-36.xhtml",
+          "sha256": "08d86abfade2e187bd3e0bc6ef5ad7c5e41317abee9ba75c6ecb6f5de396d791"
+        },
+        {
+          "file": "text/chapter-37.xhtml",
+          "sha256": "7e7e9e0ba0b4fa506f9e35af00a417d864cb05493f6df4d4186518996cc45219"
+        },
+        {
+          "file": "text/chapter-38.xhtml",
+          "sha256": "08348a145f328fc9cc11976e16ed3fc905d5296f9c32be8461ff1126783d3107"
+        },
+        {
+          "file": "text/chapter-39.xhtml",
+          "sha256": "048b059dc10bbfa978bdc71cb330879bb48b788ca6968d14be17e302e3379e3a"
+        },
+        {
+          "file": "text/chapter-40.xhtml",
+          "sha256": "04ad88adcccfbd233085536d6e4de5fb9130475342babbc5fcf92c6449b44c5e"
+        },
+        {
+          "file": "text/chapter-41.xhtml",
+          "sha256": "a36b50423e0fd3ccf170fcb35cb1fa2b126dd856e371e24cbc9bd0856c32e411"
+        },
+        {
+          "file": "text/chapter-42.xhtml",
+          "sha256": "329d0407789323d7dad24fe2291663a675b06fb9fe6dd03ec7c9068fca8d7367"
+        },
+        {
+          "file": "text/chapter-43.xhtml",
+          "sha256": "9ebbafafd9762937a4f603c1778bcaf136bf537af9311706c7bf5db044e07ec6"
+        },
+        {
+          "file": "text/chapter-44.xhtml",
+          "sha256": "eadaaab8ca886b3d8c1e783b9d132485a140791352b507da1bdea0c92548c4d3"
+        },
+        {
+          "file": "text/chapter-45.xhtml",
+          "sha256": "0885938ad91f1ec6e0ac683ef3afd9f7a775dc6dc4cc68642dbd8e4c005b1083"
+        }
+      ],
+      "artworkIncluded": false
+    },
+    {
+      "id": "starter-great-gatsby",
+      "title": "The Great Gatsby",
+      "author": "F. Scott Fitzgerald",
+      "authorDeath": 1940,
+      "published": 1925,
+      "category": "Realistic social drama",
+      "repository": "f-scott-fitzgerald_the-great-gatsby",
+      "source": "https://standardebooks.org/ebooks/f-scott-fitzgerald/the-great-gatsby",
+      "catalog": "https://www.gutenberg.org/ebooks/64317",
+      "why": "Wealth, extravagant parties, reinvention and obsession, followed by consequences. The shortest full-length novel in the group and a different, darker emotional register. Set in the 1920s, not the present day.",
+      "revision": "fe47c8c04f5175d45f9410f4e3ca64c257ae0acc",
+      "filename": "great-gatsby.epub",
+      "sha256": "5a37263aee75a66e7225fa0c2263860e8822547377e1e845f24aa246f6180894",
+      "bytes": 128179,
+      "chapterCount": 9,
+      "wordCount": 48151,
+      "contentFiles": [
+        {
+          "file": "text/dedication.xhtml",
+          "sha256": "622831a89bcae9d325318247b74b0f35dbeea5141689b1ea27b999eeb924bb51"
+        },
+        {
+          "file": "text/epigraph.xhtml",
+          "sha256": "d419148725a5339d97f355cca8f6c1134a6ddf5d7c4ea269f687da0d4b9e8c8c"
+        },
+        {
+          "file": "text/chapter-1.xhtml",
+          "sha256": "7e46ac1dcf4d16f62101a0b87de645f86f967d661f5697beec7e77e9713e2fcd"
+        },
+        {
+          "file": "text/chapter-2.xhtml",
+          "sha256": "bf966f46e9f0bb6ee6c19858c82ffec561aad0ec5d1f5cfb26830dec3f1cb981"
+        },
+        {
+          "file": "text/chapter-3.xhtml",
+          "sha256": "295ab883333375679d7c39437879fb7fc5562a403ed66dd9bbbb2d1727839ea2"
+        },
+        {
+          "file": "text/chapter-4.xhtml",
+          "sha256": "eaaab5359384cb52400754175c24776c91912511720c2b9e7b53bc08373b939b"
+        },
+        {
+          "file": "text/chapter-5.xhtml",
+          "sha256": "ee9625d972c43ef466fa33aeb36ce6b769c732148a89f835da52ed758367d745"
+        },
+        {
+          "file": "text/chapter-6.xhtml",
+          "sha256": "7d2b1d0940127153b7203b945015a2af3765bdddd6b34161e35ce01d2e18ac2a"
+        },
+        {
+          "file": "text/chapter-7.xhtml",
+          "sha256": "a70738f98be214363f9d252ceda53d3cb9001e11ae2f30372fe663ce52872b32"
+        },
+        {
+          "file": "text/chapter-8.xhtml",
+          "sha256": "a120c86ff6f8d5d40a0d0c57a97d431cb374e410b51f980c7e0a4e5a15f6dc0d"
+        },
+        {
+          "file": "text/chapter-9.xhtml",
+          "sha256": "6c9be29ac14eeb964615c62d53e038cffad180838a2df389529927aa7cfb6634"
+        }
+      ],
+      "artworkIncluded": false
+    },
+    {
+      "id": "starter-count-monte-cristo",
+      "title": "The Count of Monte Cristo",
+      "author": "Alexandre Dumas",
+      "authorDeath": 1870,
+      "collaborator": "Auguste Maquet",
+      "collaboratorDeath": 1888,
+      "published": 1844,
+      "translation": "Anonymous English translation published by Chapman and Hall, 1846",
+      "category": "Historical adventure",
+      "repository": "alexandre-dumas_the-count-of-monte-cristo_chapman-and-hall",
+      "source": "https://standardebooks.org/ebooks/alexandre-dumas/the-count-of-monte-cristo/chapman-and-hall",
+      "catalog": "https://www.gutenberg.org/ebooks/1184",
+      "why": "Betrayal, imprisonment, escape, hidden wealth and an elaborate revenge. The substantial surprise selection, chosen for its momentum and intrigue. The nineteenth-century English translation is older in style than modern commercial translations.",
+      "revision": "1af363f17450316f295e7d30d7eb77742906c789",
+      "filename": "count-monte-cristo.epub",
+      "sha256": "0c5042adc2ccbe4b1d7a7baf9a8657a647ef738623d4fe0314da0f3f80c7bef4",
+      "bytes": 1192703,
+      "chapterCount": 117,
+      "wordCount": 460368,
+      "contentFiles": [
+        {
+          "file": "text/chapter-1.xhtml",
+          "sha256": "f9456d4c2e03e651fa0139ec5d27a479c4c836a0e20c699a9188aa2123a13323"
+        },
+        {
+          "file": "text/chapter-2.xhtml",
+          "sha256": "051e2341adc8df9a431cd7288647a96a6e4f0a77c6c82acde9e16d6fcba471d8"
+        },
+        {
+          "file": "text/chapter-3.xhtml",
+          "sha256": "d26439d7fae96d631eb793fdac25a949eba85ebfa188d2d8a9053de1b125b3d7"
+        },
+        {
+          "file": "text/chapter-4.xhtml",
+          "sha256": "58d64b0f9741c158b4af2598241f4a7cc103341d3c316ff4986d0a1ba51214cd"
+        },
+        {
+          "file": "text/chapter-5.xhtml",
+          "sha256": "3bdd3348367d427c58dd71b95190b5b20a7b3001e7c116521c04f72689a32dc1"
+        },
+        {
+          "file": "text/chapter-6.xhtml",
+          "sha256": "5982406488e2a86af8ade997f7d69fe8a99f3599958e8df9666a84dbed1bb8fc"
+        },
+        {
+          "file": "text/chapter-7.xhtml",
+          "sha256": "9085765281cdab682079eb12682e4b00b44ee0de0411d401b9687ec9fe9d3f7f"
+        },
+        {
+          "file": "text/chapter-8.xhtml",
+          "sha256": "d07c30eb8ade711083403bf592c149e6b81f0803a02f3108ad21ba2b3ea6a21f"
+        },
+        {
+          "file": "text/chapter-9.xhtml",
+          "sha256": "65d4ae4f03ac46c1dc46e1c1fcc7200f9e7aa96ffb97bc85ad54ee6fe327d9f2"
+        },
+        {
+          "file": "text/chapter-10.xhtml",
+          "sha256": "903a0aadfb6f2df768845e3d97d45c0a568ed6baf0eaf84114a8809bc760c0ba"
+        },
+        {
+          "file": "text/chapter-11.xhtml",
+          "sha256": "f0814b9ebe3134cf75877ff66b7633a5f5c0dcb30fcb77d55de22335690ef3fa"
+        },
+        {
+          "file": "text/chapter-12.xhtml",
+          "sha256": "c940441b53a32bdaa0e922085aa567784f2c2ccd762241608e71c6c3660a6dcd"
+        },
+        {
+          "file": "text/chapter-13.xhtml",
+          "sha256": "c1d91907fad280a0e4364c967219a68126207f840ea0282259fa0d270c31d1d1"
+        },
+        {
+          "file": "text/chapter-14.xhtml",
+          "sha256": "b6ead8de8caa8d6608725ae03842500af1dcbbe21d9cdac033154683fe0b445f"
+        },
+        {
+          "file": "text/chapter-15.xhtml",
+          "sha256": "eae2e8c6897fd33e5dddb12a3a450aff6e7f621ee3da3339c71bc0e3d4bf07cd"
+        },
+        {
+          "file": "text/chapter-16.xhtml",
+          "sha256": "5a4ac964e8bf9c3853a3a04059280b1a4ab7a96555148cbd287223e3c0abf5b1"
+        },
+        {
+          "file": "text/chapter-17.xhtml",
+          "sha256": "eab59fbc0871eeac43d95a093e82f647ed2448a23903795f5f7833a7e02ff090"
+        },
+        {
+          "file": "text/chapter-18.xhtml",
+          "sha256": "05d42abcb4ca909f16ad51059e4274cb177802bc84028ab3a5957644b9c274ef"
+        },
+        {
+          "file": "text/chapter-19.xhtml",
+          "sha256": "511a422eb1df44ac0f7093db7bb9fe2fc9698d529e9b67aec8a6098878f502ab"
+        },
+        {
+          "file": "text/chapter-20.xhtml",
+          "sha256": "3b70bc35efaaccb88268afdbe24cdd30f0a2725acc875c925384010e8a74032a"
+        },
+        {
+          "file": "text/chapter-21.xhtml",
+          "sha256": "9f7602c94a4256bdf3242e6920e4fce569bbadd84204528f27c2d6b63fb45a84"
+        },
+        {
+          "file": "text/chapter-22.xhtml",
+          "sha256": "dbda252969447d93b7bbe4d74ffd1c6d97da4b8007089da9a6907c23d98d621f"
+        },
+        {
+          "file": "text/chapter-23.xhtml",
+          "sha256": "705d2aa98cd32edea4f4310c4f3f39fba038145c2c3e14ddc4aa8fc259c94afe"
+        },
+        {
+          "file": "text/chapter-24.xhtml",
+          "sha256": "010f6d9cefd98ca57b698f25abe1d6fcf61a6e11f63aa3f6fcb2f598dff53c43"
+        },
+        {
+          "file": "text/chapter-25.xhtml",
+          "sha256": "f5d1d75e203dd95839bac24b8d7ce6df1275150280dcc25e619be25ae48db6ec"
+        },
+        {
+          "file": "text/chapter-26.xhtml",
+          "sha256": "b28a9893dd64ee328800c1a1bebbd5bda0240b625f279bddf5b310308d8417f4"
+        },
+        {
+          "file": "text/chapter-27.xhtml",
+          "sha256": "9b29bb3e770c225eaec6603076cce44f6d0b110046d641b93ff775ea4d62496c"
+        },
+        {
+          "file": "text/chapter-28.xhtml",
+          "sha256": "bc6d758ab17c3c409a70cc2f4fe8192d668b901eae0d3b211a7c23022a216bd7"
+        },
+        {
+          "file": "text/chapter-29.xhtml",
+          "sha256": "965cff3e94305c26f2c3b8ca85ebc4434bee0f2501faf5c9792b564ecb644fc4"
+        },
+        {
+          "file": "text/chapter-30.xhtml",
+          "sha256": "1797ad0858a71bf04fc8f258926aa81dccd46cfe906f311060a3514ed8ae20a1"
+        },
+        {
+          "file": "text/chapter-31.xhtml",
+          "sha256": "0d1137c57926e69cd9bb1e5889e584bec46ea578161eb7023f6e819951183e2c"
+        },
+        {
+          "file": "text/chapter-32.xhtml",
+          "sha256": "6c98e605e700f394ee81afcc604509bbbed8655fb5e0c4c08c62940b6d8458eb"
+        },
+        {
+          "file": "text/chapter-33.xhtml",
+          "sha256": "82de67f61030237c9e772a55d4b459072a2c0ab211816215baa8809381d3dd8c"
+        },
+        {
+          "file": "text/chapter-34.xhtml",
+          "sha256": "5499edaaa0d0f5ffbf60ece578e8c3bbb6dbd98626e9f454ecdbb2583ee99958"
+        },
+        {
+          "file": "text/chapter-35.xhtml",
+          "sha256": "59c1477fbd31a22c03fc4750f71516ad1ed93c8862915fb103d42da658f5e6ea"
+        },
+        {
+          "file": "text/chapter-36.xhtml",
+          "sha256": "1f537b7d41d6abf7948e4a80684c12c79679a7351be2f12b6b4181d84f52402c"
+        },
+        {
+          "file": "text/chapter-37.xhtml",
+          "sha256": "2c545b1c49c06d37e0910c634cfdcc4a54014d6e24cff0501adc2f085f5605fd"
+        },
+        {
+          "file": "text/chapter-38.xhtml",
+          "sha256": "2b926d0d53e724ed59c93c20eeed90c9c12a7a8802a06d2ffb4aa9b11cdf57a9"
+        },
+        {
+          "file": "text/chapter-39.xhtml",
+          "sha256": "53155eb688413f2117d0f4b1a8d4d36205e0674d7d36594175376d2fd90e5dd8"
+        },
+        {
+          "file": "text/chapter-40.xhtml",
+          "sha256": "3c10118f8c19e5068aee84f210ede75a8ac85b0e80f96ee86769dcb747890a59"
+        },
+        {
+          "file": "text/chapter-41.xhtml",
+          "sha256": "011a44432ccecf6cc4d4f5358d6c3182d3e3ec53e773a361c4f517af0b4cbcb9"
+        },
+        {
+          "file": "text/chapter-42.xhtml",
+          "sha256": "e581ce95203769a9911dd1e6a347bf42112074d41c2f21e6ca86722b4a245424"
+        },
+        {
+          "file": "text/chapter-43.xhtml",
+          "sha256": "ebbb299f05e9ab08fb13287502e6ebe59c347943625c4df783aef4b403381d6a"
+        },
+        {
+          "file": "text/chapter-44.xhtml",
+          "sha256": "92ed5ba1d626cb4c551eb339f6cc5a83c3fcf067a5dc01f1de100f36a21991bf"
+        },
+        {
+          "file": "text/chapter-45.xhtml",
+          "sha256": "34628f936bd7323b0a17761925e98daf5f222da1b2e7b9ad259c48cd9069657a"
+        },
+        {
+          "file": "text/chapter-46.xhtml",
+          "sha256": "e2fdad0181481dc55402095419eee2a779ad58ce4991dd9e8b0d19909287a645"
+        },
+        {
+          "file": "text/chapter-47.xhtml",
+          "sha256": "13cf1097d9d486413ff6f40fb7d6a51e964ad66c1b957ae331635a8c2d5b41ca"
+        },
+        {
+          "file": "text/chapter-48.xhtml",
+          "sha256": "6789d0a832d648934dacb42b4e910c9e8dabac8d0426eefd2415d80e9abad54a"
+        },
+        {
+          "file": "text/chapter-49.xhtml",
+          "sha256": "e92cc9e5af0430b597ed8eced28029d30e9d991ba3b64df6f5758c632cb5b3c0"
+        },
+        {
+          "file": "text/chapter-50.xhtml",
+          "sha256": "876e92c1516cdd300bc31997b715b71c6b1f6a3cd35338b79be4f009bfe9426b"
+        },
+        {
+          "file": "text/chapter-51.xhtml",
+          "sha256": "44568241cfb69c544e2853f3bd2028aaa8a4382241ee040c70c54b6e233b3982"
+        },
+        {
+          "file": "text/chapter-52.xhtml",
+          "sha256": "eb78aa10b36ff68e5831b9c9345e4e63b314b7fa53ba0416c0c85b0deed0634a"
+        },
+        {
+          "file": "text/chapter-53.xhtml",
+          "sha256": "173aab10ec73c4f258ed084a59bc5c864fb3e503c0c230fa7a621b2cadd78205"
+        },
+        {
+          "file": "text/chapter-54.xhtml",
+          "sha256": "46154f0e05e73d7f99485a5814f37b35acb903a92fd0f7a92905fc76f2532a9b"
+        },
+        {
+          "file": "text/chapter-55.xhtml",
+          "sha256": "7614dc5b76efc33b85058404e3b0e33ed2ea6881fad9b7457395e7c4d4f53aed"
+        },
+        {
+          "file": "text/chapter-56.xhtml",
+          "sha256": "1d5ced589c39e0fbf509cf1d8525b21821e7af74419ead222e8dc7b16410c0f0"
+        },
+        {
+          "file": "text/chapter-57.xhtml",
+          "sha256": "6ebb900855a0533d6b604936ede8df011e98a6585ddff94ef099c7a22f587234"
+        },
+        {
+          "file": "text/chapter-58.xhtml",
+          "sha256": "8e076b9cbb5b9c79cdeaefd4cab3b19fa73f798f23450902599d368a32654305"
+        },
+        {
+          "file": "text/chapter-59.xhtml",
+          "sha256": "548b804e33276ece2f8db25001a74a05f5de41ea334a43db5fb87bd20712e66c"
+        },
+        {
+          "file": "text/chapter-60.xhtml",
+          "sha256": "3cb584c769cf38255398b1f30954d8633bd6bb497b29556e7f8ccfc3271e3af9"
+        },
+        {
+          "file": "text/chapter-61.xhtml",
+          "sha256": "91d06ff6e26f27c9c49fd1c368ad4b5b8f07162b85f5084a284930d90531e978"
+        },
+        {
+          "file": "text/chapter-62.xhtml",
+          "sha256": "32948f505d00c3a9b1808a5056f998e6c46ff5578731b0ce317fd01114d2a1d5"
+        },
+        {
+          "file": "text/chapter-63.xhtml",
+          "sha256": "846194fb12e7a687280242018891aae3f0f504926221d82ce0f736b51bb01969"
+        },
+        {
+          "file": "text/chapter-64.xhtml",
+          "sha256": "337a1965974836bc75990ed692162df91a90c244bf5a5ccb2b8f5008e4426490"
+        },
+        {
+          "file": "text/chapter-65.xhtml",
+          "sha256": "883920ce36fb9249c32bedf11a5f21d880aa8f7d13f93e3169cf574e5855b546"
+        },
+        {
+          "file": "text/chapter-66.xhtml",
+          "sha256": "8d779acf070f2393c4c2562168e596d27e8cba1b4c45663061acd4637c1255af"
+        },
+        {
+          "file": "text/chapter-67.xhtml",
+          "sha256": "d76a2b4beec96a01865610d5f5038af563b0702b95f7626848a2731dde17a8a7"
+        },
+        {
+          "file": "text/chapter-68.xhtml",
+          "sha256": "e2e706d918cbdcee02a309c4d6703f34c063a2edaf7015de5c7ea77c08418315"
+        },
+        {
+          "file": "text/chapter-69.xhtml",
+          "sha256": "9d25c48a2847196c815c7845e5d79e0e2d5b751d740c196bfd1a5d3ea1089589"
+        },
+        {
+          "file": "text/chapter-70.xhtml",
+          "sha256": "43e4a94c26320d2e70681308107d54250b516e8c377ff8f23e6ad10da65813d7"
+        },
+        {
+          "file": "text/chapter-71.xhtml",
+          "sha256": "17c3cfa4c830041496542e6316c637770e147e495db2e6a10ce6b1f70097d35f"
+        },
+        {
+          "file": "text/chapter-72.xhtml",
+          "sha256": "f94d8fe743ef35f7b556bf3a973ea806786ab099d06884861cbc675e8e66b163"
+        },
+        {
+          "file": "text/chapter-73.xhtml",
+          "sha256": "438bf4d36597b66b2e2cf4706a2e5aa4518491691131ad5314e69a71a97c42e6"
+        },
+        {
+          "file": "text/chapter-74.xhtml",
+          "sha256": "ddc3fb100e0c893d614e1420c91267806155d10a54934554ccb031b2b97e06a9"
+        },
+        {
+          "file": "text/chapter-75.xhtml",
+          "sha256": "c3c3530e2cb42574b37d80ed6426a845299dbc635c616d02c166d5c239973458"
+        },
+        {
+          "file": "text/chapter-76.xhtml",
+          "sha256": "00e0ad82705e1d28ec1cdae37eebe7499918a1b99182e80e138456967ee56773"
+        },
+        {
+          "file": "text/chapter-77.xhtml",
+          "sha256": "0065fd9dde201b005022d7f4536741e2fbdf48dc8d6206b2f77c58ffc714893d"
+        },
+        {
+          "file": "text/chapter-78.xhtml",
+          "sha256": "d2b954750de6a82a420ec0c865476671c0d081751e9c6130549daf1e1e01bfad"
+        },
+        {
+          "file": "text/chapter-79.xhtml",
+          "sha256": "c05f4fd60aa8d97c4f5487c10fe63facc7ab91f8c798683a74caa1949e8a1e29"
+        },
+        {
+          "file": "text/chapter-80.xhtml",
+          "sha256": "2d8c84f418a032c89837f0de59d8ee37d7f066508604e5517502a584c04c4484"
+        },
+        {
+          "file": "text/chapter-81.xhtml",
+          "sha256": "9d1326be55c1216886ce94fdb821e1bfeaa7ec0c58abae7445f24290880676a1"
+        },
+        {
+          "file": "text/chapter-82.xhtml",
+          "sha256": "9ae2c84452c7314f5b6080f06d54a0087be54b51c3c0f3cde956856215533527"
+        },
+        {
+          "file": "text/chapter-83.xhtml",
+          "sha256": "f9e53a6e1ec6689381715236e63d6c3db477c974b0715ed0b27f4b422315850f"
+        },
+        {
+          "file": "text/chapter-84.xhtml",
+          "sha256": "e12defae29257b1b7846e4ba442e8eb5799a190ebebfddcc7b3221ff70b0def3"
+        },
+        {
+          "file": "text/chapter-85.xhtml",
+          "sha256": "f86d99c9fb2bb7013b5859bc3e132036143fd728e42df573ef409ff6fce6f15d"
+        },
+        {
+          "file": "text/chapter-86.xhtml",
+          "sha256": "97069250c5bf8f6d8a2807789022e9deb904d1a20c674cd0013d2c86bc6c4a13"
+        },
+        {
+          "file": "text/chapter-87.xhtml",
+          "sha256": "cb58a6eb52f6f319f0e9c7f6b9650621f3295e6d282ad62aa33305797ba43283"
+        },
+        {
+          "file": "text/chapter-88.xhtml",
+          "sha256": "e4968dd415aa7d87eb90b240373f34d2cb862a605e8943e5ad10520b7e8710ef"
+        },
+        {
+          "file": "text/chapter-89.xhtml",
+          "sha256": "bc32afc736a59881738d5ce504b9ad31974e114a218995475bad5488eb741f97"
+        },
+        {
+          "file": "text/chapter-90.xhtml",
+          "sha256": "1517f0e91b007a388b8f9dbedafd1c84e53151485f323da778549ebc37782565"
+        },
+        {
+          "file": "text/chapter-91.xhtml",
+          "sha256": "a02fe5cb7227cb879c100d13946cc9baedef430d0058efadd330b2fc3032cdb3"
+        },
+        {
+          "file": "text/chapter-92.xhtml",
+          "sha256": "68268049481896bb9120326a70f33849435650f32ce52257f45a3c902e17d5db"
+        },
+        {
+          "file": "text/chapter-93.xhtml",
+          "sha256": "0dfc1297fb6e5b6014de29f96cf5fb7680f360045000ed7e45ecf68613391a9a"
+        },
+        {
+          "file": "text/chapter-94.xhtml",
+          "sha256": "3ade237d6b74b8e573fbafb303a9af51a093ed768d633d454741f7df3e1a9339"
+        },
+        {
+          "file": "text/chapter-95.xhtml",
+          "sha256": "2b0ac4d14d62fd3dfcddd72548ea4e0aa01ff270279fcd678553cb7f84364b8d"
+        },
+        {
+          "file": "text/chapter-96.xhtml",
+          "sha256": "e69c1cfa1494f10918076d669c35fb54a3a2d29a0732af3871aa2932d7e82b13"
+        },
+        {
+          "file": "text/chapter-97.xhtml",
+          "sha256": "fff77a1cd4c1dc908c0aa803955508bbd7a4b94cb9ae38badb5d65426d096d82"
+        },
+        {
+          "file": "text/chapter-98.xhtml",
+          "sha256": "53a9ed879aa3923ccc6831b2a5773701300806080984fe733046af3a534aa009"
+        },
+        {
+          "file": "text/chapter-99.xhtml",
+          "sha256": "b491ba86baf111aa3e173c6c27028362a4dadbdf92c7a5c202ae34a9711179a5"
+        },
+        {
+          "file": "text/chapter-100.xhtml",
+          "sha256": "403c0f0715de3805a07ffb991c5d65003086f9263bba3ac63f8cfe2e217ed3cd"
+        },
+        {
+          "file": "text/chapter-101.xhtml",
+          "sha256": "23c2cf9017c4f751e7dca2e8fe466c384d542b56e9c518b41fceef6d6bd0474f"
+        },
+        {
+          "file": "text/chapter-102.xhtml",
+          "sha256": "acf901ca098e07e6eed643e6ce0a481f161db270343a6d6b2ffbb036cd41b84d"
+        },
+        {
+          "file": "text/chapter-103.xhtml",
+          "sha256": "1b97920b7e127e9e5fa97e03c6a8d515983bca1c7df58cc2bb6c0576aa790aff"
+        },
+        {
+          "file": "text/chapter-104.xhtml",
+          "sha256": "9a5087780aa75030376b09600dc42808304f9991db14df5e1f52999af957fa5b"
+        },
+        {
+          "file": "text/chapter-105.xhtml",
+          "sha256": "bcb2d3ba8f1d15323af094151e1401e79d956022159cbe45d315ae475054eca7"
+        },
+        {
+          "file": "text/chapter-106.xhtml",
+          "sha256": "0440c373cbce7f384ffd6406359e8c5ebbd3b7e29f997cae930375450c999bd4"
+        },
+        {
+          "file": "text/chapter-107.xhtml",
+          "sha256": "a3af22067a6bd33fe72a965ab08d4ce0a811482bd86ef5da71b2a66a0321ea94"
+        },
+        {
+          "file": "text/chapter-108.xhtml",
+          "sha256": "82271ed9a56d8b04d22509ce235dd1abe2c8052efc0545dfdb0657f919814beb"
+        },
+        {
+          "file": "text/chapter-109.xhtml",
+          "sha256": "bdd7e1959267d4f747fa711414d81c60516e8af6cfbccc0f67a18bff38252278"
+        },
+        {
+          "file": "text/chapter-110.xhtml",
+          "sha256": "974789c1f58e07e0a35717441f1845320992d0636e0cb7b121711f067b02416d"
+        },
+        {
+          "file": "text/chapter-111.xhtml",
+          "sha256": "c587872dcc0c24ae06b25f9f93cb702b9bde026052bd5c238ff374646a768f52"
+        },
+        {
+          "file": "text/chapter-112.xhtml",
+          "sha256": "775146c5fded1544cecafbf99acd7baa63f2f7e7e3a3bb5652bfbf556b4960d8"
+        },
+        {
+          "file": "text/chapter-113.xhtml",
+          "sha256": "893f232c2a54ecbf8ff4f2fcb363541e7e976ee52d49c4dfcf2b9ccd14a972a2"
+        },
+        {
+          "file": "text/chapter-114.xhtml",
+          "sha256": "bffecf18ff681ed4a5f2c1766be1c145c9836ce77ea0cbd6aa2fbe314258be04"
+        },
+        {
+          "file": "text/chapter-115.xhtml",
+          "sha256": "ae3c5bd2242e745cd3672ea781ec290ffabfb7a5f5386fc8ce1fc5a4b06785ae"
+        },
+        {
+          "file": "text/chapter-116.xhtml",
+          "sha256": "bf9c4b72f82481d20dc78d18c0e3bf64fcc6b32b344b4e66addd59a06698b133"
+        },
+        {
+          "file": "text/chapter-117.xhtml",
+          "sha256": "8d25ea1d291cf5affbca1eb35fee15345a0bb3ed030a94977fb9de96bd5caa1a"
+        },
+        {
+          "file": "text/endnotes.xhtml",
+          "sha256": "5447d663a1bbdc05dbb0f3dd127b5a3a388322ccf6d3efb22ee765da81b02add"
+        }
+      ],
+      "artworkIncluded": false
+    }
+  ]
+}
