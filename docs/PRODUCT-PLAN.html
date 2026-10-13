@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Origami | First-release product plan</title>
+<style>
+:root{color-scheme:dark;--bg:#17161b;--panel:#232129;--text:#efeaf3;--muted:#bfb7c9;--accent:#d2baf6;--line:#403947;--gold:#edc294}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 system-ui,sans-serif}header,main,footer{max-width:1200px;margin:auto;padding:40px 34px}header{padding-top:65px;border-bottom:1px solid var(--line)}.eyebrow{letter-spacing:.16em;color:var(--gold);font-size:12px;text-transform:uppercase}h1{font:64px/1.05 Georgia,serif;margin:22px 0}h2{font:32px/1.25 Georgia,serif;margin:58px 0 20px;scroll-margin-top:24px}h3{font-size:20px;color:var(--accent);margin:28px 0 12px}p{max-width:104ch}.lead{font-size:22px;color:var(--muted);max-width:950px}.muted,.small{color:var(--muted)}.small{font-size:14px}a{color:var(--accent);text-underline-offset:3px}nav{display:flex;gap:12px 24px;flex-wrap:wrap;margin-top:28px}nav a{font-size:14px}li{margin:8px 0}strong{font-weight:650}.callout,.panel{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:20px 24px;margin:24px 0}.callout{border-left:4px solid var(--gold)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.grid .panel{margin:0}.grid h3{margin-top:0}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:22px 0}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;vertical-align:top;padding:14px 16px;border-bottom:1px solid var(--line)}th{background:var(--panel);color:var(--accent)}tr:last-child td{border-bottom:0}td:first-child{min-width:110px}figure{margin:0}figure img{width:100%;border-radius:10px;border:1px solid var(--line)}figcaption{font-size:13px;color:var(--muted);margin:8px 0 0}.themes{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.theme{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--panel)}.colors{height:36px;display:flex}.colors i{flex:1}.theme p{margin:10px 13px;font-size:14px}.flow{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap}.flow>div{flex:1;min-width:170px;border:1px solid var(--line);border-radius:10px;padding:18px;background:var(--panel)}.flow b{display:block;color:var(--gold);margin-bottom:5px}.tag{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:3px 12px;margin:4px 5px 0 0;font-size:13px;color:var(--muted)}code{color:var(--gold);font-size:.94em}footer{border-top:1px solid var(--line);color:var(--muted)}.index{font-size:13px;letter-spacing:.07em;color:var(--gold)}
+@media(max-width:760px){header,main,footer{padding:28px 18px}h1{font-size:46px}.grid{grid-template-columns:1fr}.themes{grid-template-columns:repeat(2,1fr)}table{min-width:720px}h2{font-size:28px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{:root{color-scheme:light;--bg:white;--panel:#f4f1f6;--text:#18151b;--muted:#544d5b;--accent:#654782;--line:#d8d0e0;--gold:#805329}body{font-size:10pt}header,main,footer{padding:18px 0}h1{font-size:38pt}h2{font-size:22pt;break-after:avoid;margin-top:30px}h3{break-after:avoid}nav{display:none}.table-wrap{overflow:visible}table{font-size:9pt;min-width:0}tr,.callout,.theme{break-inside:avoid}.grid{gap:12px}a{text-decoration:none}}
+</style>
+</head>
+<body>
+<header>
+<div class="eyebrow">Origami · Windows + Linux · Product plan · 12 October 2026</div>
+<h1>First-release plan</h1>
+<p class="lead">A complete local reading and speech app, built around a searchable library, comfortable reading, expressive voices and audio people can keep.</p>
+<p><strong>Approved visual direction:</strong> the library and reader mockups. <strong>New decisions:</strong> several color themes; independently collapsible side panels; a contextual, tabbed right inspector; multi-character Studio scheduled after the first release.</p>
+<p class="small">This is the proposed implementation plan, not a claim that these features are built. Origami remains the working app name. Maeve and the other named voices remain voice profiles.</p>
+<nav aria-label="Plan contents"><a href="#scope">Release scope</a><a href="#layout">Workspace</a><a href="#context">Contextual tools</a><a href="#themes">Themes</a><a href="#features">Feature plan</a><a href="#pipeline">Long documents</a><a href="#studio">Future Studio</a><a href="#architecture">Architecture</a><a href="#delivery">Build order</a><a href="#acceptance">Release checks</a></nav>
+</header>
+<main>
+<section id="scope">
+<h2>01. A substantial first release</h2>
+<p>Build a full reader with single-narrator audiobook export, rather than stopping at an interface around a text box. Deliver it in usable stages so the app can be exercised with real books while the rest of the first-release feature set is completed.</p>
+<div class="callout"><strong>First-release outcome:</strong> import a long book or document, organize it, choose a voice, listen while generation continues, annotate the text, repair a passage, resume after restarting, and export a complete audiobook. Use the same speech system for opted-in chat replies and explicitly selected browser text.</div>
+<div class="grid">
+<div class="panel"><h3>Required for v1</h3><p>Library, structured imports, reader, bookmarks and notes, contextual selection tools, voice and model catalog, pronunciation, streaming playback, selective regeneration, durable jobs, bounded storage, exports, twelve themes, clipboard reading, migration and the existing chat integration where supported.</p></div>
+<div class="panel"><h3>Additional first-release targets</h3><p>Chrome/Edge/Brave extension, mini-player, media keys and sleep timer. These are planned work, with explicit platform checks. A browser-specific problem should not prevent a usable reader build from being delivered.</p></div>
+</div>
+<p><strong>After v1:</strong> multi-character Studio and automatic speaker attribution, guided voice cloning, system sound capture, transcription, scanned-document OCR, word alignment, cloud sync, live voice conversion and model training. Keep room for them in the data model without exposing empty pages or unfinished controls.</p>
+<p>“Local” means downloaded compatible models can generate new speech without a service account or internet connection. Model installation may need a download or model-specific access. Cloud engines are a future optional adapter, not a requirement for using the library.</p>
+</section>
+
+<section id="layout">
+<h2>02. A workspace that gives space back</h2>
+<div class="grid">
+<figure><a href="Origami-Library.png"><img src="Origami-Library.png" alt="Approved Origami library concept in charcoal and plum" loading="lazy"></a><figcaption>Approved library direction. Theme colors will be replaceable.</figcaption></figure>
+<figure><a href="Origami-Reader.png"><img src="Origami-Reader.png" alt="Origami reader concept with paper surface and annotations" loading="lazy"></a><figcaption>Approved reader direction. The right sidebar will become tabbed; this concept currently shows too many sections together.</figcaption></figure>
+</div>
+<ul>
+<li><strong>Left panel:</strong> library collections and filters in Library; contents, chapter navigation and in-book search in Reader. Collapse and reopen with a visible button or keyboard shortcut.</li>
+<li><strong>Center:</strong> the shelf, document or reading page. Collapsing either sidebar immediately gives that space to the center. The reading column still has a comfortable maximum line width.</li>
+<li><strong>Right panel:</strong> a resizable inspector whose tabs and contents follow the current workspace and selected object. Collapse independently from the left panel. A small toolbar remains available for reopening it.</li>
+<li><strong>Bottom player:</strong> playback, seek, skip, voice summary, speed, volume and output device. Reader panels may close while playback continues. Extra transport options live in a menu, not an ever-widening row of buttons.</li>
+<li><strong>Focus mode:</strong> hide both panels and reduce the header. Keep a compact player available; allow playback controls to auto-hide when reading visually.</li>
+<li><strong>Remember the layout:</strong> save panel widths, collapse state and last inspector tab per workspace. On narrow windows, use one temporary side drawer at a time rather than squeezing the reading page.</li>
+</ul>
+<p>The first-release navigation is Library, Bookmarks, Voices and Integrations, with Settings and a compact activity indicator. Quick Read opens from a button or shortcut. Studio becomes a real navigation destination when its first workflow is ready.</p>
+</section>
+
+<section id="context">
+<h2>03. A right inspector that responds to your work</h2>
+<p>Keep stable tabs for <strong>Notes &amp; Bookmarks</strong>, <strong>Voice</strong>, <strong>Appearance</strong> and <strong>Document</strong>. Add a temporary <strong>Selection</strong> tab when text is selected. Use labels plus icons, with an overflow menu when space is limited. Notes and bookmarks have a small internal switch, not two permanently expanded lists.</p>
+<div class="table-wrap"><table><thead><tr><th>Context or tab</th><th>What appears</th><th>Behavior</th></tr></thead><tbody>
+<tr><td>Text selected</td><td>Read selection; read from here; copy; bookmark; colored underline; add note; spoken-text preview; edit spoken wording; pronunciation rule; regenerate audio.</td><td>A compact nearby toolbar offers the common actions. The inspector holds detailed controls and generation scope. Read selection temporarily plays that excerpt; Read from here changes the book playback position.</td></tr>
+<tr><td>Existing annotation clicked</td><td>The quoted passage, note editor, color, icon, label, group/tags, jump-to-passage, delete and undo.</td><td>Open Notes &amp; Bookmarks focused on that item. Editing a note never regenerates speech.</td></tr>
+<tr><td>Voice</td><td>Searchable voices, favorite filter, accents/languages, audition, model choice, device readiness, compatible settings and document default.</td><td>Audition selected text when there is a selection, otherwise a fixed short sample. Applying a voice changes future generation settings for the document; it does not silently rebuild the book.</td></tr>
+<tr><td>Appearance</td><td>App theme, reading surface, font/size/spacing, page width, scroll/paged mode, ambient scene, motion, intensity and reduced motion.</td><td>Reading appearance and app chrome are separate. Scene choices are optional and independent of the color theme.</td></tr>
+<tr><td>Document</td><td>Title, author, cover, type, tags/collections, source, import quality, reading statistics, language, spoken-text rules and export actions.</td><td>Show extraction warnings and repair options here. Selecting a shelf item opens this inspector without starting playback.</td></tr>
+<tr><td>Multiple library items</td><td>Shared tags/collection, mark finished/unread, export queue, remove or trash.</td><td>Show selection count and the precise action scope. “Select all” explicitly means the current filtered results.</td></tr>
+<tr><td>Nothing selected</td><td>The last chosen stable tab and document-level controls.</td><td>Remove temporary selection tools. Preserve drafts, cursor position and the user's pinned tab.</td></tr>
+</tbody></table></div>
+<p><strong>Context changes must not feel jumpy.</strong> Auto-open Selection only if the user has enabled contextual opening and is not editing a note or using a pinned tab. If the inspector is collapsed, show the small selection toolbar and a “More” button instead of forcing it open. Dragging the text selection must not trigger repeated tab changes. Keyboard users receive the same actions through a menu and shortcuts.</p>
+<p><strong>Selection is not always an audio boundary.</strong> “Regenerate these words” may require rebuilding the containing sentence or a slightly wider engine-specific unit for clean prosody. Highlight the exact replacement range before starting. Preview the new take, compare with the old one, then keep or revert it. Preserve the previous take if generation fails.</p>
+<p><strong>Editing has an explicit meaning.</strong> “Edit spoken wording” changes the narration layer, preserving the source. Correcting visible extracted text is a separate, reversible action. Neither action silently rewrites the imported EPUB, PDF or DOCX. Playback and exports use the same accepted spoken version.</p>
+</section>
+
+<section id="themes">
+<h2>04. Twelve themes, with independent reading surfaces</h2>
+<p>Use shared semantic color tokens so every dialog, menu, icon, selection and error state follows the chosen palette. The approved purple design becomes <strong>Plum Nocturne</strong>, one of twelve launch themes. The samples below indicate palette direction, not final contrast-tested token values.</p>
+<div class="themes">
+<div class="theme"><div class="colors"><i style="background:#17161b"></i><i style="background:#46384f"></i><i style="background:#d2baf6"></i></div><p>Plum Nocturne · dark</p></div>
+<div class="theme"><div class="colors"><i style="background:#18191b"></i><i style="background:#41444a"></i><i style="background:#c8ced7"></i></div><p>Graphite · dark neutral</p></div>
+<div class="theme"><div class="colors"><i style="background:#101a29"></i><i style="background:#294661"></i><i style="background:#aacfe8"></i></div><p>Moonlit Lake · dark blue</p></div>
+<div class="theme"><div class="colors"><i style="background:#14211e"></i><i style="background:#345348"></i><i style="background:#a7ccb4"></i></div><p>Forest Ink · dark green</p></div>
+<div class="theme"><div class="colors"><i style="background:#241b17"></i><i style="background:#604338"></i><i style="background:#e5b58c"></i></div><p>Copper Hearth · warm dark</p></div>
+<div class="theme"><div class="colors"><i style="background:#28191e"></i><i style="background:#63404a"></i><i style="background:#e2a8b7"></i></div><p>Burgundy Velvet · dark red</p></div>
+<div class="theme"><div class="colors"><i style="background:#f5f2ec"></i><i style="background:#dfd7ca"></i><i style="background:#60514a"></i></div><p>Paper White · light neutral</p></div>
+<div class="theme"><div class="colors"><i style="background:#f1e5cf"></i><i style="background:#dfca9f"></i><i style="background:#765936"></i></div><p>Warm Parchment · sepia</p></div>
+<div class="theme"><div class="colors"><i style="background:#eef1e9"></i><i style="background:#c8d4bf"></i><i style="background:#486251"></i></div><p>Sage Morning · light green</p></div>
+<div class="theme"><div class="colors"><i style="background:#f6eeee"></i><i style="background:#e6cbd3"></i><i style="background:#8a5068"></i></div><p>Rosewater · light pink</p></div>
+<div class="theme"><div class="colors"><i style="background:#000"></i><i style="background:#fff"></i><i style="background:#ffe873"></i></div><p>High Contrast Dark</p></div>
+<div class="theme"><div class="colors"><i style="background:#fff"></i><i style="background:#000"></i><i style="background:#003c9e"></i></div><p>High Contrast Light</p></div>
+</div>
+<ul>
+<li>Reader surface: clean light, clean dark, fine paper or parchment; texture strength can reach zero. Font family, size, line height, letter spacing, margins and column width are adjustable.</li>
+<li>Keep annotation colors semantically stable across themes. Combine color with names/icons so “important” does not require distinguishing red from green.</li>
+<li>Include an optional reading ruler and paragraph focus. Show spoken-sentence highlighting separately from saved user marks.</li>
+<li>Ambient scenes: plum blossoms, moonlit lake and folded-paper landscape. Still artwork plus a few animated layers, not a continuously decoded background video.</li>
+<li>Motion settings: Off, Subtle and Reduced. Honor operating-system reduced motion, pause when hidden or minimized, and offer an energy-saving setting. Keep motion outside the text column.</li>
+<li>Save presets that combine palette, reader surface, typography and scene. Offer system light/dark switching without overwriting the user's saved presets.</li>
+</ul>
+<p>Performance is a release check, not an assumed property of the artwork. Benchmark still and animated scenes while speech is generating on representative hardware; turn off expensive effects before they compromise audio.</p>
+</section>
+
+<section id="features">
+<h2>05. First-release feature inventory</h2>
+<h3>Library and imports</h3>
+<p>Drag/drop and file picker; batch import; paste/Quick Read; EPUB, text-based PDF, DOCX, Markdown and TXT. Preserve the original file in the managed library by default. Detect duplicate content and offer open existing, keep another copy or replace with a new source version. Import failures should identify which file failed while allowing other imports to finish.</p>
+<p>Grid/list views, adjustable cover sizes, search by title/author/tag, reading status, file type, collection and favorites. Sort by recent activity, date added, title and author, ascending or descending. Support editable metadata, custom covers, collections, tags, finished/unread state, select all filtered results, bulk operations and a continue-reading shelf.</p>
+<p>Separate <strong>remove from library</strong>, <strong>clear generated audio</strong> and <strong>delete a user export</strong>. Library removal must preserve external originals and manually exported audio. A recoverable trash retains item metadata, notes and the app-managed source for a defined period; disposable cache may be removed sooner. Permanent deletion previews exactly what it removes.</p>
+
+<h3>Reading and annotations</h3>
+<p>Table of contents, chapter navigation, in-book search, go to position, visual reading progress and persistent resume. Offer paged and continuous scrolling modes, font scaling, keyboard navigation and a “follow narration” toggle. Manual scrolling should not constantly snap back to the speaking sentence; provide an explicit return-to-playback action.</p>
+<p>For text PDFs, provide the original page view and a separately labeled extracted reading view. A PDF page number must not be confused with a reflowed reading location. Flag missing text, uncertain extraction and columns that need reading-order review. Image-only PDFs should explain that OCR is not yet available rather than showing a blank successful import.</p>
+<p>Bookmarks can have names, colors, icons, tags and groups. Notes can attach to a selection, paragraph, chapter or whole document. Underlines and optional translucent highlights preserve the text. A global Bookmarks view searches across the library and filters by book, collection, color, label or annotation type. Support editing, deletion with undo, jumping to the passage and exporting notes with quotes and source locations as plain text, Markdown or JSON.</p>
+
+<h3>Voice and model management</h3>
+<p>Import the existing Maeve voices and the other voice profiles as versioned voice packs. Show voice portraits or initials, useful names, accent/language/style tags, favorites and consistent preview samples. A voice and its engine are separate choices. Keep unsupported combinations unavailable with an explanation.</p>
+<p>Prioritize the Qwen profiles that worked well in the current app, then certify the existing Chatterbox, Pocket TTS and VoxCPM adapters per operating system and device. Preserve each engine's appropriate streaming strategy. Do not force a troublesome streaming mode on every engine, and do not remove supported incremental playback from fast engines.</p>
+<p>Include a model manager with installed/downloadable status, download size, disk space, resumable downloads, checksum validation, clear errors, uninstall and hardware readiness. Separate CPU-compatible and GPU-required options. A missing model should lead to setup without losing the selected book or reading position. Only show pitch, emotion, seed, language and style controls where the chosen adapter actually supports them.</p>
+<p>Allow a global default and per-document voice preset, a sample audition using selected text, and explicit actions to apply changes to future passages or regenerate an identified scope. Avoid automatic regeneration while browsing the voice catalog. Guided creation of a new cloned voice remains a later workflow.</p>
+
+<h3>Speech preparation and pronunciation</h3>
+<p>A “spoken version” preview explains what will be read. Reversible rules handle repeated headers, page numbers, URLs, citations, footnotes, code blocks, markup and chat-specific metadata. Preserve original content and provide per-document overrides. Code and tables must have visible read/skip behavior; avoid silently inventing a natural-language interpretation.</p>
+<p>Offer global and per-document pronunciation dictionaries for names, abbreviations, numbers and terms. Support preview in context and engine-appropriate pronunciation hints. Rules must have a clear matching scope and avoid unexpectedly changing substrings inside other words. Local spoken-text corrections should not change the text shown in the source view.</p>
+
+<h3>Playback and selective repair</h3>
+<p>Play/pause/stop, seek, previous/next sentence, previous/next chapter, skip ten seconds, speed, volume, output device and resume. Show buffered/generated regions separately from unrendered regions. Seeking into ungenerated text should prioritize that passage and explain the short wait rather than pretending the audio exists.</p>
+<p>Start after a small suitable audio buffer while later units generate. Use stable phrase/sentence boundaries or actual engine streaming as supported. Sentence highlighting follows measured audio timing. Word highlighting waits for a reliable alignment feature; receiving tiny audio chunks alone does not provide word timestamps.</p>
+<p>Selection playback, read from here, paragraph replay, selected-section regeneration, keep/revert a take and pronunciation repair all belong in v1. A short temporary selection audition should preserve the previous listening position. Regeneration replaces only the accepted range and does not restart the whole book.</p>
+<p>Additional first-release comfort targets: sleep timer for minutes or chapter end, compact floating mini-player, available OS media keys and configurable shortcuts. A small activity indicator may expose job progress and cancel actions; there is no need for a permanently visible queue panel.</p>
+
+<h3>Long jobs, audio ownership and export</h3>
+<p>Generate a selection, chapter or whole book. Save job progress to disk, pause background work at safe boundaries, cancel it promptly, retry failed units and resume after restart. Prioritize listening over background exports. Explain that slow hardware can require pre-generation before uninterrupted listening.</p>
+<p>Export WAV, MP3, chapter-per-file audio and chaptered M4B, with chosen destination, useful filenames, title/author/narrator/cover metadata and quality presets. Validate packaged encoders and chapter metadata in external players. Show duration and storage estimates as estimates, and permit an explicitly requested partial export only with its missing sections listed.</p>
+<p>Exports must use accepted takes and the same spoken text as playback. Add portable project backup/import containing metadata, annotations, pronunciation rules and permitted source/voice references; include generated audio as an option and exclude large model weights by default.</p>
+<p>Use a configurable disk cache with age/size limits, a storage dashboard and a “keep available offline” pin for prepared audio. Cache cleanup never removes active playback, protected generation jobs, pinned audio, originals, notes or user-saved exports. If protected data fills the budget, explain why cleanup cannot reach the limit and pause new background generation when needed.</p>
+
+<h3>Integrations and everyday use</h3>
+<p>Explicit clipboard read, Quick Read and optional shortcuts. Each integration has its own enable/disable control and permissions summary. Preserve the current chat workflow: opt in per conversation, hook/unhook independently, refresh available chats without restarting, stable names and IDs, deduplicated message history, per-message play/save/delete and queued completed replies.</p>
+<p>Suggestion cards and automation/control payloads must not become conversations or speech. Test filtering on actual supported event formats and keep ambiguous items inspectable. A deleted local chat can be found and connected again. Existing chat hooks are an optional adapter with a declared compatibility boundary, not a universal guarantee about every chat host.</p>
+<p>The browser extension is a first-release target for Chrome, Edge and Brave: Read selection, Read from here where extraction allows it, Read article and Add to library. Browser/OS combinations are tested separately. Default to explicit user actions, including selected text from an email, rather than background mailbox access. Unsupported pages retain copy-and-read as a fallback. Firefox is the next extension target.</p>
+
+<h3>Accessibility, setup and recovery</h3>
+<p>Keyboard-only completion of the core workflow; labeled controls; visible focus; scalable text; high contrast; no color-only meaning; reduced motion; screen-reader testing on both platforms. Shortcuts are documented, remappable where feasible and must not steal normal text-editing keys.</p>
+<p>Setup checks hardware, available disk and model requirements. Include local diagnostics with redaction, a user-chosen support bundle, backup/restore, settings export and readable model errors. No required account or default content telemetry. Future cloud credentials belong in the OS credential store or a platform-appropriate secure store, never the project files or diagnostic log.</p>
+</section>
+
+<section id="pipeline">
+<h2>06. Design the core around whole books</h2>
+<div class="flow"><div><b>Import</b>Original source + versioned extraction + stable chapter and passage IDs.</div><div><b>Prepare</b>Display text + spoken text + mappings + pronunciation rules.</div><div><b>Generate</b>Bounded units + versioned presets + durable job progress.</div><div><b>Listen / export</b>Audio on disk + bounded playback buffer + accepted takes.</div></div>
+<p>The book is never one enormous generation request. Render and generate bounded sections, persist completed audio immediately and load only a limited playback window into memory. Continuous reading across chapters should not grow a permanent in-memory audio archive.</p>
+<p>Cache identity includes source/spoken-text version, pronunciation rules, voice-reference version, model/settings, language and any generation context that influences the result. A setting change can mark affected passages as needing new audio without deleting the old accepted take. Safe writes prevent incomplete files from looking like successful renders.</p>
+<p>Annotation anchors combine stable passage IDs, text offsets, quoted text and source locations. A source replacement creates a new version and attempts an explicit migration. If a note cannot be attached confidently, keep it in an “Unresolved location” list for repair, never discard it or silently point to different text.</p>
+<p>Export jobs snapshot their accepted content and settings so unrelated edits during a long render do not produce a mixed edition. Engine crashes, device changes, disk-full conditions and cancellation must preserve completed work and leave the document readable.</p>
+<p>Measure time to first audio separately from sustained generation speed. Track cold and warm startup, real-time factor, peak RAM/VRAM, cancellation latency and audible joins. Publish actual measurements by engine/device; do not promise that every voice keeps up with every playback speed.</p>
+</section>
+
+<section id="studio">
+<h2>07. Later Studio: a cast for every story</h2>
+<p>The future Studio supports one book with a narrator and multiple character voices. Speech remains in story order. This does not require all voice models to occupy the GPU simultaneously; the scheduler can reuse a loaded engine and switch voice conditioning between passages. Simultaneous overlapping voices are a separate mixing feature.</p>
+<ol>
+<li><strong>Start with a narrator.</strong> A project works with one voice before analysis is enabled.</li>
+<li><strong>Optional “Detect speakers” toggle.</strong> Analyze textual dialogue and attribution cues, creating proposed speaker assignments. For a book this is text-based speaker attribution; identifying speakers from a recording would be a different feature.</li>
+<li><strong>Create a color-coded cast.</strong> Use Narrator, Voice 1, Voice 2, Voice 3 and so on when identity is uncertain. Show the speaker name and icon as well as color.</li>
+<li><strong>Suggest character names.</strong> Explicit cues such as “Mara said” may support a proposed rename. The user can accept, edit or reject it. Optional automatic naming applies only above a defined confidence threshold and never overwrites a manual name.</li>
+<li><strong>Review uncertainty.</strong> Mark unattributed dialogue, internal monologue, quoted letters and ambiguous exchanges for review. Never present model guesses as established character identity.</li>
+<li><strong>Edit who says what.</strong> Assign selected dialogue or whole passages, split/merge utterances, merge aliases, split an incorrectly combined character and apply a correction locally or across the project.</li>
+<li><strong>Choose a voice for each character.</strong> Audition, set pronunciation/style where supported and preview the narrator-to-character transitions.</li>
+<li><strong>Generate and repair.</strong> Render the cast in sequence, keep approved takes, rerender only changed passages and export a chaptered audiobook.</li>
+</ol>
+<p><strong>Turning detection off stops analysis and reassignment.</strong> Preserve accepted assignments and manual edits. A separate “Use one narrator” playback/render option handles people who want to temporarily hear everything in one voice. Rerunning detection produces reviewable suggestions and never replaces locked manual assignments.</p>
+<p><strong>Prepare now:</strong> reserve stable speaker IDs, optional speaker references on speech units, assignment provenance/confidence, revision history and voice preset references. Do not build the detection model, cast editor, dialogue timeline or overlap mixing in the reader's first release.</p>
+</section>
+
+<section id="architecture">
+<h2>08. Implementation direction and platform gates</h2>
+<p><strong>Provisional stack:</strong> TypeScript/React for the interface, Tauri/Rust for the desktop core, isolated Python workers for the speech engines and SQLite plus regular files for durable data. This carries forward tested engine knowledge while allowing the new interface and library to be built cleanly.</p>
+<p>Tauri supports external worker binaries, including packaged Python programs. Each platform needs an appropriate binary bundle. This supports the proposed process separation but does not make model dependencies automatically portable. <a href="https://v2.tauri.app/develop/sidecar/">Tauri sidecar documentation</a>.</p>
+<p>The shell choice remains gated on a working Windows/Linux proof: text selection, keyboard and screen-reader access, long-document rendering, audio playback/seek and one model worker. The platform prerequisites differ, so test native environments early. If this exposes a material problem, compare Qt Quick before committing the full reader. <a href="https://v2.tauri.app/start/prerequisites/">Tauri prerequisites</a>.</p>
+<p>Use stable application passage IDs with the renderer's selection ranges. A browser selection represents ranges in the current document, so it is not itself a durable book annotation key. Persist document-relative anchors instead. <a href="https://developer.mozilla.org/en-US/docs/Web/API/Selection">Selection API</a>.</p>
+<p>For browser transport, a registered native messaging host is the initial design. Chrome documents extension-to-native-app messaging and host registration; other browsers still need separate packaging and compatibility checks. Validate a small set of message schemas and user-authorized actions, rather than exposing a general command runner. <a href="https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging">Chrome native messaging</a>.</p>
+<p>Declare the initial support matrix before release: Windows 11 x64 and a specific Ubuntu LTS x64 target, with at least GNOME/Wayland testing; add KDE and additional distributions through tested packages. Test CPU fallback and NVIDIA profiles where their engines support them. Wider AMD, ARM and sandboxed-browser support remain separately qualified targets. These are planned support targets, not certification already performed.</p>
+<p>Keep OS-specific audio devices, shortcuts, tray integration, credential storage, browser registration and chat hooks behind adapters. Keep imported active content inert. Version voice packs, project backups and worker messages so an upgrade can report incompatibility instead of corrupting data.</p>
+</section>
+
+<section id="delivery">
+<h2>09. Build order and review points</h2>
+<div class="table-wrap"><table><thead><tr><th>Stage</th><th>Working result</th><th>Review before expansion</th></tr></thead><tbody>
+<tr><td>0 · Prove the platform</td><td>A small Windows/Linux reader shell with one speech worker, persistent state and seek.</td><td>Validate the framework, accessibility, packaging and audio lifecycle. Record supported environments and initial performance.</td></tr>
+<tr><td>1 · Establish the product shell</td><td>The approved library/reader layout, real theme tokens, collapsible panels, contextual tabs and collection navigation.</td><td>Review real window sizes, panel widths and keyboard operation with the user. Finalize the layout before filling every screen.</td></tr>
+<tr><td>2 · Make books first-class</td><td>Imports, normalized chapters, original/reflowed PDF views, search, stable reading position and annotations.</td><td>Open actual novels, research documents and articles. Verify extraction quality and annotation persistence.</td></tr>
+<tr><td>3 · Deliver the first usable reader</td><td>Voice/model selection, spoken version, pronunciation, incremental speech, highlight, seek and selected-passage repair.</td><td>Listen to long chapters and compare repair takes. Validate audio boundaries and selection behavior.</td></tr>
+<tr><td>4 · Complete audiobook reliability</td><td>Persistent jobs, disk cache, protected audio, project backup and WAV/MP3/M4B export.</td><td>Interrupt/restart long renders, fill the cache, change a passage and export to external players.</td></tr>
+<tr><td>5 · Finish the first release</td><td>Migration, chat adapter, clipboard, browser extension target, accessibility, comfort controls, installers and diagnostics.</td><td>Fresh installs and real workflows on Windows/Linux. Document any engine or integration excluded from that build.</td></tr>
+<tr><td>After v1 · Expand deliberately</td><td>Multi-character Studio, voice creation, capture/transcription, OCR, alignment and other advanced workflows.</td><td>Each gets its own acceptance criteria and reference projects.</td></tr>
+</tbody></table></div>
+<p>This is a dependency order, not a time estimate. The first usable reader appears at Stage 3; the complete first-release scope includes Stages 4 and 5. Do not silently redefine the first release as only the visual shell.</p>
+<p>Maintain the existing Maeve app while the new reader matures. Import its voices, presets and selected history through a backed-up, repeatable migration. Avoid duplicate speech by ensuring only the user-selected installation owns an enabled chat hook. Existing manually exported audio stays where it is.</p>
+<p><a href="BACKLOG.csv">Download the implementation backlog</a>. It records work-package IDs, dependencies, scope and acceptance criteria.</p>
+<details><summary>Show all implementation work packages</summary><div class="table-wrap"><table><thead><tr><th>ID</th><th>Stage</th><th>Package</th><th>Dependencies</th><th>Acceptance</th></tr></thead><tbody><tr><td><strong>M0</strong></td><td>0</td><td><strong>Windows and Linux proof</strong><br><span class="muted">Required for v1</span></td><td>None</td><td>Run the same reader shell, keyboard navigation, local worker audio and seek on Windows and a named Linux distribution; document failures before choosing the final shell.</td></tr>
+<tr><td><strong>M1</strong></td><td>1</td><td><strong>Collapsible workspace and inspector</strong><br><span class="muted">Required for v1</span></td><td>M0</td><td>Panels resize and collapse independently, restore per workspace, remain reachable by keyboard, and preserve unfinished notes across selection changes.</td></tr>
+<tr><td><strong>M2</strong></td><td>1</td><td><strong>Twelve themes and reading surfaces</strong><br><span class="muted">Required for v1</span></td><td>M1</td><td>All themes style every component, support visible focus, keep annotation meaning stable, and work with independent light/dark/paper reader surfaces.</td></tr>
+<tr><td><strong>M3</strong></td><td>1</td><td><strong>Collections, search and bulk organization</strong><br><span class="muted">Required for v1</span></td><td>M1</td><td>Import, rename, tag, favorite, filter, sort, select all filtered results, trash/restore and resume items without duplicate imports.</td></tr>
+<tr><td><strong>M4</strong></td><td>2</td><td><strong>Structured document import</strong><br><span class="muted">Required for v1</span></td><td>M3</td><td>EPUB, text PDF, DOCX, Markdown, TXT and pasted text retain chapters/source locations; failed extraction is reported, never silently truncated.</td></tr>
+<tr><td><strong>M5</strong></td><td>2</td><td><strong>Paged/scroll reading and navigation</strong><br><span class="muted">Required for v1</span></td><td>M4</td><td>Search, table of contents, progress and reading position work across font, window and theme changes; PDF source page and reflowed views are distinct.</td></tr>
+<tr><td><strong>M6</strong></td><td>2</td><td><strong>Bookmarks, margin notes and underlines</strong><br><span class="muted">Required for v1</span></td><td>M5</td><td>Named colored annotations support groups, tags, edit/delete/undo, search and export; stable anchors survive reflow and unresolved changed-source anchors are surfaced.</td></tr>
+<tr><td><strong>M7</strong></td><td>3</td><td><strong>Voice catalog and model adapters</strong><br><span class="muted">Required for v1</span></td><td>M0;M1</td><td>Existing voices import, previews work, compatible engines are identified, preferences persist and unavailable engines never silently substitute voices.</td></tr>
+<tr><td><strong>M8</strong></td><td>3</td><td><strong>Spoken-text preview and pronunciation</strong><br><span class="muted">Required for v1</span></td><td>M4;M7</td><td>Cleaning and pronunciation rules are reversible and scoped; source-to-spoken mappings drive the same playback and export text.</td></tr>
+<tr><td><strong>M9</strong></td><td>3</td><td><strong>Incremental generation and transport</strong><br><span class="muted">Required for v1</span></td><td>M5;M7;M8</td><td>Playback begins before a chapter finishes rendering, seeking prioritizes unrendered sections, highlighting follows real segment timing and cancellation stops obsolete output.</td></tr>
+<tr><td><strong>M10</strong></td><td>3</td><td><strong>Selection editing and audio regeneration</strong><br><span class="muted">Required for v1</span></td><td>M6;M9</td><td>Users see exact synthesis scope, preview a new take, keep or revert it, and retain previous accepted audio after failure.</td></tr>
+<tr><td><strong>M11</strong></td><td>4</td><td><strong>Persistent jobs and bounded storage</strong><br><span class="muted">Required for v1</span></td><td>M9;M10</td><td>A long job resumes after worker/app failure, writes partial results safely, respects RAM/disk limits and never evicts active or pinned audio.</td></tr>
+<tr><td><strong>M12</strong></td><td>4</td><td><strong>Audiobook and project exports</strong><br><span class="muted">Required for v1</span></td><td>M11</td><td>WAV, MP3 and chaptered M4B exports preserve order and metadata, survive restart, and remain untouched by library deletion or cache eviction.</td></tr>
+<tr><td><strong>M13</strong></td><td>5</td><td><strong>Existing chat adapter and explicit clipboard</strong><br><span class="muted">Required for v1</span></td><td>M3;M9;M11</td><td>Per-chat opt-in, refresh, stable identity, hook/unhook, suggestion filtering and queued replies work; unsupported hosts explain their capability.</td></tr>
+<tr><td><strong>M14</strong></td><td>5</td><td><strong>Browser selection and article extension</strong><br><span class="muted">First-release target</span></td><td>M13</td><td>Read selection/add article work in Chrome, Edge and Brave on tested OS/browser pairs with explicit user action and removable native host.</td></tr>
+<tr><td><strong>M15</strong></td><td>5</td><td><strong>Migration, installers and accessibility</strong><br><span class="muted">Required for v1</span></td><td>M2;M6;M7;M10;M11;M12;M13</td><td>Fresh install, backup/import, removal, offline reading, keyboard and screen-reader flows pass on declared Windows/Linux targets.</td></tr>
+<tr><td><strong>M16</strong></td><td>5</td><td><strong>Sleep timer, mini-player and media keys</strong><br><span class="muted">First-release target</span></td><td>M9;M15</td><td>Controls stay synchronized, timer stops at the selected boundary, and unavailable platform media/shortcut support has a clear fallback.</td></tr>
+<tr><td><strong>X1</strong></td><td>After v1</td><td><strong>Scanned-PDF OCR and advanced layout repair</strong><br><span class="muted">Later</span></td><td>M4;M5</td><td>OCR is a versioned extraction with explicit review of uncertain reading order and original-page anchors.</td></tr>
+<tr><td><strong>X2</strong></td><td>After v1</td><td><strong>Word timing and subtitle export</strong><br><span class="muted">Later</span></td><td>M9</td><td>Alignment is measured against audio; word highlights and SRT/VTT never use guessed timestamps.</td></tr>
+<tr><td><strong>X3</strong></td><td>After v1</td><td><strong>Multi-character narration and editable attribution</strong><br><span class="muted">Later</span></td><td>M10;M11;M12</td><td>Speaker detection is optional; Voice 1/2/3 assignments have colors, confidence and suggested names; manual overrides survive reruns and only affected passages regenerate.</td></tr>
+<tr><td><strong>X4</strong></td><td>After v1</td><td><strong>Guided voice cloning and voice design</strong><br><span class="muted">Later</span></td><td>M7;M10</td><td>Reference preparation and boundary checks, A/B listening and versioned voice profiles precede committing a new voice.</td></tr>
+<tr><td><strong>X5</strong></td><td>After v1</td><td><strong>Microphone, desktop sound and transcription</strong><br><span class="muted">Later</span></td><td>M11;M15</td><td>User chooses an available capture source with a visible recording state and stop action; support is declared per operating system.</td></tr></tbody></table></div></details>
+</section>
+
+<section id="acceptance">
+<h2>10. What must be true before calling it ready</h2>
+<ul>
+<li><strong>Book-length reliability:</strong> a novel-scale document and a roughly one-million-character stress fixture import without truncation; UI and playback memory remain bounded with increasing generated duration.</li>
+<li><strong>Audio continuity:</strong> preview and export agree, accepted passages keep their voice settings, joins are listened to, and generation never advances the player with cancelled or obsolete output.</li>
+<li><strong>Recovery:</strong> after process termination during generation, completed units remain valid, partial units retry safely and the reading position and annotations return.</li>
+<li><strong>Selection repair:</strong> rewriting one passage marks only the necessary dependent units stale, shows the replacement scope and keeps the previous audio until the new take is accepted.</li>
+<li><strong>Data ownership:</strong> deleting a message/book removes its eligible managed cache but never manually saved exports or external original files. Shared and protected cache references are respected.</li>
+<li><strong>Annotation durability:</strong> theme/font/window changes preserve marks. Source replacement either migrates an anchor or surfaces it for repair without losing the note.</li>
+<li><strong>Context behavior:</strong> selection tools appear predictably, both side panels reopen, tabs preserve state, and no selection steals an unfinished note or pinned inspector.</li>
+<li><strong>Themes and access:</strong> every theme covers all controls; focus and contrast are checked; core flows work with keyboard and screen readers. Reduced motion produces a still, usable reader.</li>
+<li><strong>Integration identity:</strong> one reply produces one message in the correct chat; suggestions and internal control messages produce none; a new/reconnected conversation appears without restarting.</li>
+<li><strong>Installation:</strong> a friend can install, acquire a compatible model, import a book, hear it and save audio without a terminal. Offline generation works after setup on each declared platform.</li>
+<li><strong>Performance evidence:</strong> record cold/warm first-audio latency, sustained rate, memory, cancellation and background-scene overhead on named test hardware. Set numerical budgets after Stage 0 baselines and enforce them thereafter.</li>
+</ul>
+<div class="callout"><strong>Next implementation step:</strong> Stage 0, followed by the real Library and Reader shell. The approved art direction guides the interface; the contextual inspector and independently collapsible panels replace the all-in-one sidebar from the initial image.</div>
+</section>
+</main>
+<footer>
+<p>Prepared from the approved mockups, the user's requested workflows and the <a href="PRODUCT-RESEARCH.html">earlier product research</a>. New scope decisions in this plan supersede the earlier report's working name and annotation priorities.</p>
+<p>Artifacts: <a href="Origami-Library.png">Library concept</a> · <a href="Origami-Reader.png">Reader concept</a> · <a href="BACKLOG.csv">Implementation backlog</a>. No application source was changed while preparing this plan.</p>
+</footer>
+</body></html>

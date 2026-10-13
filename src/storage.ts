@@ -1,0 +1,102 @@
+import { invoke, isTauri } from "@tauri-apps/api/core";
+import { openDB } from "idb";
+import { sampleBooks } from "./seeds";
+import type {
+  Annotation,
+  Book,
+  BookMeta,
+  Preferences,
+  SpeechResult,
+  Voice,
+} from "./types";
+export const desktop = isTauri();
+let initialization: Promise<void> | undefined;
+export async function initializeLibrary() {
+  initialization ??= (async () => {
+    if (!(await listBooks()).length) {
+      for (const item of sampleBooks()) await saveBook(item);
+    }
+  })();
+  await initialization;
+  return listBooks();
+}
+const db = () =>
+  openDB("origami-reader-v1", 1, {
+    upgrade(db) {
+      db.createObjectStore("metadata", { keyPath: "id" });
+      db.createObjectStore("bodies");
+      db.createObjectStore("settings");
+      const a = db.createObjectStore("annotations", { keyPath: "id" });
+      a.createIndex("bookId", "bookId");
+    },
+  });
+export async function listBooks(): Promise<BookMeta[]> {
+  return desktop ? invoke("list_books") : (await db()).getAll("metadata");
+}
+export async function readBook(id: string): Promise<Book> {
+  if (desktop) return invoke("read_book", { id });
+  const d = await db();
+  return {
+    meta: await d.get("metadata", id),
+    paragraphs: await d.get("bodies", id),
+  };
+}
+export async function saveBook(book: Book) {
+  if (desktop) return invoke("save_book", { book });
+  const d = await db();
+  const t = d.transaction(["metadata", "bodies"], "readwrite");
+  await t.objectStore("metadata").put(book.meta);
+  await t.objectStore("bodies").put(book.paragraphs, book.meta.id);
+  await t.done;
+}
+export async function saveMeta(meta: BookMeta) {
+  if (desktop) return invoke("save_meta", { meta });
+  return (await db()).put("metadata", meta);
+}
+export async function readSettings(): Promise<Partial<Preferences>> {
+  return desktop
+    ? invoke("read_settings")
+    : (await db()).get("settings", "preferences").then((v) => v || {});
+}
+export async function saveSettings(settings: Preferences) {
+  if (desktop) return invoke("save_settings", { settings });
+  return (await db()).put("settings", settings, "preferences");
+}
+export async function listAnnotations(bookId?: string): Promise<Annotation[]> {
+  if (desktop) return invoke("list_annotations", { bookId: bookId || null });
+  const d = await db();
+  return bookId
+    ? d.getAllFromIndex("annotations", "bookId", bookId)
+    : d.getAll("annotations");
+}
+export async function saveAnnotation(annotation: Annotation) {
+  if (desktop) return invoke("save_annotation", { annotation });
+  return (await db()).put("annotations", annotation);
+}
+export async function deleteAnnotation(id: string) {
+  if (desktop) return invoke("delete_annotation", { id });
+  return (await db()).delete("annotations", id);
+}
+export async function getVoices(): Promise<Voice[]> {
+  return desktop ? invoke("list_voices") : [];
+}
+export async function synthesize(
+  text: string,
+  voice: string,
+): Promise<SpeechResult> {
+  if (!desktop)
+    throw new Error("Local voice generation is available in the desktop app.");
+  return invoke("synthesize", { text, voice });
+}
+export async function cancelSpeech() {
+  if (desktop) await invoke("cancel_speech");
+}
+export async function exportText(name: string, text: string) {
+  if (desktop) return invoke("export_text", { name, text });
+  const u = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+  const a = document.createElement("a");
+  a.href = u;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(u), 1000);
+}

@@ -1,0 +1,22 @@
+{
+  "python": "/absolute/path/to/venv/bin/python",
+  "model": "/absolute/path/to/Qwen3-TTS-12Hz-0.6B-Base",
+  "device": "cuda",
+  "voices": {
+    "my-voice": {
+      "name": "My voice",
+      "description": "Voice description",
+      "reference": "/absolute/path/to/reference.wav",
+      "reference_text": "Exact words spoken in the reference recording.",
+      "language": "English",
+      "languages": [
+        "English"
+      ],
+      "gender": "unspecified",
+      "styles": [
+        "Narration"
+      ],
+      "accent": ""
+    }
+  }
+}
