@@ -1,0 +1,142 @@
+{
+  "reviewed": "2026-10-13",
+  "scope": "Selected English text editions and ordinary economic copyright terms. Not a universal legal clearance.",
+  "distributionIntent": "Pay what you want, including paid copies",
+  "globalClearance": false,
+  "releaseCountries": [
+    "US",
+    "CA",
+    "GB",
+    "AU",
+    "BR",
+    "IN",
+    "CN",
+    "JP",
+    "MX",
+    "JM",
+    "AT",
+    "BE",
+    "BG",
+    "HR",
+    "CY",
+    "CZ",
+    "DK",
+    "EE",
+    "FI",
+    "FR",
+    "DE",
+    "GR",
+    "HU",
+    "IE",
+    "IT",
+    "LV",
+    "LT",
+    "LU",
+    "MT",
+    "NL",
+    "PL",
+    "PT",
+    "RO",
+    "SK",
+    "SI",
+    "ES",
+    "SE"
+  ],
+  "unknownCountryPolicy": "Do not clear automatically. Review national requirements or omit historical text assets from that destination's app package.",
+  "rules": [
+    {
+      "territory": "US",
+      "rule": "Selected historical editions were published before 1931; source catalog records confirm US public-domain status.",
+      "sources": [
+        "https://www.copyright.gov/what-is-copyright/",
+        "https://www.gutenberg.org/help/copyright.html"
+      ]
+    },
+    {
+      "territory": "CA",
+      "rule": "Life plus 70; extension did not revive expired copyright. All named text contributors died before 1925.",
+      "sources": [
+        "https://ised-isde.canada.ca/site/canadian-intellectual-property-office/en/guide-copyright"
+      ]
+    },
+    {
+      "territory": "GB",
+      "rule": "Life plus 70 for ordinary written works. Source edition layout is not reproduced.",
+      "sources": ["https://www.gov.uk/copyright/how-long-copyright-lasts"]
+    },
+    {
+      "territory": "EU",
+      "rule": "Ordinary literary term is life plus 70. Spain's older-author life-plus-80 rule is also covered by the conservative age selection. French special duration rules are not invoked for a deceased-in-service author in this selection. This is an economic-term screen, not a waiver of moral rights.",
+      "sources": [
+        "https://europa.eu/youreurope/business/growing/protecting-intellectual-property/copyright/index_en.htm",
+        "https://www.boe.es/buscar/act.php?id=BOE-A-1996-8930"
+      ]
+    },
+    {
+      "territory": "AU",
+      "rule": "Known-author works first published during life: life plus 70. No unpublished or newly published posthumous text selected.",
+      "sources": [
+        "https://www.library.gov.au/services/copyright-library-collections/how-long-does-copyright-last"
+      ]
+    },
+    {
+      "territory": "BR",
+      "rule": "Article 41: 70 years from January 1 following death; last surviving author for inseparable joint text.",
+      "sources": ["https://www.planalto.gov.br/ccivil_03/leis/l9610.htm"]
+    },
+    {
+      "territory": "IN",
+      "rule": "Ordinary known-author literary text: 60 years from the year following death. Anonymous selected translation was published in 1846.",
+      "sources": ["https://www.copyright.gov.in/documents/handbook.html"]
+    },
+    {
+      "territory": "CN",
+      "rule": "Article 23: life plus 50 for natural-person works. Mainland China only; this does not clear Hong Kong or Macao by inference.",
+      "sources": ["https://www.wipo.int/wipolex/en/legislation/details/21065"]
+    },
+    {
+      "territory": "JP",
+      "rule": "Ordinary literary term is life plus 70. Selected text age also exceeds possible applicable Allied wartime extensions; no recent/posthumous edition is used.",
+      "sources": [
+        "https://wipolex-res.wipo.int/edocs/lexdocs/laws/en/jp/jp236en.html",
+        "https://www.bunka.go.jp/seisaku/chosakuken/hokaisei/kantaiheiyo_chosakuken/1411890.html"
+      ]
+    },
+    {
+      "territory": "MX",
+      "rule": "Article 29: life plus 100 from the last coauthor. All known original authors and translators died before 1925; no reliance on shorter term or non-revival arguments.",
+      "sources": ["https://www.wipo.int/wipolex/en/legislation/details/23966"]
+    },
+    {
+      "territory": "JM",
+      "rule": "Official IP-office guidance: life plus 95 for literary works. Selected contributors all died before 1925.",
+      "sources": ["https://www.jipo.gov.jm/node/25"]
+    }
+  ],
+  "specialReviewRequired": [
+    {
+      "territory": "SN",
+      "issue": "2008 Act Article 157 provides declarations and royalties for specified public-domain exploitation. Applicability to this foreign-text app bundle is not resolved; not release-allowlisted.",
+      "source": "https://www.wipo.int/wipolex/en/legislation/details/5764"
+    },
+    {
+      "territory": "DZ",
+      "issue": "Public-domain protection and permission/fee provisions require current local assessment, including applicability to foreign text. Not release-allowlisted.",
+      "source": "https://wipolex-res.wipo.int/edocs/lexdocs/laws/fr/dz/dz001fr.pdf"
+    },
+    {
+      "territory": "Other jurisdictions",
+      "issue": "WIPO reports discuss public-domain-payant systems, including CG, CI, KE, PY and RW. Historical report is a review lead, not proof all systems still apply today. Unknown destinations fail closed.",
+      "source": "https://www.wipo.int/edocs/mdocs/mdocs/en/cdip_7/cdip_7_inf_2.pdf"
+    }
+  ],
+  "contemporaryLicense": {
+    "book": "Grayson's Book of Stories",
+    "license": "CC-BY-SA-4.0",
+    "worldwideGrant": true,
+    "commercialPermission": true,
+    "authorStatement": "https://gbmj.net/license",
+    "conditions": "Attribution, supplied notices, source/license links, modification notice, applicable ShareAlike and no DRM; no endorsement. Only author's own text, no third-party illustrations."
+  },
+  "translationPolicy": "Approximately twenty language editions are later work. Each translation requires its own rights/provenance record and worldwide commercial permission or separately reviewed public-domain status. No English-edition clearance transfers to a modern translation."
+}

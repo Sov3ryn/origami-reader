@@ -1,123 +1,100 @@
-Origami starter library: rights and edition record
+Origami starter library: commercial and international edition record
+Reviewed 13 October 2026. Pack version 2, English.
 
-Updated selection, 13 October 2026
----------------------------------
-Little Brother replaces The Great Gatsby in the contemporary slot.
-Little Brother, copyright 2008 Cory Doctorow, is included with the user's
-approval under Creative Commons Attribution-NonCommercial-ShareAlike
-3.0 Unported. Source: https://craphound.com/littlebrother/download/
-License: https://creativecommons.org/licenses/by-nc-sa/3.0/
-The text-only EPUB conversion uses the same license. All source paragraphs,
-chapter/bookstore dedications, epilogue, afterwords and full license remain
-in order. Image assets are excluded and formatting is simplified. Source
-and generated EPUB hashes are recorded in manifest.json. No DRM is added.
-Commercial distributors must omit this book or get separate permission.
-The app's MPL 2.0 license does not override that restriction.
+The intended release is pay what you want, including paid copies. No
+selected text has a NonCommercial-only license. Origami code remains
+MPL 2.0; the book texts and edition contributions keep separate rights.
+This is a prepared import pack. Automatic starter seeding remains planned,
+and existing user libraries and annotations are not modified.
 
-RELEASE PRICING CONTEXT
-Origami is planned as pay what you want, including a zero-price option.
-Allowing a free download does not automatically establish NonCommercial
-use for a payment-linked bundle. CC treats that question as dependent on
-the purpose and circumstances of the use. Little Brother is prepared but
-not cleared for this release arrangement without the author's permission
-or replacement by a commercially redistributable book. The other five
-texts retain the territorial limits described below.
-https://creativecommons.org/faq/#does-my-use-violate-the-noncommercial-clause-of-the-licenses
+CURRENT TITLES AND TEXT CONTRIBUTORS
+The Enchanted Castle (1907), E. Nesbit, died 1924.
+Journey to the Center of the Earth (1864), Jules Verne, died 1905.
+  F. A. Malleson, English translation, Ward, Lock 1877; died 1897.
+The Moonstone (1868), Wilkie Collins, died 1889.
+Pride and Prejudice (1813), Jane Austen, died 1817.
+Grayson's Book of Stories, Grayson Bray Morris, sixteen online stories.
+  Collection retrieved in 2026, not first published in that year.
+The Count of Monte Cristo (1844-1846), Alexandre Dumas, died 1870.
+  Collaborator Auguste Maquet died 1888. Anonymous Chapman and Hall
+  English translation, 1846; no modern translation is included.
 
-The historical-text record below applies to the five remaining older
-books. Gatsby's prior review is retained as a record, but it is no longer
-part of the six-book pack. This is not a worldwide clearance for the
-historical texts. The contemporary story is set around its 2008 publication
-and contains mature themes, including a brief sexual scene, but is not
-erotica.
-Reviewed 13 October 2026
+HISTORICAL EDITIONS
+All five historical texts and the selected translations were published
+before 1931. Every identified original author, collaborator and translator
+died before 1925. The latest death is Nesbit in 1924: even an ordinary
+life-plus-100-year economic term ends before 2026. The anonymous 1846
+translation is much older than publication-based terms. This avoids relying
+on complex shorter-term, non-revival or transitional arguments for Wells,
+Doyle and Montgomery. Replacement is a conservative release decision,
+not a determination that the old books are protected everywhere.
 
-This pack contains six complete English text editions. It does not contain
-the source editions' cover artwork, illustrations, title-page images, fonts,
-logos or promotional pages. The historical book text and modern editorial
-contributions have separate rights. Origami's MPL 2.0 code license does not
-relicense someone else's text, translation or artwork.
+Standard Ebooks contributions are dedicated under CC0 1.0, including its
+fallback license, worldwide within the rights contributors own. That cannot
+waive someone else's rights. Pinned source commits, licenses and editorial
+colophons are retained. Original prose, dedications, epigraphs and endnotes
+remain in order. Artwork, fonts, source logos and scans are excluded.
+Verne's three runic diagrams are replaced by their supplied descriptions;
+the cipher's Latin transcription and decoding remain in the prose. This
+text-only edition is not a facsimile. No modern introduction, modern
+translation or modern publisher artwork is licensed by this review.
+Do not imply Standard Ebooks endorsement.
 
-REVIEWED TERRITORIES
+CONTEMPORARY COLLECTION
+The author expressly permits commercial reuse of her own stories under
+CC BY-SA 4.0 International. The license grants worldwide rights within the
+rights she owns, with no NonCommercial clause. Third-party illustrations
+and third-party translation excerpts are excluded. Sixteen complete story
+texts are retained. The full license, author license statement, source
+URLs, individual copyright notices and conversion notice accompany the
+EPUB. Keep author/title credits, supplied notices and source/license links.
+Identify modifications; book adaptations, including translations and
+distributed narration, must retain applicable ShareAlike terms. No DRM or
+additional restrictions on the licensed material, and no implied endorsement.
+Independent app code is not relicensed by bundling this separate EPUB.
+The collection contains adult themes, grief, violence, body modification
+and sexual references. It is not a dedicated YA collection or a present-day
+novel. No erotica title is selected, but this is not a child-safe guarantee.
+https://gbmj.net/stories/
+https://gbmj.net/license
+https://creativecommons.org/licenses/by-sa/4.0/legalcode.en
 
-The selected historical texts are public domain in the United States,
-Canada and the United Kingdom as of this review. They can be bundled with
-the app and read aloud in those territories, including in commercial
-distributions. The anonymous 1846 English translation of The Count of
-Monte Cristo is the selected translation. Modern commercial translations,
-including Robin Buss's translation, are not included or covered here.
+INTERNATIONAL SCOPE AND RELEASE GATE
+Economic-term review covers the US, Canada, UK, EU general term (including
+Spain's older-author rule), Australia, Brazil, India, mainland China, Japan,
+Mexico and Jamaica. Primary references are in international-review.json.
+This is not certification under every national law. Preserve authorship
+and integrity where moral rights survive economic copyright.
 
-Book                              Publication   Author's death
-The Enchanted Castle               1907          E. Nesbit, 1924
-The Time Machine                  1895          H. G. Wells, 1946
-The Hound of the Baskervilles      1902          Arthur Conan Doyle, 1930
-The Blue Castle                   1926          L. M. Montgomery, 1942
-The Great Gatsby                  1925          F. Scott Fitzgerald, 1940
-The Count of Monte Cristo         1844-1846     Alexandre Dumas, 1870
-  English translation             1846          Anonymous, Chapman and Hall
-  Collaborator                                  Auguste Maquet, 1888
+There is no universal public-domain-means-no-fees-everywhere assurance.
+Senegal's 2008 Act, Article 157, requires declarations and royalties for
+specified public-domain exploitation. WIPO also describes special-fee
+systems in other countries, including Algeria; applicability to these
+foreign works and current local practice needs specific review. Standard
+Ebooks' CC0 cannot waive statutory national obligations.
 
-The book catalog pages linked in selection.json record the authors' dates
-and US public-domain status. The source colophons record publication and
-translation editions. Source revisions, content-file hashes and prepared
-EPUB hashes are in manifest.json.
+Unreviewed countries and special-fee cases are not cleared. Release-mode
+packaging requires --release --country=CODE for a reviewed destination.
+A worldwide installer containing the five classics must resolve remaining
+exceptions, or omit these texts in affected destinations. No automatic
+geography detection or legal exemption based on the zero-price option is
+claimed. The development ZIP is a prepared source pack with these notices,
+not proof of unconditional worldwide clearance.
 
-Do not describe this as a worldwide clearance. National terms differ.
-Other distribution territories require local review before bundling.
-Spain has a legacy term for authors who died before 7 December 1987;
-The Time Machine needs that territorial check. Longer terms elsewhere
-also mean a US public-domain determination alone is insufficient.
-Original-author attribution and any continuing moral rights still matter.
+REMOVED FROM THIS SELECTION
+Little Brother is excluded because its NC license does not clear the paid
+bundle. The Time Machine, The Hound of the Baskervilles and The Blue Castle
+were replaced for the broader term strategy. Old source-pack files are
+backed up locally, outside the public pack. User imports are untouched.
+The package allowlist excludes inactive titles even if stale files remain.
 
-EDITION CONTRIBUTIONS
+LATER LANGUAGE EDITIONS
+English only now. Roughly twenty languages or different books per language
+remain later work. Each edition needs translator/publication/rights review.
+An old original does not grant rights to a modern translation. New
+translators must grant worldwide commercial distribution rights. CC BY-SA
+adaptations retain their applicable terms. English hashes are not language
+clearance. Book-specific credits and licenses remain separate from app MPL.
 
-The source editions are produced by Standard Ebooks. Their contributors
-dedicate their contributions to the worldwide public domain under CC0 1.0.
-The dedication applies to their own contributions; it cannot waive another
-party's surviving copyright. Each source repository's LICENSE.md statement
-is retained in sources/*-license.txt. The official CC0 legal text is retained
-as CC0-1.0.txt. Plain-text source colophons preserve the transcription and
-editorial credits. Do not imply that Standard Ebooks endorses Origami.
-
-These are complete text editions, not photographic replicas of original
-publications. Unused styling links and non-story publisher pages have been
-removed. Original chapter XHTML, dedications, epigraphs, epilogues and
-endnotes are retained where present. No abridgment or prose modernization
-was performed. Original historical language is retained.
-
-ARTWORK EXCLUSION
-
-In particular, The Great Gatsby's source cover uses Francis Cugat's
-Celestial Eyes, and The Count of Monte Cristo's uses Mead Schaeffer's art.
-US public-domain status does not establish that those paintings can be
-used in Canada or the UK. No art from any of the six source editions is
-included. Origami may use its own separately licensed cover designs.
-
-PRIMARY REFERENCES
-
-United States Copyright Office, public-domain threshold:
-https://www.copyright.gov/what-is-copyright/
-
-Canadian Intellectual Property Office, guide and non-revival of expired terms:
-https://ised-isde.canada.ca/site/canadian-intellectual-property-office/en/guide-copyright
-
-UK Intellectual Property Office, term of written works:
-https://www.gov.uk/copyright/how-long-copyright-lasts
-
-Spain, copyright law and fourth transitional provision:
-https://www.boe.es/buscar/act.php?id=BOE-A-1996-8930
-
-Standard Ebooks, dedication and scope of public-domain determinations:
-https://standardebooks.org/about/standard-ebooks-and-the-public-domain
-
-Creative Commons, CC0 1.0:
-https://creativecommons.org/publicdomain/zero/1.0/
-https://creativecommons.org/publicdomain/zero/1.0/legalcode
-
-Book sources:
-https://standardebooks.org/ebooks/e-nesbit/the-enchanted-castle
-https://standardebooks.org/ebooks/h-g-wells/the-time-machine
-https://standardebooks.org/ebooks/arthur-conan-doyle/the-hound-of-the-baskervilles
-https://standardebooks.org/ebooks/l-m-montgomery/the-blue-castle
-https://standardebooks.org/ebooks/f-scott-fitzgerald/the-great-gatsby
-https://standardebooks.org/ebooks/alexandre-dumas/the-count-of-monte-cristo/chapman-and-hall
+See manifest.json for source and EPUB hashes, and international-review.json
+for scoped territorial rules, release gates and primary references.

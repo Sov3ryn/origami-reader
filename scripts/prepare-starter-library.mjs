@@ -31,7 +31,7 @@ const document = (body) =>
   `<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>Book</title></head><body>${body}</body></html>`;
 const report = [];
 for (const book of selection.books) {
-  if (book.sourceKind === "author-html") {
+  if (book.sourceKind === "author-stories") {
     const prepared = JSON.parse(
       await readFile(join(destination, "manifest.json"), "utf8"),
     ).books.find((b) => b.id === book.id);
@@ -41,7 +41,7 @@ for (const book of selection.books) {
         prepared.sha256
     )
       throw new Error(
-        "Run scripts/prepare-contemporary-starter.mjs to prepare the author's edition first.",
+        "Run scripts/prepare-commercial-stories.mjs to prepare the author's licensed collection first.",
       );
     report.push(prepared);
     continue;
@@ -86,7 +86,7 @@ for (const book of selection.books) {
     items.get(el.getAttribute("idref")),
   ).filter(
     (name) =>
-      !/^text\/(?:titlepage|imprint|halftitlepage|colophon|uncopyright)\.xhtml$/.test(
+      !/^text\/(?:titlepage|imprint|halftitlepage|colophon|uncopyright|loi)\.xhtml$/.test(
         name,
       ),
   );
@@ -102,6 +102,29 @@ for (const book of selection.books) {
       files.slice(i, i + 6).map(async (file) => {
         const original = await text(base + "src/epub/" + file);
         const doc = parse(original);
+        // Retain the reviewed runic diagrams' descriptions, without SVG art.
+        // The cipher's Latin transcription remains in chapter 3.
+        if (book.id === "starter-journey-center-earth") {
+          for (const img of doc.querySelectorAll("body img")) {
+            if (
+              ![
+                "../images/glyph-1.svg",
+                "../images/glyph-2.svg",
+                "../images/glyph-3.svg",
+              ].includes(img.getAttribute("src"))
+            )
+              throw new Error(`Unreviewed illustration: ${file}`);
+            const description = doc.createElementNS(
+              "http://www.w3.org/1999/xhtml",
+              "p",
+            );
+            description.textContent =
+              "[Diagram omitted in this text-only edition: " +
+              img.getAttribute("alt") +
+              "]";
+            img.replaceWith(description);
+          }
+        }
         if (
           doc.querySelector(
             "body img, body svg, body script, body iframe, body object, body audio, body video",
@@ -148,7 +171,7 @@ for (const book of selection.books) {
     ),
   );
   entries["EPUB/content.opf"] = strToU8(
-    `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="book-id">urn:origami:${book.id}</dc:identifier><dc:title>${escape(book.title)}</dc:title><dc:creator>${escape(book.author)}</dc:creator><dc:language>en</dc:language><dc:source>${escape(book.source)}</dc:source><dc:rights>Historical text: public domain in the US, Canada and UK. Standard Ebooks contributions: CC0 1.0. Other countries require local review. See the accompanying RIGHTS.txt.</dc:rights><meta property="dcterms:modified">2026-10-13T00:00:00Z</meta></metadata><manifest><item id="title" href="text/title.xhtml" media-type="application/xhtml+xml"/><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>${chapters.map((ch, i) => `<item id="c${i}" href="${ch.file}" media-type="application/xhtml+xml"/>`).join("")}</manifest><spine><itemref idref="title"/>${chapters.map((_, i) => `<itemref idref="c${i}"/>`).join("")}</spine></package>`,
+    `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="book-id">urn:origami:${book.id}</dc:identifier><dc:title>${escape(book.title)}</dc:title><dc:creator>${escape(book.author)}</dc:creator><dc:language>en</dc:language><dc:source>${escape(book.source)}</dc:source><dc:rights>${escape(book.rightsBasis)} Standard Ebooks contributions: CC0 1.0. Commercial redistribution of these text editions is permitted where local requirements are satisfied. No universal territorial clearance is claimed. See RIGHTS.txt and international-review.json.</dc:rights><meta property="dcterms:modified">2026-10-13T00:00:00Z</meta></metadata><manifest><item id="title" href="text/title.xhtml" media-type="application/xhtml+xml"/><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>${chapters.map((ch, i) => `<item id="c${i}" href="${ch.file}" media-type="application/xhtml+xml"/>`).join("")}</manifest><spine><itemref idref="title"/>${chapters.map((_, i) => `<itemref idref="c${i}"/>`).join("")}</spine></package>`,
   );
   // EPUB requires the first member, mimetype, to be stored without compression.
   entries.mimetype = [entries.mimetype, { level: 0 }];
@@ -175,8 +198,10 @@ for (const book of selection.books) {
     filename,
     sha256: hash(bytes),
     bytes: bytes.length,
-    chapterCount: chapters.filter((ch) => /chapter-\d+\.xhtml$/.test(ch.file))
-      .length,
+    chapterCount: chapters.filter((ch) =>
+      /chapter-\d+(?:-\d+)*\.xhtml$/.test(ch.file),
+    ).length,
+    finalContentFile: chapters.at(-1).file,
     wordCount: chapters.reduce((n, ch) => n + ch.body.split(/\s+/).length, 0),
     contentFiles: chapters.map(({ file, originalHash }) => ({
       file,
@@ -195,8 +220,10 @@ await writeFile(
     {
       version: selection.version,
       prepared: "2026-10-13",
+      distributionIntent: selection.distributionIntent,
+      globalClearance: false,
       format:
-        "Complete text EPUBs, with original dedications, epigraphs, epilogues and endnotes where present",
+        "Five historical text EPUBs and one commercially licensed contemporary story collection; third-party artwork excluded",
       books: report,
     },
     null,

@@ -1,7 +1,9 @@
 {
-  "version": 1,
+  "version": 2,
   "prepared": "2026-10-13",
-  "format": "Complete text EPUBs; five historical editions and one separately licensed contemporary novel",
+  "distributionIntent": "Pay what you want, including paid copies. No noncommercial-only text in this selection.",
+  "globalClearance": false,
+  "format": "Five historical text EPUBs and one commercially licensed contemporary story collection; third-party artwork excluded",
   "books": [
     {
       "id": "starter-enchanted-castle",
@@ -14,11 +16,17 @@
       "source": "https://standardebooks.org/ebooks/e-nesbit/the-enchanted-castle",
       "catalog": "https://www.gutenberg.org/ebooks/3536",
       "why": "A magic ring turns a holiday adventure into increasingly strange trouble. Funny, imaginative and occasionally eerie, with a low barrier to entry. This selection leans toward younger readers.",
+      "sourceKind": "standard-ebooks",
+      "license": "Public-domain-text-and-CC0-edition",
+      "commercialRedistribution": true,
+      "rightsBasis": "Published before 1931; all known text authors and translators died before 1925. Country-specific public-domain fees and moral rights still require release review.",
+      "lastContributorDeath": 1924,
       "revision": "c6bd811c0c5414d4cc957d31700b4215b9ef25f1",
       "filename": "enchanted-castle.epub",
-      "sha256": "b1a360b16f5e892bc35033282d36b54d5e40353e82ab8275783f8fe9316c68af",
-      "bytes": 170640,
+      "sha256": "aa4ec9542be41ab3f2979fe6e9cdd14959a4e13aeea00fbc98f4abd124a78393",
+      "bytes": 170756,
       "chapterCount": 12,
+      "finalContentFile": "text/chapter-12.xhtml",
       "wordCount": 67679,
       "contentFiles": [
         {
@@ -77,391 +85,927 @@
       "artworkIncluded": false
     },
     {
-      "id": "starter-time-machine",
-      "title": "The Time Machine",
-      "author": "H. G. Wells",
-      "authorDeath": 1946,
-      "published": 1895,
+      "sourceKind": "standard-ebooks",
+      "license": "Public-domain-text-and-CC0-edition",
+      "commercialRedistribution": true,
+      "rightsBasis": "Published before 1931; all known text authors and translators died before 1925. Country-specific public-domain fees and moral rights still require release review.",
+      "id": "starter-journey-center-earth",
+      "title": "Journey to the Center of the Earth",
+      "author": "Jules Verne",
+      "authorDeath": 1905,
+      "translator": "F. A. Malleson",
+      "translatorDeath": 1897,
+      "lastContributorDeath": 1905,
+      "published": 1864,
+      "translationPublished": 1877,
+      "translation": "F. A. Malleson, English edition published by Ward, Lock in 1877",
       "category": "Science fiction",
-      "repository": "h-g-wells_the-time-machine",
-      "source": "https://standardebooks.org/ebooks/h-g-wells/the-time-machine",
-      "catalog": "https://www.gutenberg.org/ebooks/35",
-      "why": "A short, unsettling journey into humanity's distant future. Its mysteries and survival scenes provide an immediate hook, while its ideas give readers something to think about afterward.",
-      "revision": "9fd22d612e6ed35cd07a8ed5e3ccdc4856c05088",
-      "filename": "time-machine.epub",
-      "sha256": "eef628a9173087032dd1d0040c2034f28c3a4c82b2e817c38c048d6fe5a659d1",
-      "bytes": 87186,
-      "chapterCount": 12,
-      "wordCount": 32302,
-      "contentFiles": [
-        {
-          "file": "text/chapter-1.xhtml",
-          "sha256": "271ade0cbef9469a3b6afac85e6b76d49f632398ff35dae08c7cf1f63ee268ee"
-        },
-        {
-          "file": "text/chapter-2.xhtml",
-          "sha256": "cb7ed8ceec4b08ad13b4bd0d80890e1fdf6d981344d02213c9185db12ff4194a"
-        },
-        {
-          "file": "text/chapter-3.xhtml",
-          "sha256": "a41554ea42988f9dfbabccf0fbc64f4ddec47dc7b79b4ef4c8d4d8e1002eea5b"
-        },
-        {
-          "file": "text/chapter-4.xhtml",
-          "sha256": "f48797e9353fb8322148d77cfde4e4178823428fdb21acc96d89876877c79bca"
-        },
-        {
-          "file": "text/chapter-5.xhtml",
-          "sha256": "e330e4c088d3c8bcc5f8a779be31295afd486dba83ce6eca6bf9d5009da9c91c"
-        },
-        {
-          "file": "text/chapter-6.xhtml",
-          "sha256": "e9b36771d39be05b6916313f51f98f23ae0c970d6c9b34c133a7297a1ff5da21"
-        },
-        {
-          "file": "text/chapter-7.xhtml",
-          "sha256": "3e62c3d055ad95cbacbb234ac1adb49d1d446cb34dab5f2dd093fda56c0888c2"
-        },
-        {
-          "file": "text/chapter-8.xhtml",
-          "sha256": "db2ef974cf9eb3ae9d7626195b8f9d67463c5da03668cc06da59b958c89736b6"
-        },
-        {
-          "file": "text/chapter-9.xhtml",
-          "sha256": "3cb59e4348986f5050c8f43f5682c426d72460788f3d9fd89e8fb7b7b7624248"
-        },
-        {
-          "file": "text/chapter-10.xhtml",
-          "sha256": "d315e566f89f0fa0ed58c8ace8f9fff33e07e1b0fc570da5986ebf8d07ad1a52"
-        },
-        {
-          "file": "text/chapter-11.xhtml",
-          "sha256": "c0e832ef3520e178011267eda3030340383ab29d8a75fa7584ac3ca49ca1ae2b"
-        },
-        {
-          "file": "text/chapter-12.xhtml",
-          "sha256": "a0da3f5b5159ce7e9acc38b616f03e270aa73d3f69ac8559d2b984791e450675"
-        },
-        {
-          "file": "text/epilogue.xhtml",
-          "sha256": "b0160019ef31fdba4683bb66ddf954f0a81743cfb0e853db44ca4b9af59b9d92"
-        },
-        {
-          "file": "text/endnotes.xhtml",
-          "sha256": "54ddad93104df2944c34350ca3d02ca4f7e98b11620b691a02b0013c97f00d21"
-        }
-      ],
-      "artworkIncluded": false
-    },
-    {
-      "id": "starter-hound-baskervilles",
-      "title": "The Hound of the Baskervilles",
-      "author": "Arthur Conan Doyle",
-      "authorDeath": 1930,
-      "published": 1902,
-      "category": "Detective mystery",
-      "repository": "arthur-conan-doyle_the-hound-of-the-baskervilles",
-      "source": "https://standardebooks.org/ebooks/arthur-conan-doyle/the-hound-of-the-baskervilles",
-      "catalog": "https://www.gutenberg.org/ebooks/2852",
-      "why": "Sherlock Holmes, an apparently supernatural curse and a dangerous investigation on the moors. A strong standalone introduction to Holmes, with suspense that should work particularly well aloud.",
-      "revision": "4f080d1fa42a98a70c29bff9088678472e503295",
-      "filename": "hound-baskervilles.epub",
-      "sha256": "09b81544efb5d941c86e1ae578b175145a151f97a66027be4200fe39afa10045",
-      "bytes": 149850,
-      "chapterCount": 15,
-      "wordCount": 59140,
-      "contentFiles": [
-        {
-          "file": "text/dedication.xhtml",
-          "sha256": "f5dd6a730290fda1ba53e4e489adecfd979c77be4ab86d76af07bb2593cca659"
-        },
-        {
-          "file": "text/chapter-1.xhtml",
-          "sha256": "eb77aee61774b51d4e0f78244f92fdf474b0cf8bd70899e394716b55a6e11f5a"
-        },
-        {
-          "file": "text/chapter-2.xhtml",
-          "sha256": "006a3171481b0523619659225c6069c4b3e5425b9c26e023f9f31cd9422ee5e0"
-        },
-        {
-          "file": "text/chapter-3.xhtml",
-          "sha256": "667b127b54089499826ae21c87a6f2acb256a9abde6b48c3daed3bc93b28ad47"
-        },
-        {
-          "file": "text/chapter-4.xhtml",
-          "sha256": "f4da9209653c340c97f35cab326f3bc9c205954281f5f2d321b5ce299c7d1536"
-        },
-        {
-          "file": "text/chapter-5.xhtml",
-          "sha256": "2966c97e6f2a902d4435683a310e579d5bca36925565df947c2e7ad8a4b4e57e"
-        },
-        {
-          "file": "text/chapter-6.xhtml",
-          "sha256": "ba8f8742378bc7af4c059a00d502c36989fff13fdeb721d580096ba7a226d1ef"
-        },
-        {
-          "file": "text/chapter-7.xhtml",
-          "sha256": "a1810ae222ed3bcea2b91ad3313af8372075ae8065d4e49e4a81d7fb98c965b8"
-        },
-        {
-          "file": "text/chapter-8.xhtml",
-          "sha256": "3427b10ab109bcbab1085abfee80b2aa2bb2c8181319015d0b7493c04e19ab06"
-        },
-        {
-          "file": "text/chapter-9.xhtml",
-          "sha256": "33b30fd0af843a70edb50d006a82c1a3f6b91f337fc61b3be60a3b3743e4de4f"
-        },
-        {
-          "file": "text/chapter-10.xhtml",
-          "sha256": "ae71b72233ca75512705323df3339d6568231774e6e0e6a35ea13f81b899f240"
-        },
-        {
-          "file": "text/chapter-11.xhtml",
-          "sha256": "b01633e658a0ac0fd3f2965cce4152a84118fc9701777198aea486248404df56"
-        },
-        {
-          "file": "text/chapter-12.xhtml",
-          "sha256": "5ed0c18534c64ff4e7b613c5399808d613bad79f8440b0a51496278d8ddad45b"
-        },
-        {
-          "file": "text/chapter-13.xhtml",
-          "sha256": "b82eeab589d9bb38dcdf5bb3a8d443b36173fa926428c3757d8e768b13f8a866"
-        },
-        {
-          "file": "text/chapter-14.xhtml",
-          "sha256": "88a7967eb4ddbf6f4183b92088ba18045ef5f7ea36b96551ae5dcbe17b00585f"
-        },
-        {
-          "file": "text/chapter-15.xhtml",
-          "sha256": "b0feb2948072c358139c8df60fd8e58b50b381541025575b8e1b8bb603de841d"
-        }
-      ],
-      "artworkIncluded": false
-    },
-    {
-      "id": "starter-blue-castle",
-      "title": "The Blue Castle",
-      "author": "L. M. Montgomery",
-      "authorDeath": 1942,
-      "published": 1926,
-      "category": "Romance",
-      "repository": "l-m-montgomery_the-blue-castle",
-      "source": "https://standardebooks.org/ebooks/l-m-montgomery/the-blue-castle",
-      "catalog": "https://www.gutenberg.org/ebooks/67979",
-      "why": "A woman who has spent her life obeying an oppressive family decides to live on her own terms. Warm, witty and romantic, with a satisfying emotional arc and approachable prose.",
-      "revision": "fbd21a9a79a0e652c5985b7e1e08cddb1e5498a0",
-      "filename": "blue-castle.epub",
-      "sha256": "0da96041773d303433d60384acf09f365339cfd770b901e795b03b4ffa0a56f6",
-      "bytes": 204061,
+      "repository": "jules-verne_journey-to-the-center-of-the-earth_f-a-malleson",
+      "source": "https://standardebooks.org/ebooks/jules-verne/journey-to-the-center-of-the-earth/f-a-malleson",
+      "catalog": "https://www.gutenberg.org/ebooks/3748",
+      "why": "An eccentric professor, his nephew and their guide descend through an Icelandic volcano into a subterranean world. An adventurous introduction to classic science fiction, using the older Malleson translation rather than a modern copyrighted one.",
+      "illustrationPolicy": "Three runic diagrams omitted; supplied descriptions retained. Latin cipher transcription and decoding remain in the prose.",
+      "revision": "3a69e4ca3a52253ea0ed84557385afd174071219",
+      "filename": "journey-center-earth.epub",
+      "sha256": "baa11391eebc643c0e5b01d3fa5083668e626825aedfdd267670c1fcef1b6ebd",
+      "bytes": 224163,
       "chapterCount": 45,
-      "wordCount": 68087,
+      "finalContentFile": "text/endnotes.xhtml",
+      "wordCount": 72788,
       "contentFiles": [
         {
           "file": "text/chapter-1.xhtml",
-          "sha256": "6ce364685662922baef85e62415cd72aaa9d18348ef8817c452e7aa4f3582b99"
+          "sha256": "8227e5891a1de7674abf7f3b9308e6d4e8e69868837515c12a6589d143d8684a"
         },
         {
           "file": "text/chapter-2.xhtml",
-          "sha256": "564c5c48398b33d71aa590b6e4cf7f5ab5b6d12f3198920ccc3a34c049055f8d"
+          "sha256": "402bfb58793b6dea2c61f607520ec349a1fd9e466ae7b27888a4ef5f4288c02a"
         },
         {
           "file": "text/chapter-3.xhtml",
-          "sha256": "4e91fb54ef3e7a7c6d82d4c3da16fe036873e8cd58cf0608db40a2489096b5be"
+          "sha256": "e44fc366c8db0d352746fd96934aa3b086389fe2d8d8e8b9dd163d3c30404bdd"
         },
         {
           "file": "text/chapter-4.xhtml",
-          "sha256": "42802c3d36e01b38ce6db81f2001a8d061eac74f30ea23ff8edd14bf1306e9b0"
+          "sha256": "dc7752c7abc7e0506a221008d443659989c1f614a6fb75fdb9f64a2d0a736a2d"
         },
         {
           "file": "text/chapter-5.xhtml",
-          "sha256": "c8d1b2572c70925cd203ce6aa2c2a74768258aa832077928562cb5b22647c8ee"
+          "sha256": "7b9e6c684223dc2b582022a6a16ac4d033a3f0129cb1ec4b630ca58528cdf5bb"
         },
         {
           "file": "text/chapter-6.xhtml",
-          "sha256": "47a525a62634c82d44d614a2df5b3780eae5bc201ebfc3049f6f01274e34fce7"
+          "sha256": "69b97ad5e04b03466e53329d25f7608953c2cc8337841f5e5c667fe5b5660dbf"
         },
         {
           "file": "text/chapter-7.xhtml",
-          "sha256": "97836632ba716a85b69e3c4d7374787692148917e047db766cf5a1495ee04ce9"
+          "sha256": "be82f708a18aa1d59813a2cb758c653d4562998761fb623d2f00a7ab0280dcb4"
         },
         {
           "file": "text/chapter-8.xhtml",
-          "sha256": "e5ddbd4a5172d934aef34a623a0464f88d6942032ab8186ca78b1828aa4ba60e"
+          "sha256": "b650b610855e34620c66bbf82adb0bb99d875c8f8e32ca2e6ddd8acc87c34983"
         },
         {
           "file": "text/chapter-9.xhtml",
-          "sha256": "77ab2347fd60c2b2376c2ce681f27228b2a4eddc3c1919e11c382fb07d9b155d"
+          "sha256": "973abac37469dc7bd2acb7c7bd1cac4fff0d15c129d5b18d015653f6369ca09f"
         },
         {
           "file": "text/chapter-10.xhtml",
-          "sha256": "b7d6b71f2333a71563e943f1b610adbafb3df9ebcd51ba336830b2ee783eabfa"
+          "sha256": "b78dd7b0a5525a6f9fdb9c0b07d6c47e65c6af3ea17043934380597b7a7c0e9b"
         },
         {
           "file": "text/chapter-11.xhtml",
-          "sha256": "80c6d8260f959be1540f2a15f50e85ae45941d25f9326cfd5cb4d3ceb4969ce1"
+          "sha256": "738453ec54304a2f1f2d514c6d204b7df466a6561d4e3d5d18313744cb8e0290"
         },
         {
           "file": "text/chapter-12.xhtml",
-          "sha256": "1382ac3963fe887455e9e871efbbeaa017cb9d3ddb7069068e941ff9cc982d79"
+          "sha256": "5565648e6536010ecd50d3479c842f6741bc70bf1d4471564be05ea9b64c48dd"
         },
         {
           "file": "text/chapter-13.xhtml",
-          "sha256": "7ecd75eec755421236b2016ff2ad822ec1f1fc3823c588681551bac3e906c0e5"
+          "sha256": "0a7239c4c3b00dc98da3154a43ca17f91df020819060e855579f89c1cbd7db7a"
         },
         {
           "file": "text/chapter-14.xhtml",
-          "sha256": "cd135422179a00e97a4200082689c22defd437f8bfee08b50c9c49348a034cdd"
+          "sha256": "7300f9a39f5ed33116ea4573ee18a3331842e8f058e762e8383dac864bb247e7"
         },
         {
           "file": "text/chapter-15.xhtml",
-          "sha256": "dc52ec9c5cd7e56a45bab7e11e11ed8377b790bade780739c0860756ab5cb203"
+          "sha256": "743d77e7e172819e9f2456f90667918b4b54c2d743e0087705a0fca34bf33659"
         },
         {
           "file": "text/chapter-16.xhtml",
-          "sha256": "decb12bfb2ea6e78fa32c73fb5c42f2be75540e830c2bd9635cfbbff1abf33f9"
+          "sha256": "c983714ea5a03486e94d48b6b78c9a7166d94b821d7ff124f27981fbe7a880c4"
         },
         {
           "file": "text/chapter-17.xhtml",
-          "sha256": "8d99192c4b44a414a8bed30f25155691352773950729d7c50e9d51b13d51603f"
+          "sha256": "83c574d34d7c35ab6606d3f34d7d218930237ba7b3c20f95be1d7af1fdc6798d"
         },
         {
           "file": "text/chapter-18.xhtml",
-          "sha256": "a6afca4602b2c1da3f96c02d0e67b8a6cd90132d85d12c39b1e2dff945db00df"
+          "sha256": "bedd379e083c03496b7f0184a46011764cb9e7562dce8be86ae39838955dd184"
         },
         {
           "file": "text/chapter-19.xhtml",
-          "sha256": "e5b24896f1abbb59381fbf2e27b1b7f4153946a4e5cc6f9e30fd3aba05668379"
+          "sha256": "c73fc5d670647b275edde759ef1ac5ac105190f6a00108d25c8bba5fc8edf8ac"
         },
         {
           "file": "text/chapter-20.xhtml",
-          "sha256": "1ca5909327146a03d247f181469952e16a2d9264c1e073cbb7e8c9e7763b61c5"
+          "sha256": "92eb27bf354d0b45fef40a1f9d3f48b016e9e93885e4e67e050f60c35dbcd315"
         },
         {
           "file": "text/chapter-21.xhtml",
-          "sha256": "72965ba84acab6c762f1b0fb0ca09affdef25592d86c237e44186d8e71cacad7"
+          "sha256": "b422f30fcee0efc9bd7c5361d1e349c0c6b21bb5d0f0f2e8cd6f8c2544829cd9"
         },
         {
           "file": "text/chapter-22.xhtml",
-          "sha256": "42a413af4a08e32752471414fa75847bd3b2e3a4a25cc18b82c3b897c6f637ea"
+          "sha256": "e2b0aa7ae639c05564ea687a31e37f9e39fbdd7312bb128cadb70d0bfb99453a"
         },
         {
           "file": "text/chapter-23.xhtml",
-          "sha256": "b096e5faf982bdb4e6b581497fb148dd0930ee32e9612319c54f8c55b464f263"
+          "sha256": "d40a035b7dcc8e5ace0ca1b30b7453a1e198d00234e8a5ee2298ad263ad8adf9"
         },
         {
           "file": "text/chapter-24.xhtml",
-          "sha256": "422c158441158b3b216b7c1793eff92b3d7731cbd0eba3905c23dfbfa368f559"
+          "sha256": "6d3e39233584bc1a6ac6c4e934ac2194a953bc8e09290dc7406806211e740da9"
         },
         {
           "file": "text/chapter-25.xhtml",
-          "sha256": "145dd3dd4772512e1fac259d0ea79a5b22cd2858666ec0ac7e1912eb3756e991"
+          "sha256": "b5cd45f307ea3617b8ad26ce0cbf1287773dab5171b6cd49c53614e88b51d937"
         },
         {
           "file": "text/chapter-26.xhtml",
-          "sha256": "c3dc2f2a9256724509516c7f2f7b41bf3c5b116f16d4a59c0d9c79e4f52d2a4f"
+          "sha256": "7bcc8d57ff922cd7b6de7ff4d66da37b06e902cf4dac026c00d082eb4c7f79c1"
         },
         {
           "file": "text/chapter-27.xhtml",
-          "sha256": "06c3c88fb5e4be0548ca5b2b89b64109ded0de629849ee9fe78302aeda3f9651"
+          "sha256": "27e62a46e79e32ae158978f8d902a310faa12c5d532dfad594e42055fb66554d"
         },
         {
           "file": "text/chapter-28.xhtml",
-          "sha256": "e39185a0d5a920e54817e2f4ba86763c7a734bcabfc946e9ac0a15cfc4bc8b05"
+          "sha256": "7b57e419516a189aeb6f96a0bf4bcceb8660db25bb00f4047a34408387d87906"
         },
         {
           "file": "text/chapter-29.xhtml",
-          "sha256": "7733ba3c52d092e0c76200bd3f6bbf447a9c05a930adcfb1ede06b45700bcb6c"
+          "sha256": "6cfde8a0b4b9c0ccb7e9829b60efe6c6f75101ec688a160f6d5f6b5f147f2f7c"
         },
         {
           "file": "text/chapter-30.xhtml",
-          "sha256": "0e88240bb82b9ee9160fd4af69f79e64a144e216395161f14feffd2902704f22"
+          "sha256": "1e634a9d7f3013d154218d9ee2744ad83e67b76d82abf697c7299e92528089a1"
         },
         {
           "file": "text/chapter-31.xhtml",
-          "sha256": "6b837b41b43f0395ea046b13542982c61016e86bd8e02672932566273c60e56e"
+          "sha256": "20912c9fde4ff6dcf29027609e9d3587a5c3db49eb4092985f8520827149564c"
         },
         {
           "file": "text/chapter-32.xhtml",
-          "sha256": "935905e2677d499837a80e8df5f77d5ab4145981b840895eea26604f80bd7eb9"
+          "sha256": "f8236bf35e129b05dae7f5e35388b34485c7230ce1ae0a62b35e9cae63ae6ca2"
         },
         {
           "file": "text/chapter-33.xhtml",
-          "sha256": "fc264ca8d8aa987aeca0182aa3dbf9bb75e0bce840599c2c97da03223bd37963"
+          "sha256": "b662839b579496868f76db1f906736a7e4d5b6121ec44ac9812a861661b96647"
         },
         {
           "file": "text/chapter-34.xhtml",
-          "sha256": "b1d58a90385abcd4f9d6a7e41374f2a61068acc9b72d819d02f7c2cfbeb90c7a"
+          "sha256": "d562b0dddeb9317b0ad7943be1f2eaebcaf3c81cf4b74f6c12c53170840a46c4"
         },
         {
           "file": "text/chapter-35.xhtml",
-          "sha256": "61afa44c2ea8887ae885a573ef1bba73e18cef527c3084ead25cc94c3c98e55d"
+          "sha256": "5a5c6d354c3f9e87e4c34d3cb027a7aa8b98762ef80b0f69b247dce1e283f181"
         },
         {
           "file": "text/chapter-36.xhtml",
-          "sha256": "08d86abfade2e187bd3e0bc6ef5ad7c5e41317abee9ba75c6ecb6f5de396d791"
+          "sha256": "9abeb4ac7f04416ae0ca9e5011daf817870cae49a51d3606bf567bb59ecef54e"
         },
         {
           "file": "text/chapter-37.xhtml",
-          "sha256": "7e7e9e0ba0b4fa506f9e35af00a417d864cb05493f6df4d4186518996cc45219"
+          "sha256": "287c3426d81b2be932703500ad90bfe025622e3fe6680761170ac69258e72f31"
         },
         {
           "file": "text/chapter-38.xhtml",
-          "sha256": "08348a145f328fc9cc11976e16ed3fc905d5296f9c32be8461ff1126783d3107"
+          "sha256": "6c843bb726a398c182a862443578ab94e46412b0a7930f4749a4d06489308522"
         },
         {
           "file": "text/chapter-39.xhtml",
-          "sha256": "048b059dc10bbfa978bdc71cb330879bb48b788ca6968d14be17e302e3379e3a"
+          "sha256": "7b7de4d33a26d5ccb5b1aa7843a5e2abcb85520bcce1ec803baa51440bfd8791"
         },
         {
           "file": "text/chapter-40.xhtml",
-          "sha256": "04ad88adcccfbd233085536d6e4de5fb9130475342babbc5fcf92c6449b44c5e"
+          "sha256": "323775ff89a64de571750f7cd51159d43ccedc7cf12f1fdc6942e6424a866407"
         },
         {
           "file": "text/chapter-41.xhtml",
-          "sha256": "a36b50423e0fd3ccf170fcb35cb1fa2b126dd856e371e24cbc9bd0856c32e411"
+          "sha256": "6126c7b5ef5312b4658e4c67fd8fa0a8e8a9a8d5d6a00952cfa163d50b511599"
         },
         {
           "file": "text/chapter-42.xhtml",
-          "sha256": "329d0407789323d7dad24fe2291663a675b06fb9fe6dd03ec7c9068fca8d7367"
+          "sha256": "985c05bdd159fe72fcc1f00338bc89232986ac2620e55a675b362d92eb86bb51"
         },
         {
           "file": "text/chapter-43.xhtml",
-          "sha256": "9ebbafafd9762937a4f603c1778bcaf136bf537af9311706c7bf5db044e07ec6"
+          "sha256": "54be948e038fc1256900891efca8357377463d842661de6c4e5ba5a3ae727dc0"
         },
         {
           "file": "text/chapter-44.xhtml",
-          "sha256": "eadaaab8ca886b3d8c1e783b9d132485a140791352b507da1bdea0c92548c4d3"
+          "sha256": "388a9fcc9f373519b6ba67efe5686f47cfa459707d46a1fd6b1a2128851ebee5"
         },
         {
           "file": "text/chapter-45.xhtml",
-          "sha256": "0885938ad91f1ec6e0ac683ef3afd9f7a775dc6dc4cc68642dbd8e4c005b1083"
+          "sha256": "eb00a0259d56ef8e84d8f0c3201f1a189b30ea150d33c14a6fb2c412f80f7aeb"
+        },
+        {
+          "file": "text/endnotes.xhtml",
+          "sha256": "9f394ab289686b760e960d69ad5a5c0519e4efe36638763fab48bc34c1941264"
         }
       ],
       "artworkIncluded": false
     },
     {
-      "id": "starter-little-brother",
-      "title": "Little Brother",
-      "author": "Cory Doctorow",
-      "published": 2008,
-      "category": "Contemporary tech thriller",
-      "sourceKind": "author-html",
-      "source": "https://craphound.com/littlebrother/download/",
-      "editionSource": "https://craphound.com/littlebrother/Cory_Doctorow_-_Little_Brother.htm",
-      "license": "CC-BY-NC-SA-3.0",
-      "commercialRedistribution": false,
-      "why": "A teenager in modern San Francisco fights an invasive surveillance crackdown after a terrorist attack. Fast, tense and directly interested in privacy, technology and civil rights. Contemporary to its 2008 publication, not a story set in 2026. Includes mature themes and a brief sexual scene, but is not erotica.",
-      "revision": "9a03c6daa7886e2878eda38bdbb97e7855d5c7883bea26b6aff248573cbbbe34",
-      "filename": "little-brother.epub",
-      "sha256": "fdf1ee261cf045840dffa7f5e4c3b691a105f856bf58487fc91eefa5eb198e46",
-      "bytes": 293308,
-      "chapterCount": 21,
-      "wordCount": 118271,
-      "sourceParagraphCount": 3227,
+      "sourceKind": "standard-ebooks",
+      "license": "Public-domain-text-and-CC0-edition",
+      "commercialRedistribution": true,
+      "rightsBasis": "Published before 1931; all known text authors and translators died before 1925. Country-specific public-domain fees and moral rights still require release review.",
+      "id": "starter-moonstone",
+      "title": "The Moonstone",
+      "author": "Wilkie Collins",
+      "authorDeath": 1889,
+      "lastContributorDeath": 1889,
+      "published": 1868,
+      "category": "Detective mystery",
+      "repository": "wilkie-collins_the-moonstone",
+      "source": "https://standardebooks.org/ebooks/wilkie-collins/the-moonstone",
+      "catalog": "https://www.gutenberg.org/ebooks/155",
+      "why": "A stolen diamond, an isolated household and conflicting witnesses build a mystery told through memorable narrators. A foundational detective novel with humor, suspense and strong opportunities for listening aloud.",
+      "revision": "0d4a853a27cf8f5698151319f81f6a9d88addfd9",
+      "filename": "moonstone.epub",
+      "sha256": "1e68454f88301453f2952fc4dd2221a58db7f21edc60cfeb0965cc4cc26167ee",
+      "bytes": 489490,
+      "chapterCount": 49,
+      "finalContentFile": "text/endnotes.xhtml",
+      "wordCount": 194784,
       "contentFiles": [
         {
-          "file": "https://craphound.com/littlebrother/Cory_Doctorow_-_Little_Brother.htm",
-          "sha256": "9a03c6daa7886e2878eda38bdbb97e7855d5c7883bea26b6aff248573cbbbe34"
+          "file": "text/prologue.xhtml",
+          "sha256": "10c0c49a0cb207834ea8ca13cd96b7e5cbd79a257ace283205e3e38974f5b0be"
+        },
+        {
+          "file": "text/first-period.xhtml",
+          "sha256": "5e13edc2f22beb172534ed6da3ea62badb00157a88fc9cbde0738a853ba28938"
+        },
+        {
+          "file": "text/chapter-1-1.xhtml",
+          "sha256": "180c93905bf7266ebf7df7055b089e3de620899b4f6ccd7a7052f879aa52bb00"
+        },
+        {
+          "file": "text/chapter-1-2.xhtml",
+          "sha256": "6e8d78430242d508fe20b3dfbb4ca1a4d0cfbd1f56441dc52297b1f3ae79de4c"
+        },
+        {
+          "file": "text/chapter-1-3.xhtml",
+          "sha256": "6fc30b697ec77c5051a1a984eebb9f24f45e187282e5680bab57599406b47ade"
+        },
+        {
+          "file": "text/chapter-1-4.xhtml",
+          "sha256": "44e8d0fa9b089b556c267fb4e06d0fb40b7d13853eb904d9dd13a67acb5bb2fe"
+        },
+        {
+          "file": "text/chapter-1-5.xhtml",
+          "sha256": "d5307b1e1fb85290336b426b38438eb2d6bb44c3c47953f676f7bb7626215d7b"
+        },
+        {
+          "file": "text/chapter-1-6.xhtml",
+          "sha256": "2da80b014d81bccdda865c07f27b1bb9f27c37ac6fc7e9bf63a2c217168543ec"
+        },
+        {
+          "file": "text/chapter-1-7.xhtml",
+          "sha256": "6dc32b6df6f82746871f96b26a963eb9bbbd5e6b6c887c19a8d81f9349c7ab8a"
+        },
+        {
+          "file": "text/chapter-1-8.xhtml",
+          "sha256": "a86946c292a662ec523ffaa96e121d8f0f161accd0f8ce0ef94283d12d65e69d"
+        },
+        {
+          "file": "text/chapter-1-9.xhtml",
+          "sha256": "3044813403e337b1530d1946624b4be751b3d6b637e5a393e55aa383ede30b5a"
+        },
+        {
+          "file": "text/chapter-1-10.xhtml",
+          "sha256": "8712a9486a66fcc0f34338d0862e648ebfebecf5f67de0d2c96cff1f42bcf45b"
+        },
+        {
+          "file": "text/chapter-1-11.xhtml",
+          "sha256": "00da0c2fcf1d020a695ee5933cee046f371011b03efe81136e46226a99a9f74b"
+        },
+        {
+          "file": "text/chapter-1-12.xhtml",
+          "sha256": "600aa0f6e75eae2fc7d39aa0ae9d7a1ac1d3a42700f87ef04dabd8da7979ebb9"
+        },
+        {
+          "file": "text/chapter-1-13.xhtml",
+          "sha256": "9994253b54ee38e81ebc8615abd96fb9ac5664bca5520d96d8e42c56070e7acd"
+        },
+        {
+          "file": "text/chapter-1-14.xhtml",
+          "sha256": "31301d7508a91ad689705a95d03180f851369732dea716633d0df615157b800d"
+        },
+        {
+          "file": "text/chapter-1-15.xhtml",
+          "sha256": "dd24b130f22ef9425ebe3c79df9c8c7b9c78fc1fa0f580ede29eab02622b79aa"
+        },
+        {
+          "file": "text/chapter-1-16.xhtml",
+          "sha256": "2a4192ccb2a42ecf20adc16ffd2449650f68e50a1dcf5710bf048ba83840f156"
+        },
+        {
+          "file": "text/chapter-1-17.xhtml",
+          "sha256": "065b0ed38f39df29314d0867be1038e6953a9b1519b4a4e931e539af958bf652"
+        },
+        {
+          "file": "text/chapter-1-18.xhtml",
+          "sha256": "518135200fcb079774f60e76233b89213566d678e2ed953d3c173db65fddb29d"
+        },
+        {
+          "file": "text/chapter-1-19.xhtml",
+          "sha256": "4812bbc3028de3318b43fb197f12888b24db223f9b80cd95d42e5baf02dbcd88"
+        },
+        {
+          "file": "text/chapter-1-20.xhtml",
+          "sha256": "9d9406171031c3aaee0ea4da3dfe376f8c9b5118e2d6175757d9108b1f3ccb50"
+        },
+        {
+          "file": "text/chapter-1-21.xhtml",
+          "sha256": "38ad5b1a5c0f02467d33904e5aae62bb198d582decf1ec9762722658eed2f5a5"
+        },
+        {
+          "file": "text/chapter-1-22.xhtml",
+          "sha256": "58e8813f2bf2febcc9521219dc7a730c57da063c298c24c3651118f164cd9dd6"
+        },
+        {
+          "file": "text/chapter-1-23.xhtml",
+          "sha256": "36731bc0cca9c3e3eed314ed8062d5c37bd019025661cc98b5b89c7f2cf2ef07"
+        },
+        {
+          "file": "text/second-period.xhtml",
+          "sha256": "87c9d78f495404cd66b95b8a51c1dca82611c0e73fc6fa6403ddb1f7d1be0244"
+        },
+        {
+          "file": "text/chapter-2-1-1.xhtml",
+          "sha256": "4d0cca5f7ed4cdcbd9c887387988b4e8fc611573c5bf87b2db73c949efc9fb41"
+        },
+        {
+          "file": "text/chapter-2-1-2.xhtml",
+          "sha256": "a56a3f1efd72a251c1f4407f182310197b47630de3495324222b7513761355a4"
+        },
+        {
+          "file": "text/chapter-2-1-3.xhtml",
+          "sha256": "f1fc6c961807d0626fe4c3550ff6f01d8819669f619007d89f9ffe039d54eec8"
+        },
+        {
+          "file": "text/chapter-2-1-4.xhtml",
+          "sha256": "45a86f2a646174b8f078ee65ccc095093b0d5d577bf64796f856cda0dfcf4ccd"
+        },
+        {
+          "file": "text/chapter-2-1-5.xhtml",
+          "sha256": "99c1f1d1a3982b3ee2e74315dc4f9993aa74cae4ca9af8fa210834a997ad2f46"
+        },
+        {
+          "file": "text/chapter-2-1-6.xhtml",
+          "sha256": "d108ad973777529feb548354ce4fd255bfc3fc2210e1ae0d0a67ff45e4a6c241"
+        },
+        {
+          "file": "text/chapter-2-1-7.xhtml",
+          "sha256": "6e7e378b7a224d954463d3fc3a731b67e3d35e5e4831037c3cfa0649e3931dfa"
+        },
+        {
+          "file": "text/chapter-2-1-8.xhtml",
+          "sha256": "70cee051fe0e1654499d252256af8c92920083f64f392d32ef6b58330b1fa8d2"
+        },
+        {
+          "file": "text/chapter-2-2-1.xhtml",
+          "sha256": "63e99ac4a2c053f625533de9dc3c1bc39e207b2e8142589ce69b0aa7e0b0b2a2"
+        },
+        {
+          "file": "text/chapter-2-2-2.xhtml",
+          "sha256": "7e7a7a65339f09bedeb6e922382021a701a80487bf80b6fb0239e9b988c2928e"
+        },
+        {
+          "file": "text/chapter-2-2-3.xhtml",
+          "sha256": "9c3bfa683eeb35f51f8b3c1ed94b0fa5097d024a17677b9bac5f95e4e998628a"
+        },
+        {
+          "file": "text/chapter-2-3-1.xhtml",
+          "sha256": "0d932f5e38635cb07438a5c2fbfce9be3951e1b637a44aa86970093f5928fff5"
+        },
+        {
+          "file": "text/chapter-2-3-2.xhtml",
+          "sha256": "c1915091d29a174ad368bf7280e7d6adfb2aa1fd7633dd021392a5491db08a89"
+        },
+        {
+          "file": "text/chapter-2-3-3.xhtml",
+          "sha256": "3d60eb3c60aa425a911e2ef92182737e7863b95f21d6bf52d6fbb56a63776456"
+        },
+        {
+          "file": "text/chapter-2-3-4.xhtml",
+          "sha256": "2169ea8d1b894fd62d5b8a4671d25ac28befe25d88c687f902135a599255ebcc"
+        },
+        {
+          "file": "text/chapter-2-3-5.xhtml",
+          "sha256": "f08ac06804d83007762a4d64afdd13ac1042cbdd1b66eb690e45b7d687e1dbf7"
+        },
+        {
+          "file": "text/chapter-2-3-6.xhtml",
+          "sha256": "aaf78dcbb8c21610b887125ce709f3f6cf5ee82956346fa6609ba1699794eb61"
+        },
+        {
+          "file": "text/chapter-2-3-7.xhtml",
+          "sha256": "54e83bfc6a84bbf5bd9487fef864e62bfddcaca08dc6b108fa148355f46494e1"
+        },
+        {
+          "file": "text/chapter-2-3-8.xhtml",
+          "sha256": "6c0ae6b639681cc79e2af50adb6b8e1f3752e9c1e916c5d874e6acfb66d54c69"
+        },
+        {
+          "file": "text/chapter-2-3-9.xhtml",
+          "sha256": "fffc649c5dc01d7a32c1cc27a40330ff39424cc7c8790e7dd834fb442d196a91"
+        },
+        {
+          "file": "text/chapter-2-3-10.xhtml",
+          "sha256": "6dbbd8adb942062b727c4e287501665f9ff24fba3c32b7b226e473b584cd33f4"
+        },
+        {
+          "file": "text/chapter-2-4.xhtml",
+          "sha256": "eefa8955163ddc3230c48fcdca3dca33098f5f0cff8a87515250181e73e41696"
+        },
+        {
+          "file": "text/chapter-2-5.xhtml",
+          "sha256": "5007fef2eb4ffb08f2fe0e13ece8a5de09755802a0b0921101f65122dce85b96"
+        },
+        {
+          "file": "text/chapter-2-6.xhtml",
+          "sha256": "e7262e66358029156516332f6a3671f9087cc07ab5f37a3249a8e18e38210b74"
+        },
+        {
+          "file": "text/chapter-2-7.xhtml",
+          "sha256": "7e828acad3b81036eb73a45cd4a4a442fe5fa2f10882940b13ff0f61a00c483a"
+        },
+        {
+          "file": "text/chapter-2-8.xhtml",
+          "sha256": "55ba50e54e3a11d1b526de31c7903864f32369af2ef20c3f95f9c3e242ee7947"
+        },
+        {
+          "file": "text/epilogue.xhtml",
+          "sha256": "9d80a09b17747099defdc57a2a97b3d90d1acebf566b066dfd95e57a3c1d29b0"
+        },
+        {
+          "file": "text/epilogue-1.xhtml",
+          "sha256": "399cf0193fa8d949ef388f6278e1e5740b16a7088cac711e9261f8ef979c4615"
+        },
+        {
+          "file": "text/epilogue-2.xhtml",
+          "sha256": "be0d1162b4475abeb2d64ce08f3fde6b91afb6e7ae239c404e122436cde6af60"
+        },
+        {
+          "file": "text/epilogue-3.xhtml",
+          "sha256": "e96d6dd382f2fb1d919ad092b5916566de88f21f83eaf3923a84c1f5c8180609"
+        },
+        {
+          "file": "text/endnotes.xhtml",
+          "sha256": "2c3bc4223d4d47e38e9bfc07f6f78b8ee3ce913b9806a958fc1ebc72e6b254c8"
+        }
+      ],
+      "artworkIncluded": false
+    },
+    {
+      "sourceKind": "standard-ebooks",
+      "license": "Public-domain-text-and-CC0-edition",
+      "commercialRedistribution": true,
+      "rightsBasis": "Published before 1931; all known text authors and translators died before 1925. Country-specific public-domain fees and moral rights still require release review.",
+      "id": "starter-pride-prejudice",
+      "title": "Pride and Prejudice",
+      "author": "Jane Austen",
+      "authorDeath": 1817,
+      "lastContributorDeath": 1817,
+      "published": 1813,
+      "category": "Romance",
+      "repository": "jane-austen_pride-and-prejudice",
+      "source": "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice",
+      "catalog": "https://www.gutenberg.org/ebooks/1342",
+      "why": "Elizabeth Bennet and Mr. Darcy misjudge each other while navigating family pressure, pride and social expectations. Sharp dialogue and humor make this a strong romance selection for both reading and listening.",
+      "revision": "ed94a32be3e875c0814568050c7544e03aad3ef5",
+      "filename": "pride-prejudice.epub",
+      "sha256": "d2d1a229cf7ad4198d3eedde2694386f25967d564b745668397663038cc444dc",
+      "bytes": 341063,
+      "chapterCount": 61,
+      "finalContentFile": "text/chapter-61.xhtml",
+      "wordCount": 121558,
+      "contentFiles": [
+        {
+          "file": "text/chapter-1.xhtml",
+          "sha256": "78e777101e7a3d6dc723dbf6df5d851ae1ba6fd1ebaad29264b14607c9e23214"
+        },
+        {
+          "file": "text/chapter-2.xhtml",
+          "sha256": "c5676c9d0b4ff82acea89cf03adbcec402dfa0f1be4fac1bf33c02fab3370db1"
+        },
+        {
+          "file": "text/chapter-3.xhtml",
+          "sha256": "1b3f3ea948d2051b31b653e91a2d81c07689ebce5ff7cac554b322b9f1c4ab44"
+        },
+        {
+          "file": "text/chapter-4.xhtml",
+          "sha256": "80455e033b965ce8f13db270bf839728d17ac31604b16e4251d443472304899e"
+        },
+        {
+          "file": "text/chapter-5.xhtml",
+          "sha256": "3de78d2f926fa02ffd599c721847884ae5e9c278647c81ecf8a5156000e5b464"
+        },
+        {
+          "file": "text/chapter-6.xhtml",
+          "sha256": "abb38f83382c5a8ffcf7e26653cff869549d75b0cc1cec9b5815ccb344b96e2c"
+        },
+        {
+          "file": "text/chapter-7.xhtml",
+          "sha256": "c23dfd04c31bb28d0a203b6582605c965d597f9e845774a5a2aa910daeb00531"
+        },
+        {
+          "file": "text/chapter-8.xhtml",
+          "sha256": "67dee293952ab2498f25505eccd129b2f07d3b16a3ab7c45935117fac6154a31"
+        },
+        {
+          "file": "text/chapter-9.xhtml",
+          "sha256": "b34c75be3b5d9daec2befa1e5210076b6b9cec2a40f67a46bf24007e7b2cc5ad"
+        },
+        {
+          "file": "text/chapter-10.xhtml",
+          "sha256": "6a766c8df48203478b58c01fa771ffab722524c16236f249254073b1b0630e04"
+        },
+        {
+          "file": "text/chapter-11.xhtml",
+          "sha256": "265256c8e542912cafeca1d769dfd72effbfff193c9e34310b1e0d8a38bb17c1"
+        },
+        {
+          "file": "text/chapter-12.xhtml",
+          "sha256": "50369fe46c7064cdf2f5ce861ad6d55704fa058b5f0ee7ce22ba16b631693415"
+        },
+        {
+          "file": "text/chapter-13.xhtml",
+          "sha256": "1ace0b6df210e94c71ca81c3066705618c5e12cf8500a28b99240e0d7ced2cd4"
+        },
+        {
+          "file": "text/chapter-14.xhtml",
+          "sha256": "36976697c7ec97fd145cf89559a013955bb9e6c3e900995957e6756173dc73c5"
+        },
+        {
+          "file": "text/chapter-15.xhtml",
+          "sha256": "2f2906aca7542cc7becde9853cec79f74e30d8ca3592508edb229ac3999c26e2"
+        },
+        {
+          "file": "text/chapter-16.xhtml",
+          "sha256": "82fc6002f077872a2c6e62637acbfa5e775f02c371fc2a551798d9574a6f5649"
+        },
+        {
+          "file": "text/chapter-17.xhtml",
+          "sha256": "6b5e27e722c8bcd90e52a2a8a5a34352a97b72b8b0f70d37e2d40df589af5161"
+        },
+        {
+          "file": "text/chapter-18.xhtml",
+          "sha256": "a86d9dcca9e12b50d72c1449790340f401caaeae1af03004d6b980c98b336dd2"
+        },
+        {
+          "file": "text/chapter-19.xhtml",
+          "sha256": "a287b373972b9f3f18f718eeb6d9bef971cbf66e39856bc2536b1f392dfe632c"
+        },
+        {
+          "file": "text/chapter-20.xhtml",
+          "sha256": "393ccd920966790f7687ee6a9698da0d7d7cbdc47039090a5e080a210699e757"
+        },
+        {
+          "file": "text/chapter-21.xhtml",
+          "sha256": "748005c8aa49e0735d5e95c709b79b5655a053243b869e55b4aeccd87104598d"
+        },
+        {
+          "file": "text/chapter-22.xhtml",
+          "sha256": "b00dd64d8ebfd753a6d8fcd1552c1558edc75b48bf50f6abe2733304fdaa9bf6"
+        },
+        {
+          "file": "text/chapter-23.xhtml",
+          "sha256": "8671d70ec9c21479ca3f47af476cc5ac1af9ddd3556da9a3cba3764e6709e4e4"
+        },
+        {
+          "file": "text/chapter-24.xhtml",
+          "sha256": "5e91952a29d99a491bbe8f355e42e21307b8b405196b234ca0f295e68fbbf9ed"
+        },
+        {
+          "file": "text/chapter-25.xhtml",
+          "sha256": "67f9fee0058be3203b08aed3c69664ad2399a6d41aee57160e08d4c0f4d5ba95"
+        },
+        {
+          "file": "text/chapter-26.xhtml",
+          "sha256": "434122c097ed8bea37798aebe843928f38305b9c0800dbb26d274b4203fb5abe"
+        },
+        {
+          "file": "text/chapter-27.xhtml",
+          "sha256": "828b2c183fbc4f5f944684c149b7f787cc836fa2ee4da5b3d5c63229934b07f0"
+        },
+        {
+          "file": "text/chapter-28.xhtml",
+          "sha256": "bd24356c3201e51333884c136b80cf4f58587bd6ef057d5466e78aa1427b1125"
+        },
+        {
+          "file": "text/chapter-29.xhtml",
+          "sha256": "6b5c3794e2a106367fa9585aaf88b6895797823ed66a4499e671f0d5ff677830"
+        },
+        {
+          "file": "text/chapter-30.xhtml",
+          "sha256": "05274643bae7ef84e90049a75b8d563570b5e44abe97c05ff82484f9b78509ac"
+        },
+        {
+          "file": "text/chapter-31.xhtml",
+          "sha256": "275aab2c9397a7f88c7c20dab369308b1fbd4eb7097fcc4b5e3e7174ff398cc2"
+        },
+        {
+          "file": "text/chapter-32.xhtml",
+          "sha256": "760bdef49d88b39f4a02891bd39a2c3894cf6bbc50fddc053c836738a0f3dfe8"
+        },
+        {
+          "file": "text/chapter-33.xhtml",
+          "sha256": "265f8fb0fb603fbdd1c77b810f45d550a0aa6f725168e56451d7617a248e6063"
+        },
+        {
+          "file": "text/chapter-34.xhtml",
+          "sha256": "e69f7e761a1143e22f3640e0ef46908f831ea4b48b0c25e74d6fa198330722df"
+        },
+        {
+          "file": "text/chapter-35.xhtml",
+          "sha256": "54f4af760339b35940809e1dec9955fa92a199871e6ed2b70508afc307bfb8e2"
+        },
+        {
+          "file": "text/chapter-36.xhtml",
+          "sha256": "11f726d7e066f0a1a2db933571957eac9e3c4fc982134f8cbcc5dfbb58d75505"
+        },
+        {
+          "file": "text/chapter-37.xhtml",
+          "sha256": "af18be0bd2a1ac21035dad44e2b80d9beeacbc6543656a63ac4d3796bc32b317"
+        },
+        {
+          "file": "text/chapter-38.xhtml",
+          "sha256": "1a98a6fa04f567e49edd9cd48ac5ed62d9f9bb5102003f718e2b0c70687903a1"
+        },
+        {
+          "file": "text/chapter-39.xhtml",
+          "sha256": "e73aebfb96d127672877b323e49ad65f26a7b7816efe9fe9285dbb156591ccfd"
+        },
+        {
+          "file": "text/chapter-40.xhtml",
+          "sha256": "1776fcebb142b4e4ccf8d684c060eb1300c0e8b852fbac1f38aa75790cad26cf"
+        },
+        {
+          "file": "text/chapter-41.xhtml",
+          "sha256": "2719d05dc65a90c19511c36846a86135ae5496269a0d8615a2aeafab54ddf9bf"
+        },
+        {
+          "file": "text/chapter-42.xhtml",
+          "sha256": "dd41a1b0220d625be354f5af415f823b3dece349a0e217d96aac23244e159d9e"
+        },
+        {
+          "file": "text/chapter-43.xhtml",
+          "sha256": "16945f18da2200ecc4aaefa67d360e5706e3980141ee2cc08945650ac63afc6a"
+        },
+        {
+          "file": "text/chapter-44.xhtml",
+          "sha256": "3dc66d911a5aa921e8d4a84de07b0a84b0c87e787d13520049503cf546c56190"
+        },
+        {
+          "file": "text/chapter-45.xhtml",
+          "sha256": "f95c3861b243ed4bb26557b83934969c605a2108e0e66c5f02585f7d1ddb0dad"
+        },
+        {
+          "file": "text/chapter-46.xhtml",
+          "sha256": "5fc03ad75b62f15067441afaeda11fb158cc4075842a47fc5f3f64ae0b42da02"
+        },
+        {
+          "file": "text/chapter-47.xhtml",
+          "sha256": "92f71491579009f24108cf323eceafdfa31a9a91068dede607b0cd4e2afad00b"
+        },
+        {
+          "file": "text/chapter-48.xhtml",
+          "sha256": "ae7e0c14f8e3112953bea72593029951e5d1d7659909a5a180844c43a5346c44"
+        },
+        {
+          "file": "text/chapter-49.xhtml",
+          "sha256": "1cd39638d6f513d4da1805e8921f173c94326ebec72458bf5a6d81eab7cd63f9"
+        },
+        {
+          "file": "text/chapter-50.xhtml",
+          "sha256": "d4a62aace286b619dbc8988d9242fe040c436b9d0e9e3f5b6fc7f17f041ff9a5"
+        },
+        {
+          "file": "text/chapter-51.xhtml",
+          "sha256": "642f374f1de8c91d23a3570440162f40eeeaa5d373eee7c8c8d12ea3901d26ca"
+        },
+        {
+          "file": "text/chapter-52.xhtml",
+          "sha256": "58289ebe09ff33b552b738f22003997a57542295a47faf9ae58a2be687300a8a"
+        },
+        {
+          "file": "text/chapter-53.xhtml",
+          "sha256": "7ac0e84338885ec2a10622aadc22b46f43d7fd0249dda931c56073f3dd3bed27"
+        },
+        {
+          "file": "text/chapter-54.xhtml",
+          "sha256": "0cae8d826b98a3df8c42b1036f3c209c1b9bca83f66e39b8005bd8c1bd2fd811"
+        },
+        {
+          "file": "text/chapter-55.xhtml",
+          "sha256": "fa531b146e8a1b13f6e68a92bf630c3bc6947d25240a7044db86d687e71ae5f1"
+        },
+        {
+          "file": "text/chapter-56.xhtml",
+          "sha256": "8f3608413c70c4d62291997eaf5eeba4f7f1173bc0f61216021d4f7b1e76b445"
+        },
+        {
+          "file": "text/chapter-57.xhtml",
+          "sha256": "7a4bb2dce8e7025032f7bd30f1d68861a82488b8812888afb488e4dc64234184"
+        },
+        {
+          "file": "text/chapter-58.xhtml",
+          "sha256": "95be56d24df391a5414e009df47ed9b54c390751e6b00c6775c5bf77a8202f7b"
+        },
+        {
+          "file": "text/chapter-59.xhtml",
+          "sha256": "ecd5795d9a772f48ade3a0e6f40f9869a955d8a310885f22d50b4155bfadb55b"
+        },
+        {
+          "file": "text/chapter-60.xhtml",
+          "sha256": "be7c90259a03f54295cbdffc51a31e31690f6a7958b8afa848455d971804a9ad"
+        },
+        {
+          "file": "text/chapter-61.xhtml",
+          "sha256": "da154fb6cbc0fdec240a3edcd9a72ce4c5664989246d07ab67be6f65b59a8f96"
+        }
+      ],
+      "artworkIncluded": false
+    },
+    {
+      "id": "starter-grayson-stories",
+      "title": "Grayson's Book of Stories",
+      "author": "Grayson Bray Morris",
+      "published": 2026,
+      "publicationLabel": "Online collection reviewed in 2026; individual stories have earlier publication dates",
+      "category": "Contemporary stories",
+      "sourceKind": "author-stories",
+      "source": "https://gbmj.net/stories/",
+      "licenseSource": "https://gbmj.net/license",
+      "license": "CC-BY-SA-4.0",
+      "commercialRedistribution": true,
+      "rightsBasis": "Explicit worldwide Creative Commons license by the author; commercial reuse expressly permitted on the author license page.",
+      "contentNotice": "Adult themes, grief, violence, body modification and sexual references. Contemporary short fiction mixed with science fiction and fantasy; not a present-day novel or a dedicated YA collection.",
+      "why": "Sixteen modern stories range from everyday relationships and loss to robots, memory and speculative worlds. Short pieces offer manageable first listening sessions. Includes adult themes; this is a contemporary collection, not a present-day novel.",
+      "revision": "b6dd4be6b4a36c27aa9bb61b393a160157a14b1475931e8a41b0c17b6b1c9986",
+      "sourceFiles": [
+        {
+          "url": "https://gbmj.net/license",
+          "sha256": "cbc254f6dfaf6f5f2b1bdd4b62ec483f88b6c2c399a35fb3ed87abc27a52f49d"
+        },
+        {
+          "url": "https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt",
+          "sha256": "28a9529c7d0bb4dc51f4bf5c116a3d16ef247a052f7591466768ddf563fd1cf5"
+        },
+        {
+          "url": "https://gbmj.net/stories/",
+          "sha256": "2ea1d83022d0cd37a706ad01858dd05e33c2210357781f189c94e6c4d6186479"
+        },
+        {
+          "url": "https://gbmj.net/stories/you-blink/",
+          "sha256": "d578525e0bee999eb6bf16cbdfd44f9d7a5601d81a1287b7f26d2206f12e9063"
+        },
+        {
+          "url": "https://gbmj.net/stories/love-is-verb/",
+          "sha256": "748687fa20e6572b2a6f505dc7441424c08788c78ad5ff70c1bf8429ba442e2d"
+        },
+        {
+          "url": "https://gbmj.net/stories/gifted-sommelier/",
+          "sha256": "e7b34e922f7f05cd7f0128799d295dead01edb4186aba634c3374b0b972669a2"
+        },
+        {
+          "url": "https://gbmj.net/stories/brightcheeks-brokenhand/",
+          "sha256": "34505afe011b0b18c9b606cc11acca99c4c80b38f2461c96e4783aea5aec9287"
+        },
+        {
+          "url": "https://gbmj.net/stories/girl-woman-gull-sea/",
+          "sha256": "78c4d4c9f428c36da7ba9c043fc826274c4fb5a035e1adcdfa82f741ec1b3dc7"
+        },
+        {
+          "url": "https://gbmj.net/stories/archibald-wiggers-deeply-regrets/",
+          "sha256": "b2d448a417ffca10d6bf8062ed03ca38a8c638fba5d286fd017b134a0cf1e17d"
+        },
+        {
+          "url": "https://gbmj.net/stories/whole-leaf-dark-red/",
+          "sha256": "997b9a4a7f43c9f7f27a386047453143a1fc1194087d60f480b610b45c3aa083"
+        },
+        {
+          "url": "https://gbmj.net/stories/liz-builds-robot/",
+          "sha256": "4467d161b42c25c11b48490d8f4a39739eca80ac28e3ffe2a223c93679725e13"
+        },
+        {
+          "url": "https://gbmj.net/stories/pathapathy/",
+          "sha256": "d9c3d99bcad2cd4b08400dff338d9037b7d2333d8d28e54a40cf6ca7248b330b"
+        },
+        {
+          "url": "https://gbmj.net/stories/save-fragile-things/",
+          "sha256": "070a3cfe6fd3f862ab8c3675e273027c73673776219e4d1d78b5a10257fc198e"
+        },
+        {
+          "url": "https://gbmj.net/stories/message-between-words/",
+          "sha256": "e672342575e08839ea496dd76b8e261352c04a6f15dfaa6efcdca7102c9e2032"
+        },
+        {
+          "url": "https://gbmj.net/stories/time-travel-voodoo-rite/",
+          "sha256": "f4c6c59a3ea5f5419ecdb9ddac92912acc512483ae260b419d4fd38105ae652b"
+        },
+        {
+          "url": "https://gbmj.net/stories/putting-down-roots/",
+          "sha256": "2779f3128c5e24518aaa3b24b7954fbdba942894ba24cc18725f010b56b28b35"
+        },
+        {
+          "url": "https://gbmj.net/stories/death-comes-maggie-mcdaniel/",
+          "sha256": "040c273b9c3d6ed58f7c399102e672d79cf562446d70c11738e641eeb3def8ba"
+        },
+        {
+          "url": "https://gbmj.net/stories/puddle-of-dead/",
+          "sha256": "7f44361d3442136fe56002ae5261bf632a9239e6fce095147684f71b23d1615c"
+        },
+        {
+          "url": "https://gbmj.net/stories/more-real-than-flesh/",
+          "sha256": "2810fec02a85d8e7c3a8a13c438381d3697040d9326a1d6e30673a01e0735255"
+        }
+      ],
+      "filename": "grayson-stories.epub",
+      "sha256": "0e4e7ecba0de1fb1431f5c94319d527aa70a9f6f4a399d155684a3b35aa9ba4d",
+      "bytes": 120848,
+      "chapterCount": 16,
+      "wordCount": 40080,
+      "finalContentFile": "text/chapter-16.xhtml",
+      "contentFiles": [
+        {
+          "file": "text/chapter-1.xhtml",
+          "sha256": "03d4631c29d3ffa260587d454a25cf7f0c2b1b637bfdeac8d498750a4864ccbe",
+          "sourceBlocks": 30
+        },
+        {
+          "file": "text/chapter-2.xhtml",
+          "sha256": "edfdcdd1f4ae9d2643cc9efcbb8fa57a3b324f58d8bd465dfcf72638e9347206",
+          "sourceBlocks": 18
+        },
+        {
+          "file": "text/chapter-3.xhtml",
+          "sha256": "599d9382550d764612a312dd43423ef340bea4cec9868d1de07e7baf80ccd30e",
+          "sourceBlocks": 25
+        },
+        {
+          "file": "text/chapter-4.xhtml",
+          "sha256": "a4ecafda4e343708ed17b153a9700adff2beb68de82735909578353ee8475024",
+          "sourceBlocks": 201
+        },
+        {
+          "file": "text/chapter-5.xhtml",
+          "sha256": "d544dc4ba88e1dc96849fe4f227633bd36883468ba8753d67bda78eca265e757",
+          "sourceBlocks": 20
+        },
+        {
+          "file": "text/chapter-6.xhtml",
+          "sha256": "303a23019eb79a3b5dbf6fe6b3211f0714a1a56225b30285425db6857f17ccfd",
+          "sourceBlocks": 46
+        },
+        {
+          "file": "text/chapter-7.xhtml",
+          "sha256": "bb1bdbbabe3bfed6bdaf445d3dee0ecde103560a8ad8d264d8b33f5e7945696f",
+          "sourceBlocks": 17
+        },
+        {
+          "file": "text/chapter-8.xhtml",
+          "sha256": "b96efe40a93989b00fa83989b41463c480277cc0d61806260c9ea8aeb750a2e2",
+          "sourceBlocks": 28
+        },
+        {
+          "file": "text/chapter-9.xhtml",
+          "sha256": "d36487c4812b11a291ced5b9f0ca135d9ed6528b25fc165cd0e21e805c6639bb",
+          "sourceBlocks": 16
+        },
+        {
+          "file": "text/chapter-10.xhtml",
+          "sha256": "97da7e58596b6ee32993c8569df80f1af8cea476661c7e8e8b50158ec74a59c1",
+          "sourceBlocks": 54
+        },
+        {
+          "file": "text/chapter-11.xhtml",
+          "sha256": "8de241cd63a03403dd7d4c3b4a1f0a9a9f9468e860d6b4afc6c3ec2d69246fa4",
+          "sourceBlocks": 86
+        },
+        {
+          "file": "text/chapter-12.xhtml",
+          "sha256": "8de3259350af537d015e9e711eb49f356b77ad3c2d766ed9f9d27760cc0be2c4",
+          "sourceBlocks": 17
+        },
+        {
+          "file": "text/chapter-13.xhtml",
+          "sha256": "b79dfa1fd19d4c75b3997bc165e33cb050b9b5ca86fbe955c5cb1324466a40a8",
+          "sourceBlocks": 281
+        },
+        {
+          "file": "text/chapter-14.xhtml",
+          "sha256": "0c90eeb09848c92bcc04bfc9200eab6958ce3123bca868fb85c46987ec982f43",
+          "sourceBlocks": 114
+        },
+        {
+          "file": "text/chapter-15.xhtml",
+          "sha256": "77fec6eb290ad5e7b2f6431b847dc2edfedd1242ab09d1538781c287d766e81c",
+          "sourceBlocks": 72
+        },
+        {
+          "file": "text/chapter-16.xhtml",
+          "sha256": "1cc7d185426fbd0a25590149aabba3bfda4d0a543978d97da12125fbf90e203b",
+          "sourceBlocks": 75
         }
       ],
       "artworkIncluded": false
@@ -480,11 +1024,18 @@
       "source": "https://standardebooks.org/ebooks/alexandre-dumas/the-count-of-monte-cristo/chapman-and-hall",
       "catalog": "https://www.gutenberg.org/ebooks/1184",
       "why": "Betrayal, imprisonment, escape, hidden wealth and an elaborate revenge. The substantial surprise selection, chosen for its momentum and intrigue. The nineteenth-century English translation is older in style than modern commercial translations.",
+      "sourceKind": "standard-ebooks",
+      "license": "Public-domain-text-and-CC0-edition",
+      "commercialRedistribution": true,
+      "rightsBasis": "Published before 1931; all known text authors and translators died before 1925. Country-specific public-domain fees and moral rights still require release review.",
+      "lastContributorDeath": 1888,
+      "translationPublished": 1846,
       "revision": "1af363f17450316f295e7d30d7eb77742906c789",
       "filename": "count-monte-cristo.epub",
-      "sha256": "0c5042adc2ccbe4b1d7a7baf9a8657a647ef738623d4fe0314da0f3f80c7bef4",
-      "bytes": 1192703,
+      "sha256": "43e5a0cc9950f89d6a41266849c9b28258b48179f0bbab1450bd320648f33b83",
+      "bytes": 1192831,
       "chapterCount": 117,
+      "finalContentFile": "text/endnotes.xhtml",
       "wordCount": 460368,
       "contentFiles": [
         {
