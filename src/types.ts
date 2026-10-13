@@ -89,6 +89,7 @@ export type Preferences = {
   voiceLanguage: string;
   randomVoiceAtStartup: boolean;
   autoGenerateCovers: boolean;
+  allowMatureCovers: boolean;
   romanNumeralHeadings: boolean;
 };
 export type SceneAppearance = Pick<
@@ -164,5 +165,6 @@ export const defaultPreferences: Preferences = {
   voiceLanguage: "English",
   randomVoiceAtStartup: false,
   autoGenerateCovers: true,
+  allowMatureCovers: false,
   romanNumeralHeadings: true,
 };

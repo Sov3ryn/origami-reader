@@ -11,6 +11,68 @@ use std::{
 };
 use tauri::{AppHandle, Manager};
 type Result<T> = std::result::Result<T, String>;
+const COVER_WIDTH: &str = "320";
+const COVER_HEIGHT: &str = "448";
+pub fn starter_cover(meta: &Value) -> bool {
+    if meta["format"] == "Sample"
+        || meta["id"]
+            .as_str()
+            .is_some_and(|id| id.starts_with("starter-"))
+    {
+        return true;
+    }
+    let Some(hash) = meta["sourceHash"].as_str().filter(|hash| !hash.is_empty()) else {
+        return false;
+    };
+    let manifest: Value =
+        serde_json::from_str(include_str!("../../assets/starter-library/manifest.json"))
+            .expect("Invalid bundled starter manifest");
+    manifest["books"]
+        .as_array()
+        .is_some_and(|books| books.iter().any(|b| b["sha256"] == hash))
+}
+fn generation_prompt(description: &str, mature: bool) -> String {
+    // Put mode and layout before the editable description, where CLIP sees them.
+    // SD-Turbo does not use negative prompts at its distilled guidance setting.
+    let human_subject = description
+        .to_lowercase()
+        .split(|c: char| !c.is_alphanumeric())
+        .any(|word| {
+            matches!(
+                word,
+                "person"
+                    | "people"
+                    | "man"
+                    | "men"
+                    | "woman"
+                    | "women"
+                    | "couple"
+                    | "character"
+                    | "hero"
+                    | "heroine"
+                    | "portrait"
+                    | "figure"
+                    | "body"
+                    | "nude"
+                    | "naked"
+                    | "nudity"
+                    | "pinup"
+            )
+        });
+    let mode = if mature {
+        "Mature, non-explicit cover art, adults only. "
+    } else if human_subject {
+        "Wholesome artwork, fully clothed adults, suitable for a general audience. "
+    } else {
+        "Wholesome symbolic landscape or still-life artwork, suitable for a general audience. "
+    };
+    let clothing = if mature {
+        ""
+    } else {
+        "Any depicted people are fully clothed. "
+    };
+    format!("{mode}Text-free vertical book-cover illustration, flat full-bleed artwork, strong focal point, open space for title overlay. {description}. {clothing}No lettering, printed words, logos, watermarks, explicit sexual acts or graphic violence.")
+}
 
 #[derive(Default)]
 pub struct Covers {
@@ -73,6 +135,7 @@ impl Covers {
         app: AppHandle,
         prompt: String,
         seed: u32,
+        mature: bool,
         epoch: u64,
     ) -> Result<String> {
         if prompt.trim().is_empty() || prompt.chars().count() > 1400 {
@@ -107,7 +170,7 @@ impl Covers {
                 .arg("-m")
                 .arg(c["model"].as_str().ok_or("Missing cover model")?)
                 .arg("-p")
-                .arg(&prompt)
+                .arg(generation_prompt(&prompt, mature))
                 .arg("-o")
                 .arg(&path)
                 .args([
@@ -120,9 +183,9 @@ impl Covers {
                     "--scheduler",
                     "discrete",
                     "-W",
-                    "384",
+                    COVER_WIDTH,
                     "-H",
-                    "512",
+                    COVER_HEIGHT,
                     "--disable-image-metadata",
                     "--log-level",
                     "error",
@@ -201,6 +264,35 @@ impl Drop for Covers {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn mode_and_layout_are_applied_outside_the_editable_description() {
+        let safe = generation_prompt("A moonlit castle", false);
+        assert!(safe.starts_with("Wholesome symbolic landscape or still-life artwork"));
+        assert!(safe.contains("Text-free vertical book-cover illustration"));
+        assert!(safe.contains("A moonlit castle"));
+        assert!(safe.contains("No lettering, printed words"));
+        let person = generation_prompt("A woman holding a lantern", false);
+        assert!(person.starts_with("Wholesome artwork, fully clothed adults"));
+        let mature = generation_prompt("A moonlit castle", true);
+        assert!(mature.starts_with("Mature, non-explicit cover art, adults only"));
+        assert!(!mature.contains("fully clothed"));
+        assert!(mature.contains("No lettering, printed words"));
+    }
+    #[test]
+    fn starter_editions_stay_in_standard_mode_even_after_import() {
+        let manifest: Value =
+            serde_json::from_str(include_str!("../../assets/starter-library/manifest.json"))
+                .unwrap();
+        for book in manifest["books"].as_array().unwrap() {
+            assert!(starter_cover(
+                &json!({"id":"freshly-imported-uuid","format":"EPUB","sourceHash":book["sha256"]})
+            ));
+        }
+        assert!(starter_cover(&json!({"id":"sample-0","format":"Sample"})));
+        assert!(!starter_cover(
+            &json!({"id":"user-book","format":"Text","sourceHash":"different"})
+        ));
+    }
     #[test]
     fn shutdown_reaps_the_cover_child_and_blocks_further_work() {
         #[cfg(windows)]

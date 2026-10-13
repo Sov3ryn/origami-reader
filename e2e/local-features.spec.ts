@@ -172,6 +172,122 @@ test("missing covers generate automatically, can be disabled, and can be regener
   await expect(auto).not.toBeChecked();
 });
 
+test("mature covers require an opt-in, persist the choice, and remain disabled for starter books", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  const setting = page.getByLabel("Allow mature cover artwork (NSFW)", {
+    exact: true,
+  });
+  await expect(setting).not.toBeChecked();
+  await page
+    .getByLabel("Generate missing covers automatically", { exact: true })
+    .uncheck();
+  await page
+    .getByRole("button", { name: "Library", exact: true })
+    .first()
+    .click();
+  await page
+    .locator("input[type=file]")
+    .setInputFiles({
+      name: "User cover mode.txt",
+      mimeType: "text/plain",
+      buffer: Buffer.from(
+        "A paper crane on a lake shore, with a cottage in the distance.",
+      ),
+    });
+  const card = page
+    .locator(".book-card")
+    .filter({ hasText: "User cover mode" });
+  await card.locator(".cover-control").hover();
+  await card.getByRole("button", { name: /Change cover/ }).click();
+  await expect(setting).not.toBeChecked();
+  await page
+    .getByLabel("Cover description")
+    .fill("A pine forest with a stone tower.");
+  await page
+    .getByRole("button", { name: "Generate cover", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Regenerate cover", exact: true }),
+  ).toBeEnabled();
+  await setting.check();
+  await page
+    .getByRole("button", { name: "Regenerate cover", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Regenerate cover", exact: true }),
+  ).toBeEnabled();
+  const calls = await page.evaluate(() =>
+    (
+      window as unknown as {
+        proof: {
+          calls: {
+            command: string;
+            args: { allowMature: boolean; bookId: string };
+          }[];
+        };
+      }
+    ).proof.calls.filter((call) => call.command === "generate_cover"),
+  );
+  expect(calls.map((call) => call.args.allowMature)).toEqual([false, true]);
+  expect(calls.every((call) => call.args.bookId)).toBe(true);
+  const size = await page
+    .locator(".cover-dialog .cover")
+    .evaluate(async (el) => {
+      const src = (el as HTMLElement).style.backgroundImage.match(
+        /url\("([^"]+)"\)/,
+      )![1];
+      const image = new Image();
+      image.src = src;
+      await image.decode();
+      return [image.naturalWidth, image.naturalHeight];
+    });
+  expect(size).toEqual([320, 448]);
+  await page
+    .getByRole("button", { name: "Close cover editor", exact: true })
+    .click();
+  await page.reload();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(setting).toBeChecked();
+  await page
+    .getByRole("button", { name: "Library", exact: true })
+    .first()
+    .click();
+  const starter = page
+    .locator(".book-card")
+    .filter({ hasText: "The Atlas of Quiet Places" });
+  await starter.locator(".cover-control").hover();
+  await starter.getByRole("button", { name: /Change cover/ }).click();
+  await expect(setting).not.toBeChecked();
+  await expect(setting).toBeDisabled();
+  await expect(
+    page.getByText("Starter-library covers always use standard mode.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Generate cover", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Regenerate cover", exact: true }),
+  ).toBeEnabled();
+  const latest = await page.evaluate(
+    () =>
+      (
+        window as unknown as {
+          proof: {
+            calls: { command: string; args: { allowMature: boolean } }[];
+          };
+        }
+      ).proof.calls
+        .filter((call) => call.command === "generate_cover")
+        .at(-1)!.args.allowMature,
+  );
+  expect(latest).toBe(false);
+});
+
 test("a default voice choice also updates an open document with its own saved voice", async ({
   page,
 }) => {

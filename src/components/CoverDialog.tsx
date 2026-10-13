@@ -10,6 +10,9 @@ export function CoverDialog({
   installed,
   active,
   idle,
+  allowMature,
+  starter,
+  onMature,
   onClose,
   onImage,
   onGenerate,
@@ -20,6 +23,9 @@ export function CoverDialog({
   installed: boolean;
   active: boolean;
   idle: boolean;
+  allowMature: boolean;
+  starter: boolean;
+  onMature: (value: boolean) => void;
   onClose: () => void;
   onImage: (image: string) => Promise<void>;
   onGenerate: (prompt: string) => Promise<void>;
@@ -65,7 +71,7 @@ export function CoverDialog({
           if (e.key !== "Tab") return;
           const fields = Array.from(
             e.currentTarget.querySelectorAll<HTMLElement>(
-              "button:not(:disabled),textarea,input:not([type=file])",
+              "button:not(:disabled),textarea:not(:disabled),input:not([type=file]):not(:disabled)",
             ),
           );
           const first = fields[0],
@@ -134,6 +140,24 @@ export function CoverDialog({
                 onChange={(e) => setPrompt(e.target.value)}
               />
             </label>
+            <p className="hint">
+              Generates 320 × 448 portrait book-cover artwork without text.
+              Origami adds the title and author.
+            </p>
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={allowMature && !starter}
+                disabled={starter || active}
+                onChange={(e) => onMature(e.target.checked)}
+              />
+              Allow mature cover artwork (NSFW)
+            </label>
+            <p className="hint">
+              {starter
+                ? "Starter-library covers always use standard mode."
+                : "Standard mode requests clothed, non-explicit artwork. This is prompt guidance, not an image-content filter."}
+            </p>
             <div className="dialog-actions">
               <button
                 className="primary"

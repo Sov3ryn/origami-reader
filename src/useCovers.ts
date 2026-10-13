@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import * as storage from "./storage";
-import { coverImage, coverPrompt } from "./covers";
+import {
+  coverImage,
+  coverPrompt,
+  starterCover,
+  GENERATED_COVER_SIZE,
+} from "./covers";
 import type { BookMeta } from "./types";
 
 export function useCovers(
   auto: boolean,
   idle: boolean,
+  allowMature: boolean,
   changed: (meta: BookMeta) => void,
   report: (message: string) => void,
 ) {
@@ -14,8 +20,8 @@ export function useCovers(
   const [queue, setQueue] = useState<string[]>([]);
   const running = useRef(false);
   const epoch = useRef(0);
-  const latest = useRef({ auto, idle, changed, report });
-  latest.current = { auto, idle, changed, report };
+  const latest = useRef({ auto, idle, allowMature, changed, report });
+  latest.current = { auto, idle, allowMature, changed, report };
   useEffect(() => {
     let mounted = true;
     void storage
@@ -49,6 +55,8 @@ export function useCovers(
       const data = await storage.generateCover(
         prompt || coverPrompt(book),
         seed,
+        latest.current.allowMature && !starterCover(book.meta),
+        id,
       );
       if (token !== epoch.current) return;
       if (!data.startsWith("data:image/png;base64,"))
@@ -56,7 +64,10 @@ export function useCovers(
       const bytes = Uint8Array.from(atob(data.split(",")[1]), (c) =>
         c.charCodeAt(0),
       );
-      const image = await coverImage(new Blob([bytes], { type: "image/png" }));
+      const image = await coverImage(
+        new Blob([bytes], { type: "image/png" }),
+        GENERATED_COVER_SIZE,
+      );
       if (token !== epoch.current) return;
       const current = (await storage.readBook(id)).meta;
       if (current.deleted || (automatic && current.coverImage)) return;

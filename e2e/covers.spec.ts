@@ -55,6 +55,13 @@ test("cover controls appear on hover, copy raster art and persist it in Reader d
     ),
   });
   await expect(page.getByRole("alert")).toContainText("PNG, JPEG or WebP");
+  await page.getByRole("button", { name: "Close cover editor" }).focus();
+  await page.keyboard.press("Shift+Tab");
+  await expect(page.getByLabel("Cover description")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("button", { name: "Close cover editor" }),
+  ).toBeFocused();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 

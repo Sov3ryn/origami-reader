@@ -54,6 +54,13 @@ impl Store {
             serde_json::json!({"meta":serde_json::from_str::<Value>(&meta).map_err(|e|e.to_string())?,"paragraphs":serde_json::from_str::<Value>(&body).map_err(|e|e.to_string())?}),
         )
     }
+    pub fn metadata(&self, id: &str) -> Result<Value> {
+        let data: String = self
+            .connection
+            .query_row("SELECT meta FROM books WHERE id=?1", [id], |r| r.get(0))
+            .map_err(|_| "Book not found")?;
+        serde_json::from_str(&data).map_err(|e| e.to_string())
+    }
     pub fn save_meta(&self, meta: Value) -> Result<()> {
         let id = valid_id(&meta)?;
         let n = self

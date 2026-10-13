@@ -24,6 +24,7 @@ A local desktop reader and text-to-speech workspace for Windows and Linux. MIT-l
 - Voice catalog with language, voice gender and style filters, accent/name search, favorites and sorting.
 - Selecting a new voice immediately unloads the previous worker. Play repeats the current sentence using the new voice, without selecting text again. Optional startup default-voice randomization stays within the last selected language.
 - Change covers from the Library cover's hover button or Reader details. Import embedded EPUB artwork, upload a raster cover, or generate local SD-Turbo artwork. Missing-cover generation defaults on and can be disabled; the image model exits after each job.
+- Generated covers use small 320 x 448 text-free artwork with app-rendered title and author. Mature cover artwork is an optional, default-off setting. The six starter editions and demo covers stay in standard mode. Content-mode prompts guide the model; they are not an image-content filter.
 - Reader focus mode toggles to a collapse icon and restores saved panel widths and visibility.
 
 No cloud account is required. Voice models and reference recordings are not included. Linux source/build support is provided; Linux execution has not yet been validated on the development machine. See [progress](docs/PROGRESS.md) for exact test status and limitations.

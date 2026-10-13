@@ -126,10 +126,12 @@ export async function coverEngineStatus(): Promise<{
 export async function generateCover(
   prompt: string,
   seed: number,
+  allowMature = false,
+  bookId?: string,
 ): Promise<string> {
   if (!desktop)
     throw new Error("Cover generation is available in the desktop app.");
-  return invoke("generate_cover", { prompt, seed });
+  return invoke("generate_cover", { prompt, seed, allowMature, bookId });
 }
 export async function cancelCover() {
   if (desktop) await invoke("cancel_cover");

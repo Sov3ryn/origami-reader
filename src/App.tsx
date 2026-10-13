@@ -1,6 +1,6 @@
 import { IconButton, Cover, CoverControl } from "./components/Primitives";
 import { CoverDialog } from "./components/CoverDialog";
-import { coverPrompt } from "./covers";
+import { coverPrompt, starterCover } from "./covers";
 import { useCovers } from "./useCovers";
 import { startupVoice } from "./voiceCatalog";
 import {
@@ -180,6 +180,7 @@ export default function App() {
   const covers = useCovers(
     prefs.autoGenerateCovers,
     player.status === "idle",
+    prefs.allowMatureCovers,
     (meta) => {
       setBooks((old) => old.map((b) => (b.id === meta.id ? meta : b)));
       setBook((old) => (old?.meta.id === meta.id ? { ...old, meta } : old));
@@ -2438,6 +2439,23 @@ export default function App() {
                     <label className="check-label">
                       <input
                         type="checkbox"
+                        checked={prefs.allowMatureCovers}
+                        onChange={(e) => {
+                          void covers.cancel();
+                          patchPrefs({ allowMatureCovers: e.target.checked });
+                        }}
+                      />
+                      Allow mature cover artwork (NSFW)
+                    </label>
+                    <p className="hint">
+                      Off by default. Standard mode requests clothed,
+                      non-explicit artwork. Mature mode allows adult themes with
+                      non-explicit imagery. Starter-library covers always use
+                      standard mode.
+                    </p>
+                    <label className="check-label">
+                      <input
+                        type="checkbox"
                         checked={prefs.autoGenerateCovers}
                         onChange={(e) =>
                           patchPrefs({ autoGenerateCovers: e.target.checked })
@@ -2783,6 +2801,9 @@ export default function App() {
         <CoverDialog
           book={coverEditor.meta}
           prompt={coverPrompt(coverEditor)}
+          allowMature={prefs.allowMatureCovers}
+          starter={starterCover(coverEditor.meta)}
+          onMature={(allowMatureCovers) => patchPrefs({ allowMatureCovers })}
           installed={covers.installed}
           active={covers.active === coverEditor.meta.id}
           idle={player.status === "idle"}

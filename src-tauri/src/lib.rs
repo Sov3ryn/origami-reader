@@ -91,11 +91,29 @@ fn cover_engine_status(app: tauri::AppHandle) -> Value {
     covers::status(&app)
 }
 #[tauri::command]
-async fn generate_cover(app: tauri::AppHandle, prompt: String, seed: u32) -> Result<String> {
+async fn generate_cover(
+    app: tauri::AppHandle,
+    prompt: String,
+    seed: u32,
+    allow_mature: Option<bool>,
+    book_id: Option<String>,
+) -> Result<String> {
+    let starter = if let Some(id) = book_id {
+        covers::starter_cover(
+            &app.state::<Database>()
+                .0
+                .lock()
+                .map_err(|_| "Database busy")?
+                .metadata(&id)?,
+        )
+    } else {
+        false
+    };
+    let mature = allow_mature.unwrap_or(false) && !starter;
     let epoch = app.state::<covers::Covers>().generation_epoch();
     tauri::async_runtime::spawn_blocking(move || {
         app.state::<covers::Covers>()
-            .generate(app.clone(), prompt, seed, epoch)
+            .generate(app.clone(), prompt, seed, mature, epoch)
     })
     .await
     .map_err(|_| "Cover generation task failed")?
