@@ -8,11 +8,11 @@ A local desktop reader and text-to-speech workspace for Windows and Linux. MIT-l
 
 - Library with search, sorting, collections, favorites, bulk selection and recoverable Trash.
 - TXT, UTF-8 Markdown and unprotected text EPUB import. Quick Read for pasted text.
-- Reader with chapter navigation, saved narration position and bounded page rendering.
+- Reader with chapter navigation, saved narration position, bounded page rendering and adjustable page width, including full width.
 - Colored underlines, margin notes, bookmarks, grouping and annotation export.
-- Independently collapsible/resizable panels and a contextual tabbed inspector.
+- Independently collapsible/resizable panels and a contextual tabbed inspector. Library keeps the full workspace without an inspector.
 - Twelve app palettes; separate white, paper, sepia and textured night reading surfaces.
-- Background opacity control, optional drifting mist and petal overlays, reduced-motion support and texture-off mode.
+- Background opacity control, windblown petals, mountain fog, lake mist and ripples, subtle cabin lights and an occasional cloud across the moon. Each effect can be switched off. Motion defaults on for new settings, respects reduced motion and pauses while hidden.
 - Windows desktop SQLite persistence. Browser preview uses separate IndexedDB storage.
 - Optional isolated Qwen worker, passage playback, pause, stop, passage seek, speed/volume and one-passage read-ahead.
 - Voice catalog with language, voice gender and style filters, accent/name search, favorites and sorting.

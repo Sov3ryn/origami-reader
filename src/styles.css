@@ -186,9 +186,18 @@ p {
   contain: layout paint;
 }
 .background-still,
+.still-stage,
 .ambient-effects {
   position: absolute;
   inset: 0;
+}
+.lake-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, calc(max(100dvh, 540px) * 1672 / 941));
+  aspect-ratio: 1672 / 941;
+  transform: translate(-50%, -50%);
 }
 .background-still {
   background-size: cover;
@@ -214,57 +223,197 @@ p {
   animation: mist-drift 56s ease-in-out infinite alternate;
 }
 .mist-near {
-  left: -8%;
-  top: 44%;
+  left: -4%;
+  top: 41%;
+  height: 10%;
 }
 .mist-far {
   left: 38%;
-  top: 35%;
+  top: 39%;
   width: 60%;
-  height: 15%;
+  height: 10%;
   animation-duration: 73s;
   animation-delay: -31s;
   animation-direction: alternate-reverse;
 }
 .ambient-petal {
-  top: 0;
   height: auto;
-  animation: petal-fall 60s linear infinite;
+  animation: petal-wind 60s linear infinite;
+}
+.mountain-fog {
+  object-fit: fill;
+  animation: mountain-drift 92s ease-in-out infinite alternate;
+}
+.fog-west {
+  left: 14%;
+  top: 28%;
+  width: 46%;
+  height: 16%;
+  animation-delay: -43s;
+}
+.fog-east {
+  left: 52%;
+  top: 32%;
+  width: 43%;
+  height: 12%;
+  animation-duration: 117s;
+  animation-delay: -78s;
+}
+.lake-ripple {
+  object-fit: fill;
+  animation: ripple-drift 28s ease-in-out infinite;
+}
+.ripple-near {
+  left: 36%;
+  top: 74%;
+  width: 41%;
+  height: 9%;
+  animation-delay: -18s;
+}
+.ripple-middle {
+  left: 20%;
+  top: 57%;
+  width: 37%;
+  height: 7%;
+  animation-duration: 34s;
+  animation-delay: -7s;
+}
+.ripple-far {
+  left: 74%;
+  top: 53%;
+  width: 24%;
+  height: 5%;
+  animation-duration: 39s;
+  animation-delay: -29s;
+}
+.cabin-light {
+  left: 78.95%;
+  top: 43.5%;
+  width: 2%;
+  height: 3.1%;
+  background: radial-gradient(
+    ellipse,
+    #ffc38280 0%,
+    #f4af6460 17%,
+    #ed98442b 35%,
+    #ed984400 70%
+  );
+  animation: cabin-flicker 17s ease-in-out infinite;
+}
+.moon-cloud {
+  left: 86%;
+  top: 20.2%;
+  width: 19%;
+  height: 7%;
+  object-fit: fill;
+  animation: cloud-pass 154s linear infinite;
+  animation-delay: -34s;
+}
+@keyframes mountain-drift {
+  from {
+    transform: translate3d(5%, 0, 0);
+    opacity: 0.3;
+  }
+  to {
+    transform: translate3d(-9%, 4%, 0);
+    opacity: 0.65;
+  }
+}
+@keyframes ripple-drift {
+  0%,
+  100% {
+    transform: translate3d(0, -2%, 0) scaleX(0.95);
+    opacity: 0.08;
+  }
+  45% {
+    opacity: 0.38;
+  }
+  90% {
+    transform: translate3d(-1%, 8%, 0) scaleX(1.05);
+    opacity: 0.08;
+  }
+}
+@keyframes cabin-flicker {
+  0%,
+  100% {
+    opacity: 0.27;
+  }
+  18% {
+    opacity: 0.5;
+  }
+  34% {
+    opacity: 0.31;
+  }
+  48% {
+    opacity: 0.43;
+  }
+  67% {
+    opacity: 0.25;
+  }
+  83% {
+    opacity: 0.48;
+  }
+}
+@keyframes cloud-pass {
+  0%,
+  12% {
+    transform: translate3d(105%, 0, 0);
+    opacity: 0;
+  }
+  24% {
+    opacity: 0.92;
+  }
+  65% {
+    opacity: 0.92;
+  }
+  84%,
+  100% {
+    transform: translate3d(-110%, 6%, 0);
+    opacity: 0;
+  }
 }
 @keyframes mist-drift {
   0% {
-    transform: translate3d(-4vw, 0, 0);
+    transform: translate3d(4%, 0, 0);
     opacity: 0.3;
   }
   50% {
     opacity: 0.75;
   }
   100% {
-    transform: translate3d(8vw, 1.5vh, 0);
+    transform: translate3d(-8%, 4%, 0);
     opacity: 0.4;
   }
 }
-@keyframes petal-fall {
+@keyframes petal-wind {
   0% {
-    transform: translate3d(0, -5vh, 0) rotate(0deg) scaleX(0.8);
+    transform: translate3d(0, 0, 0) rotate(0deg) scaleX(0.8);
     opacity: 0;
   }
-  12% {
-    opacity: 0.7;
+  8% {
+    opacity: 0.95;
   }
   35% {
-    transform: translate3d(calc(var(--petal-drift) * 0.45), 32vh, 0)
+    transform: translate3d(
+        calc(var(--petal-drift) * 0.35),
+        calc(var(--petal-fall) * 0.3),
+        0
+      )
       rotate(calc(var(--petal-turn) * 0.4)) scaleX(0.35);
   }
   65% {
-    transform: translate3d(calc(var(--petal-drift) * 0.6), 65vh, 0)
+    transform: translate3d(
+        calc(var(--petal-drift) * 0.65),
+        calc(var(--petal-fall) * 0.68),
+        0
+      )
       rotate(calc(var(--petal-turn) * 0.7)) scaleX(0.9);
   }
   88% {
-    opacity: 0.6;
+    opacity: 0.85;
   }
   100% {
-    transform: translate3d(var(--petal-drift), 103vh, 0)
+    transform: translate3d(var(--petal-drift), var(--petal-fall), 0)
       rotate(var(--petal-turn)) scaleX(0.45);
     opacity: 0;
   }
@@ -1008,22 +1157,30 @@ progress::-webkit-progress-value {
   position: relative;
   flex: 1;
   min-width: 0;
+  padding: 3px;
+  isolation: isolate;
+}
+.scene-preview {
+  position: absolute;
+  inset: 3px;
+  border-radius: 5px;
   background-size: cover;
   background-position: center;
-  padding: 4px;
+  transition: transform 180ms ease;
+  z-index: -1;
 }
-.scene-lake {
+.preview-lake {
   background-image: url("/moonlit-lake.png");
 }
-.scene-paper {
+.preview-paper {
   background:
     linear-gradient(145deg, transparent 50%, #938895 50.3%),
     linear-gradient(35deg, #d8cbb9 30%, #475969 30.3%);
 }
-.scene-none {
+.preview-none {
   background: var(--bg);
 }
-.scene span {
+.scene-label {
   position: absolute;
   bottom: 5px;
   left: 3px;
@@ -1034,9 +1191,14 @@ progress::-webkit-progress-value {
   border-radius: 3px;
   padding: 3px 1px;
 }
-.scene.chosen {
+.scene.chosen,
+.scene:hover {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+.scene:hover .scene-preview,
+.scene:focus-visible .scene-preview {
+  transform: scale(1.025);
 }
 .player {
   grid-column: 1/-1;
@@ -1157,7 +1319,8 @@ progress::-webkit-progress-value {
   scroll-behavior: smooth;
 }
 .reading-page {
-  max-width: 850px;
+  width: 100%;
+  max-width: var(--reader-width, 850px);
   min-height: calc(100% - 10px);
   margin: auto;
   padding: 44px 65px 22px;

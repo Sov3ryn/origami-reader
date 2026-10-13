@@ -1,12 +1,126 @@
 import { memo, type CSSProperties } from "react";
 
 const petals = [
-  { left: 8, drift: 18, seconds: 57, delay: -14, size: 13, turn: 120 },
-  { left: 19, drift: 26, seconds: 69, delay: -42, size: 9, turn: -90 },
-  { left: 42, drift: 15, seconds: 73, delay: -60, size: 10, turn: 170 },
-  { left: 68, drift: -20, seconds: 65, delay: -26, size: 12, turn: -130 },
-  { left: 87, drift: -16, seconds: 61, delay: -49, size: 14, turn: 100 },
-  { left: 96, drift: -24, seconds: 79, delay: -5, size: 8, turn: -160 },
+  {
+    left: 38,
+    top: -8,
+    drift: -64,
+    fall: 92,
+    seconds: 62,
+    delay: -12,
+    size: 18,
+    turn: 140,
+  },
+  {
+    left: 64,
+    top: -6,
+    drift: -76,
+    fall: 96,
+    seconds: 73,
+    delay: -39,
+    size: 15,
+    turn: -110,
+  },
+  {
+    left: 87,
+    top: -7,
+    drift: -84,
+    fall: 103,
+    seconds: 68,
+    delay: -54,
+    size: 17,
+    turn: 180,
+  },
+  {
+    left: 104,
+    top: 8,
+    drift: -105,
+    fall: 78,
+    seconds: 79,
+    delay: -25,
+    size: 20,
+    turn: -140,
+  },
+  {
+    left: 106,
+    top: 29,
+    drift: -113,
+    fall: 64,
+    seconds: 83,
+    delay: -63,
+    size: 16,
+    turn: 120,
+  },
+  {
+    left: 103,
+    top: 45,
+    drift: -110,
+    fall: 55,
+    seconds: 88,
+    delay: -8,
+    size: 21,
+    turn: -170,
+  },
+  {
+    left: 51,
+    top: -5,
+    drift: -68,
+    fall: 98,
+    seconds: 70,
+    delay: -48,
+    size: 16,
+    turn: -120,
+  },
+  {
+    left: 75,
+    top: -8,
+    drift: -86,
+    fall: 106,
+    seconds: 77,
+    delay: -18,
+    size: 19,
+    turn: 150,
+  },
+  {
+    left: 98,
+    top: -4,
+    drift: -98,
+    fall: 90,
+    seconds: 81,
+    delay: -68,
+    size: 15,
+    turn: -160,
+  },
+  {
+    left: 105,
+    top: 18,
+    drift: -112,
+    fall: 70,
+    seconds: 74,
+    delay: -43,
+    size: 18,
+    turn: 110,
+  },
+  {
+    left: 104,
+    top: 37,
+    drift: -111,
+    fall: 62,
+    seconds: 86,
+    delay: -31,
+    size: 20,
+    turn: -130,
+  },
+  {
+    left: 103,
+    top: 57,
+    drift: -109,
+    fall: 46,
+    seconds: 92,
+    delay: -73,
+    size: 17,
+    turn: 170,
+  },
 ];
 
 export const BackgroundScene = memo(function BackgroundScene({
@@ -15,12 +129,20 @@ export const BackgroundScene = memo(function BackgroundScene({
   motion,
   mist,
   petals: showPetals,
+  mountainFog,
+  ripples,
+  cabinLights,
+  moonCloud,
 }: {
   scene: string;
   opacity: number;
   motion: boolean;
   mist: boolean;
   petals: boolean;
+  mountainFog: boolean;
+  ripples: boolean;
+  cabinLights: boolean;
+  moonCloud: boolean;
 }) {
   if (scene === "none" || opacity <= 0) return null;
   const animate = scene === "lake" && motion;
@@ -30,45 +152,88 @@ export const BackgroundScene = memo(function BackgroundScene({
       style={{ opacity }}
       aria-hidden="true"
     >
-      <div className="background-still" />
-      {animate && (mist || showPetals) && (
-        <div className="ambient-effects">
-          {mist && (
-            <>
-              <img
-                className="ambient-layer ambient-mist mist-near"
-                src="/ambient/mist.svg"
-                alt=""
-                draggable="false"
-              />
-              <img
-                className="ambient-layer ambient-mist mist-far"
-                src="/ambient/mist.svg"
-                alt=""
-                draggable="false"
-              />
-            </>
+      <div className={scene === "lake" ? "lake-stage" : "still-stage"}>
+        <div className="background-still" />
+        {animate &&
+          (mist || mountainFog || ripples || cabinLights || moonCloud) && (
+            <div className="ambient-effects">
+              {mist && (
+                <>
+                  <img
+                    className="ambient-layer ambient-mist mist-near"
+                    src="/ambient/mist.svg"
+                    alt=""
+                    draggable="false"
+                  />
+                  <img
+                    className="ambient-layer ambient-mist mist-far"
+                    src="/ambient/mist.svg"
+                    alt=""
+                    draggable="false"
+                  />
+                </>
+              )}
+              {mountainFog && (
+                <>
+                  <img
+                    className="ambient-layer mountain-fog fog-west"
+                    src="/ambient/mist.svg"
+                    alt=""
+                    draggable="false"
+                  />
+                  <img
+                    className="ambient-layer mountain-fog fog-east"
+                    src="/ambient/mist.svg"
+                    alt=""
+                    draggable="false"
+                  />
+                </>
+              )}
+              {ripples &&
+                ["near", "middle", "far"].map((position) => (
+                  <img
+                    key={position}
+                    className={"ambient-layer lake-ripple ripple-" + position}
+                    src="/ambient/ripples.svg"
+                    alt=""
+                    draggable="false"
+                  />
+                ))}
+              {cabinLights && <div className="ambient-layer cabin-light" />}
+              {moonCloud && (
+                <img
+                  className="ambient-layer moon-cloud"
+                  src="/ambient/cloud.svg"
+                  alt=""
+                  draggable="false"
+                />
+              )}
+            </div>
           )}
-          {showPetals &&
-            petals.map((petal, i) => (
-              <img
-                key={i}
-                className="ambient-layer ambient-petal"
-                src="/ambient/petal.svg"
-                alt=""
-                draggable="false"
-                style={
-                  {
-                    left: petal.left + "%",
-                    width: petal.size + "px",
-                    "--petal-drift": petal.drift + "vw",
-                    "--petal-turn": petal.turn + "deg",
-                    animationDuration: petal.seconds + "s",
-                    animationDelay: petal.delay + "s",
-                  } as CSSProperties
-                }
-              />
-            ))}
+      </div>
+      {animate && showPetals && (
+        <div className="ambient-effects petal-field">
+          {petals.map((petal, i) => (
+            <img
+              key={i}
+              className="ambient-layer ambient-petal"
+              src="/ambient/petal.svg"
+              alt=""
+              draggable="false"
+              style={
+                {
+                  left: petal.left + "%",
+                  top: petal.top + "%",
+                  width: petal.size + "px",
+                  "--petal-drift": petal.drift + "vw",
+                  "--petal-fall": petal.fall + "vh",
+                  "--petal-turn": petal.turn + "deg",
+                  animationDuration: petal.seconds + "s",
+                  animationDelay: petal.delay + "s",
+                } as CSSProperties
+              }
+            />
+          ))}
         </div>
       )}
     </div>

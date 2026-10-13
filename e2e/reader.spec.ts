@@ -25,8 +25,10 @@ test("library, inspector, night paper and palette persist", async ({
   await page.getByLabel("App theme", { exact: true }).selectOption("forest");
   await page.getByRole("button", { name: "Night", exact: true }).click();
   await page
-    .getByRole("button", { name: "Close inspector", exact: true })
+    .getByRole("button", { name: "Library", exact: true })
+    .first()
     .click();
+  await expect(page.locator(".inspector")).toHaveCount(0);
   await page
     .getByRole("button", { name: "Collapse navigation", exact: true })
     .click();

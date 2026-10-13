@@ -118,6 +118,8 @@ export default function App() {
   const bookRef = useRef(book);
   bookRef.current = book;
   const theme = themes.find((t) => t.id === prefs.theme) || themes[0];
+  const inspectorAvailable = page !== "library" && page !== "settings";
+  const inspectorOpen = inspectorAvailable && prefs.rightOpen;
   const variables = {
     "--bg": theme.bg,
     "--panel": theme.panel,
@@ -127,9 +129,10 @@ export default function App() {
     "--accent-ink": theme.contrast,
     "--line": theme.line,
     "--left-width": prefs.leftOpen ? prefs.leftWidth + "px" : "0px",
-    "--right-width": prefs.rightOpen ? prefs.rightWidth + "px" : "0px",
+    "--right-width": inspectorOpen ? prefs.rightWidth + "px" : "0px",
     "--reader-size": prefs.fontSize + "px",
     "--reader-leading": prefs.lineHeight,
+    "--reader-width": prefs.pageWidth === 0 ? "100%" : prefs.pageWidth + "px",
   } as CSSProperties;
   const error = (e: unknown) =>
     notify(e instanceof Error ? e.message : String(e));
@@ -287,6 +290,11 @@ export default function App() {
     notify("Restored to the library.");
   }
   function chooseTab(tab: InspectorTab) {
+    if (tab === "appearance" && !inspectorAvailable) {
+      setPage("settings");
+      return;
+    }
+    if (!inspectorAvailable && book) setPage("reader");
     patchPrefs({ rightOpen: true, inspector: tab });
   }
   function captureSelection() {
@@ -841,6 +849,10 @@ export default function App() {
         motion={prefs.motion}
         mist={prefs.mist}
         petals={prefs.petals}
+        mountainFog={prefs.mountainFog}
+        ripples={prefs.ripples}
+        cabinLights={prefs.cabinLights}
+        moonCloud={prefs.moonCloud}
       />
       <input
         className="hidden"
@@ -1111,18 +1123,20 @@ export default function App() {
             >
               <Palette size={18} />
             </IconButton>
-            <IconButton
-              label={
-                prefs.rightOpen ? "Collapse inspector" : "Expand inspector"
-              }
-              onClick={() => patchPrefs({ rightOpen: !prefs.rightOpen })}
-            >
-              {prefs.rightOpen ? (
-                <PanelRightClose size={19} />
-              ) : (
-                <PanelRightOpen size={19} />
-              )}
-            </IconButton>
+            {inspectorAvailable && (
+              <IconButton
+                label={
+                  inspectorOpen ? "Collapse inspector" : "Expand inspector"
+                }
+                onClick={() => patchPrefs({ rightOpen: !prefs.rightOpen })}
+              >
+                {prefs.rightOpen ? (
+                  <PanelRightClose size={19} />
+                ) : (
+                  <PanelRightOpen size={19} />
+                )}
+              </IconButton>
+            )}
           </div>
         </header>
         {!ready ? (
@@ -1624,7 +1638,7 @@ export default function App() {
           </main>
         )}
       </div>
-      {prefs.rightOpen && (
+      {inspectorOpen && (
         <div
           role="separator"
           aria-label="Resize inspector"
@@ -1647,112 +1661,116 @@ export default function App() {
           }}
         />
       )}
-      <aside
-        className={"inspector " + (!prefs.rightOpen ? "collapsed" : "")}
-        aria-hidden={!prefs.rightOpen}
-        inert={!prefs.rightOpen}
-      >
-        <div className="inspector-header">
-          <span>Inspector</span>
-          <IconButton
-            label="Pin inspector tab"
-            active={pinned}
-            onClick={() => setPinned(!pinned)}
-          >
-            <Pin size={14} />
-          </IconButton>
-          <IconButton
-            label="Close inspector"
-            onClick={() => patchPrefs({ rightOpen: false })}
-          >
-            <X size={17} />
-          </IconButton>
-        </div>
-        <div
-          className="inspector-tabs"
-          role="tablist"
-          aria-label="Inspector tabs"
+      {inspectorAvailable && (
+        <aside
+          className={"inspector " + (!prefs.rightOpen ? "collapsed" : "")}
+          aria-hidden={!prefs.rightOpen}
+          inert={!prefs.rightOpen}
         >
-          {inspectorTabs.map((t) => (
-            <button
-              key={t.id}
-              role="tab"
-              id={"inspector-tab-" + t.id}
-              aria-controls="inspector-panel"
-              tabIndex={activeTab === t.id ? 0 : -1}
-              onKeyDown={(e) => {
-                const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
-                if (!keys.includes(e.key)) return;
-                e.preventDefault();
-                const i = inspectorTabs.findIndex((x) => x.id === t.id);
-                const next =
-                  e.key === "Home"
-                    ? 0
-                    : e.key === "End"
-                      ? inspectorTabs.length - 1
-                      : (i +
-                          (e.key === "ArrowRight" ? 1 : -1) +
-                          inspectorTabs.length) %
-                        inspectorTabs.length;
-                chooseTab(inspectorTabs[next].id);
-                setTimeout(
-                  () =>
-                    document
-                      .getElementById("inspector-tab-" + inspectorTabs[next].id)
-                      ?.focus(),
-                  0,
-                );
-              }}
-              aria-selected={activeTab === t.id}
-              className={activeTab === t.id ? "active" : ""}
-              title={t.label}
-              onClick={() => patchPrefs({ inspector: t.id })}
+          <div className="inspector-header">
+            <span>Inspector</span>
+            <IconButton
+              label="Pin inspector tab"
+              active={pinned}
+              onClick={() => setPinned(!pinned)}
             >
-              {t.icon}
-              <span>{t.label}</span>
-            </button>
-          ))}
-        </div>
-        <div
-          role="tabpanel"
-          id="inspector-panel"
-          aria-labelledby={"inspector-tab-" + activeTab}
-          className="inspector-scroll"
-        >
-          {activeTab === "appearance" ? (
-            <AppearancePanel prefs={prefs} onChange={patchPrefs} />
-          ) : activeTab === "voice" ? (
-            <VoiceCatalog
-              voices={voices}
-              selected={
-                page === "reader" && book
-                  ? book.meta.voice || prefs.voice
-                  : prefs.voice
-              }
-              favorites={prefs.voiceFavorites}
-              documentScope={page === "reader" && Boolean(book)}
-              onSelect={(id) => {
-                if (page === "reader" && book)
-                  void updateMeta({ ...book.meta, voice: id }).catch(error);
-                else patchPrefs({ voice: id });
-              }}
-              onFavorite={(id) =>
-                patchPrefs({
-                  voiceFavorites: prefs.voiceFavorites.includes(id)
-                    ? prefs.voiceFavorites.filter((x) => x !== id)
-                    : [...prefs.voiceFavorites, id],
-                })
-              }
-            />
-          ) : activeTab === "selection" ? (
-            selectionPanel()
-          ) : activeTab === "document" ? (
-            documentPanel()
-          ) : (
-            notesPanel()
-          )}
-        </div>
-      </aside>
+              <Pin size={14} />
+            </IconButton>
+            <IconButton
+              label="Close inspector"
+              onClick={() => patchPrefs({ rightOpen: false })}
+            >
+              <X size={17} />
+            </IconButton>
+          </div>
+          <div
+            className="inspector-tabs"
+            role="tablist"
+            aria-label="Inspector tabs"
+          >
+            {inspectorTabs.map((t) => (
+              <button
+                key={t.id}
+                role="tab"
+                id={"inspector-tab-" + t.id}
+                aria-controls="inspector-panel"
+                tabIndex={activeTab === t.id ? 0 : -1}
+                onKeyDown={(e) => {
+                  const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+                  if (!keys.includes(e.key)) return;
+                  e.preventDefault();
+                  const i = inspectorTabs.findIndex((x) => x.id === t.id);
+                  const next =
+                    e.key === "Home"
+                      ? 0
+                      : e.key === "End"
+                        ? inspectorTabs.length - 1
+                        : (i +
+                            (e.key === "ArrowRight" ? 1 : -1) +
+                            inspectorTabs.length) %
+                          inspectorTabs.length;
+                  chooseTab(inspectorTabs[next].id);
+                  setTimeout(
+                    () =>
+                      document
+                        .getElementById(
+                          "inspector-tab-" + inspectorTabs[next].id,
+                        )
+                        ?.focus(),
+                    0,
+                  );
+                }}
+                aria-selected={activeTab === t.id}
+                className={activeTab === t.id ? "active" : ""}
+                title={t.label}
+                onClick={() => patchPrefs({ inspector: t.id })}
+              >
+                {t.icon}
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+          <div
+            role="tabpanel"
+            id="inspector-panel"
+            aria-labelledby={"inspector-tab-" + activeTab}
+            className="inspector-scroll"
+          >
+            {activeTab === "appearance" ? (
+              <AppearancePanel prefs={prefs} onChange={patchPrefs} />
+            ) : activeTab === "voice" ? (
+              <VoiceCatalog
+                voices={voices}
+                selected={
+                  page === "reader" && book
+                    ? book.meta.voice || prefs.voice
+                    : prefs.voice
+                }
+                favorites={prefs.voiceFavorites}
+                documentScope={page === "reader" && Boolean(book)}
+                onSelect={(id) => {
+                  if (page === "reader" && book)
+                    void updateMeta({ ...book.meta, voice: id }).catch(error);
+                  else patchPrefs({ voice: id });
+                }}
+                onFavorite={(id) =>
+                  patchPrefs({
+                    voiceFavorites: prefs.voiceFavorites.includes(id)
+                      ? prefs.voiceFavorites.filter((x) => x !== id)
+                      : [...prefs.voiceFavorites, id],
+                  })
+                }
+              />
+            ) : activeTab === "selection" ? (
+              selectionPanel()
+            ) : activeTab === "document" ? (
+              documentPanel()
+            ) : (
+              notesPanel()
+            )}
+          </div>
+        </aside>
+      )}
       <footer className="player">
         <div className="now-playing">
           {book ? (

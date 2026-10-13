@@ -11,3 +11,7 @@ Keep the text readable everywhere. Provide a static mode, honor reduced motion a
 ## Later document editing
 
 A richer text editor may follow the reader and Studio. It is not part of the current first-release scope.
+
+## First-run appearance choice
+
+When installer and first-run setup are implemented, offer background motion, opacity and reading-surface choices before opening the Library. Motion is currently on by default for new settings, with operating-system reduced-motion preferences respected. Existing saved choices must be preserved.

@@ -53,8 +53,13 @@ export type Preferences = {
   motion: boolean;
   mist: boolean;
   petals: boolean;
+  mountainFog: boolean;
+  ripples: boolean;
+  cabinLights: boolean;
+  moonCloud: boolean;
   fontSize: number;
   lineHeight: number;
+  pageWidth: number;
   leftOpen: boolean;
   rightOpen: boolean;
   inspector: InspectorTab;
@@ -84,11 +89,16 @@ export const defaultPreferences: Preferences = {
   texture: true,
   scene: "lake",
   backgroundOpacity: 0.21,
-  motion: false,
+  motion: true,
   mist: true,
   petals: true,
+  mountainFog: true,
+  ripples: true,
+  cabinLights: true,
+  moonCloud: true,
   fontSize: 21,
   lineHeight: 1.8,
+  pageWidth: 850,
   leftOpen: true,
   rightOpen: false,
   inspector: "appearance",

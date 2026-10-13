@@ -93,6 +93,30 @@ export function AppearancePanel({
           onChange={(e) => onChange({ lineHeight: +e.target.value })}
         />
       </label>
+      <label>
+        Page width{" "}
+        <output>
+          {prefs.pageWidth === 0 ? "Full width" : prefs.pageWidth + "px"}
+        </output>
+        <input
+          aria-label="Page width"
+          type="range"
+          min="600"
+          max="2200"
+          step="50"
+          value={prefs.pageWidth || 2200}
+          disabled={prefs.pageWidth === 0}
+          onChange={(e) => onChange({ pageWidth: +e.target.value })}
+        />
+      </label>
+      <label className="check-label">
+        <input
+          type="checkbox"
+          checked={prefs.pageWidth === 0}
+          onChange={(e) => onChange({ pageWidth: e.target.checked ? 0 : 850 })}
+        />
+        Use full reading width
+      </label>
       <h4>Background</h4>
       <div className="scene-options">
         {[
@@ -103,11 +127,16 @@ export function AppearancePanel({
           <button
             key={s.id}
             onClick={() => onChange({ scene: s.id })}
+            aria-pressed={prefs.scene === s.id}
             className={
               "scene scene-" + s.id + (prefs.scene === s.id ? " chosen" : "")
             }
           >
-            <span>{s.name}</span>
+            <span
+              className={"scene-preview preview-" + s.id}
+              aria-hidden="true"
+            />
+            <span className="scene-label">{s.name}</span>
           </button>
         ))}
       </div>
@@ -139,28 +168,31 @@ export function AppearancePanel({
       </label>
       {prefs.scene === "lake" && prefs.motion && (
         <div className="ambient-options">
-          <label className="check-label">
-            <input
-              type="checkbox"
-              checked={prefs.mist}
-              onChange={(e) => onChange({ mist: e.target.checked })}
-            />
-            Drifting mist
-          </label>
-          <label className="check-label">
-            <input
-              type="checkbox"
-              checked={prefs.petals}
-              onChange={(e) => onChange({ petals: e.target.checked })}
-            />
-            Falling petals
-          </label>
+          {(
+            [
+              ["mist", "Drifting mist"],
+              ["petals", "Windblown petals"],
+              ["mountainFog", "Mountain fog"],
+              ["ripples", "Lake ripples"],
+              ["cabinLights", "Cabin lights"],
+              ["moonCloud", "Cloud across the moon"],
+            ] as const
+          ).map(([key, name]) => (
+            <label className="check-label" key={key}>
+              <input
+                type="checkbox"
+                checked={prefs[key]}
+                onChange={(e) => onChange({ [key]: e.target.checked })}
+              />
+              {name}
+            </label>
+          ))}
         </div>
       )}
       <p className="hint">
         {prefs.scene === "lake"
           ? "Motion pauses when hidden and follows reduced-motion preferences."
-          : "Mist and petals are available with Moonlit lake."}
+          : "Background motion is available with Moonlit lake."}
       </p>
       <label className="check-label">
         <input
