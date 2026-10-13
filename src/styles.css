@@ -1828,7 +1828,8 @@ progress::-webkit-progress-value {
   padding: 8px;
 }
 .color-options {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(6, 24px);
   gap: 12px;
   margin: 15px 0;
 }
@@ -1852,6 +1853,85 @@ progress::-webkit-progress-value {
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 14px;
+}
+.spoken-editor {
+  display: block;
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  color: var(--ink);
+  margin: 12px 0;
+}
+.spoken-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.spoken-actions button {
+  font-size: 11px;
+  padding: 8px;
+}
+.annotation-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 12px 0;
+}
+.annotation-filters select {
+  width: 100%;
+  min-width: 0;
+  font-size: 11px;
+  text-overflow: ellipsis;
+}
+.annotation-filters select:last-child {
+  grid-column: 1 / -1;
+}
+.annotation-filters select[aria-label="Annotation scope"] {
+  grid-column: 1 / -1;
+}
+.annotation-count,
+.annotation-location {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.annotation-card .quote {
+  width: 100%;
+}
+.annotation-card .quote > span {
+  display: block;
+}
+.annotation-card .note-body {
+  color: var(--ink);
+  font:
+    13px/1.6 system-ui,
+    sans-serif;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+.annotation-context {
+  font-size: 12px;
+  margin: 8px 0;
+}
+.annotation-context summary {
+  color: var(--muted);
+  cursor: pointer;
+}
+.annotation-context p {
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+.return-bookmark {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+.return-bookmark > button {
+  border: 0;
+  background: transparent;
+  font-size: 11px;
 }
 .note-editor {
   margin: 20px 0;

@@ -58,6 +58,114 @@ afterEach(async () => {
 });
 
 describe("preloaded voice lifetime", () => {
+  it("uses saved edits and heading numbers for normal and selected playback, and skips deleted speech", async () => {
+    vi.mocked(storage.synthesize).mockResolvedValue({
+      audio: "AA==",
+      rate: 24000,
+      duration: 1,
+    });
+    const edited = {
+      meta: { id: "edited", voice: "voice" },
+      paragraphs: [
+        { id: "p-0", text: "Chapter XVI", kind: "heading", chapter: 1 },
+        {
+          id: "p-1",
+          text: "Original wording.",
+          kind: "paragraph",
+          chapter: 1,
+          spokenEdits: [{ start: 0, end: 17, text: "Accepted wording." }],
+        },
+        {
+          id: "p-2",
+          text: "Skip this.",
+          kind: "paragraph",
+          chapter: 1,
+          spokenEdits: [{ start: 0, end: 10, text: "" }],
+        },
+      ],
+    } as Book;
+    await act(async () => {
+      await player.start(edited, 0, defaultPreferences, vi.fn());
+    });
+    expect(
+      vi.mocked(storage.synthesize).mock.calls.map(([text]) => text),
+    ).toEqual(["Chapter 16", "Accepted wording."]);
+    vi.mocked(storage.synthesize).mockClear();
+    await act(async () => {
+      await player.start(edited, 1, defaultPreferences, vi.fn(), {
+        paragraphId: "p-1",
+        start: 0,
+        end: 17,
+        text: "Original wording.",
+      });
+    });
+    expect(storage.synthesize).toHaveBeenCalledWith(
+      "Accepted wording.",
+      "voice",
+    );
+    vi.mocked(storage.synthesize).mockClear();
+    await act(async () => {
+      await player.start(edited, 2, defaultPreferences, vi.fn(), {
+        paragraphId: "p-2",
+        start: 0,
+        end: 10,
+        text: "Skip this.",
+      });
+    });
+    expect(storage.synthesize).not.toHaveBeenCalled();
+  });
+  it("does not replay obsolete wording after a spoken edit or rule change", async () => {
+    vi.mocked(storage.synthesize).mockResolvedValue({
+      audio: "AA==",
+      rate: 24000,
+      duration: 1,
+    });
+    const original = {
+      meta: { id: "changed", voice: "voice" },
+      paragraphs: [
+        { id: "p", text: "Chapter XVI", kind: "heading", chapter: 1 },
+      ],
+    } as Book;
+    await act(async () => {
+      await player.start(original, 0, defaultPreferences, vi.fn());
+    });
+    vi.mocked(storage.synthesize).mockClear();
+    await act(async () => {
+      await player.start(
+        original,
+        0,
+        { ...defaultPreferences, romanNumeralHeadings: false },
+        vi.fn(),
+        undefined,
+        true,
+      );
+    });
+    expect(storage.synthesize).toHaveBeenCalledWith("Chapter XVI", "voice");
+    vi.mocked(storage.synthesize).mockClear();
+    const edited = {
+      ...original,
+      paragraphs: [
+        {
+          ...original.paragraphs[0],
+          spokenEdits: [{ start: 0, end: 11, text: "Changed heading." }],
+        },
+      ],
+    };
+    await act(async () => {
+      await player.start(
+        edited,
+        0,
+        defaultPreferences,
+        vi.fn(),
+        undefined,
+        true,
+      );
+    });
+    expect(storage.synthesize).toHaveBeenCalledWith(
+      "Changed heading.",
+      "voice",
+    );
+  });
   it("unloads an idle voice immediately when its selection changes", async () => {
     await act(async () => {
       await player.changeVoice();

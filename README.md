@@ -10,7 +10,8 @@ A local desktop reader and text-to-speech workspace for Windows and Linux. MIT-l
 - Create or delete collections from the sidebar, including empty collections. Deletion moves their books to Unsorted and offers Undo. New imports use the selected collection; Reader details can change a document's collection.
 - TXT, UTF-8 Markdown and unprotected text EPUB import. Quick Read for pasted text.
 - Reader with chapter navigation, saved narration position, bounded page rendering and adjustable page width, including full width.
-- Colored underlines, margin notes, bookmarks, grouping and annotation export.
+- Twelve annotation colors, margin notes, bookmarks, grouping and annotation export. Search note wording and source paragraphs, filter by type/color or book, and sort alphabetically or by position in the book. Note and bookmark jumps keep one temporary return marker until it is used, dismissed or the app closes.
+- Editable spoken versions for selected passages, with explicit Save, Reset and an unsaved preview. Saved wording and skipped passages persist while original book text and annotation anchors remain intact. Roman heading numbers are normalized for speech by default, with a reversible setting; manual replacements take priority.
 - Independently collapsible/resizable panels and a contextual tabbed inspector. Library keeps the full workspace without an inspector.
 - Twelve app palettes; separate white, paper, sepia and textured night reading surfaces.
 - Page brightness from 50% to 150%, applied to the paper and texture while text and controls keep their colors. Each scene remembers its paper brightness.

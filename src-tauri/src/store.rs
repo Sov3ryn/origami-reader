@@ -68,6 +68,62 @@ impl Store {
         }
         Ok(())
     }
+    pub fn save_spoken_edits(&mut self, book: &str, paragraph: &str, edits: Value) -> Result<()> {
+        let list = edits.as_array().ok_or("Invalid spoken edits")?;
+        if list.len() > 1000 || edits.to_string().len() > 1024 * 1024 {
+            return Err("Spoken edits are too large".into());
+        }
+        let transaction = self
+            .connection
+            .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+            .map_err(|e| e.to_string())?;
+        let body: String = transaction
+            .query_row("SELECT body FROM books WHERE id=?1", [book], |r| r.get(0))
+            .map_err(|_| "Book not found")?;
+        let mut paragraphs: Value = serde_json::from_str(&body).map_err(|e| e.to_string())?;
+        let p = paragraphs
+            .as_array_mut()
+            .ok_or("Invalid document")?
+            .iter_mut()
+            .find(|p| p["id"].as_str() == Some(paragraph))
+            .ok_or("Passage not found")?;
+        let text = p["text"].as_str().ok_or("Invalid paragraph")?;
+        let mut offset = 0u64;
+        let mut boundaries = std::collections::HashSet::from([0u64]);
+        for c in text.chars() {
+            offset += c.len_utf16() as u64;
+            boundaries.insert(offset);
+        }
+        let mut previous_end = 0;
+        for edit in list {
+            let start = edit["start"].as_u64().ok_or("Invalid spoken range")?;
+            let end = edit["end"].as_u64().ok_or("Invalid spoken range")?;
+            if start < previous_end
+                || end <= start
+                || !boundaries.contains(&start)
+                || !boundaries.contains(&end)
+                || edit["text"].as_str().is_none()
+            {
+                return Err("Invalid spoken range".into());
+            }
+            previous_end = end;
+        }
+        let p = p.as_object_mut().ok_or("Invalid paragraph")?;
+        if list.is_empty() {
+            p.remove("spokenEdits");
+        } else {
+            p.insert("spokenEdits".into(), edits);
+        }
+        let body = paragraphs.to_string();
+        if body.len() > 64 * 1024 * 1024 {
+            return Err("Document exceeds import budget".into());
+        }
+        transaction
+            .execute("UPDATE books SET body=?1 WHERE id=?2", params![body, book])
+            .map_err(|e| e.to_string())?;
+        transaction.commit().map_err(|e| e.to_string())?;
+        Ok(())
+    }
     pub fn annotations(&self, book: Option<&str>) -> Result<Vec<Value>> {
         let mut q = self
             .connection
@@ -163,5 +219,43 @@ mod tests {
             .save(serde_json::json!({"meta":{"id":"b"},"paragraphs":[]}))
             .is_err());
         assert_eq!(s.read("b").unwrap()["paragraphs"][0]["text"], "Keep");
+    }
+    #[test]
+    fn spoken_edits_preserve_source_metadata_and_annotations_after_reopening() {
+        let d = tempfile::tempdir().unwrap();
+        let path = d.path().join("speech.db");
+        {
+            let mut s = Store::open(&path).unwrap();
+            s.save(serde_json::json!({"meta":{"id":"b","position":9,"coverImage":"art"},"paragraphs":[{"id":"p","text":"Read this 😀."}]})).unwrap();
+            s.save_annotation(
+                serde_json::json!({"id":"a","bookId":"b","paragraphId":"p","text":"Keep note"}),
+            )
+            .unwrap();
+            s.save_spoken_edits("b", "p", serde_json::json!([{"start":5,"end":9,"text":"that"},{"start":10,"end":12,"text":""}])).unwrap();
+        }
+        let mut s = Store::open(&path).unwrap();
+        let book = s.read("b").unwrap();
+        assert_eq!(book["paragraphs"][0]["text"], "Read this 😀.");
+        assert_eq!(book["paragraphs"][0]["spokenEdits"][0]["text"], "that");
+        assert_eq!(book["meta"]["position"], 9);
+        assert_eq!(book["meta"]["coverImage"], "art");
+        assert_eq!(s.annotations(Some("b")).unwrap().len(), 1);
+        for edits in [
+            serde_json::json!([{"start":11,"end":12,"text":"broken surrogate"}]),
+            serde_json::json!([{"start":0,"end":9,"text":"a"},{"start":5,"end":10,"text":"b"}]),
+            serde_json::json!([{"start":0,"end":500,"text":"too far"}]),
+            serde_json::json!([{"start":0,"end":1,"text":null}]),
+        ] {
+            assert!(s.save_spoken_edits("b", "p", edits).is_err());
+        }
+        assert_eq!(
+            s.read("b").unwrap()["paragraphs"][0]["spokenEdits"],
+            book["paragraphs"][0]["spokenEdits"]
+        );
+        s.save_spoken_edits("b", "p", serde_json::json!([]))
+            .unwrap();
+        assert!(s.read("b").unwrap()["paragraphs"][0]
+            .get("spokenEdits")
+            .is_none());
     }
 }

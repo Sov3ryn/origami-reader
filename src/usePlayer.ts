@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import * as storage from "./storage";
 import { splitSpeech } from "./documents";
-import type { Book, Preferences } from "./types";
+import { spokenText } from "./spokenText";
+import type { Book, Preferences, TextSelection } from "./types";
 type Unit = { text: string; paragraph: number };
 export function usePlayer(
   report: (s: string) => void,
@@ -24,6 +25,8 @@ export function usePlayer(
     bookId: string;
     units: Unit[];
     index: number;
+    paragraphs: Book["paragraphs"];
+    roman: boolean;
   } | null>(null);
   async function stop(unload = false) {
     const token = ++generation.current;
@@ -54,7 +57,7 @@ export function usePlayer(
     position: number,
     prefs: Preferences,
     onPosition: (n: number) => void,
-    selection?: string,
+    selection?: string | TextSelection,
     resumeCurrent = false,
   ) {
     const token = await stop();
@@ -67,20 +70,33 @@ export function usePlayer(
     }
     activePrefs.current = prefs;
     const units: Unit[] =
-      resumeCurrent && session.current?.bookId === book.meta.id
+      resumeCurrent &&
+      session.current?.bookId === book.meta.id &&
+      session.current.paragraphs === book.paragraphs &&
+      session.current.roman === prefs.romanNumeralHeadings
         ? session.current.units.slice(session.current.index)
-        : selection
-          ? splitSpeech(selection).map((text) => ({
+        : selection !== undefined
+          ? splitSpeech(
+              typeof selection === "string"
+                ? selection
+                : spokenText(book.paragraphs[position], prefs, selection),
+            ).map((text) => ({
               text,
               paragraph: position,
             }))
           : book.paragraphs.slice(position).flatMap((p, i) =>
-              splitSpeech(p.text).map((text) => ({
+              splitSpeech(spokenText(p, prefs)).map((text) => ({
                 text,
                 paragraph: position + i,
               })),
             );
-    session.current = { bookId: book.meta.id, units, index: 0 };
+    session.current = {
+      bookId: book.meta.id,
+      units,
+      index: 0,
+      paragraphs: book.paragraphs,
+      roman: prefs.romanNumeralHeadings,
+    };
     const voice = book.meta.voice || prefs.voice;
     const get = async (unit: Unit) => {
       pending.current++;

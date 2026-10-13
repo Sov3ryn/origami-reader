@@ -1,6 +1,7 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { openDB } from "idb";
 import { sampleBooks } from "./seeds";
+import { validateSpokenEdits } from "./spokenText";
 import type {
   Annotation,
   Book,
@@ -8,6 +9,7 @@ import type {
   Preferences,
   SpeechResult,
   Voice,
+  SpokenEdit,
 } from "./types";
 export const desktop = isTauri();
 let initialization: Promise<void> | undefined;
@@ -52,6 +54,25 @@ export async function saveBook(book: Book) {
 export async function saveMeta(meta: BookMeta) {
   if (desktop) return invoke("save_meta", { meta });
   return (await db()).put("metadata", meta);
+}
+export async function saveSpokenEdits(
+  bookId: string,
+  paragraphId: string,
+  edits: SpokenEdit[],
+) {
+  if (desktop)
+    return invoke<void>("save_spoken_edits", { bookId, paragraphId, edits });
+  const d = await db();
+  const t = d.transaction("bodies", "readwrite");
+  const paragraphs = (await t.store.get(bookId)) as
+    Book["paragraphs"] | undefined;
+  const paragraph = paragraphs?.find((p) => p.id === paragraphId);
+  if (!paragraph) throw new Error("Passage not found.");
+  validateSpokenEdits(paragraph.text, edits);
+  if (edits.length) paragraph.spokenEdits = edits;
+  else delete paragraph.spokenEdits;
+  await t.store.put(paragraphs, bookId);
+  await t.done;
 }
 export async function readSettings(): Promise<Partial<Preferences>> {
   return desktop

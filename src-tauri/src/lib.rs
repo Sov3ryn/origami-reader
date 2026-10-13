@@ -24,6 +24,17 @@ fn save_meta(db: State<Database>, meta: Value) -> Result<()> {
     db.0.lock().map_err(|_| "Database busy")?.save_meta(meta)
 }
 #[tauri::command]
+fn save_spoken_edits(
+    db: State<Database>,
+    book_id: String,
+    paragraph_id: String,
+    edits: Value,
+) -> Result<()> {
+    db.0.lock()
+        .map_err(|_| "Database busy")?
+        .save_spoken_edits(&book_id, &paragraph_id, edits)
+}
+#[tauri::command]
 fn read_settings(db: State<Database>) -> Result<Value> {
     db.0.lock().map_err(|_| "Database busy")?.settings()
 }
@@ -132,6 +143,7 @@ pub fn run() {
             read_book,
             save_book,
             save_meta,
+            save_spoken_edits,
             read_settings,
             save_settings,
             list_annotations,

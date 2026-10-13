@@ -6,7 +6,9 @@ export type Paragraph = {
   text: string;
   kind: "heading" | "paragraph";
   chapter: number;
+  spokenEdits?: SpokenEdit[];
 };
+export type SpokenEdit = { start: number; end: number; text: string };
 export type BookMeta = {
   id: string;
   title: string;
@@ -87,6 +89,7 @@ export type Preferences = {
   voiceLanguage: string;
   randomVoiceAtStartup: boolean;
   autoGenerateCovers: boolean;
+  romanNumeralHeadings: boolean;
 };
 export type SceneAppearance = Pick<
   Preferences,
@@ -161,4 +164,5 @@ export const defaultPreferences: Preferences = {
   voiceLanguage: "English",
   randomVoiceAtStartup: false,
   autoGenerateCovers: true,
+  romanNumeralHeadings: true,
 };

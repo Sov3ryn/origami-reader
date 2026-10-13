@@ -137,4 +137,12 @@ export const annotationColors = [
   { id: "lavender", label: "Lavender", value: "#8350ad" },
   { id: "mint", label: "Mint", value: "#27785e" },
   { id: "rose", label: "Rose", value: "#af4162" },
+  { id: "blue", label: "Blue", value: "#416cc0" },
+  { id: "cyan", label: "Cyan", value: "#007c91" },
+  { id: "orange", label: "Orange", value: "#bb531d" },
+  { id: "red", label: "Red", value: "#b8443d" },
+  { id: "pink", label: "Pink", value: "#a43b8c" },
+  { id: "plum", label: "Plum", value: "#68498d" },
+  { id: "olive", label: "Olive", value: "#6c761a" },
+  { id: "slate", label: "Slate", value: "#607080" },
 ];
