@@ -31,6 +31,21 @@ const document = (body) =>
   `<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>Book</title></head><body>${body}</body></html>`;
 const report = [];
 for (const book of selection.books) {
+  if (book.sourceKind === "author-html") {
+    const prepared = JSON.parse(
+      await readFile(join(destination, "manifest.json"), "utf8"),
+    ).books.find((b) => b.id === book.id);
+    if (
+      !prepared ||
+      hash(await readFile(join(destination, "books", prepared.filename))) !==
+        prepared.sha256
+    )
+      throw new Error(
+        "Run scripts/prepare-contemporary-starter.mjs to prepare the author's edition first.",
+      );
+    report.push(prepared);
+    continue;
+  }
   if (
     !/^starter-[a-z-]+$/.test(book.id) ||
     !/^[a-z0-9_-]+$/.test(book.repository)

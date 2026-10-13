@@ -16,9 +16,11 @@ Origami: six starter books
    A woman breaks free from her controlling family and takes a chance on
    an unexpected life. Warm, witty, romantic and set in Ontario.
 
-5. Realistic social drama: The Great Gatsby, F. Scott Fitzgerald
-   Wealth, extravagant parties, reinvention and obsession. A short, darker
-   contrast to the romance. Its setting is the 1920s, not the present day.
+5. Contemporary tech thriller: Little Brother, Cory Doctorow
+   A teenager fights a surveillance crackdown in modern San Francisco.
+   Contemporary to its 2008 publication, not set in 2026. Includes mature
+   themes and a brief sexual scene, but is not erotica. Its separate
+   CC BY-NC-SA 3.0 license permits noncommercial redistribution only.
 
 6. Surprise: The Count of Monte Cristo, Alexandre Dumas
    Betrayal, escape, a fortune and an elaborate revenge. This is the long
@@ -37,6 +39,9 @@ existing books and annotations, and should not restore a starter book
 automatically after the user deletes it.
 
 See RIGHTS.txt before redistribution, especially outside the reviewed US,
-Canada and UK territories. App source is MIT; source-edition contributions
-are CC0; historical book text has the recorded territorial public-domain
-status. See manifest.json for source commits and SHA-256 hashes.
+Canada and UK territories. App source uses MPL 2.0. Standard Ebooks
+contributions are CC0; the five historical texts have the recorded
+territorial public-domain status. Little Brother and its text-only EPUB
+adaptation use CC BY-NC-SA 3.0. Commercial redistributors must omit that
+book or obtain permission. See manifest.json for source revisions and
+SHA-256 hashes. No third-party text is relicensed as Origami source code.

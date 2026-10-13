@@ -8,6 +8,56 @@ import manifest from "../assets/starter-library/manifest.json";
 
 const directory = join(process.cwd(), "assets", "starter-library", "books");
 describe("complete starter-library editions", () => {
+  it("the contemporary novel retains its separate noncommercial terms inside the EPUB", () => {
+    const item = manifest.books.find((b) => b.id === "starter-little-brother")!;
+    expect(item.license).toBe("CC-BY-NC-SA-3.0");
+    expect(item.commercialRedistribution).toBe(false);
+    expect(manifest.books.some((b) => b.id === "starter-great-gatsby")).toBe(
+      false,
+    );
+    const entries = unzipSync(readFileSync(join(directory, item.filename)));
+    const rights = new DOMParser()
+      .parseFromString(
+        strFromU8(entries["EPUB/content.opf"]),
+        "application/xml",
+      )
+      .getElementsByTagNameNS(
+        "http://purl.org/dc/elements/1.1/",
+        "rights",
+      )[0].textContent!;
+    expect(rights).toContain(
+      "Creative Commons Attribution-NonCommercial-ShareAlike 3.0",
+    );
+    expect(rights).toContain("Commercial redistributors must omit it");
+    const sourceParagraphs = Object.entries(entries)
+      .filter(
+        ([path]) =>
+          path.startsWith("EPUB/text/") && !path.endsWith("title.xhtml"),
+      )
+      .flatMap(([, bytes]) =>
+        Array.from(
+          new DOMParser()
+            .parseFromString(strFromU8(bytes), "application/xhtml+xml")
+            .querySelectorAll("p"),
+        ),
+      );
+    // Original paragraph headings become h2 elements; the synthetic first heading is excluded.
+    const headings = Object.entries(entries)
+      .filter(
+        ([path]) =>
+          path.startsWith("EPUB/text/") && !path.endsWith("title.xhtml"),
+      )
+      .flatMap(([, bytes]) =>
+        Array.from(
+          new DOMParser()
+            .parseFromString(strFromU8(bytes), "application/xhtml+xml")
+            .querySelectorAll("h2"),
+        ),
+      );
+    expect(sourceParagraphs.length + headings.length - 1).toBe(
+      item.sourceParagraphCount,
+    );
+  });
   for (const item of manifest.books) {
     it(`${item.title} imports with every chapter and its ending intact`, async () => {
       const bytes = readFileSync(join(directory, item.filename));

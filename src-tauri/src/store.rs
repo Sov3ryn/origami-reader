@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose::STANDARD, Engine};
 use rusqlite::{params, Connection};
 use serde_json::Value;
 use std::path::Path;
@@ -9,6 +10,7 @@ impl Store {
     pub fn open(path: &Path) -> Result<Self> {
         let connection = Connection::open(path).map_err(|e| e.to_string())?;
         connection.execute_batch("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; CREATE TABLE IF NOT EXISTS books(id TEXT PRIMARY KEY, meta TEXT NOT NULL, body TEXT NOT NULL); CREATE TABLE IF NOT EXISTS annotations(id TEXT PRIMARY KEY, book_id TEXT NOT NULL REFERENCES books(id), data TEXT NOT NULL); CREATE INDEX IF NOT EXISTS annotations_book ON annotations(book_id); CREATE TABLE IF NOT EXISTS settings(id TEXT PRIMARY KEY, data TEXT NOT NULL); PRAGMA user_version=1;").map_err(|e|e.to_string())?;
+        connection.execute_batch("CREATE TABLE IF NOT EXISTS voice_portraits(id TEXT PRIMARY KEY, data TEXT NOT NULL);").map_err(|e| e.to_string())?;
         Ok(Self { connection })
     }
     pub fn list(&self) -> Result<Vec<Value>> {
@@ -179,6 +181,50 @@ impl Store {
         self.connection.execute("INSERT INTO settings(id,data) VALUES('preferences',?1) ON CONFLICT(id) DO UPDATE SET data=excluded.data",[v.to_string()]).map_err(|e|e.to_string())?;
         Ok(())
     }
+    pub fn voice_portraits(&self) -> Result<std::collections::HashMap<String, Value>> {
+        let mut q = self
+            .connection
+            .prepare("SELECT id,data FROM voice_portraits")
+            .map_err(|e| e.to_string())?;
+        let rows = q
+            .query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))
+            .map_err(|e| e.to_string())?;
+        rows.map(|r| {
+            let (id, data) = r.map_err(|e| e.to_string())?;
+            Ok((id, serde_json::from_str(&data).map_err(|e| e.to_string())?))
+        })
+        .collect()
+    }
+    pub fn save_voice_portrait(
+        &self,
+        id: &str,
+        portrait: &str,
+        prompt: &str,
+        origin: &str,
+    ) -> Result<()> {
+        if id.is_empty()
+            || id.len() > 128
+            || prompt.chars().count() > 1400
+            || !matches!(origin, "generated" | "custom")
+        {
+            return Err("Invalid voice portrait metadata".into());
+        }
+        if portrait.len() > 512 * 1024 {
+            return Err("Voice portrait exceeds image budget".into());
+        }
+        let data = portrait
+            .strip_prefix("data:image/webp;base64,")
+            .ok_or("Use a decoded WebP portrait")?;
+        let pixels = STANDARD
+            .decode(data)
+            .map_err(|_| "Invalid portrait encoding")?;
+        if pixels.len() < 16 || &pixels[0..4] != b"RIFF" || &pixels[8..12] != b"WEBP" {
+            return Err("Invalid portrait image".into());
+        }
+        let value = serde_json::json!({"portrait":portrait,"portraitPrompt":prompt,"portraitOrigin":origin});
+        self.connection.execute("INSERT INTO voice_portraits(id,data) VALUES(?1,?2) ON CONFLICT(id) DO UPDATE SET data=excluded.data", params![id, value.to_string()]).map_err(|e| e.to_string())?;
+        Ok(())
+    }
 }
 fn valid_id(v: &Value) -> Result<&str> {
     let id = v["id"].as_str().ok_or("Missing ID")?;
@@ -191,6 +237,35 @@ fn valid_id(v: &Value) -> Result<&str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn voice_art_is_separate_from_books_persists_and_rejects_active_content() {
+        let d = tempfile::tempdir().unwrap();
+        let path = d.path().join("art.db");
+        let data = format!(
+            "data:image/webp;base64,{}",
+            STANDARD.encode(b"RIFF\x08\x00\x00\x00WEBPVP8 ")
+        );
+        {
+            let s = Store::open(&path).unwrap();
+            s.save_voice_portrait("voice", &data, "Warm portrait", "generated")
+                .unwrap();
+            for invalid in [
+                "https://example.com/portrait.png",
+                "data:image/svg+xml;base64,PHN2Zz4=",
+                "data:image/webp;base64,bm90IGFuIGltYWdl",
+            ] {
+                assert!(s
+                    .save_voice_portrait("voice", invalid, "", "custom")
+                    .is_err());
+            }
+            assert!(s
+                .save_voice_portrait("voice", &"x".repeat(512 * 1024 + 1), "", "custom")
+                .is_err());
+        }
+        let s = Store::open(&path).unwrap();
+        assert_eq!(s.voice_portraits().unwrap()["voice"]["portrait"], data);
+        assert!(s.list().unwrap().is_empty());
+    }
     #[test]
     fn round_trip_and_metadata_update_preserve_body() {
         let d = tempfile::tempdir().unwrap();

@@ -1,6 +1,6 @@
 # Origami
 
-A local desktop reader and text-to-speech workspace for Windows and Linux. MIT-licensed source code. This is an early development build, not the completed first release.
+A local desktop reader and text-to-speech workspace for Windows and Linux. MPL-2.0-licensed source code. This is an early development build, not the completed first release.
 
 ![Library](docs/screenshots/library.png)
 
@@ -97,8 +97,12 @@ Changes should include validation appropriate to the behavior. Maintain platform
 
 ## License and assets
 
-App source: [MIT](LICENSE). Dependencies retain their licenses. Model weights, voice references and user documents have separate terms and are not relicensed by this repository. The current demo passages are original text with fictional author names. See [asset provenance](docs/ASSETS.md).
+App source: [MPL 2.0](LICENSE). Dependencies retain their licenses. Model weights, voice references and user documents have separate terms and are not relicensed by this repository. The current demo passages are original text with fictional author names. See [asset provenance](docs/ASSETS.md).
 
-Six complete text EPUBs are prepared in [the starter-library pack](assets/starter-library/README.txt) for the planned preloaded library. See its [rights record](assets/starter-library/RIGHTS.txt) and source manifest before redistributing. These historical texts have been reviewed for the US, Canada and UK; this is not a worldwide copyright clearance. Third-party covers and fonts are excluded. The pack can be imported now and has not replaced existing libraries or the current demo seed.
+Six complete text EPUBs are prepared in [the starter-library pack](assets/starter-library/README.txt) for the planned preloaded library. Five historical texts have been reviewed for the US, Canada and UK, with CC0 Standard Ebooks contributions; this is not a worldwide copyright clearance. The modern-setting selection, Little Brother, uses CC BY-NC-SA 3.0. Commercial redistributors must omit it or obtain permission. See the [rights record](assets/starter-library/RIGHTS.txt) and source manifest. Third-party covers and fonts are excluded. The pack can be imported now and has not replaced existing libraries or the current demo seed.
+
+Voice portraits use the same optional local image runtime as covers. The improved profile uses DreamShaper 8 LCM, renders at 512 × 512 and stores 256 × 256 character art. Settings can disable automatic generation. Missing art is filled when the catalog is open and playback is stopped; Refresh voices detects newly configured profiles and retries missing portraits. Hover or focus a portrait to choose an image or regenerate it. Art persists by voice ID independently of books, and existing chosen images are kept. Profiles can describe ethnicity and appearance explicitly, separately from language. See [portrait setup and behavior](docs/VOICE-PORTRAITS.md).
+
+Cover art settings can hide Origami's title/author overlays globally. Individual books also have Automatic, Show and Hide modes in the cover editor and Document details. Author editing is directly available in Document details, including an option to create or reuse an author-named collection for that document. The sidebar's Filters section applies author, format and reading-status filters across collections, and supports newest/oldest last-read ordering. Filters and order persist. Finished reading can be marked explicitly in Document details; old documents without an explicit choice use their final-paragraph position.
 
 The project does not modify or take over an existing Maeve installation.

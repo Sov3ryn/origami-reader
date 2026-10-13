@@ -42,6 +42,6 @@ Copy workers/cover-engine.example.json to `~/.config/app.origami.reader/cover-en
 
 ## Terms and attribution
 
-Powered by Stability AI. SD-Turbo has its own [Stability AI Community License](https://huggingface.co/stabilityai/sd-turbo/blob/main/LICENSE.md), separate from Origami's MIT code license. This Stability AI Model is licensed under the Stability AI Community License, Copyright © Stability AI Ltd. All Rights Reserved. Model distribution must retain its license and attribution. The native runtime has its own MIT license. Public model installation and packaging remain separate from the source repository.
+Powered by Stability AI. SD-Turbo has its own [Stability AI Community License](https://huggingface.co/stabilityai/sd-turbo/blob/main/LICENSE.md), separate from Origami's MPL 2.0 code license. This Stability AI Model is licensed under the Stability AI Community License, Copyright © Stability AI Ltd. All Rights Reserved. Model distribution must retain its license and attribution. The native runtime has its own MIT license. Public model installation and packaging remain separate from the source repository.
 
 ORIGAMI_DATA_DIR can point to an isolated library directory for native testing. It does not change the default user library when unset.

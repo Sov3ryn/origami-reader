@@ -63,8 +63,54 @@ fn delete_annotation(db: State<Database>, id: String) -> Result<()> {
         .delete_annotation(&id)
 }
 #[tauri::command]
-fn list_voices(app: tauri::AppHandle) -> Vec<Value> {
-    speech::voices(&app)
+fn list_voices(app: tauri::AppHandle, db: State<Database>) -> Result<Vec<Value>> {
+    let portraits =
+        db.0.lock()
+            .map_err(|_| "Database busy")?
+            .voice_portraits()?;
+    let mut voices = speech::voices(&app);
+    for voice in &mut voices {
+        if let Some(art) = voice["id"].as_str().and_then(|id| portraits.get(id)) {
+            for key in ["portrait", "portraitPrompt", "portraitOrigin"] {
+                voice[key] = art[key].clone();
+            }
+        }
+    }
+    Ok(voices)
+}
+#[tauri::command]
+async fn generate_voice_portrait(
+    app: tauri::AppHandle,
+    voice: String,
+    prompt: String,
+    seed: u32,
+) -> Result<String> {
+    if !speech::voices(&app).iter().any(|v| v["id"] == voice) {
+        return Err("Voice is not installed.".into());
+    }
+    let epoch = app.state::<covers::Covers>().generation_epoch();
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<covers::Covers>()
+            .portrait(app.clone(), prompt, seed, epoch)
+    })
+    .await
+    .map_err(|_| "Portrait generation task failed")?
+}
+#[tauri::command]
+fn save_voice_portrait(
+    app: tauri::AppHandle,
+    db: State<Database>,
+    voice: String,
+    portrait: String,
+    prompt: String,
+    origin: String,
+) -> Result<()> {
+    if !speech::voices(&app).iter().any(|v| v["id"] == voice) {
+        return Err("Voice is not installed.".into());
+    }
+    db.0.lock()
+        .map_err(|_| "Database busy")?
+        .save_voice_portrait(&voice, &portrait, &prompt, &origin)
 }
 #[tauri::command]
 async fn synthesize(app: tauri::AppHandle, text: String, voice: String) -> Result<Value> {
@@ -168,6 +214,8 @@ pub fn run() {
             save_annotation,
             delete_annotation,
             list_voices,
+            generate_voice_portrait,
+            save_voice_portrait,
             synthesize,
             prepare_voice,
             cancel_speech,

@@ -9,14 +9,11 @@
       "reference": "/absolute/path/to/reference.wav",
       "reference_text": "Exact words spoken in the reference recording.",
       "language": "English",
-      "languages": [
-        "English"
-      ],
+      "languages": ["English"],
       "gender": "unspecified",
-      "styles": [
-        "Narration"
-      ],
-      "accent": ""
+      "styles": ["Narration"],
+      "accent": "",
+      "portraitAppearance": "adult person, dark hair, charcoal wool jacket, calm expression"
     }
   }
 }

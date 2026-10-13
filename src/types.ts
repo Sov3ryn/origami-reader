@@ -25,6 +25,8 @@ export type BookMeta = {
   cover: string;
   coverImage?: string;
   coverOrigin?: "imported" | "custom" | "generated";
+  coverText?: "auto" | "show" | "hide";
+  finished?: boolean;
   voice: string;
   sourceHash: string;
 };
@@ -89,6 +91,10 @@ export type Preferences = {
   voiceLanguage: string;
   randomVoiceAtStartup: boolean;
   autoGenerateCovers: boolean;
+  autoGenerateVoicePortraits: boolean;
+  showCoverText: boolean;
+  libraryFilters: LibraryFilters;
+  librarySort: string;
   allowMatureCovers: boolean;
   romanNumeralHeadings: boolean;
 };
@@ -122,7 +128,12 @@ export type Voice = {
   gender: "female" | "male" | "unspecified";
   styles: string[];
   accent: string;
+  portrait?: string;
+  portraitPrompt?: string;
+  portraitOrigin?: "generated" | "custom";
+  portraitAppearance?: string;
 };
+export type LibraryFilters = { author: string; type: string; status: string };
 export type SpeechResult = { audio: string; rate: number; duration: number };
 export const defaultPreferences: Preferences = {
   theme: "plum",
@@ -165,6 +176,10 @@ export const defaultPreferences: Preferences = {
   voiceLanguage: "English",
   randomVoiceAtStartup: false,
   autoGenerateCovers: true,
+  autoGenerateVoicePortraits: true,
+  showCoverText: true,
+  libraryFilters: { author: "all", type: "all", status: "all" },
+  librarySort: "recent",
   allowMatureCovers: false,
   romanNumeralHeadings: true,
 };

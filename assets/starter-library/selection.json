@@ -52,16 +52,17 @@
       "why": "A woman who has spent her life obeying an oppressive family decides to live on her own terms. Warm, witty and romantic, with a satisfying emotional arc and approachable prose."
     },
     {
-      "id": "starter-great-gatsby",
-      "title": "The Great Gatsby",
-      "author": "F. Scott Fitzgerald",
-      "authorDeath": 1940,
-      "published": 1925,
-      "category": "Realistic social drama",
-      "repository": "f-scott-fitzgerald_the-great-gatsby",
-      "source": "https://standardebooks.org/ebooks/f-scott-fitzgerald/the-great-gatsby",
-      "catalog": "https://www.gutenberg.org/ebooks/64317",
-      "why": "Wealth, extravagant parties, reinvention and obsession, followed by consequences. The shortest full-length novel in the group and a different, darker emotional register. Set in the 1920s, not the present day."
+      "id": "starter-little-brother",
+      "title": "Little Brother",
+      "author": "Cory Doctorow",
+      "published": 2008,
+      "category": "Contemporary tech thriller",
+      "sourceKind": "author-html",
+      "source": "https://craphound.com/littlebrother/download/",
+      "editionSource": "https://craphound.com/littlebrother/Cory_Doctorow_-_Little_Brother.htm",
+      "license": "CC-BY-NC-SA-3.0",
+      "commercialRedistribution": false,
+      "why": "A teenager in modern San Francisco fights an invasive surveillance crackdown after a terrorist attack. Fast, tense and directly interested in privacy, technology and civil rights. Contemporary to its 2008 publication, not a story set in 2026. Includes mature themes and a brief sexual scene, but is not erotica."
     },
     {
       "id": "starter-count-monte-cristo",

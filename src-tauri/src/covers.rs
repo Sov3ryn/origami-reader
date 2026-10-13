@@ -13,6 +13,22 @@ use tauri::{AppHandle, Manager};
 type Result<T> = std::result::Result<T, String>;
 const COVER_WIDTH: &str = "320";
 const COVER_HEIGHT: &str = "448";
+#[derive(Clone, Copy)]
+enum ArtworkKind {
+    Cover,
+    VoicePortrait,
+}
+impl ArtworkKind {
+    fn size(self) -> (&'static str, &'static str) {
+        match self {
+            Self::Cover => (COVER_WIDTH, COVER_HEIGHT),
+            Self::VoicePortrait => ("512", "512"),
+        }
+    }
+}
+fn portrait_prompt(description: &str) -> String {
+    format!("Painted character portrait, fully clothed, adult. {description}. Centered face, head and shoulders, soft cinematic light, plain background, smooth illustration, text-free, no border.")
+}
 pub fn starter_cover(meta: &Value) -> bool {
     if meta["format"] == "Sample"
         || meta["id"]
@@ -138,8 +154,28 @@ impl Covers {
         mature: bool,
         epoch: u64,
     ) -> Result<String> {
+        self.generate_image(app, prompt, seed, mature, epoch, ArtworkKind::Cover)
+    }
+    pub fn portrait(
+        &self,
+        app: AppHandle,
+        prompt: String,
+        seed: u32,
+        epoch: u64,
+    ) -> Result<String> {
+        self.generate_image(app, prompt, seed, false, epoch, ArtworkKind::VoicePortrait)
+    }
+    fn generate_image(
+        &self,
+        app: AppHandle,
+        prompt: String,
+        seed: u32,
+        mature: bool,
+        epoch: u64,
+        kind: ArtworkKind,
+    ) -> Result<String> {
         if prompt.trim().is_empty() || prompt.chars().count() > 1400 {
-            return Err("Use a cover prompt of 1 to 1,400 characters.".into());
+            return Err("Use an image description of 1 to 1,400 characters.".into());
         }
         let _serial = self
             .serial
@@ -152,6 +188,26 @@ impl Covers {
         // A queued image request cannot unload a newer speech session.
         app.state::<crate::speech::Speech>().cancel()?;
         let c = config(&app)?;
+        let is_portrait = matches!(kind, ArtworkKind::VoicePortrait);
+        let model_config = if is_portrait && c["portrait"].is_object() {
+            &c["portrait"]
+        } else {
+            &c
+        };
+        let profile = if is_portrait {
+            model_config["profile"].as_str().unwrap_or("sd-turbo")
+        } else {
+            "sd-turbo"
+        };
+        let (steps, cfg, sampler, scheduler) = match profile {
+            "sd-turbo" => ("2", "1", "euler", "discrete"),
+            "dreamshaper-8-lcm" => ("6", "2", "lcm", "lcm"),
+            _ => {
+                return Err(
+                    "Unsupported portrait model profile. Use sd-turbo or dreamshaper-8-lcm.".into(),
+                )
+            }
+        };
         let directory = app
             .path()
             .app_cache_dir()
@@ -163,29 +219,38 @@ impl Covers {
             .map_err(|e| e.to_string())?
             .as_nanos();
         let path = directory.join(format!("cover-{stamp}.png"));
+        let (width, height) = kind.size();
+        let rendered_prompt = match kind {
+            ArtworkKind::Cover => generation_prompt(&prompt, mature),
+            ArtworkKind::VoicePortrait => portrait_prompt(&prompt),
+        };
         let result = (|| {
             let mut command =
                 Command::new(c["executable"].as_str().ok_or("Missing cover executable")?);
             command
                 .arg("-m")
-                .arg(c["model"].as_str().ok_or("Missing cover model")?)
+                .arg(
+                    model_config["model"]
+                        .as_str()
+                        .ok_or("Missing image model")?,
+                )
                 .arg("-p")
-                .arg(generation_prompt(&prompt, mature))
+                .arg(rendered_prompt)
                 .arg("-o")
                 .arg(&path)
                 .args([
                     "--steps",
-                    "2",
+                    steps,
                     "--cfg-scale",
-                    "1",
+                    cfg,
                     "--sampling-method",
-                    "euler",
+                    sampler,
                     "--scheduler",
-                    "discrete",
+                    scheduler,
                     "-W",
-                    COVER_WIDTH,
+                    width,
                     "-H",
-                    COVER_HEIGHT,
+                    height,
                     "--disable-image-metadata",
                     "--log-level",
                     "error",
@@ -193,10 +258,21 @@ impl Covers {
                 .arg("--seed")
                 .arg(seed.to_string())
                 .arg("--backend")
-                .arg(c["backend"].as_str().unwrap_or("cpu"))
+                .arg(
+                    model_config["backend"]
+                        .as_str()
+                        .or(c["backend"].as_str())
+                        .unwrap_or("cpu"),
+                )
                 .stdin(Stdio::null())
                 .stdout(Stdio::null())
                 .stderr(Stdio::null());
+            if is_portrait {
+                command.args(["--max-vram", "3"]);
+            }
+            if profile == "dreamshaper-8-lcm" {
+                command.args(["-n", "text, lettering, watermark, signature, logo, border, nudity, naked, distorted face, bad eyes, duplicate person"]);
+            }
             #[cfg(windows)]
             {
                 use std::os::windows::process::CommandExt;
@@ -264,6 +340,16 @@ impl Drop for Covers {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn portraits_use_a_small_square_and_do_not_inherit_cover_layout_or_mature_mode() {
+        assert_eq!(ArtworkKind::VoicePortrait.size(), ("512", "512"));
+        let prompt = portrait_prompt("Woman with an auburn bob and wool jacket");
+        assert!(prompt.contains("fully clothed, adult"));
+        assert!(prompt.contains("Centered face"));
+        assert!(prompt.contains("text-free"));
+        assert!(!prompt.contains("book-cover"));
+        assert!(!prompt.contains("title overlay"));
+    }
     #[test]
     fn mode_and_layout_are_applied_outside_the_editable_description() {
         let safe = generation_prompt("A moonlit castle", false);

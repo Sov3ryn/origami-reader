@@ -9,6 +9,8 @@ export function CoverDialog({
   prompt: initialPrompt,
   installed,
   active,
+  busy,
+  onText,
   idle,
   allowMature,
   starter,
@@ -22,6 +24,8 @@ export function CoverDialog({
   prompt: string;
   installed: boolean;
   active: boolean;
+  busy: boolean;
+  onText: (mode: BookMeta["coverText"]) => void;
   idle: boolean;
   allowMature: boolean;
   starter: boolean;
@@ -71,7 +75,7 @@ export function CoverDialog({
           if (e.key !== "Tab") return;
           const fields = Array.from(
             e.currentTarget.querySelectorAll<HTMLElement>(
-              "button:not(:disabled),textarea:not(:disabled),input:not([type=file]):not(:disabled)",
+              "button:not(:disabled),textarea:not(:disabled),select:not(:disabled),input:not([type=file]):not(:disabled)",
             ),
           );
           const first = fields[0],
@@ -101,6 +105,20 @@ export function CoverDialog({
           <Cover book={book} />
           <div>
             <h3>{book.title}</h3>
+            <label>
+              Cover text
+              <select
+                aria-label="Cover text overlay"
+                value={book.coverText || "auto"}
+                onChange={(e) =>
+                  onText(e.target.value as BookMeta["coverText"])
+                }
+              >
+                <option value="auto">Automatic</option>
+                <option value="show">Show title and author</option>
+                <option value="hide">Hide title and author</option>
+              </select>
+            </label>
             <input
               ref={input}
               type="file"
@@ -122,7 +140,7 @@ export function CoverDialog({
               }}
             />
             <button
-              disabled={active || saving}
+              disabled={busy || saving}
               onClick={() => input.current?.click()}
             >
               <ImagePlus size={17} />
@@ -161,7 +179,7 @@ export function CoverDialog({
             <div className="dialog-actions">
               <button
                 className="primary"
-                disabled={!installed || !idle || active || !prompt.trim()}
+                disabled={!installed || !idle || busy || !prompt.trim()}
                 onClick={() => {
                   setError("");
                   void onGenerate(prompt).catch((e) => setError(String(e)));
@@ -191,7 +209,9 @@ export function CoverDialog({
                 ? "Local cover generation requires the cover engine setup. You can choose an image now."
                 : !idle
                   ? "Stop playback to generate a cover."
-                  : "Each generation uses a new random seed. The image model unloads when it finishes."}
+                  : busy && !active
+                    ? "Another image is being generated."
+                    : "Each generation uses a new random seed. The image model unloads when it finishes."}
             </p>
             {error && <p role="alert">{error}</p>}
           </div>

@@ -136,6 +136,30 @@ export async function generateCover(
 export async function cancelCover() {
   if (desktop) await invoke("cancel_cover");
 }
+export async function generateVoicePortrait(
+  voice: string,
+  prompt: string,
+  seed: number,
+): Promise<string> {
+  if (!desktop)
+    throw new Error("Portrait generation is available in the desktop app.");
+  return invoke("generate_voice_portrait", { voice, prompt, seed });
+}
+export async function saveVoicePortrait(
+  voice: string,
+  portrait: string,
+  prompt: string,
+  origin: "generated" | "custom",
+) {
+  if (!desktop)
+    throw new Error("Voice portraits are available in the desktop app.");
+  return invoke<void>("save_voice_portrait", {
+    voice,
+    portrait,
+    prompt,
+    origin,
+  });
+}
 export async function exportText(name: string, text: string) {
   if (desktop) return invoke("export_text", { name, text });
   const u = URL.createObjectURL(new Blob([text], { type: "text/plain" }));

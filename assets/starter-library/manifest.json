@@ -1,7 +1,7 @@
 {
   "version": 1,
   "prepared": "2026-10-13",
-  "format": "Complete text EPUBs, with original dedications, epigraphs, epilogues and endnotes where present",
+  "format": "Complete text EPUBs; five historical editions and one separately licensed contemporary novel",
   "books": [
     {
       "id": "starter-enchanted-castle",
@@ -440,66 +440,28 @@
       "artworkIncluded": false
     },
     {
-      "id": "starter-great-gatsby",
-      "title": "The Great Gatsby",
-      "author": "F. Scott Fitzgerald",
-      "authorDeath": 1940,
-      "published": 1925,
-      "category": "Realistic social drama",
-      "repository": "f-scott-fitzgerald_the-great-gatsby",
-      "source": "https://standardebooks.org/ebooks/f-scott-fitzgerald/the-great-gatsby",
-      "catalog": "https://www.gutenberg.org/ebooks/64317",
-      "why": "Wealth, extravagant parties, reinvention and obsession, followed by consequences. The shortest full-length novel in the group and a different, darker emotional register. Set in the 1920s, not the present day.",
-      "revision": "fe47c8c04f5175d45f9410f4e3ca64c257ae0acc",
-      "filename": "great-gatsby.epub",
-      "sha256": "5a37263aee75a66e7225fa0c2263860e8822547377e1e845f24aa246f6180894",
-      "bytes": 128179,
-      "chapterCount": 9,
-      "wordCount": 48151,
+      "id": "starter-little-brother",
+      "title": "Little Brother",
+      "author": "Cory Doctorow",
+      "published": 2008,
+      "category": "Contemporary tech thriller",
+      "sourceKind": "author-html",
+      "source": "https://craphound.com/littlebrother/download/",
+      "editionSource": "https://craphound.com/littlebrother/Cory_Doctorow_-_Little_Brother.htm",
+      "license": "CC-BY-NC-SA-3.0",
+      "commercialRedistribution": false,
+      "why": "A teenager in modern San Francisco fights an invasive surveillance crackdown after a terrorist attack. Fast, tense and directly interested in privacy, technology and civil rights. Contemporary to its 2008 publication, not a story set in 2026. Includes mature themes and a brief sexual scene, but is not erotica.",
+      "revision": "9a03c6daa7886e2878eda38bdbb97e7855d5c7883bea26b6aff248573cbbbe34",
+      "filename": "little-brother.epub",
+      "sha256": "fdf1ee261cf045840dffa7f5e4c3b691a105f856bf58487fc91eefa5eb198e46",
+      "bytes": 293308,
+      "chapterCount": 21,
+      "wordCount": 118271,
+      "sourceParagraphCount": 3227,
       "contentFiles": [
         {
-          "file": "text/dedication.xhtml",
-          "sha256": "622831a89bcae9d325318247b74b0f35dbeea5141689b1ea27b999eeb924bb51"
-        },
-        {
-          "file": "text/epigraph.xhtml",
-          "sha256": "d419148725a5339d97f355cca8f6c1134a6ddf5d7c4ea269f687da0d4b9e8c8c"
-        },
-        {
-          "file": "text/chapter-1.xhtml",
-          "sha256": "7e46ac1dcf4d16f62101a0b87de645f86f967d661f5697beec7e77e9713e2fcd"
-        },
-        {
-          "file": "text/chapter-2.xhtml",
-          "sha256": "bf966f46e9f0bb6ee6c19858c82ffec561aad0ec5d1f5cfb26830dec3f1cb981"
-        },
-        {
-          "file": "text/chapter-3.xhtml",
-          "sha256": "295ab883333375679d7c39437879fb7fc5562a403ed66dd9bbbb2d1727839ea2"
-        },
-        {
-          "file": "text/chapter-4.xhtml",
-          "sha256": "eaaab5359384cb52400754175c24776c91912511720c2b9e7b53bc08373b939b"
-        },
-        {
-          "file": "text/chapter-5.xhtml",
-          "sha256": "ee9625d972c43ef466fa33aeb36ce6b769c732148a89f835da52ed758367d745"
-        },
-        {
-          "file": "text/chapter-6.xhtml",
-          "sha256": "7d2b1d0940127153b7203b945015a2af3765bdddd6b34161e35ce01d2e18ac2a"
-        },
-        {
-          "file": "text/chapter-7.xhtml",
-          "sha256": "a70738f98be214363f9d252ceda53d3cb9001e11ae2f30372fe663ce52872b32"
-        },
-        {
-          "file": "text/chapter-8.xhtml",
-          "sha256": "a120c86ff6f8d5d40a0d0c57a97d431cb374e410b51f980c7e0a4e5a15f6dc0d"
-        },
-        {
-          "file": "text/chapter-9.xhtml",
-          "sha256": "6c9be29ac14eeb964615c62d53e038cffad180838a2df389529927aa7cfb6634"
+          "file": "https://craphound.com/littlebrother/Cory_Doctorow_-_Little_Brother.htm",
+          "sha256": "9a03c6daa7886e2878eda38bdbb97e7855d5c7883bea26b6aff248573cbbbe34"
         }
       ],
       "artworkIncluded": false

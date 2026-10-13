@@ -1,6 +1,15 @@
-import type { ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 import type { BookMeta } from "../types";
 import { ImagePlus } from "lucide-react";
+export const CoverTextContext = createContext(true);
+export function hasCoverText(book: BookMeta, enabled: boolean): boolean {
+  return (
+    enabled &&
+    (book.coverText === "show" ||
+      (book.coverText !== "hide" &&
+        (!book.coverImage || book.coverOrigin === "generated")))
+  );
+}
 export function IconButton({
   label,
   children,
@@ -35,6 +44,7 @@ export function Cover({
   book: BookMeta;
   small?: boolean;
 }) {
+  const text = hasCoverText(book, useContext(CoverTextContext));
   return (
     <div
       className={
@@ -48,14 +58,14 @@ export function Cover({
         book.coverImage
           ? {
               backgroundImage:
-                (book.coverOrigin === "generated"
+                (text
                   ? "linear-gradient(#11182755, #11182705 45%, #111827a0), "
                   : "") + `url("${book.coverImage}")`,
             }
           : undefined
       }
     >
-      {(!book.coverImage || book.coverOrigin === "generated") && (
+      {text && (
         <>
           <span className="cover-rule" />
           <span className="cover-title">{book.title}</span>

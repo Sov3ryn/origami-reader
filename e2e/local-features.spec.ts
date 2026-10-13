@@ -17,7 +17,7 @@ test.beforeEach(async ({ page }) => {
     const load = () =>
       JSON.parse(
         localStorage.getItem("local-feature-fixture") ||
-          '{"books":{},"settings":{}}',
+          '{"books":{},"settings":{"autoGenerateVoicePortraits":false}}',
       );
     const save = (value: unknown) =>
       localStorage.setItem("local-feature-fixture", JSON.stringify(value));
@@ -188,15 +188,13 @@ test("mature covers require an opt-in, persist the choice, and remain disabled f
     .getByRole("button", { name: "Library", exact: true })
     .first()
     .click();
-  await page
-    .locator("input[type=file]")
-    .setInputFiles({
-      name: "User cover mode.txt",
-      mimeType: "text/plain",
-      buffer: Buffer.from(
-        "A paper crane on a lake shore, with a cottage in the distance.",
-      ),
-    });
+  await page.locator("input[type=file]").setInputFiles({
+    name: "User cover mode.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from(
+      "A paper crane on a lake shore, with a cottage in the distance.",
+    ),
+  });
   const card = page
     .locator(".book-card")
     .filter({ hasText: "User cover mode" });

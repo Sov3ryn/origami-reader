@@ -1,5 +1,15 @@
 import { useMemo, useState } from "react";
-import { AudioLines, Check, Search, Star, X } from "lucide-react";
+import {
+  AudioLines,
+  Check,
+  Search,
+  Star,
+  X,
+  ImagePlus,
+  RefreshCw,
+  LoaderCircle,
+} from "lucide-react";
+import { VoicePortrait } from "./VoicePortrait";
 import type { Voice } from "../types";
 import { desktop } from "../storage";
 import {
@@ -16,6 +26,10 @@ type Props = {
   documentScope: boolean;
   language: string;
   onLanguage: (language: string) => void;
+  onPortrait: (voice: Voice) => void;
+  onRefresh: () => void;
+  portraitActive: string;
+  headingLevel?: 2 | 3;
 };
 export function VoiceCatalog({
   voices,
@@ -26,7 +40,12 @@ export function VoiceCatalog({
   documentScope,
   language,
   onLanguage,
+  onPortrait,
+  onRefresh,
+  portraitActive,
+  headingLevel = 3,
 }: Props) {
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   const [filters, setFilters] = useState<VoiceFilters>({
     ...emptyVoiceFilters,
     language,
@@ -47,7 +66,22 @@ export function VoiceCatalog({
   );
   return (
     <div className="inspector-content voice-catalog">
-      <h3>{documentScope ? "Document voice" : "Default voice"}</h3>
+      <Heading>{documentScope ? "Document voice" : "Default voice"}</Heading>
+      {desktop && (
+        <div className="voice-art-status">
+          <button className="text-button" onClick={onRefresh}>
+            <RefreshCw size={14} />
+            Refresh voices
+          </button>
+          {portraitActive && (
+            <span className="hint" role="status">
+              <LoaderCircle className="spin" size={14} />
+              Generating portrait for{" "}
+              {voices.find((v) => v.id === portraitActive)?.name || "voice"}
+            </span>
+          )}
+        </div>
+      )}
       <div className="search-field">
         <Search size={16} />
         <input
@@ -148,13 +182,31 @@ export function VoiceCatalog({
             key={v.id}
             className={"voice-card " + (selected === v.id ? "chosen" : "")}
           >
+            <div className="voice-portrait-control">
+              <button
+                className="portrait-select"
+                aria-label={"Select voice: " + v.name}
+                disabled={!v.available}
+                onClick={() => onSelect(v.id)}
+              >
+                <VoicePortrait voice={v} />
+              </button>
+              {desktop && (
+                <button
+                  className="icon-button portrait-edit"
+                  aria-label={"Change portrait for " + v.name}
+                  onClick={() => onPortrait(v)}
+                >
+                  <ImagePlus size={14} />
+                </button>
+              )}
+            </div>
             <button
               className="voice-choice"
               aria-label={"Use " + v.name}
               onClick={() => onSelect(v.id)}
               disabled={!v.available}
             >
-              <span className="avatar">{v.name[0]}</span>
               <span className="voice-description">
                 <strong>{v.name}</strong>
                 <small>

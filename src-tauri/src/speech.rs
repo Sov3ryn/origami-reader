@@ -68,7 +68,8 @@ pub fn voices(app: &AppHandle) -> Vec<Value> {
                         ),
                         "gender": gender,
                         "styles": v.get("styles").cloned().unwrap_or_else(|| json!([])),
-                        "accent": v["accent"].as_str().unwrap_or("")
+                        "accent": v["accent"].as_str().unwrap_or(""),
+                        "portraitAppearance": v["portraitAppearance"].as_str().unwrap_or("")
                     })
                 })
                 .collect()

@@ -1,10 +1,31 @@
 Origami starter library: rights and edition record
+
+Updated selection, 13 October 2026
+---------------------------------
+Little Brother replaces The Great Gatsby in the contemporary slot.
+Little Brother, copyright 2008 Cory Doctorow, is included with the user's
+approval under Creative Commons Attribution-NonCommercial-ShareAlike
+3.0 Unported. Source: https://craphound.com/littlebrother/download/
+License: https://creativecommons.org/licenses/by-nc-sa/3.0/
+The text-only EPUB conversion uses the same license. All source paragraphs,
+chapter/bookstore dedications, epilogue, afterwords and full license remain
+in order. Image assets are excluded and formatting is simplified. Source
+and generated EPUB hashes are recorded in manifest.json. No DRM is added.
+Commercial distributors must omit this book or get separate permission.
+The app's MPL 2.0 license does not override that restriction.
+
+The historical-text record below applies to the five remaining older
+books. Gatsby's prior review is retained as a record, but it is no longer
+part of the six-book pack. This is not a worldwide clearance for the
+historical texts. The contemporary story is set around its 2008 publication
+and contains mature themes, including a brief sexual scene, but is not
+erotica.
 Reviewed 13 October 2026
 
 This pack contains six complete English text editions. It does not contain
 the source editions' cover artwork, illustrations, title-page images, fonts,
 logos or promotional pages. The historical book text and modern editorial
-contributions have separate rights. Origami's MIT code license does not
+contributions have separate rights. Origami's MPL 2.0 code license does not
 relicense someone else's text, translation or artwork.
 
 REVIEWED TERRITORIES
