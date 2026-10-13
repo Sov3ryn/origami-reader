@@ -4,8 +4,10 @@ Reviewed 13 October 2026. Pack version 3, English.
 The intended release is pay what you want, including paid copies. No
 selected text has a NonCommercial-only license. Origami code remains
 MPL 2.0; the book texts and edition contributions keep separate rights.
-This is a prepared import pack. Automatic starter seeding remains planned,
-and existing user libraries and annotations are not modified.
+These editions are preloaded once by the app, with original local cover
+illustrations dedicated under CC0 1.0. Source-edition art is not included.
+Existing imports and annotations are retained. The three demo books and
+their annotations are backed up locally before removal from the library.
 
 CURRENT TITLES AND TEXT CONTRIBUTORS
 Dracula (1897), Bram Stoker, died 1912.

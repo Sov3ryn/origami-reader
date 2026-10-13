@@ -50,7 +50,7 @@ test("author editing creates or reuses a collection and filters persist with acc
   await page
     .getByRole("button", { name: "Reset library filters", exact: true })
     .click();
-  await expect(page.locator(".book-card")).toHaveCount(3);
+  await expect(page.locator(".book-card")).toHaveCount(6);
   await page.getByLabel("Collection reading order").selectOption("oldest-read");
   await expect(page.getByLabel("Sort library")).toHaveValue("oldest-read");
   expect(
@@ -77,7 +77,7 @@ test("global and per-book cover text switches retain metadata and selected artwo
   await show.uncheck();
   await page.reload();
   await expect(page.locator(".cover-title")).toHaveCount(0);
-  await expect(page.locator(".book-card h3")).toHaveCount(3);
+  await expect(page.locator(".book-card h3")).toHaveCount(6);
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(show).not.toBeChecked();
   await show.check();
@@ -85,5 +85,5 @@ test("global and per-book cover text switches retain metadata and selected artwo
     .locator(".main-nav")
     .getByRole("button", { name: "Library", exact: true })
     .click();
-  await expect(page.locator(".book-card .cover-title")).toHaveCount(2);
+  await expect(page.locator(".book-card .cover-title")).toHaveCount(5);
 });

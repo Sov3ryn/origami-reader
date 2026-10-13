@@ -105,6 +105,61 @@ function xml(data: Uint8Array | undefined, label: string): Document {
     throw new Error("EPUB contains invalid " + label);
   return doc;
 }
+// Read structural blocks without collapsing diaries or duplicating nested lists.
+export function epubParagraphs(
+  doc: Document,
+  chapter: number,
+  start = 0,
+): Paragraph[] {
+  const result: Paragraph[] = [];
+  const selector = "h1,h2,h3,h4,p,li,blockquote";
+  const emit = (el: Element, raw: string) => {
+    const text = raw.replace(/\s+/g, " ").trim();
+    if (!text) return;
+    // Some source editions mark a whole prefatory paragraph as a heading.
+    const heading =
+      /^h[1-4]$/i.test(el.localName) && text.split(/\s+/).length <= 30;
+    const type = [el, el.closest("section"), el.closest("article")]
+      .map((node) => node?.getAttribute("epub:type") || "")
+      .join(" ");
+    result.push({
+      id: "p-" + (start + result.length),
+      text,
+      chapter,
+      kind: heading ? "heading" : "paragraph",
+      ...(heading ? { headingLevel: Number(el.localName.slice(1)) } : {}),
+      ...(el.closest("blockquote") ? { quote: true } : {}),
+      ...(/(?:dateline|signature)/.test(type)
+        ? { align: "right" as const }
+        : /(?:dedication|titlepage)/.test(type) || (chapter === 1 && heading)
+          ? { align: "center" as const }
+          : {}),
+    });
+  };
+  const walk = (el: Element) => {
+    if (el.matches(selector) && !el.querySelector(selector)) {
+      emit(el, el.textContent || "");
+      return;
+    }
+    let buffer = "";
+    const flush = () => {
+      if (el.matches(selector)) emit(el, buffer);
+      buffer = "";
+    };
+    for (const node of Array.from(el.childNodes)) {
+      if (node.nodeType === 1) {
+        const child = node as Element;
+        if (child.matches(selector) || child.querySelector(selector)) {
+          flush();
+          walk(child);
+        } else buffer += child.textContent || "";
+      } else if (node.nodeType === 3) buffer += node.textContent || "";
+    }
+    flush();
+  };
+  walk(doc.querySelector("body") || doc.documentElement);
+  return result;
+}
 export async function importDocument(file: File): Promise<Book> {
   if (file.size > MAX_IMPORT_BYTES)
     throw new Error(
@@ -151,20 +206,8 @@ export async function importDocument(file: File): Promise<Book> {
       const content = entries[decodeURIComponent(resolved.pathname.slice(1))];
       const doc = xml(content, "chapter");
       doc.querySelectorAll("script,style,nav").forEach((el) => el.remove());
-      const blocks = Array.from(
-        doc.querySelectorAll("h1,h2,h3,h4,p,li,blockquote"),
-      ).filter((el) => !el.parentElement?.closest("li,blockquote"));
       chapter++;
-      for (const el of blocks) {
-        const text = el.textContent?.replace(/\s+/g, " ").trim();
-        if (text)
-          pieces.push({
-            id: "p-" + pieces.length,
-            text,
-            kind: /^h[1-4]$/i.test(el.localName) ? "heading" : "paragraph",
-            chapter,
-          });
-      }
+      pieces.push(...epubParagraphs(doc, chapter, pieces.length));
     }
     if (!pieces.length)
       throw new Error(
@@ -179,6 +222,14 @@ export async function importDocument(file: File): Promise<Book> {
     book.meta.author =
       pkg.getElementsByTagNameNS("*", "creator")[0]?.textContent ||
       "Unknown author";
+    book.meta.genres = Array.from(
+      pkg.getElementsByTagNameNS("*", "subject"),
+      (el) => el.textContent?.trim() || "",
+    )
+      .filter(Boolean)
+      .slice(0, 8)
+      .map((subject) => subject.slice(0, 80));
+    if (!book.meta.genres.length) delete book.meta.genres;
     const items = Array.from(pkg.getElementsByTagName("item"));
     const coverId = Array.from(pkg.getElementsByTagName("meta"))
       .find((m) => m.getAttribute("name") === "cover")

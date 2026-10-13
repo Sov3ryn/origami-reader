@@ -59,6 +59,21 @@ test.beforeEach(async ({ page }) => {
         target.proof.calls.push({ command, args });
         const state = load();
         switch (command) {
+          case "starter_library_installed":
+            return state.startersInstalled || false;
+          case "install_starter_library": {
+            for (const book of args.books as {
+              meta: { id: string };
+              paragraphs: unknown[];
+            }[])
+              state.books[book.meta.id] ??= {
+                ...book,
+                paragraphs: book.paragraphs.slice(0, 20),
+              };
+            state.startersInstalled = true;
+            save(state);
+            return;
+          }
           case "list_books":
             return Object.values(state.books).map(
               (b) => (b as { meta: unknown }).meta,
@@ -253,9 +268,7 @@ test("mature covers require an opt-in, persist the choice, and remain disabled f
     .getByRole("button", { name: "Library", exact: true })
     .first()
     .click();
-  const starter = page
-    .locator(".book-card")
-    .filter({ hasText: "The Atlas of Quiet Places" });
+  const starter = page.locator(".book-card").filter({ hasText: "Dracula" });
   await starter.locator(".cover-control").hover();
   await starter.getByRole("button", { name: /Change cover/ }).click();
   await expect(setting).not.toBeChecked();
@@ -266,7 +279,7 @@ test("mature covers require an opt-in, persist the choice, and remain disabled f
     }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Generate cover", exact: true })
+    .getByRole("button", { name: "Regenerate cover", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "Regenerate cover", exact: true }),
@@ -314,7 +327,7 @@ test("a default voice choice also updates an open document with its own saved vo
   const stored = await page.evaluate(
     () =>
       JSON.parse(localStorage.getItem("local-feature-fixture")!).books[
-        "sample-0"
+        "starter-dracula"
       ].meta.voice,
   );
   expect(stored).toBe("en1");

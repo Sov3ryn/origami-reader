@@ -1,0 +1,73 @@
+{
+  "created": "2026-10-13",
+  "origin": "Locally generated original illustrations; no source-edition art used",
+  "license": "CC0-1.0",
+  "images": [
+    {
+      "filename": "dracula.webp",
+      "model": "DreamShaper 8 LCM",
+      "seed": 8301,
+      "prompt": "Single flat book cover illustration, vertical artwork, edge-to-edge composition. Gothic vampire novel illustration, isolated Transylvanian stone castle on a steep cliff, a tiny carriage on the winding road, crimson twilight, dark mist, dramatic painterly atmosphere. No text, no letters, no title, no author name, no typography, no watermark, no border, no book mockup. Safe for a general audience, fully clothed people, no nudity or sexual content, no graphic violence.",
+      "standardMode": true,
+      "dimensions": [
+        320,
+        448
+      ]
+    },
+    {
+      "filename": "journey-center-earth.webp",
+      "model": "DreamShaper 8 LCM",
+      "seed": 8302,
+      "prompt": "Single flat book cover illustration, vertical artwork, edge-to-edge composition. Adventure novel illustration, enormous subterranean cavern with a luminous underground sea, tiny Victorian explorers standing on a rocky ledge, volcanic amber light, towering rock formations, painterly detailed landscape. No text, no letters, no title, no author name, no typography, no watermark, no border, no book mockup. Safe for a general audience, fully clothed people, no nudity or sexual content, no graphic violence.",
+      "standardMode": true,
+      "dimensions": [
+        320,
+        448
+      ]
+    },
+    {
+      "filename": "moonstone.webp",
+      "model": "DreamShaper 8 LCM",
+      "seed": 19453,
+      "prompt": "Luminous golden yellow gemstone resting on velvet cushion, antique brass candle beside it, misty English manor in background, blue moonlight, painterly oil illustration, edge to edge vertical landscape painting, no writing",
+      "standardMode": true,
+      "dimensions": [
+        320,
+        448
+      ]
+    },
+    {
+      "filename": "pride-prejudice.webp",
+      "model": "DreamShaper 8 LCM",
+      "seed": 8304,
+      "prompt": "Single flat book cover illustration, vertical artwork, edge-to-edge composition. Regency romance novel illustration, fully clothed adult woman in an elegant empire-waist gown seen from behind on an English country estate path, distant manor and flowering garden, warm rose and green tones, painterly romantic landscape. No text, no letters, no title, no author name, no typography, no watermark, no border, no book mockup. Safe for a general audience, fully clothed people, no nudity or sexual content, no graphic violence.",
+      "standardMode": true,
+      "dimensions": [
+        320,
+        448
+      ]
+    },
+    {
+      "filename": "grayson-stories.webp",
+      "model": "DreamShaper 8 LCM",
+      "seed": 8305,
+      "prompt": "Single flat book cover illustration, vertical artwork, edge-to-edge composition. Contemporary short story anthology illustration, an open window overlooking a modern city at twilight, a small paper bird on the windowsill, reflected starlight, warm human interior and cool speculative city, painterly literary illustration. No text, no letters, no title, no author name, no typography, no watermark, no border, no book mockup. Safe for a general audience, fully clothed people, no nudity or sexual content, no graphic violence.",
+      "standardMode": true,
+      "dimensions": [
+        320,
+        448
+      ]
+    },
+    {
+      "filename": "count-monte-cristo.webp",
+      "model": "DreamShaper 8 LCM",
+      "seed": 8306,
+      "prompt": "Single flat book cover illustration, vertical artwork, edge-to-edge composition. Historical revenge adventure novel illustration, solitary stone island fortress in the Mediterranean, a small sailing ship below, storm clouds breaking into golden light, deep teal water, dramatic painterly landscape. No text, no letters, no title, no author name, no typography, no watermark, no border, no book mockup. Safe for a general audience, fully clothed people, no nudity or sexual content, no graphic violence.",
+      "standardMode": true,
+      "dimensions": [
+        320,
+        448
+      ]
+    }
+  ]
+}

@@ -12,6 +12,18 @@ fn list_books(db: State<Database>) -> Result<Vec<Value>> {
     db.0.lock().map_err(|_| "Database busy")?.list()
 }
 #[tauri::command]
+fn starter_library_installed(db: State<Database>) -> Result<bool> {
+    db.0.lock()
+        .map_err(|_| "Database busy")?
+        .starter_installed()
+}
+#[tauri::command]
+fn install_starter_library(db: State<Database>, books: Vec<Value>) -> Result<()> {
+    db.0.lock()
+        .map_err(|_| "Database busy")?
+        .install_starters(books)
+}
+#[tauri::command]
 fn read_book(db: State<Database>, id: String) -> Result<Value> {
     db.0.lock().map_err(|_| "Database busy")?.read(&id)
 }
@@ -204,6 +216,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             list_books,
+            starter_library_installed,
+            install_starter_library,
             read_book,
             save_book,
             save_meta,

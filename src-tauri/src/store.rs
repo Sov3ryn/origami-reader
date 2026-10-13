@@ -26,6 +26,109 @@ impl Store {
         })
         .collect()
     }
+    pub fn starter_installed(&self) -> Result<bool> {
+        self.connection
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM settings WHERE id='starter-library-v3-installed')",
+                [],
+                |r| r.get(0),
+            )
+            .map_err(|e| e.to_string())
+    }
+    pub fn install_starters(&self, books: Vec<Value>) -> Result<()> {
+        self.connection
+            .execute_batch("BEGIN IMMEDIATE")
+            .map_err(|e| e.to_string())?;
+        let result = (|| {
+            if self.starter_installed()? {
+                return Ok(());
+            }
+            let manifest: Value =
+                serde_json::from_str(include_str!("../../assets/starter-library/manifest.json"))
+                    .map_err(|e| e.to_string())?;
+            let mut current = self.list()?;
+            for book in books {
+                let meta = &book["meta"];
+                if !manifest["books"].as_array().unwrap().iter().any(|b| {
+                    b["sha256"] == meta["sourceHash"]
+                        && (b["id"] == meta["id"]
+                            || current.iter().any(|existing| {
+                                existing["id"] == meta["id"]
+                                    && existing["sourceHash"] == meta["sourceHash"]
+                            }))
+                }) {
+                    return Err("Unknown starter edition".into());
+                }
+                if let Some(found) = current
+                    .iter_mut()
+                    .find(|b| b["id"] == meta["id"] || b["sourceHash"] == meta["sourceHash"])
+                {
+                    if found["coverImage"].as_str().unwrap_or("").is_empty()
+                        && found["deleted"] != true
+                    {
+                        for field in ["coverImage", "coverOrigin", "coverText"] {
+                            found[field] = meta[field].clone();
+                        }
+                        self.save_meta(found.clone())?;
+                    }
+                    continue;
+                }
+                self.save(book.clone())?;
+                current.push(meta.clone());
+            }
+            // Do not retire demos or mark success if any edition is missing.
+            if manifest["books"].as_array().unwrap().iter().any(|edition| {
+                !current
+                    .iter()
+                    .any(|b| b["id"] == edition["id"] || b["sourceHash"] == edition["sha256"])
+            }) {
+                return Err("Incomplete starter library".into());
+            }
+            let mut backup = Vec::new();
+            for meta in current {
+                let id = meta["id"].as_str().unwrap_or("");
+                if !matches!(id, "sample-0" | "sample-1" | "sample-2")
+                    || meta["format"] != "Sample"
+                    || meta["sourceHash"] != id
+                {
+                    continue;
+                }
+                let mut book = self.read(id)?;
+                book["annotations"] =
+                    serde_json::to_value(self.annotations(Some(id))?).map_err(|e| e.to_string())?;
+                backup.push(book);
+                self.connection
+                    .execute("DELETE FROM annotations WHERE book_id=?1", [id])
+                    .map_err(|e| e.to_string())?;
+                self.connection
+                    .execute("DELETE FROM books WHERE id=?1", [id])
+                    .map_err(|e| e.to_string())?;
+            }
+            self.connection
+                .execute(
+                    "INSERT INTO settings(id,data) VALUES('starter-demo-backup-v3',?1)",
+                    [serde_json::to_string(&backup).map_err(|e| e.to_string())?],
+                )
+                .map_err(|e| e.to_string())?;
+            self.connection
+                .execute(
+                    "INSERT INTO settings(id,data) VALUES('starter-library-v3-installed','true')",
+                    [],
+                )
+                .map_err(|e| e.to_string())?;
+            Ok(())
+        })();
+        match result {
+            Ok(()) => self
+                .connection
+                .execute_batch("COMMIT")
+                .map_err(|e| e.to_string()),
+            Err(error) => {
+                let _ = self.connection.execute_batch("ROLLBACK");
+                Err(error)
+            }
+        }
+    }
     pub fn save(&self, book: Value) -> Result<()> {
         let meta = &book["meta"];
         let id = valid_id(meta)?;
@@ -237,6 +340,64 @@ fn valid_id(v: &Value) -> Result<&str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn starter_fixtures() -> Vec<Value> {
+        let manifest: Value =
+            serde_json::from_str(include_str!("../../assets/starter-library/manifest.json"))
+                .unwrap();
+        manifest["books"].as_array().unwrap().iter().map(|b| serde_json::json!({
+            "meta":{"id":b["id"],"sourceHash":b["sha256"],"title":b["title"],"coverImage":"bundled-art","deleted":false},
+            "paragraphs":[{"id":"p-0","text":"Fixture text"}]
+        })).collect()
+    }
+    #[test]
+    fn starter_migration_is_atomic_preserves_user_data_and_does_not_repeat() {
+        let d = tempfile::tempdir().unwrap();
+        let path = d.path().join("starter.db");
+        let s = Store::open(&path).unwrap();
+        let demo = serde_json::json!({"meta":{"id":"sample-0","sourceHash":"sample-0","format":"Sample"},"paragraphs":[{"id":"p-0","text":"Demo"}]});
+        s.save(demo.clone()).unwrap();
+        s.save_annotation(
+            serde_json::json!({"id":"note-demo","bookId":"sample-0","text":"Keep in backup"}),
+        )
+        .unwrap();
+        s.save(serde_json::json!({"meta":{"id":"user-book","sourceHash":"user-hash"},"paragraphs":[{"id":"p-0","text":"User text"}]})).unwrap();
+        s.save_settings(serde_json::json!({"theme":"forest"}))
+            .unwrap();
+        let mut invalid = starter_fixtures();
+        invalid.last_mut().unwrap()["paragraphs"] = serde_json::json!([]);
+        assert!(s.install_starters(invalid).is_err());
+        assert!(!s.starter_installed().unwrap());
+        assert_eq!(s.list().unwrap().len(), 2);
+        assert_eq!(s.read("sample-0").unwrap(), demo);
+        let mut existing = starter_fixtures().remove(0);
+        existing["meta"]["id"] = Value::from("imported-copy");
+        existing["meta"]["coverImage"] = Value::from("my-art");
+        existing["meta"]["position"] = Value::from(9);
+        s.save(existing.clone()).unwrap();
+        s.install_starters(starter_fixtures()).unwrap();
+        assert!(s.starter_installed().unwrap());
+        assert_eq!(s.list().unwrap().len(), 7);
+        assert_eq!(s.read("imported-copy").unwrap(), existing);
+        assert!(s.read("user-book").is_ok());
+        assert_eq!(s.settings().unwrap()["theme"], "forest");
+        let backup: String = s
+            .connection
+            .query_row(
+                "SELECT data FROM settings WHERE id='starter-demo-backup-v3'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        let backup: Value = serde_json::from_str(&backup).unwrap();
+        assert_eq!(backup[0]["annotations"][0]["text"], "Keep in backup");
+        s.connection
+            .execute("DELETE FROM books WHERE id='starter-moonstone'", [])
+            .unwrap();
+        drop(s);
+        let s = Store::open(&path).unwrap();
+        s.install_starters(starter_fixtures()).unwrap();
+        assert!(s.read("starter-moonstone").is_err());
+    }
     #[test]
     fn voice_art_is_separate_from_books_persists_and_rejects_active_content() {
         let d = tempfile::tempdir().unwrap();

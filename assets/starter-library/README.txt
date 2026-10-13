@@ -12,8 +12,10 @@ Surprise adventure: The Count of Monte Cristo, Alexandre Dumas,
 Complete text editions, with source art and fonts excluded. The modern
 collection contains sixteen stories and includes adult themes and sexual
 references. It is not a present-day novel or a dedicated YA collection.
-Import books/*.epub to try this pack. Automatic inclusion in the app is
-still planned. Existing libraries, notes and positions are untouched.
+The app preloads these six editions with bundled original cover art once.
+Existing imports, custom covers, notes and reading positions are preserved.
+Legacy demos are backed up locally before removal. Deleted starter entries
+are not restored on later launches. Import books/*.epub for a separate copy.
 
 No selected text has an NC-only license. Paid and zero-price distribution
 is the intended use, subject to the notices in RIGHTS.txt. Older texts meet

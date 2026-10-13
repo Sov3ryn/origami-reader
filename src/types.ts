@@ -6,6 +6,9 @@ export type Paragraph = {
   text: string;
   kind: "heading" | "paragraph";
   chapter: number;
+  headingLevel?: number;
+  quote?: boolean;
+  align?: "center" | "right";
   spokenEdits?: SpokenEdit[];
 };
 export type SpokenEdit = { start: number; end: number; text: string };
@@ -29,6 +32,7 @@ export type BookMeta = {
   finished?: boolean;
   voice: string;
   sourceHash: string;
+  genres?: string[];
 };
 export type Book = { meta: BookMeta; paragraphs: Paragraph[] };
 export type Annotation = {

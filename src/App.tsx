@@ -12,6 +12,8 @@ import {
 import { CoverDialog } from "./components/CoverDialog";
 import { coverPrompt, starterCover } from "./covers";
 import { useCovers } from "./useCovers";
+import { starterNotices } from "./starterLibrary";
+import { bookGenres, genreColor } from "./bookGenres";
 import { startupVoice } from "./voiceCatalog";
 import {
   checkedCollectionName,
@@ -1610,6 +1612,28 @@ export default function App() {
       </div>
     );
   }
+  if (!ready)
+    return (
+      <main
+        style={{
+          padding: 48,
+          color: "#eee9f3",
+          background: "#17161b",
+          minHeight: "100vh",
+        }}
+        aria-busy={!notice}
+      >
+        <h1>Origami</h1>
+        <p role={notice ? "alert" : "status"}>
+          {notice || "Preparing your library…"}
+        </p>
+        {notice && (
+          <button onClick={() => window.location.reload()}>
+            Retry loading library
+          </button>
+        )}
+      </main>
+    );
   return (
     <CoverTextContext value={prefs.showCoverText}>
       <div
@@ -2310,6 +2334,21 @@ export default function App() {
                             <span className="continue-info">
                               <strong>{latest.title}</strong>
                               <span>{latest.author}</span>
+                              <span
+                                className="genre-tags"
+                                aria-label="Book genres"
+                              >
+                                {bookGenres(latest).map((genre) => (
+                                  <span
+                                    key={genre}
+                                    className={
+                                      "genre-tag genre-" + genreColor(genre)
+                                    }
+                                  >
+                                    {genre}
+                                  </span>
+                                ))}
+                              </span>
                               <span className="book-progress">
                                 <progress
                                   value={latest.position}
@@ -2396,6 +2435,21 @@ export default function App() {
                               <h3>{b.title}</h3>
                               <p>{b.author}</p>
                               <span className="format-badge">{b.format}</span>
+                              <div
+                                className="genre-tags"
+                                aria-label="Book genres"
+                              >
+                                {bookGenres(b).map((genre) => (
+                                  <span
+                                    key={genre}
+                                    className={
+                                      "genre-tag genre-" + genreColor(genre)
+                                    }
+                                  >
+                                    {genre}
+                                  </span>
+                                ))}
+                              </div>
                               <div className="book-progress">
                                 <progress
                                   value={b.position}
@@ -2508,9 +2562,21 @@ export default function App() {
                               ))}
                           </div>
                           {p.kind === "heading" ? (
-                            <h2 data-paragraph={p.id}>{paragraphText(p)}</h2>
+                            <h2
+                              data-paragraph={p.id}
+                              data-heading-level={p.headingLevel || 2}
+                              data-align={p.align}
+                            >
+                              {paragraphText(p)}
+                            </h2>
                           ) : (
-                            <p data-paragraph={p.id}>{paragraphText(p)}</p>
+                            <p
+                              data-paragraph={p.id}
+                              data-quote={p.quote || undefined}
+                              data-align={p.align}
+                            >
+                              {paragraphText(p)}
+                            </p>
                           )}
                         </div>
                       ))}
@@ -2828,6 +2894,28 @@ export default function App() {
                         this workspace.
                       </p>
                       <h4>Open source</h4>
+                      <details>
+                        <summary>Starter library credits and licenses</summary>
+                        <p>
+                          Book texts retain their separate rights. Original
+                          bundled cover illustrations are dedicated under CC0
+                          1.0.
+                        </p>
+                        {Object.entries(starterNotices).map(([name, text]) => (
+                          <details key={name}>
+                            <summary>{name.split("/").at(-1)}</summary>
+                            <pre
+                              style={{
+                                whiteSpace: "pre-wrap",
+                                overflowWrap: "anywhere",
+                                fontSize: 12,
+                              }}
+                            >
+                              {text}
+                            </pre>
+                          </details>
+                        ))}
+                      </details>
                       <p>
                         MPL 2.0 app code. Model weights and voice recordings
                         retain their own terms and are not bundled with the

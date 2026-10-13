@@ -143,11 +143,13 @@ describe("complete commercial starter-library editions", () => {
       const finalParagraph = Array.from(
         finalChapter.querySelectorAll("p,li,blockquote"),
       )
-        .filter((el) => !el.parentElement?.closest("li,blockquote"))
+        .filter((el) => !el.querySelector("p,li,blockquote"))
         .at(-1)!
         .textContent!.replace(/\s+/g, " ")
         .trim();
       expect(book.paragraphs.map((p) => p.text)).toContain(finalParagraph);
+      if (item.id === "starter-dracula")
+        expect(book.paragraphs.length).toBeGreaterThan(1000);
       const headings = new Set(
         book.paragraphs
           .filter((p) => p.kind === "heading")

@@ -1,6 +1,10 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { openDB } from "idb";
-import { sampleBooks } from "./seeds";
+import {
+  isLegacyDemo,
+  prepareStarterBooks,
+  starterMigration,
+} from "./starterLibrary";
 import { validateSpokenEdits } from "./spokenText";
 import type {
   Annotation,
@@ -15,11 +19,67 @@ export const desktop = isTauri();
 let initialization: Promise<void> | undefined;
 export async function initializeLibrary() {
   initialization ??= (async () => {
-    if (!(await listBooks()).length) {
-      for (const item of sampleBooks()) await saveBook(item);
+    const done = desktop
+      ? await invoke<boolean>("starter_library_installed")
+      : await (await db()).get("settings", starterMigration);
+    if (done) return;
+    const books = await prepareStarterBooks(await listBooks(), readBook);
+    if (desktop) {
+      await invoke("install_starter_library", { books });
+      return;
     }
+    const d = await db();
+    const t = d.transaction(
+      ["metadata", "bodies", "settings", "annotations"],
+      "readwrite",
+    );
+    if (await t.objectStore("settings").get(starterMigration)) {
+      await t.done;
+      return;
+    }
+    const metadata = t.objectStore("metadata");
+    const bodies = t.objectStore("bodies");
+    const annotations = t.objectStore("annotations");
+    for (const book of books) {
+      const current = await metadata.getAll();
+      const found = current.find(
+        (b) => b.id === book.meta.id || b.sourceHash === book.meta.sourceHash,
+      );
+      if (found) {
+        if (!found.coverImage && !found.deleted)
+          await metadata.put({
+            ...found,
+            coverImage: book.meta.coverImage,
+            coverOrigin: book.meta.coverOrigin,
+            coverText: book.meta.coverText,
+          });
+        continue;
+      }
+      await metadata.put(book.meta);
+      await bodies.put(book.paragraphs, book.meta.id);
+    }
+    const backup = [];
+    for (const meta of (await metadata.getAll()).filter(isLegacyDemo)) {
+      const notes = await annotations.index("bookId").getAll(meta.id);
+      backup.push({
+        meta,
+        paragraphs: await bodies.get(meta.id),
+        annotations: notes,
+      });
+      for (const note of notes) await annotations.delete(note.id);
+      await bodies.delete(meta.id);
+      await metadata.delete(meta.id);
+    }
+    await t.objectStore("settings").put(backup, "starter-demo-backup-v3");
+    await t.objectStore("settings").put(true, starterMigration);
+    await t.done;
   })();
-  await initialization;
+  try {
+    await initialization;
+  } catch (error) {
+    initialization = undefined;
+    throw error;
+  }
   return listBooks();
 }
 const db = () =>

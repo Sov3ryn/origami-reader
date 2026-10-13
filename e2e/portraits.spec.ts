@@ -47,6 +47,21 @@ test.beforeEach(async ({ page }) => {
         target.artProof.calls.push({ command, args });
         const state = load();
         switch (command) {
+          case "starter_library_installed":
+            return state.startersInstalled || false;
+          case "install_starter_library": {
+            for (const book of args.books as {
+              meta: { id: string };
+              paragraphs: unknown[];
+            }[])
+              state.books[book.meta.id] ??= {
+                ...book,
+                paragraphs: book.paragraphs.slice(0, 20),
+              };
+            state.startersInstalled = true;
+            save(state);
+            return;
+          }
           case "list_books":
             return Object.values(state.books).map(
               (b) => (b as { meta: unknown }).meta,

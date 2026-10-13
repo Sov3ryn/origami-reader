@@ -1740,6 +1740,69 @@ progress::-webkit-progress-value {
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
+.passage h2 {
+  margin-top: 2em;
+  margin-bottom: 1em;
+  text-wrap: balance;
+}
+.passage:first-of-type h2 {
+  margin-top: 0.6em;
+}
+.passage h2[data-heading-level="1"] {
+  text-align: center;
+  font-size: 1.8em;
+}
+.passage h2[data-heading-level="3"],
+.passage h2[data-heading-level="4"] {
+  font-size: 1.15em;
+  letter-spacing: 0;
+  margin-top: 1.4em;
+}
+.passage p {
+  margin-bottom: 1.15em;
+}
+.passage p[data-quote="true"] {
+  padding-left: 0.8em;
+  border-left: 2px solid color-mix(in srgb, var(--page-muted) 25%, transparent);
+}
+.passage [data-align="right"] {
+  text-align: right;
+}
+.passage [data-align="center"] {
+  text-align: center;
+}
+.genre-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 9px 0;
+}
+.genre-tag {
+  --genre: var(--muted);
+  border: 1px solid color-mix(in srgb, var(--genre) 40%, transparent);
+  background: color-mix(in srgb, var(--genre) 12%, transparent);
+  color: var(--ink);
+  padding: 3px 7px;
+  border-radius: 5px;
+  font:
+    11px/1.3 system-ui,
+    sans-serif;
+}
+.genre-rose {
+  --genre: #d7799b;
+}
+.genre-violet {
+  --genre: #a28ad5;
+}
+.genre-blue {
+  --genre: #6b9dc6;
+}
+.genre-teal {
+  --genre: #609d90;
+}
+.genre-amber {
+  --genre: #ba9359;
+}
 .passage.speaking p {
   background: var(--mark-bg);
   color: var(--mark-ink);
