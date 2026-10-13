@@ -10,4 +10,6 @@ Keep these items together in a model folder: the unchanged checkpoint, CreativeM
 
 The author lists commercial image use and rental/service permissions, but not model-sale permission. Treat selling the checkpoint itself as disallowed under that release's permissions. A paid installer or paid software bundle containing weights should get clarification or permission from the author before shipping; this free-bundle review does not clear that scenario. MPL 2.0 allowing commercial code use does not override model terms.
 
+Origami's intended pricing is pay what you want, starting at zero. Do not extend the free-bundle conclusion to that payment-linked release automatically. Clarify with the author whether the planned installer containing weights is permitted, or select a model with clear permission for that distribution. This is an unresolved release requirement, not a determination that every optional donation arrangement constitutes model selling. Local image generation remains configured as before.
+
 This update changes local generation and setup. It does not publish an installer, place model weights in Git, or claim clearance for every distribution scenario. Books, speech models and voice recordings have separate terms.

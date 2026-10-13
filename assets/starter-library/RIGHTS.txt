@@ -14,6 +14,16 @@ and generated EPUB hashes are recorded in manifest.json. No DRM is added.
 Commercial distributors must omit this book or get separate permission.
 The app's MPL 2.0 license does not override that restriction.
 
+RELEASE PRICING CONTEXT
+Origami is planned as pay what you want, including a zero-price option.
+Allowing a free download does not automatically establish NonCommercial
+use for a payment-linked bundle. CC treats that question as dependent on
+the purpose and circumstances of the use. Little Brother is prepared but
+not cleared for this release arrangement without the author's permission
+or replacement by a commercially redistributable book. The other five
+texts retain the territorial limits described below.
+https://creativecommons.org/faq/#does-my-use-violate-the-noncommercial-clause-of-the-licenses
+
 The historical-text record below applies to the five remaining older
 books. Gatsby's prior review is retained as a record, but it is no longer
 part of the six-book pack. This is not a worldwide clearance for the
