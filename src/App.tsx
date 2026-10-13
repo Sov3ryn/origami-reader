@@ -14,6 +14,7 @@ import { coverPrompt, starterCover } from "./covers";
 import { useCovers } from "./useCovers";
 import { starterNotices } from "./starterLibrary";
 import { bookGenres, genreColor, normalizeGenres } from "./bookGenres";
+import { validateTrashDays } from "./trashRetention";
 import { startupVoice } from "./voiceCatalog";
 import {
   checkedCollectionName,
@@ -149,6 +150,8 @@ export default function App() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteCandidates, setDeleteCandidates] = useState<BookMeta[]>([]);
   const [deletingBooks, setDeletingBooks] = useState(false);
+  const [trashModeDraft, setTrashModeDraft] = useState("forever");
+  const [trashDaysDraft, setTrashDaysDraft] = useState("30");
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selection, setSelection] = useState<TextSelection | null>(null);
   const [draft, setDraft] = useState("");
@@ -312,6 +315,39 @@ export default function App() {
     if (!ready) return;
     void store.saveSettings(prefs).catch(error);
   }, [prefs, ready]);
+  useEffect(() => {
+    if (!ready) return;
+    setTrashModeDraft(prefs.trashRetentionDays === null ? "forever" : "days");
+    setTrashDaysDraft(String(prefs.trashRetentionDays ?? 30));
+    let active = true;
+    const purge = async () => {
+      try {
+        const removed = await store.purgeTrash(prefs.trashRetentionDays);
+        if (!active || !removed.length) return;
+        const ids = new Set(removed);
+        setBooks(await store.listBooks());
+        setAnnotations(await store.listAnnotations());
+        setNoteBooks((old) =>
+          Object.fromEntries(
+            Object.entries(old).filter(([id]) => !ids.has(id)),
+          ),
+        );
+        setSelected((old) => new Set([...old].filter((id) => !ids.has(id))));
+        setUndo((old) => { const kept=old?.filter(b=>!ids.has(b.id)); return kept?.length ? kept : null; });
+        setDeleteCandidates(old=>old.filter(b=>!ids.has(b.id)));
+        setReturnAnchor((old) => (old && ids.has(old.bookId) ? null : old));
+        notify(removed.length + " expired Trash items permanently deleted.");
+      } catch (e) {
+        if (active) error(e);
+      }
+    };
+    void purge();
+    const timer = window.setInterval(() => void purge(), 60_000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [ready, prefs.trashRetentionDays]);
   useEffect(() => {
     if (
       !ready ||
@@ -621,7 +657,12 @@ export default function App() {
   }
   async function moveToTrash(ids: Set<string>) {
     const affected = books.filter((b) => ids.has(b.id));
-    for (const b of affected) await store.saveMeta({ ...b, deleted: true });
+    for (const b of affected)
+      await store.saveMeta({
+        ...b,
+        deleted: true,
+        deletedAt: b.deleted ? (b.deletedAt ?? Date.now()) : Date.now(),
+      });
     if (book && ids.has(book.meta.id)) {
       await player.stop();
       setBook(null);
@@ -633,7 +674,8 @@ export default function App() {
     notify(affected.length + " moved to Trash. Saved exports are untouched.");
   }
   async function restore(items: BookMeta[]) {
-    for (const b of items) await store.saveMeta({ ...b, deleted: false });
+    for (const b of items)
+      await store.saveMeta({ ...b, deleted: false, deletedAt: undefined });
     setUndo(null);
     setSelected(new Set());
     await refresh();
@@ -2387,9 +2429,12 @@ export default function App() {
                   </div>
                   {collection === "Trash" && (
                     <p className="hint trash-policy">
-                      Items stay in Trash indefinitely. There is no automatic
-                      purge. Restore them anytime, or select items and choose
-                      Delete permanently. Saved exports are never deleted.
+                      {prefs.trashRetentionDays === null
+                        ? "Items stay in Trash indefinitely. There is no automatic purge."
+                        : `Items are permanently deleted after ${prefs.trashRetentionDays} days in Trash. Purging runs when Origami opens and while it is running.`}{" "}
+                      Restore items before they expire, or select items and
+                      choose Delete permanently. Saved exports are never
+                      deleted. Change retention in Settings.
                     </p>
                   )}
                   {selected.size > 0 && (
@@ -3006,6 +3051,62 @@ export default function App() {
                         {covers.engine.attribution}
                       </p>
                       <h3>Workspace</h3>
+                      <form
+                        className="author-form"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          try {
+                            const days = validateTrashDays(
+                              trashModeDraft === "forever"
+                                ? null
+                                : Number(trashDaysDraft),
+                            );
+                            patchPrefs({ trashRetentionDays: days });
+                            notify("Trash retention saved.");
+                          } catch (e) {
+                            error(e);
+                          }
+                        }}
+                      >
+                        <h4>Trash retention</h4>
+                        <label>
+                          Keep trashed items
+                          <select
+                            aria-label="Trash retention"
+                            value={trashModeDraft}
+                            onChange={(e) => setTrashModeDraft(e.target.value)}
+                          >
+                            <option value="forever">Keep indefinitely</option>
+                            <option value="days">
+                              Purge after a number of days
+                            </option>
+                          </select>
+                        </label>
+                        {trashModeDraft === "days" && (
+                          <label>
+                            Days in Trash
+                            <input
+                              aria-label="Days in Trash"
+                              type="number"
+                              min="1"
+                              max="3650"
+                              step="1"
+                              value={trashDaysDraft}
+                              onChange={(e) =>
+                                setTrashDaysDraft(e.target.value)
+                              }
+                            />
+                          </label>
+                        )}
+                        <p className="hint">
+                          Automatic purging permanently removes expired books
+                          and their annotations. Saving a shorter period can
+                          purge eligible items immediately. Older entries
+                          without a deletion date receive a full retention
+                          period starting now. Saved exports are untouched.
+                        </p>
+                        <button type="submit">Save Trash settings</button>
+                      </form>
                       <p>
                         Library data, notes and preferences are stored{" "}
                         {store.desktop

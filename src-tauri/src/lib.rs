@@ -42,6 +42,16 @@ fn delete_trashed_books(db: State<Database>, ids: Vec<String>) -> Result<()> {
         .delete_trashed(&ids)
 }
 #[tauri::command]
+fn purge_trash(db: State<Database>, days: Option<u32>) -> Result<Vec<String>> {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|e| e.to_string())?
+        .as_millis() as u64;
+    db.0.lock()
+        .map_err(|_| "Database busy")?
+        .purge_trash(days, now)
+}
+#[tauri::command]
 fn save_spoken_edits(
     db: State<Database>,
     book_id: String,
@@ -228,6 +238,7 @@ pub fn run() {
             save_book,
             save_meta,
             delete_trashed_books,
+            purge_trash,
             save_spoken_edits,
             read_settings,
             save_settings,

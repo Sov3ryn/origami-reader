@@ -47,6 +47,8 @@ test.beforeEach(async ({ page }) => {
         target.artProof.calls.push({ command, args });
         const state = load();
         switch (command) {
+          case "purge_trash":
+            return [];
           case "starter_library_installed":
             return state.startersInstalled || false;
           case "install_starter_library": {

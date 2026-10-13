@@ -6,6 +6,7 @@ import {
   starterMigration,
 } from "./starterLibrary";
 import { validateSpokenEdits } from "./spokenText";
+import { trashExpired, validateTrashDays } from "./trashRetention";
 import type {
   Annotation,
   Book,
@@ -144,6 +145,33 @@ export async function deleteTrashedBooks(ids: string[]) {
     await t.done.catch(() => {});
     throw error;
   }
+}
+export async function purgeTrash(days: number | null): Promise<string[]> {
+  validateTrashDays(days);
+  if (desktop) return invoke("purge_trash", { days });
+  const now = Date.now();
+  const d = await db();
+  const t = d.transaction(["metadata", "bodies", "annotations"], "readwrite");
+  const removed: string[] = [];
+  for (const meta of await t.objectStore("metadata").getAll()) {
+    if (!meta.deleted) continue;
+    // Older entries get a full retention period rather than an unknown age.
+    if (!Number.isFinite(meta.deletedAt)) {
+      await t.objectStore("metadata").put({ ...meta, deletedAt: now });
+      continue;
+    }
+    if (!trashExpired(meta, days, now)) continue;
+    for (const note of await t
+      .objectStore("annotations")
+      .index("bookId")
+      .getAll(meta.id))
+      await t.objectStore("annotations").delete(note.id);
+    await t.objectStore("bodies").delete(meta.id);
+    await t.objectStore("metadata").delete(meta.id);
+    removed.push(meta.id);
+  }
+  await t.done;
+  return removed;
 }
 export async function saveSpokenEdits(
   bookId: string,

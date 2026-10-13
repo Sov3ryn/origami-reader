@@ -25,6 +25,7 @@ export type BookMeta = {
   collection: string;
   favorite: boolean;
   deleted: boolean;
+  deletedAt?: number;
   cover: string;
   coverImage?: string;
   coverOrigin?: "imported" | "custom" | "generated";
@@ -101,6 +102,7 @@ export type Preferences = {
   librarySort: string;
   allowMatureCovers: boolean;
   romanNumeralHeadings: boolean;
+  trashRetentionDays: number | null;
 };
 export type SceneAppearance = Pick<
   Preferences,
@@ -191,4 +193,5 @@ export const defaultPreferences: Preferences = {
   librarySort: "recent",
   allowMatureCovers: false,
   romanNumeralHeadings: true,
+  trashRetentionDays: null,
 };

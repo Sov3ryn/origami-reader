@@ -1,17 +1,88 @@
 import { test, expect } from "@playwright/test";
+test("Trash retention is explicit, persists, grants legacy grace and purges expired entries", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator(".book-card")).toHaveCount(6);
+  await page.evaluate(async () => {
+    const d = await new Promise<IDBDatabase>((resolve) => {
+      const r = indexedDB.open("origami-reader-v1", 1);
+      r.onsuccess = () => resolve(r.result);
+    });
+    const t = d.transaction(["metadata", "annotations"], "readwrite");
+    for (const [id, stamp] of [
+      ["starter-dracula", Date.now() - 8 * 86_400_000],
+      ["starter-moonstone", null],
+    ] as const) {
+      const r = t.objectStore("metadata").get(id);
+      r.onsuccess = () =>
+        t
+          .objectStore("metadata")
+          .put({
+            ...r.result,
+            deleted: true,
+            ...(stamp === null ? {} : { deletedAt: stamp }),
+          });
+    }
+    t.objectStore("annotations").put({
+      id: "expired-note",
+      bookId: "starter-dracula",
+      text: "Expired",
+    });
+    await new Promise<void>((resolve, reject) => {
+      t.oncomplete = () => resolve();
+      t.onabort = () => reject(t.error);
+    });
+    d.close();
+  });
+  await page.reload();
+  await expect(page.locator(".book-card")).toHaveCount(4);
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.getByLabel("Trash retention", { exact: true })).toHaveValue(
+    "forever",
+  );
+  await page
+    .getByLabel("Trash retention", { exact: true })
+    .selectOption("days");
+  await page.getByLabel("Days in Trash", { exact: true }).fill("7");
+  await page
+    .getByRole("button", { name: "Save Trash settings", exact: true })
+    .click();
+  await page
+    .locator(".collection-row")
+    .getByRole("button", { name: /Trash/ })
+    .first()
+    .click();
+  await expect(page.locator(".book-card")).toHaveCount(1);
+  await expect(page.locator(".trash-policy")).toContainText("7 days");
+  await page.reload();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.getByLabel("Days in Trash", { exact: true })).toHaveValue(
+    "7",
+  );
+  await page
+    .getByLabel("Trash retention", { exact: true })
+    .selectOption("forever");
+  await page
+    .getByRole("button", { name: "Save Trash settings", exact: true })
+    .click();
+  await page.reload();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.getByLabel("Trash retention", { exact: true })).toHaveValue(
+    "forever",
+  );
+});
 
 test("imported genre tags persist, filter the library and can be cleared", async ({
   page,
 }) => {
   await page.goto("/");
   await expect(page.locator(".book-card")).toHaveCount(6);
-  await page
-    .locator("input[type=file]")
-    .setInputFiles({
-      name: "Tagged book.txt",
-      mimeType: "text/plain",
-      buffer: Buffer.from("First paragraph.\n\nSecond paragraph."),
-    });
+  await page.locator("input[type=file]").setInputFiles({
+    name: "Tagged book.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("First paragraph.\n\nSecond paragraph."),
+  });
   await page.locator(".book-open").filter({ hasText: "Tagged book" }).click();
   await page
     .getByRole("button", { name: "Expand inspector", exact: true })

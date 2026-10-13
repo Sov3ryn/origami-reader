@@ -203,6 +203,41 @@ impl Store {
         }
         transaction.commit().map_err(|e| e.to_string())
     }
+    pub fn purge_trash(&self, days: Option<u32>, now: u64) -> Result<Vec<String>> {
+        if days.is_some_and(|d| d == 0 || d > 3650) {
+            return Err("Choose between 1 and 3,650 days.".into());
+        }
+        let transaction = self
+            .connection
+            .unchecked_transaction()
+            .map_err(|e| e.to_string())?;
+        let mut removed = Vec::new();
+        for mut meta in self.list()? {
+            if meta["deleted"] != true {
+                continue;
+            }
+            let Some(stamp) = meta["deletedAt"].as_u64() else {
+                meta["deletedAt"] = Value::from(now);
+                self.save_meta(meta)?;
+                continue;
+            };
+            if days.is_some_and(|d| now >= stamp && now - stamp >= u64::from(d) * 86_400_000) {
+                let id = meta["id"]
+                    .as_str()
+                    .ok_or("Invalid trashed book")?
+                    .to_owned();
+                transaction
+                    .execute("DELETE FROM annotations WHERE book_id=?1", [&id])
+                    .map_err(|e| e.to_string())?;
+                transaction
+                    .execute("DELETE FROM books WHERE id=?1", [&id])
+                    .map_err(|e| e.to_string())?;
+                removed.push(id);
+            }
+        }
+        transaction.commit().map_err(|e| e.to_string())?;
+        Ok(removed)
+    }
     pub fn save_spoken_edits(&mut self, book: &str, paragraph: &str, edits: Value) -> Result<()> {
         let list = edits.as_array().ok_or("Invalid spoken edits")?;
         if list.len() > 1000 || edits.to_string().len() > 1024 * 1024 {
@@ -363,6 +398,36 @@ fn valid_id(v: &Value) -> Result<&str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn timed_purge_keeps_indefinite_active_and_legacy_entries_and_removes_expired_notes() {
+        let d = tempfile::tempdir().unwrap();
+        let s = Store::open(&d.path().join("purge.db")).unwrap();
+        let now = 100 * 86_400_000u64;
+        for (id, deleted, stamp) in [
+            ("old", true, Some(now - 7 * 86_400_000)),
+            ("recent", true, Some(now - 86_400_000)),
+            ("legacy", true, None),
+            ("active", false, Some(0)),
+            ("future", true, Some(now + 86_400_000)),
+        ] {
+            let mut meta = serde_json::json!({"id":id,"deleted":deleted});
+            if let Some(stamp) = stamp {
+                meta["deletedAt"] = Value::from(stamp)
+            };
+            s.save(serde_json::json!({"meta":meta,"paragraphs":[{"id":"p","text":"Text"}]}))
+                .unwrap();
+        }
+        s.save_annotation(serde_json::json!({"id":"expired-note","bookId":"old"}))
+            .unwrap();
+        assert!(s.purge_trash(None, now).unwrap().is_empty());
+        assert_eq!(s.metadata("legacy").unwrap()["deletedAt"], now);
+        assert!(s.purge_trash(Some(0), now).is_err());
+        assert_eq!(s.purge_trash(Some(7), now).unwrap(), vec!["old"]);
+        assert!(s.annotations(None).unwrap().is_empty());
+        for id in ["recent", "legacy", "active", "future"] {
+            assert!(s.read(id).is_ok());
+        }
+    }
     #[test]
     fn permanent_deletion_requires_trash_removes_annotations_and_preserves_exports() {
         let d = tempfile::tempdir().unwrap();
