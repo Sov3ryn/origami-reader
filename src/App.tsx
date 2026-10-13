@@ -13,7 +13,7 @@ import { CoverDialog } from "./components/CoverDialog";
 import { coverPrompt, starterCover } from "./covers";
 import { useCovers } from "./useCovers";
 import { starterNotices } from "./starterLibrary";
-import { bookGenres, genreColor } from "./bookGenres";
+import { bookGenres, genreColor, normalizeGenres } from "./bookGenres";
 import { startupVoice } from "./voiceCatalog";
 import {
   checkedCollectionName,
@@ -147,6 +147,8 @@ export default function App() {
   } | null>(null);
   const [list, setList] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleteCandidates, setDeleteCandidates] = useState<BookMeta[]>([]);
+  const [deletingBooks, setDeletingBooks] = useState(false);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selection, setSelection] = useState<TextSelection | null>(null);
   const [draft, setDraft] = useState("");
@@ -633,8 +635,35 @@ export default function App() {
   async function restore(items: BookMeta[]) {
     for (const b of items) await store.saveMeta({ ...b, deleted: false });
     setUndo(null);
+    setSelected(new Set());
     await refresh();
     notify("Restored to the library.");
+  }
+  async function permanentlyDelete() {
+    setDeletingBooks(true);
+    try {
+      const ids = new Set(deleteCandidates.map((b) => b.id));
+      await store.deleteTrashedBooks([...ids]);
+      if (book && ids.has(book.meta.id)) {
+        await player.stop();
+        setBook(null);
+        setPage("library");
+      }
+      setAnnotations(await store.listAnnotations());
+      setNoteBooks((old) =>
+        Object.fromEntries(Object.entries(old).filter(([id]) => !ids.has(id))),
+      );
+      if (returnAnchor && ids.has(returnAnchor.bookId)) setReturnAnchor(null);
+      setSelected(new Set());
+      setUndo(null);
+      setDeleteCandidates([]);
+      await refresh();
+      notify(ids.size + " permanently deleted. Saved exports are untouched.");
+    } catch (e) {
+      error(e);
+    } finally {
+      setDeletingBooks(false);
+    }
   }
   function chooseTab(tab: InspectorTab) {
     setFocusMode(false);
@@ -1059,7 +1088,15 @@ export default function App() {
             : !["EPUB", "Sample"].includes(b.format)),
       )
       .filter((b) =>
-        (b.title + " " + b.author + " " + b.collection)
+        (
+          b.title +
+          " " +
+          b.author +
+          " " +
+          b.collection +
+          " " +
+          bookGenres(b).join(" ")
+        )
           .toLowerCase()
           .includes(query.toLowerCase()),
       ),
@@ -1496,6 +1533,38 @@ export default function App() {
               </p>
               <button type="submit">Save author</button>
             </form>
+            <form
+              key={book.meta.id + JSON.stringify(bookGenres(book.meta))}
+              className="author-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                try {
+                  const genres = normalizeGenres(
+                    String(new FormData(e.currentTarget).get("genres") || ""),
+                  );
+                  void updateMeta({ ...book.meta, genres })
+                    .then(() => notify("Genre tags saved."))
+                    .catch(error);
+                } catch (e) {
+                  error(e);
+                }
+              }}
+            >
+              <label>
+                Genre tags
+                <input
+                  name="genres"
+                  aria-label="Genre tags"
+                  defaultValue={bookGenres(book.meta).join(", ")}
+                  maxLength={600}
+                  placeholder="Romance, Suspense"
+                />
+              </label>
+              <p className="hint">
+                Separate tags with commas. Clear the field to remove all tags.
+              </p>
+              <button type="submit">Save genre tags</button>
+            </form>
             <label>
               Cover text
               <select
@@ -1829,6 +1898,33 @@ export default function App() {
                           .sort()
                           .map((type) => (
                             <option key={type}>{type}</option>
+                          ))}
+                      </select>
+                    </label>
+                    <label>
+                      Genre
+                      <select
+                        aria-label="Filter library by genre"
+                        value={libraryFilters.genre || "all"}
+                        onChange={(e) =>
+                          patchLibraryFilters({ genre: e.target.value })
+                        }
+                      >
+                        <option value="all">All genres</option>
+                        {[
+                          ...new Map(
+                            books.flatMap((b) =>
+                              bookGenres(b).map(
+                                (g) => [g.toLocaleLowerCase(), g] as const,
+                              ),
+                            ),
+                          ).values(),
+                        ]
+                          .sort((a, b) => a.localeCompare(b))
+                          .map((g) => (
+                            <option key={g} value={g}>
+                              {g}
+                            </option>
                           ))}
                       </select>
                     </label>
@@ -2277,15 +2373,25 @@ export default function App() {
                       className="text-button"
                       onClick={() =>
                         setSelected(
-                          selected.size === visible.length
+                          visible.every((b) => selected.has(b.id))
                             ? new Set()
                             : new Set(visible.map((b) => b.id)),
                         )
                       }
                     >
-                      {selected.size ? "Clear selection" : "Select all"}
+                      {visible.length > 0 &&
+                      visible.every((b) => selected.has(b.id))
+                        ? "Clear selection"
+                        : "Select all"}
                     </button>
                   </div>
+                  {collection === "Trash" && (
+                    <p className="hint trash-policy">
+                      Items stay in Trash indefinitely. There is no automatic
+                      purge. Restore them anytime, or select items and choose
+                      Delete permanently. Saved exports are never deleted.
+                    </p>
+                  )}
                   {selected.size > 0 && (
                     <div className="bulk-bar">
                       <span>{selected.size} selected</span>
@@ -2305,6 +2411,21 @@ export default function App() {
                         )}{" "}
                         {collection === "Trash" ? "Restore" : "Move to Trash"}
                       </button>
+                      {collection === "Trash" && (
+                        <button
+                          disabled={deletingBooks}
+                          onClick={() =>
+                            setDeleteCandidates(
+                              books.filter(
+                                (b) => b.deleted && selected.has(b.id),
+                              ),
+                            )
+                          }
+                        >
+                          <Trash2 size={16} />
+                          Delete permanently
+                        </button>
+                      )}
                     </div>
                   )}
                   {latest &&
@@ -2416,6 +2537,15 @@ export default function App() {
                         <div className="book-entry">
                           <CoverControl
                             book={b}
+                            onTrash={
+                              b.deleted
+                                ? undefined
+                                : () => {
+                                    void moveToTrash(new Set([b.id])).catch(
+                                      error,
+                                    );
+                                  }
+                            }
                             onOpen={() => {
                               if (b.deleted) void restore([b]).catch(error);
                               else void openBook(b.id).catch(error);
@@ -3269,6 +3399,69 @@ export default function App() {
             }
             onCancel={covers.cancel}
           />
+        )}
+        {deleteCandidates.length > 0 && (
+          <div className="modal-scrim">
+            <section
+              className="quick-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-books-title"
+              onKeyDown={(e) => {
+                if (e.key === "Escape" && !deletingBooks)
+                  setDeleteCandidates([]);
+                if (e.key === "Tab") {
+                  const buttons = Array.from(
+                    e.currentTarget.querySelectorAll<HTMLButtonElement>(
+                      "button:not(:disabled)",
+                    ),
+                  );
+                  const first = buttons[0];
+                  const last = buttons.at(-1);
+                  if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last?.focus();
+                  } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first?.focus();
+                  }
+                }
+              }}
+            >
+              <h2 id="delete-books-title">
+                Delete {deleteCandidates.length}{" "}
+                {deleteCandidates.length === 1 ? "book" : "books"} permanently?
+              </h2>
+              <p>
+                This removes their text, covers, notes and bookmarks from
+                Origami. This cannot be undone. Manually exported files are
+                untouched.
+              </p>
+              <ul>
+                {deleteCandidates.slice(0, 8).map((b) => (
+                  <li key={b.id}>{b.title}</li>
+                ))}
+              </ul>
+              {deleteCandidates.length > 8 && (
+                <p>And {deleteCandidates.length - 8} more.</p>
+              )}
+              <div className="dialog-actions">
+                <button
+                  autoFocus
+                  disabled={deletingBooks}
+                  onClick={() => setDeleteCandidates([])}
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={deletingBooks}
+                  onClick={() => void permanentlyDelete()}
+                >
+                  {deletingBooks ? "Deleting…" : "Delete permanently"}
+                </button>
+              </div>
+            </section>
+          </div>
         )}
         {quick && (
           <div

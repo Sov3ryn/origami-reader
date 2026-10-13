@@ -23,3 +23,19 @@ export function genreColor(genre: string) {
   if (/adventure|historical/i.test(genre)) return "amber";
   return "neutral";
 }
+export function normalizeGenres(text: string): string[] {
+  const genres = text
+    .split(",")
+    .map((s) => s.trim().replace(/\s+/g, " "))
+    .filter(Boolean);
+  if (genres.length > 12) throw new Error("Use up to 12 genre tags.");
+  if (genres.some((s) => s.length > 48 || /[\u0000-\u001f]/.test(s)))
+    throw new Error(
+      "Each genre tag must be at most 48 characters without control characters.",
+    );
+  const unique = new Map<string, string>();
+  for (const genre of genres)
+    if (!unique.has(genre.toLocaleLowerCase()))
+      unique.set(genre.toLocaleLowerCase(), genre);
+  return [...unique.values()];
+}

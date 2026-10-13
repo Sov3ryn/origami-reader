@@ -137,7 +137,12 @@ export type Voice = {
   portraitOrigin?: "generated" | "custom";
   portraitAppearance?: string;
 };
-export type LibraryFilters = { author: string; type: string; status: string };
+export type LibraryFilters = {
+  author: string;
+  type: string;
+  status: string;
+  genre?: string;
+};
 export type SpeechResult = { audio: string; rate: number; duration: number };
 export const defaultPreferences: Preferences = {
   theme: "plum",
@@ -182,7 +187,7 @@ export const defaultPreferences: Preferences = {
   autoGenerateCovers: true,
   autoGenerateVoicePortraits: true,
   showCoverText: true,
-  libraryFilters: { author: "all", type: "all", status: "all" },
+  libraryFilters: { author: "all", type: "all", status: "all", genre: "all" },
   librarySort: "recent",
   allowMatureCovers: false,
   romanNumeralHeadings: true,

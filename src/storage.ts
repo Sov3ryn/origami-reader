@@ -115,6 +115,36 @@ export async function saveMeta(meta: BookMeta) {
   if (desktop) return invoke("save_meta", { meta });
   return (await db()).put("metadata", meta);
 }
+export async function deleteTrashedBooks(ids: string[]) {
+  if (!ids.length) throw new Error("Select books in Trash first.");
+  if (desktop) return invoke<void>("delete_trashed_books", { ids });
+  const d = await db();
+  const t = d.transaction(["metadata", "bodies", "annotations"], "readwrite");
+  void t.done.catch(() => {});
+  try {
+    for (const id of new Set(ids)) {
+      const meta = await t.objectStore("metadata").get(id);
+      if (!meta?.deleted)
+        throw new Error("Only books in Trash can be permanently deleted.");
+    }
+    for (const id of new Set(ids)) {
+      for (const note of await t
+        .objectStore("annotations")
+        .index("bookId")
+        .getAll(id))
+        await t.objectStore("annotations").delete(note.id);
+      await t.objectStore("bodies").delete(id);
+      await t.objectStore("metadata").delete(id);
+    }
+    await t.done;
+  } catch (error) {
+    try {
+      t.abort();
+    } catch {}
+    await t.done.catch(() => {});
+    throw error;
+  }
+}
 export async function saveSpokenEdits(
   bookId: string,
   paragraphId: string,

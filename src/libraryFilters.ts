@@ -1,4 +1,5 @@
 import type { BookMeta, LibraryFilters } from "./types";
+import { bookGenres } from "./bookGenres";
 
 export function bookFinished(book: BookMeta): boolean {
   return (
@@ -11,6 +12,14 @@ export function matchesLibraryFilters(
   filters: LibraryFilters,
 ): boolean {
   if (filters.author !== "all" && book.author !== filters.author) return false;
+  if (
+    filters.genre &&
+    filters.genre !== "all" &&
+    !bookGenres(book).some(
+      (g) => g.toLocaleLowerCase() === filters.genre!.toLocaleLowerCase(),
+    )
+  )
+    return false;
   const isBook = ["EPUB", "Sample"].includes(book.format);
   if (
     filters.type !== "all" &&

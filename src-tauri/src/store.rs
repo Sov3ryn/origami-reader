@@ -180,6 +180,29 @@ impl Store {
         }
         Ok(())
     }
+    pub fn delete_trashed(&self, ids: &[String]) -> Result<()> {
+        if ids.is_empty() || ids.len() > 10_000 {
+            return Err("Select up to 10,000 books in Trash.".into());
+        }
+        let transaction = self
+            .connection
+            .unchecked_transaction()
+            .map_err(|e| e.to_string())?;
+        for id in ids {
+            if self.metadata(id)?["deleted"].as_bool() != Some(true) {
+                return Err("Only books in Trash can be permanently deleted.".into());
+            }
+        }
+        for id in ids {
+            transaction
+                .execute("DELETE FROM annotations WHERE book_id=?1", [id])
+                .map_err(|e| e.to_string())?;
+            transaction
+                .execute("DELETE FROM books WHERE id=?1", [id])
+                .map_err(|e| e.to_string())?;
+        }
+        transaction.commit().map_err(|e| e.to_string())
+    }
     pub fn save_spoken_edits(&mut self, book: &str, paragraph: &str, edits: Value) -> Result<()> {
         let list = edits.as_array().ok_or("Invalid spoken edits")?;
         if list.len() > 1000 || edits.to_string().len() > 1024 * 1024 {
@@ -340,6 +363,28 @@ fn valid_id(v: &Value) -> Result<&str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn permanent_deletion_requires_trash_removes_annotations_and_preserves_exports() {
+        let d = tempfile::tempdir().unwrap();
+        let s = Store::open(&d.path().join("delete.db")).unwrap();
+        let export = d.path().join("my-audio.wav");
+        std::fs::write(&export, b"user-owned export").unwrap();
+        for (id, deleted) in [("trash", true), ("active", false)] {
+            s.save(serde_json::json!({"meta":{"id":id,"deleted":deleted},"paragraphs":[{"id":"p-0","text":"Text"}]})).unwrap();
+        }
+        s.save_annotation(serde_json::json!({"id":"note","bookId":"trash","text":"Remove me"}))
+            .unwrap();
+        assert!(s
+            .delete_trashed(&["trash".into(), "active".into()])
+            .is_err());
+        assert!(s.read("trash").is_ok());
+        assert_eq!(s.annotations(None).unwrap().len(), 1);
+        s.delete_trashed(&["trash".into()]).unwrap();
+        assert!(s.read("trash").is_err());
+        assert!(s.annotations(None).unwrap().is_empty());
+        assert!(s.read("active").is_ok());
+        assert_eq!(std::fs::read(export).unwrap(), b"user-owned export");
+    }
     fn starter_fixtures() -> Vec<Value> {
         let manifest: Value =
             serde_json::from_str(include_str!("../../assets/starter-library/manifest.json"))

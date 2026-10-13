@@ -36,6 +36,12 @@ fn save_meta(db: State<Database>, meta: Value) -> Result<()> {
     db.0.lock().map_err(|_| "Database busy")?.save_meta(meta)
 }
 #[tauri::command]
+fn delete_trashed_books(db: State<Database>, ids: Vec<String>) -> Result<()> {
+    db.0.lock()
+        .map_err(|_| "Database busy")?
+        .delete_trashed(&ids)
+}
+#[tauri::command]
 fn save_spoken_edits(
     db: State<Database>,
     book_id: String,
@@ -221,6 +227,7 @@ pub fn run() {
             read_book,
             save_book,
             save_meta,
+            delete_trashed_books,
             save_spoken_edits,
             read_settings,
             save_settings,

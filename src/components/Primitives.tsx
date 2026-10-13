@@ -1,6 +1,6 @@
 import { createContext, useContext, type ReactNode } from "react";
 import type { BookMeta } from "../types";
-import { ImagePlus } from "lucide-react";
+import { ImagePlus, Trash2 } from "lucide-react";
 export const CoverTextContext = createContext(true);
 export function hasCoverText(book: BookMeta, enabled: boolean): boolean {
   return (
@@ -83,12 +83,14 @@ export function CoverControl({
   onOpen,
   onEdit,
   always = false,
+  onTrash,
 }: {
   book: BookMeta;
   small?: boolean;
   onOpen?: () => void;
   onEdit: () => void;
   always?: boolean;
+  onTrash?: () => void;
 }) {
   return (
     <div className={"cover-control" + (always ? " cover-control-visible" : "")}>
@@ -111,6 +113,16 @@ export function CoverControl({
       >
         <ImagePlus size={16} />
       </button>
+      {onTrash && (
+        <button
+          className="cover-trash"
+          aria-label={"Move " + book.title + " to Trash"}
+          title="Move to Trash"
+          onClick={onTrash}
+        >
+          <Trash2 size={15} />
+        </button>
+      )}
     </div>
   );
 }

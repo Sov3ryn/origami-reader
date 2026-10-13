@@ -6,6 +6,7 @@ import {
 } from "../src/libraryFilters";
 import { defaultPreferences, type BookMeta } from "../src/types";
 import { hasCoverText } from "../src/components/Primitives";
+import { normalizeGenres } from "../src/bookGenres";
 const base = {
   id: "b",
   title: "Book",
@@ -16,6 +17,26 @@ const base = {
   paragraphCount: 10,
   position: 0,
 } as BookMeta;
+it("filters imported genre tags case-insensitively alongside other filters", () => {
+  expect(
+    matchesLibraryFilters(
+      { ...base, genres: ["Romance", "Suspense"] },
+      { author: "Writer", type: "Books", status: "unread", genre: "romance" },
+    ),
+  ).toBe(true);
+  expect(
+    matchesLibraryFilters(
+      { ...base, genres: [] },
+      { author: "all", type: "all", status: "all", genre: "Romance" },
+    ),
+  ).toBe(false);
+  expect(normalizeGenres(" Romance, romance,  Space   opera, ")).toEqual([
+    "Romance",
+    "Space opera",
+  ]);
+  expect(normalizeGenres("")).toEqual([]);
+  expect(() => normalizeGenres("x".repeat(49))).toThrow();
+});
 it("combines author, type and reading state without changing library data", () => {
   expect(
     matchesLibraryFilters(base, {

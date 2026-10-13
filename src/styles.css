@@ -1156,6 +1156,34 @@ p {
   opacity: 1;
   pointer-events: auto;
 }
+.cover-trash {
+  position: absolute;
+  z-index: 3;
+  right: 5px;
+  bottom: 6px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 7px;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.cover-control:hover .cover-trash,
+.cover-control:focus-within .cover-trash {
+  opacity: 1;
+  pointer-events: auto;
+}
+.cover-trash:hover {
+  color: #e69aab;
+}
+.trash-policy {
+  padding: 12px 0;
+  line-height: 1.6;
+}
 .book-entry {
   display: flex;
   gap: 19px;
