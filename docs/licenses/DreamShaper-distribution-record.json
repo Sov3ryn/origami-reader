@@ -1,0 +1,25 @@
+{
+  "reviewed": "2026-10-13",
+  "name": "DreamShaper",
+  "creator": "Lykon",
+  "modelVersion": "8 LCM",
+  "versionId": 252914,
+  "modelCard": "https://huggingface.co/Lykon/dreamshaper-8-lcm",
+  "license": "CreativeML OpenRAIL-M",
+  "permissionSource": "https://civitai.com/api/v1/models/4384",
+  "allowNoCredit": true,
+  "allowCommercialUse": [
+    "Image",
+    "RentCivit",
+    "Rent"
+  ],
+  "allowDerivatives": true,
+  "allowDifferentLicense": true,
+  "checkpoint": [
+    {
+      "name": "dreamshaper_8LCM.safetensors",
+      "sha256": "A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3"
+    }
+  ],
+  "interpretation": "Free bundling considered under OpenRAIL-M distribution terms. Selling the model is not included in the listed commercial-use permissions; confirm with the author before a paid weights-containing bundle."
+}

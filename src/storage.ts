@@ -118,6 +118,7 @@ export async function prepareVoice(voice: string) {
 export async function coverEngineStatus(): Promise<{
   installed: boolean;
   name: string;
+  attribution?: string;
 }> {
   return desktop
     ? invoke("cover_engine_status")

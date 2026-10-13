@@ -19,11 +19,31 @@ enum ArtworkKind {
     VoicePortrait,
 }
 impl ArtworkKind {
-    fn size(self) -> (&'static str, &'static str) {
+    fn size(self, profile: &str) -> (&'static str, &'static str) {
         match self {
+            Self::Cover if profile == "dreamshaper-8-lcm" => ("512", "704"),
             Self::Cover => (COVER_WIDTH, COVER_HEIGHT),
             Self::VoicePortrait => ("512", "512"),
         }
+    }
+}
+fn image_profile(kind: ArtworkKind, c: &Value) -> Result<(&Value, &str)> {
+    let key = match kind {
+        ArtworkKind::Cover => "cover",
+        ArtworkKind::VoicePortrait => "portrait",
+    };
+    let selected = if c[key].is_object() { &c[key] } else { c };
+    let profile = selected["profile"].as_str().unwrap_or("sd-turbo");
+    if !matches!(profile, "sd-turbo" | "dreamshaper-8-lcm") {
+        return Err("Unsupported image model profile. Use sd-turbo or dreamshaper-8-lcm.".into());
+    }
+    Ok((selected, profile))
+}
+fn negative_prompt(kind: ArtworkKind, mature: bool) -> &'static str {
+    match kind {
+        ArtworkKind::VoicePortrait => "text, lettering, watermark, signature, logo, border, nudity, naked, distorted face, bad eyes, duplicate person",
+        ArtworkKind::Cover if mature => "text, lettering, printed words, typography, watermark, signature, logo, border, book mockup, explicit sexual acts, graphic violence",
+        ArtworkKind::Cover => "text, lettering, printed words, typography, watermark, signature, logo, border, book mockup, nudity, naked, sexual content, graphic violence",
     }
 }
 fn portrait_prompt(description: &str) -> String {
@@ -49,7 +69,7 @@ pub fn starter_cover(meta: &Value) -> bool {
 }
 fn generation_prompt(description: &str, mature: bool) -> String {
     // Put mode and layout before the editable description, where CLIP sees them.
-    // SD-Turbo does not use negative prompts at its distilled guidance setting.
+    // The wrapper applies to both profiles; DreamShaper also receives negative guidance.
     let human_subject = description
         .to_lowercase()
         .split(|c: char| !c.is_alphanumeric())
@@ -114,15 +134,21 @@ fn config(app: &AppHandle) -> Result<Value> {
         .map_err(|_| "Invalid cover engine configuration".into())
 }
 pub fn status(app: &AppHandle) -> Value {
-    let installed = config(app).ok().is_some_and(|c| {
+    let settings = config(app).ok();
+    let installed = settings.as_ref().is_some_and(|c| {
         c["executable"]
             .as_str()
             .is_some_and(|p| PathBuf::from(p).is_file())
-            && c["model"]
-                .as_str()
-                .is_some_and(|p| PathBuf::from(p).is_file())
+            && image_profile(ArtworkKind::Cover, c).is_ok_and(|(m, _)| {
+                m["model"]
+                    .as_str()
+                    .is_some_and(|p| PathBuf::from(p).is_file())
+            })
     });
-    json!({"installed":installed,"name":"SD-Turbo · local","attribution":"Powered by Stability AI"})
+    let dreamshaper = settings.as_ref().is_some_and(|c| {
+        image_profile(ArtworkKind::Cover, c).is_ok_and(|(_, p)| p == "dreamshaper-8-lcm")
+    });
+    json!({"installed":installed,"name":if dreamshaper {"DreamShaper 8 LCM · local"} else {"SD-Turbo · local"},"attribution":if dreamshaper {"DreamShaper by Lykon; Stable Diffusion base"} else {"Powered by Stability AI"}})
 }
 impl Covers {
     pub fn generation_epoch(&self) -> u64 {
@@ -189,16 +215,7 @@ impl Covers {
         app.state::<crate::speech::Speech>().cancel()?;
         let c = config(&app)?;
         let is_portrait = matches!(kind, ArtworkKind::VoicePortrait);
-        let model_config = if is_portrait && c["portrait"].is_object() {
-            &c["portrait"]
-        } else {
-            &c
-        };
-        let profile = if is_portrait {
-            model_config["profile"].as_str().unwrap_or("sd-turbo")
-        } else {
-            "sd-turbo"
-        };
+        let (model_config, profile) = image_profile(kind, &c)?;
         let (steps, cfg, sampler, scheduler) = match profile {
             "sd-turbo" => ("2", "1", "euler", "discrete"),
             "dreamshaper-8-lcm" => ("6", "2", "lcm", "lcm"),
@@ -219,7 +236,7 @@ impl Covers {
             .map_err(|e| e.to_string())?
             .as_nanos();
         let path = directory.join(format!("cover-{stamp}.png"));
-        let (width, height) = kind.size();
+        let (width, height) = kind.size(profile);
         let rendered_prompt = match kind {
             ArtworkKind::Cover => generation_prompt(&prompt, mature),
             ArtworkKind::VoicePortrait => portrait_prompt(&prompt),
@@ -267,11 +284,11 @@ impl Covers {
                 .stdin(Stdio::null())
                 .stdout(Stdio::null())
                 .stderr(Stdio::null());
-            if is_portrait {
+            if is_portrait || profile == "dreamshaper-8-lcm" {
                 command.args(["--max-vram", "3"]);
             }
             if profile == "dreamshaper-8-lcm" {
-                command.args(["-n", "text, lettering, watermark, signature, logo, border, nudity, naked, distorted face, bad eyes, duplicate person"]);
+                command.args(["-n", negative_prompt(kind, mature)]);
             }
             #[cfg(windows)]
             {
@@ -342,13 +359,51 @@ mod tests {
     use super::*;
     #[test]
     fn portraits_use_a_small_square_and_do_not_inherit_cover_layout_or_mature_mode() {
-        assert_eq!(ArtworkKind::VoicePortrait.size(), ("512", "512"));
+        assert_eq!(
+            ArtworkKind::VoicePortrait.size("dreamshaper-8-lcm"),
+            ("512", "512")
+        );
         let prompt = portrait_prompt("Woman with an auburn bob and wool jacket");
         assert!(prompt.contains("fully clothed, adult"));
         assert!(prompt.contains("Centered face"));
         assert!(prompt.contains("text-free"));
         assert!(!prompt.contains("book-cover"));
         assert!(!prompt.contains("title overlay"));
+    }
+    #[test]
+    fn covers_use_the_selected_profile_and_portrait_overrides_are_independent() {
+        let c = json!({"model":"covers", "profile":"dreamshaper-8-lcm", "portrait":{"model":"avatars", "profile":"sd-turbo"}});
+        let (cover, profile) = image_profile(ArtworkKind::Cover, &c).unwrap();
+        assert_eq!(cover["model"], "covers");
+        assert_eq!(profile, "dreamshaper-8-lcm");
+        assert_eq!(ArtworkKind::Cover.size(profile), ("512", "704"));
+        let (portrait, profile) = image_profile(ArtworkKind::VoicePortrait, &c).unwrap();
+        assert_eq!(portrait["model"], "avatars");
+        assert_eq!(profile, "sd-turbo");
+        assert_eq!(
+            image_profile(ArtworkKind::Cover, &json!({"model":"legacy"}))
+                .unwrap()
+                .1,
+            "sd-turbo"
+        );
+        assert!(image_profile(ArtworkKind::Cover, &json!({"profile":"unsupported"})).is_err());
+        let upgrade = json!({"model":"legacy-sd-model", "cover":{"model":"new-model", "profile":"dreamshaper-8-lcm"}});
+        assert_eq!(
+            image_profile(ArtworkKind::Cover, &upgrade).unwrap().0["model"],
+            "new-model"
+        );
+        assert_eq!(upgrade["model"], "legacy-sd-model");
+    }
+    #[test]
+    fn cover_negative_guidance_always_excludes_text_and_standard_mode_discourages_nudity() {
+        let safe = negative_prompt(ArtworkKind::Cover, false);
+        assert!(safe.contains("text, lettering, printed words"));
+        assert!(safe.contains("nudity, naked, sexual content"));
+        let mature = negative_prompt(ArtworkKind::Cover, true);
+        assert!(mature.contains("text, lettering, printed words"));
+        assert!(mature.contains("explicit sexual acts"));
+        assert!(!mature.contains("nudity"));
+        assert!(negative_prompt(ArtworkKind::VoicePortrait, true).contains("nudity"));
     }
     #[test]
     fn mode_and_layout_are_applied_outside_the_editable_description() {

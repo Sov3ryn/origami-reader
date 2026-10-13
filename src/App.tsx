@@ -2805,9 +2805,9 @@ export default function App() {
                       </p>
                       <p className="hint">
                         {covers.installed
-                          ? "SD-Turbo cover engine is installed."
+                          ? covers.engine.name + " is installed."
                           : "Cover engine setup is required for local generation. See docs/COVER-GENERATION.md."}{" "}
-                        Powered by Stability AI.
+                        {covers.engine.attribution}
                       </p>
                       <h3>Workspace</h3>
                       <p>
@@ -2829,9 +2829,9 @@ export default function App() {
                       </p>
                       <h4>Open source</h4>
                       <p>
-                        MPL 2.0 app code. Model weights and voice
-                        recordings retain their own terms and are not bundled
-                        with the source.
+                        MPL 2.0 app code. Model weights and voice recordings
+                        retain their own terms and are not bundled with the
+                        source.
                       </p>
                     </div>
                   </div>

@@ -1,5 +1,6 @@
 {
   "executable": "/absolute/path/to/sd-cli",
-  "model": "/absolute/path/to/sd-turbo-f16.gguf",
+  "model": "/absolute/path/to/dreamshaper-8-lcm.safetensors",
+  "profile": "dreamshaper-8-lcm",
   "backend": "vulkan0"
 }

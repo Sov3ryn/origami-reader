@@ -1,0 +1,13 @@
+# Bundling DreamShaper with Origami
+
+Reviewed 13 October 2026 for the pinned DreamShaper 8 LCM checkpoint by Lykon, Civitai version 252914, SHA-256 A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3. [Model card](https://huggingface.co/Lykon/dreamshaper-8-lcm). [Author release](https://civitai.com/models/4384?modelVersionId=252914). The retrieved permission fields are retained in licenses/DreamShaper-distribution-record.json.
+
+A free Origami installer can include this checkpoint as a separate licensed file. MPL 2.0 permits a Larger Work containing separately licensed material under [section 3.3](https://www.mozilla.org/en-US/MPL/2.0/). Origami source remains MPL 2.0. The weights retain CreativeML OpenRAIL-M; bundling them does not make them MPL 2.0.
+
+OpenRAIL-M [section 4](https://huggingface.co/spaces/CompVis/stable-diffusion-license/blob/main/license.txt) permits model redistribution subject to conditions. The release must include the full model license, copyright and applicable attribution notices. Section 5 and Attachment A restrictions must be enforceable under the terms governing model use and distribution, with notice to recipients that those conditions apply. Apply these model terms to the weights and their use, without adding them as restrictions on the MPL-covered source code. The setup script copies the full license and a model notice beside the checkpoint. The future public installer must present the model's terms when the model is installed or enabled. Shipping a license file alone does not settle all of the model's downstream agreement requirements.
+
+Keep these items together in a model folder: the unchanged checkpoint, CreativeML-OpenRAIL-M.txt and MODEL-NOTICE.txt identifying Lykon, the upstream URLs, model version and checksum. Preserve notices and mark any modified weight files if a future release converts or changes them. A public binary release must also provide the corresponding MPL-covered app source and notices required by MPL 2.0. The native runtime and other dependencies retain their licenses.
+
+The author lists commercial image use and rental/service permissions, but not model-sale permission. Treat selling the checkpoint itself as disallowed under that release's permissions. A paid installer or paid software bundle containing weights should get clarification or permission from the author before shipping; this free-bundle review does not clear that scenario. MPL 2.0 allowing commercial code use does not override model terms.
+
+This update changes local generation and setup. It does not publish an installer, place model weights in Git, or claim clearance for every distribution scenario. Books, speech models and voice recordings have separate terms.

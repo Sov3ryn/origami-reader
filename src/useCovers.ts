@@ -23,6 +23,10 @@ export function useCovers(
   },
 ) {
   const [installed, setInstalled] = useState(false);
+  const [engine, setEngine] = useState({
+    name: "Local image engine",
+    attribution: "",
+  });
   const [active, setActive] = useState("");
   const [portraitActive, setPortraitActive] = useState("");
   const [queue, setQueue] = useState<Job[]>([]);
@@ -44,7 +48,10 @@ export function useCovers(
     void storage
       .coverEngineStatus()
       .then((s) => {
-        if (mounted) setInstalled(s.installed);
+        if (mounted) {
+          setInstalled(s.installed);
+          setEngine({ name: s.name, attribution: s.attribution || "" });
+        }
       })
       .catch(() => {});
     return () => {
@@ -195,6 +202,7 @@ export function useCovers(
     auto,
     idle,
     installed,
+    engine,
     active,
     portraitActive,
     portraits.auto,
@@ -214,6 +222,7 @@ export function useCovers(
   }
   return {
     installed,
+    engine,
     active,
     portraitActive,
     busy: Boolean(active || portraitActive),

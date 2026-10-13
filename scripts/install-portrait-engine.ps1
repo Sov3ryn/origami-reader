@@ -1,4 +1,4 @@
-param([string]$Config = (Join-Path $env:APPDATA 'app.origami.reader/cover-engine.json'))
+param([string]$Config = (Join-Path $env:APPDATA 'app.origami.reader/cover-engine.json'), [switch]$PortraitsOnly)
 $ErrorActionPreference = 'Stop'
 if (-not (Test-Path -LiteralPath $Config)) { throw 'Set up the cover engine first, then run this portrait setup.' }
 $taskConfigPath = (Resolve-Path -LiteralPath $Config).Path
@@ -21,11 +21,21 @@ Author's release: https://civitai.com/models/4384?modelVersionId=252914
 CreativeML OpenRAIL-M model terms apply separately from Origami's MPL 2.0 source license.
 Source SHA-256: A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3
 The author's model-page permissions allow image use and do not permit selling the model itself.
+Use and redistribution of these weights are governed by CreativeML OpenRAIL-M,
+including Section 5 and Attachment A. Recipients must receive these terms and
+be required to comply with them. The model weights are not licensed as MPL 2.0.
 '@
 [IO.File]::WriteAllText((Join-Path $taskDirectory 'MODEL-NOTICE.txt'), $taskReadme, [Text.UTF8Encoding]::new($false))
 $taskPortrait = @{ model = $taskModel; profile = 'dreamshaper-8-lcm' }
 $taskImageConfig | Add-Member -NotePropertyName portrait -NotePropertyValue $taskPortrait -Force
+if (-not $PortraitsOnly) {
+  $taskImageConfig | Add-Member -NotePropertyName cover -NotePropertyValue $taskPortrait -Force
+  if (-not $taskImageConfig.model) {
+    $taskImageConfig | Add-Member -NotePropertyName model -NotePropertyValue $taskModel -Force
+    $taskImageConfig | Add-Member -NotePropertyName profile -NotePropertyValue 'dreamshaper-8-lcm' -Force
+  }
+}
 # Keep a recoverable copy of the existing image-engine configuration.
 Copy-Item -LiteralPath $taskConfigPath -Destination ($taskConfigPath + '.before-portraits.json')
 [IO.File]::WriteAllText($taskConfigPath, ($taskImageConfig | ConvertTo-Json -Depth 8), [Text.UTF8Encoding]::new($false))
-Write-Output 'DreamShaper portraits installed. Book covers keep their existing model. Reopen Origami.'
+Write-Output 'DreamShaper image model installed. Reopen Origami.'

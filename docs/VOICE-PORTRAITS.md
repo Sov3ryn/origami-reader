@@ -2,7 +2,7 @@
 
 The optional [cover runtime](COVER-GENERATION.md) also generates small fictional character portraits. The improved profile uses a separate DreamShaper 8 LCM checkpoint by Lykon, about 2.1 GB. It runs through the same stable-diffusion.cpp runtime. Images are generated locally, without a hosted service.
 
-Portraits render at the model's 512 × 512 working size, then are downsampled to 256 × 256 WebP and displayed at 56 pixels. Direct 256 rendering introduced face and texture artifacts. DreamShaper uses the LCM sampler/scheduler, six steps, guidance 2 and a 3 GiB managed GPU-memory budget. Standard negative guidance discourages lettering and unwanted content. Covers retain SD-Turbo at 320 × 448. Without a separate portrait model, portraits use SD-Turbo at 512 × 512, two steps and guidance 1. There is no upscale pass.
+Portraits render at the model's 512 × 512 working size, then are downsampled to 256 × 256 WebP and displayed at 56 pixels. Direct 256 rendering introduced face and texture artifacts. DreamShaper uses the LCM sampler/scheduler, six steps, guidance 2 and a 3 GiB managed GPU-memory budget. Standard negative guidance discourages lettering and unwanted content. Covers now share DreamShaper, with a separate vertical layout and saved 320 × 448 output. Portraits inherit the common image model unless a portrait override is configured. Legacy SD-Turbo portraits remain supported at 512 × 512, two steps and guidance 1. There is no upscale pass.
 
 The portrait prompt requests painted head-and-shoulders art of a fully clothed adult. Known local IDs have individual character descriptions. New IDs receive a stable fictional description from selected gender, style and ID, unless a voice profile supplies `portraitAppearance`. That field can describe ethnicity, age, hair, clothing and expression, for example `adult Japanese man, dark hair, charcoal wool jacket, warm expression`. The editor can revise the full description. Language and accent do not determine ethnicity. Reference recordings, transcripts and free-form speech descriptions are not sent to the image model. This art does not identify the speaker or infer their appearance from audio. The catalog and language filters have no 20-language limit; synthesis support still depends on the installed speech engine and verified profiles.
 
@@ -14,7 +14,7 @@ Portrait art, accepted descriptions and origin are stored in Origami's SQLite `v
 
 ## Setup and model terms
 
-On Windows, after cover-engine setup, run `scripts/install-portrait-engine.ps1`. For local development, pass `-Config .local/cover-engine.json`. The script downloads the author's Civitai version 252914, verifies SHA-256 A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3, copies the license and records the source. It adds this object without changing the cover model:
+On Windows, `scripts/install-cover-engine.ps1` installs the runtime and shared DreamShaper model. Existing runtime setups can use `scripts/install-portrait-engine.ps1`; pass `-PortraitsOnly` to retain their existing cover profile. Local development can pass `-Config .local/cover-engine.json`. The script downloads the author's Civitai version 252914, verifies SHA-256 A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3, copies the license and records the source. The optional portrait override is:
 
 ```json
 "portrait": {

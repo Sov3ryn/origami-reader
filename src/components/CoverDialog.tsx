@@ -159,7 +159,7 @@ export function CoverDialog({
               />
             </label>
             <p className="hint">
-              Generates 320 × 448 portrait book-cover artwork without text.
+              Saves 320 × 448 book-cover artwork. The prompt requests no text.
               Origami adds the title and author.
             </p>
             <label className="check-label">
