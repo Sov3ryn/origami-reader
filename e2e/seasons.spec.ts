@@ -4,33 +4,33 @@ for (const scene of [
   {
     name: "Spring morning",
     id: "spring",
-    layers: 21,
+    layers: 33,
     particle: ".ambient-petal",
-    count: 12,
+    count: 24,
   },
   {
     name: "Summer evening",
     id: "summer",
-    layers: 13,
+    layers: 23,
     particle: ".ambient-firefly",
-    count: 6,
+    count: 16,
   },
   {
     name: "Autumn dusk",
     id: "autumn",
-    layers: 20,
+    layers: 32,
     particle: ".ambient-leaf",
-    count: 12,
+    count: 24,
   },
   {
     name: "Winter daylight",
     id: "winter",
-    layers: 32,
+    layers: 50,
     particle: ".ambient-snow",
-    count: 24,
+    count: 42,
   },
 ]) {
-  test(`${scene.name} has five optional effects and durable settings`, async ({
+  test(`${scene.name} has optional effects and durable settings`, async ({
     page,
   }) => {
     await page.goto("/");
@@ -41,8 +41,12 @@ for (const scene of [
     await expect(page.locator(".background-art")).toHaveClass(
       "background-art background-" + scene.id,
     );
-    await expect(page.locator(".ambient-options input")).toHaveCount(5);
-    await expect(page.locator(".ambient-layer")).toHaveCount(scene.layers);
+    await expect(page.locator(".ambient-options input")).toHaveCount(
+      scene.id === "summer" ? 6 : 5,
+    );
+    await expect(page.locator(".ambient-layer:not(.fish-ring)")).toHaveCount(
+      scene.layers,
+    );
     await expect(page.locator(scene.particle)).toHaveCount(scene.count);
     const image = await page
       .locator(".background-still")
@@ -88,7 +92,9 @@ for (const scene of [
     await expect(page.locator(".ambient-layer")).toHaveCount(0);
     await expect(page.locator(".background-still")).toBeVisible();
     for (const control of controls) await control.check();
-    await expect(page.locator(".ambient-layer")).toHaveCount(scene.layers);
+    await expect(page.locator(".ambient-layer:not(.fish-ring)")).toHaveCount(
+      scene.layers,
+    );
     await page
       .getByLabel("Subtle background motion", { exact: true })
       .uncheck();

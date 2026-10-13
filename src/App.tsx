@@ -1,7 +1,8 @@
 import { IconButton, Cover } from "./components/Primitives";
 import { AppearancePanel } from "./components/AppearancePanel";
 import { BackgroundScene } from "./components/BackgroundScene";
-import { switchBackground } from "./backgrounds";
+import { changeAppearance, startupBackground } from "./backgrounds";
+import { useSeasonalBackground } from "./useSeasonalBackground";
 import { VoiceCatalog } from "./components/VoiceCatalog";
 import {
   useEffect,
@@ -83,6 +84,12 @@ export default function App() {
   const [books, setBooks] = useState<BookMeta[]>([]);
   const [book, setBook] = useState<Book | null>(null);
   const [prefs, setPrefs] = useState<Preferences>(defaultPreferences);
+  useSeasonalBackground(
+    ready,
+    prefs.backgroundMode,
+    prefs.seasonHemisphere,
+    setPrefs,
+  );
   const [page, setPage] = useState<Page>("library");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All");
@@ -141,10 +148,7 @@ export default function App() {
   const error = (e: unknown) =>
     notify(e instanceof Error ? e.message : String(e));
   const patchPrefs = (p: Partial<Preferences>) =>
-    setPrefs((old) => ({
-      ...(p.scene ? switchBackground(old, p.scene) : old),
-      ...p,
-    }));
+    setPrefs((old) => changeAppearance(old, p));
   async function refresh() {
     setBooks(await store.listBooks());
   }
@@ -160,7 +164,7 @@ export default function App() {
           const merged = { ...defaultPreferences, ...saved };
           if (available.length && !available.some((v) => v.id === merged.voice))
             merged.voice = available[0].id;
-          setPrefs(merged);
+          setPrefs(startupBackground(merged));
           setVoices(available);
           setAnnotations(await store.listAnnotations());
           setReady(true);

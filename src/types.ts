@@ -49,6 +49,8 @@ export type Preferences = {
   surface: string;
   texture: boolean;
   scene: string;
+  backgroundMode: "manual" | "seasonal" | "random";
+  seasonHemisphere: "north" | "south";
   scenePreferences: Record<string, SceneAppearance>;
   backgroundOpacity: number;
   motion: boolean;
@@ -60,6 +62,7 @@ export type Preferences = {
   moonCloud: boolean;
   skyClouds: boolean;
   fireflies: boolean;
+  fishRipples: boolean;
   leaves: boolean;
   snow: boolean;
   fontSize: number;
@@ -81,6 +84,8 @@ export type Preferences = {
 export type SceneAppearance = Pick<
   Preferences,
   | "theme"
+  | "surface"
+  | "texture"
   | "backgroundOpacity"
   | "motion"
   | "mist"
@@ -91,6 +96,7 @@ export type SceneAppearance = Pick<
   | "moonCloud"
   | "skyClouds"
   | "fireflies"
+  | "fishRipples"
   | "leaves"
   | "snow"
 >;
@@ -108,11 +114,13 @@ export type Voice = {
 export type SpeechResult = { audio: string; rate: number; duration: number };
 export const defaultPreferences: Preferences = {
   theme: "plum",
-  surface: "paper",
+  surface: "dark",
   texture: true,
   scene: "lake",
+  backgroundMode: "manual",
+  seasonHemisphere: "north",
   scenePreferences: {},
-  backgroundOpacity: 0.21,
+  backgroundOpacity: 0.5,
   motion: true,
   mist: true,
   petals: true,
@@ -122,6 +130,7 @@ export const defaultPreferences: Preferences = {
   moonCloud: true,
   skyClouds: true,
   fireflies: true,
+  fishRipples: true,
   leaves: true,
   snow: true,
   fontSize: 21,

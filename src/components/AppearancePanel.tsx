@@ -1,6 +1,11 @@
 import { Check } from "lucide-react";
 import { themes } from "../themes";
-import { backgrounds, effectLabels, getBackground } from "../backgrounds";
+import {
+  backgrounds,
+  defaultSceneAppearance,
+  effectLabels,
+  getBackground,
+} from "../backgrounds";
 import type { Preferences } from "../types";
 export function AppearancePanel({
   prefs,
@@ -121,13 +126,62 @@ export function AppearancePanel({
       </label>
       <h4>Background</h4>
       <p className="hint">
-        Each scene remembers its palette, opacity and motion settings.
+        Each scene remembers its palette, reading surface, opacity and motion.
       </p>
+      <label>
+        Background selection
+        <select
+          aria-label="Background selection"
+          value={prefs.backgroundMode}
+          onChange={(e) =>
+            onChange({
+              backgroundMode: e.target.value as Preferences["backgroundMode"],
+            })
+          }
+        >
+          <option value="manual">Manual</option>
+          <option value="seasonal">Current season</option>
+          <option value="random">Random at startup</option>
+        </select>
+      </label>
+      {prefs.backgroundMode === "seasonal" && (
+        <>
+          <label>
+            Seasons in
+            <select
+              aria-label="Seasons in"
+              value={prefs.seasonHemisphere}
+              onChange={(e) =>
+                onChange({
+                  seasonHemisphere: e.target
+                    .value as Preferences["seasonHemisphere"],
+                })
+              }
+            >
+              <option value="north">Northern hemisphere</option>
+              <option value="south">Southern hemisphere</option>
+            </select>
+          </label>
+          <p className="hint">
+            Uses your local date. Seasons change in March, June, September and
+            December.
+          </p>
+        </>
+      )}
+      {prefs.backgroundMode === "random" && (
+        <p className="hint">
+          A different lake scene is chosen each time Origami opens, starting
+          next launch.
+        </p>
+      )}
+      {prefs.backgroundMode !== "manual" && (
+        <p className="hint">Choosing a scene below switches back to Manual.</p>
+      )}
       <div className="scene-options">
         {backgrounds.map((s) => (
           <button
             key={s.id}
-            onClick={() => onChange({ scene: s.id })}
+            onClick={() => onChange({ scene: s.id, backgroundMode: "manual" })}
             aria-pressed={prefs.scene === s.id}
             className={
               "scene scene-" + s.id + (prefs.scene === s.id ? " chosen" : "")
@@ -144,6 +198,12 @@ export function AppearancePanel({
           </button>
         ))}
       </div>
+      <button
+        className="scene-reset"
+        onClick={() => onChange(defaultSceneAppearance(prefs.scene))}
+      >
+        Reset scene defaults
+      </button>
       <label>
         Background opacity{" "}
         <output>{Math.round(prefs.backgroundOpacity * 100)}%</output>
@@ -151,6 +211,7 @@ export function AppearancePanel({
           aria-label="Background opacity"
           aria-valuetext={Math.round(prefs.backgroundOpacity * 100) + "%"}
           type="range"
+          dir="ltr"
           min="0"
           max="100"
           step="1"
@@ -160,6 +221,10 @@ export function AppearancePanel({
             onChange({ backgroundOpacity: +e.target.value / 100 })
           }
         />
+        <span className="range-endpoints" aria-hidden="true">
+          <span>Transparent</span>
+          <span>Opaque</span>
+        </span>
       </label>
       <label className="check-label">
         <input

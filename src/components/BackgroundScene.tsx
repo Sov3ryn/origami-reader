@@ -1,6 +1,7 @@
 import { memo, type CSSProperties } from "react";
 import { enabledEffects, getBackground } from "../backgrounds";
 import type { Preferences } from "../types";
+import { FishRipples } from "./FishRipples";
 
 const petals = [
   {
@@ -125,21 +126,30 @@ const petals = [
   },
 ];
 
-const snowflakes = Array.from({ length: 24 }, (_, i) => ({
+const seasonalPetals = [
+  ...petals,
+  ...petals.map((petal) => ({
+    ...petal,
+    left: Math.min(110, petal.left + 12),
+    top: petal.top + 7,
+    delay: petal.delay - 27,
+    size: petal.size + 3,
+  })),
+];
+const snowflakes = Array.from({ length: 42 }, (_, i) => ({
   left: 3 + ((i * 37) % 108),
-  size: 3 + (i % 4),
+  size: 5 + (i % 4),
   seconds: 36 + (i % 9) * 3,
   delay: -((i * 17) % 57),
   drift: -12 - (i % 5) * 4,
 }));
-const fireflies = [
-  { left: 13, top: 48, seconds: 17, delay: -4 },
-  { left: 20, top: 46, seconds: 23, delay: -15 },
-  { left: 30, top: 49, seconds: 19, delay: -8 },
-  { left: 67, top: 47, seconds: 26, delay: -20 },
-  { left: 75, top: 48, seconds: 21, delay: -12 },
-  { left: 88, top: 46, seconds: 29, delay: -3 },
-];
+const fireflies = Array.from({ length: 16 }, (_, i) => ({
+  left: 12 + ((i * 23) % 83),
+  top: 47 + ((i * 11) % 30),
+  seconds: 20 + (i % 7) * 2,
+  delay: -((i * 7) % 29),
+  size: 15 + (i % 4) * 2,
+}));
 
 export const BackgroundScene = memo(function BackgroundScene({
   prefs,
@@ -250,15 +260,18 @@ export const BackgroundScene = memo(function BackgroundScene({
                     top: fly.top + "%",
                     animationDuration: fly.seconds + "s",
                     animationDelay: fly.delay + "s",
+                    width: fly.size + "px",
+                    height: fly.size + "px",
                   }}
                 />
               ))}
+            {active.has("fishRipples") && <FishRipples />}
           </div>
         )}
       </div>
       {wind && (
         <div className="ambient-effects petal-field">
-          {petals.map((petal, i) => (
+          {(scene.id === "lake" ? petals : seasonalPetals).map((petal, i) => (
             <img
               key={i}
               className={
@@ -271,7 +284,10 @@ export const BackgroundScene = memo(function BackgroundScene({
                 {
                   left: petal.left + "%",
                   top: petal.top + "%",
-                  width: petal.size + (leaves ? 5 : 0) + "px",
+                  width:
+                    petal.size +
+                    (leaves ? 7 : scene.id === "spring" ? 3 : 0) +
+                    "px",
                   "--petal-drift": petal.drift + "vw",
                   "--petal-fall": petal.fall + "vh",
                   "--petal-turn": petal.turn + "deg",

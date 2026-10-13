@@ -13,13 +13,30 @@ A local desktop reader and text-to-speech workspace for Windows and Linux. MIT-l
 - Independently collapsible/resizable panels and a contextual tabbed inspector. Library keeps the full workspace without an inspector.
 - Twelve app palettes; separate white, paper, sepia and textured night reading surfaces.
 - Background opacity control, windblown petals, mountain fog, lake mist and ripples, subtle cabin lights and an occasional cloud across the moon. Each effect can be switched off. Motion defaults on for new settings, respects reduced motion and pauses while hidden.
-- Four seasonal versions of the lake: spring morning, summer evening, autumn dusk and winter daylight. Each has five optional effects. Scenes remember their own palette, opacity, motion switch and individual effects.
+- Four seasonal versions of the lake: spring morning, summer evening, autumn dusk and winter daylight. Brighter fireflies, denser petals, leaves and snowfall, and occasional summer fish-feeding rings. Scenes remember their own palette, reading surface, texture, opacity and effects.
+- Optional automatic scene selection by local season, with northern/southern hemisphere support, or a different lake scene at each startup.
 - Windows desktop SQLite persistence. Browser preview uses separate IndexedDB storage.
 - Optional isolated Qwen worker, passage playback, pause, stop, passage seek, speed/volume and one-passage read-ahead.
 - Optional startup preloading of the last voice used for playback. Opening a book preserves an idle loaded model. Closing the app stops its speech worker and releases its GPU resources.
 - Voice catalog with language, voice gender and style filters, accent/name search, favorites and sorting.
 
 No cloud account is required. Voice models and reference recordings are not included. Linux source/build support is provided; Linux execution has not yet been validated on the development machine. See [progress](docs/PROGRESS.md) for exact test status and limitations.
+
+## Background settings
+
+In Appearance, Background selection offers Manual, Current season, and Random at startup. Seasonal mode uses the local calendar, changing in March, June, September and December. It rechecks at midnight and when the window returns to view. Random mode selects from the five illustrated lake scenes on the next launch and avoids repeating the previous scene. Choosing a thumbnail returns to Manual mode.
+
+These defaults apply to new scenes. Existing saved choices are preserved; use Reset scene defaults to restore a scene's preset. Reading surfaces remain editable independently of the app palette. Text size, line spacing and page width remain shared reader settings.
+
+| Scene | App palette | Reading surface | Background opacity |
+| --- | --- | --- | --- |
+| Moonlit lake | Plum Nocturne | Night | 50% |
+| Spring morning | Forest Ink | Sepia | 50% |
+| Summer evening | Burgundy Velvet | Sepia | 60% |
+| Autumn dusk | Copper Hearth | Sepia | 65% |
+| Winter daylight | Paper White | Paper | 85% |
+
+All presets enable paper texture and available motion effects. The opacity slider runs from transparent on the left to opaque on the right. Fish-feeding rings appear at varied open-water locations roughly every 28 to 55 seconds, with a shorter first wait. Each effect can be disabled. Hidden windows and reduced-motion preferences suspend the decorative motion and fish-event timer.
 
 ## Development
 

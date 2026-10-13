@@ -41,10 +41,17 @@ try {
             ({ name, value }) => [name, value],
           ),
         );
-      for (const mode of ["static", "animated", "hidden"]) {
+      for (const mode of scene === "Summer evening"
+        ? ["static", "animated", "feeding", "hidden"]
+        : ["static", "animated", "hidden"]) {
         await page
           .getByLabel("Subtle background motion", { exact: true })
           .setChecked(mode !== "static");
+        if (mode === "feeding") {
+          await page
+            .locator(".fish-feeding")
+            .waitFor({ state: "attached", timeout: 23000 });
+        }
         if (mode === "hidden") {
           await page.evaluate(() => {
             Object.defineProperty(document, "hidden", {
