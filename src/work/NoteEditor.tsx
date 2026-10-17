@@ -33,6 +33,7 @@ import {
   Quote,
   Strikethrough,
   Table2,
+  Mic,
 } from "lucide-react";
 import { t } from "../i18n";
 import { ColorRow, EditorMenu } from "./EditorMenu";
@@ -458,6 +459,21 @@ export function NoteEditor({
           editor.chain().focus().deleteRange(range).run();
           setTrigger(null);
           onPhoto?.();
+        },
+      },
+      {
+        id: "voice",
+        label: t("Voice note"),
+        hint: t("record, then get the text"),
+        icon: <Mic size={16} />,
+        run: () => {
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent([{ type: "voiceNote", attrs: { id: "" } }, { type: "paragraph" }])
+            .run();
+          setTrigger(null);
         },
       },
       {

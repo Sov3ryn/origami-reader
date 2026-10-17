@@ -1,6 +1,7 @@
 mod covers;
 mod embed;
 mod handwriting;
+mod whisper;
 mod hardware;
 mod ink;
 mod plugins;
@@ -289,6 +290,10 @@ fn save_work(db: State<Database>, items: Vec<Value>) -> Result<()> {
         store.save_work(item)?;
     }
     Ok(())
+}
+#[tauri::command]
+fn work_item(db: State<Database>, id: String) -> Result<Option<Value>> {
+    db.0.lock().map_err(|_| "Database busy")?.work_item(&id)
 }
 #[tauri::command]
 fn note_versions(db: State<Database>, note: String) -> Result<Vec<Value>> {
@@ -701,6 +706,41 @@ fn remove_handwriting_model(app: tauri::AppHandle, reader: State<handwriting::Re
     reader.remove(&app)
 }
 
+// --- Voice notes: Whisper transcription ------------------------------------------
+#[tauri::command]
+fn voice_model_status(app: tauri::AppHandle, t: State<whisper::Transcriber>) -> Result<serde_json::Value> {
+    t.status(&app)
+}
+#[tauri::command]
+async fn download_voice_model(app: tauri::AppHandle, id: String) -> Result<()> {
+    tauri::async_runtime::spawn_blocking(move || app.state::<whisper::Transcriber>().download(&app, &id))
+        .await
+        .map_err(|e| e.to_string())?
+}
+#[tauri::command]
+fn cancel_voice_download(t: State<whisper::Transcriber>) {
+    t.cancel_download();
+}
+#[tauri::command]
+fn remove_voice_model(app: tauri::AppHandle, t: State<whisper::Transcriber>, id: String) -> Result<()> {
+    t.remove(&app, &id)
+}
+/// `samples`: 16 kHz mono, 16-bit little-endian, base64.
+#[tauri::command]
+async fn transcribe_audio(app: tauri::AppHandle, model: String, language: String, samples: String) -> Result<serde_json::Value> {
+    use base64::Engine;
+    tauri::async_runtime::spawn_blocking(move || {
+        let bytes = base64::engine::general_purpose::STANDARD.decode(samples).map_err(|_| "Invalid audio")?;
+        if bytes.len() > 2 * 16_000 * 60 * 60 {
+            return Err("Voice notes can be up to an hour long.".into());
+        }
+        let pcm: Vec<f32> = bytes.chunks_exact(2).map(|b| i16::from_le_bytes([b[0], b[1]]) as f32 / 32768.0).collect();
+        app.state::<whisper::Transcriber>().transcribe(&app, &model, &pcm, &language)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 // --- Updates -------------------------------------------------------------------
 // The last verified update list; installing only ever uses this one.
 #[derive(Default)]
@@ -757,6 +797,7 @@ pub fn run() {
             app.manage(voice_studio::Studio::default());
             app.manage(embed::Embedder::default());
             app.manage(handwriting::Reader::default());
+            app.manage(whisper::Transcriber::default());
             app.manage(PendingUpdate::default());
             update::clean_up();
             Ok(())
@@ -797,6 +838,11 @@ pub fn run() {
             handwriting_recognizers,
             handwriting_model_status,
             read_handwriting_photo,
+            voice_model_status,
+            download_voice_model,
+            cancel_voice_download,
+            remove_voice_model,
+            transcribe_audio,
             download_handwriting_model,
             cancel_handwriting_download,
             remove_handwriting_model,
@@ -819,6 +865,7 @@ pub fn run() {
             embed_texts,
             delete_work,
             note_versions,
+            work_item,
             prune_note_versions,
             external_links,
             open_external_link,

@@ -682,7 +682,8 @@ impl Store {
     pub fn work(&self, kind: Option<&str>) -> Result<Vec<Value>> {
         let mut q = self
             .connection
-            .prepare("SELECT data FROM work WHERE (?1 IS NULL AND kind<>'version') OR kind=?1 ORDER BY rowid")
+            // Note history and voice recordings are loaded on demand only.
+            .prepare("SELECT data FROM work WHERE (?1 IS NULL AND kind NOT IN ('version','audio')) OR kind=?1 ORDER BY rowid")
             .map_err(|e| e.to_string())?;
         let rows = q
             .query_map([kind], |r| r.get::<_, String>(0))
@@ -694,6 +695,17 @@ impl Store {
             }
         }
         Ok(items)
+    }
+    /// One item by id (a voice recording, for example), if it is readable.
+    pub fn work_item(&self, id: &str) -> Result<Option<Value>> {
+        let raw: Option<String> = self
+            .connection
+            .query_row("SELECT data FROM work WHERE id=?1", [id], |r| r.get(0))
+            .ok();
+        match raw {
+            Some(raw) => self.decode_work(&raw),
+            None => Ok(None),
+        }
     }
     fn decode_work(&self, raw: &str) -> Result<Option<Value>> {
         let stored: Value = serde_json::from_str(raw).map_err(|e| e.to_string())?;
@@ -729,12 +741,12 @@ impl Store {
         let kind = item["kind"].as_str().ok_or("Missing kind")?;
         if !matches!(
             kind,
-            "subject" | "note" | "card" | "batch" | "hidden" | "vector" | "log" | "meta" | "sheet" | "chart" | "version" | "board" | "sticky" | "workspace" | "plan" | "picture"
+            "subject" | "note" | "card" | "batch" | "hidden" | "vector" | "log" | "meta" | "sheet" | "chart" | "version" | "board" | "sticky" | "workspace" | "plan" | "picture" | "audio"
         ) {
             return Err("Unknown work item".into());
         }
         // Spreadsheets and boards can hold far more than a note.
-        let big = matches!(kind, "sheet" | "board" | "plan" | "picture");
+        let big = matches!(kind, "sheet" | "board" | "plan" | "picture" | "audio");
         let limit = if big { 48 } else { 4 } * 1024 * 1024;
         if item.to_string().len() > limit {
             return Err(if big {

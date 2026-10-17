@@ -164,6 +164,7 @@ import { PinDialog, type PinRequest } from "./components/PinDialog";
 import { UpdatesPanel } from "./components/UpdatesPanel";
 import { PluginSettings } from "./work/plugins/PluginSettings";
 import { HandwritingSettings } from "./work/ink/HandwritingSettings";
+import { VoiceSettings } from "./work/voice/VoiceSettings";
 import { checkUpdates, checkedToday, markChecked, updateStatus } from "./updates";
 import type {
   Book,
@@ -4143,6 +4144,9 @@ export default function App() {
         </Section>
         <Section id="settings-work-handwriting" title={t("Handwriting")} defaultOpen={false}>
           <HandwritingSettings notify={notify} />
+        </Section>
+        <Section id="settings-work-voice" title={t("Voice notes")} defaultOpen={false}>
+          <VoiceSettings notify={notify} />
         </Section>
         <Section id="settings-work-plugins" title={t("Plugins")} defaultOpen={false}>
           <PluginSettings

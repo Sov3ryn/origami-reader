@@ -9,6 +9,7 @@ import { inkBlock } from "./ink/InkBlock";
 import { diagramBlock } from "./diagrams/DiagramBlock";
 import { planBlock } from "./plans/PlanBlock";
 import { pluginBlock } from "./plugins/PluginBlock";
+import { voiceNote } from "./voice/VoiceBlock";
 import Highlight from "@tiptap/extension-highlight";
 import Underline from "@tiptap/extension-underline";
 import { Markdown } from "@tiptap/markdown";
@@ -246,6 +247,7 @@ export function noteExtensions(placeholder = "", interactive = false): AnyExtens
     diagramBlock(interactive),
     planBlock(interactive),
     pluginBlock(interactive),
+    voiceNote(interactive),
     // Formulas: $$x^2$$ inline, $$$x^2$$$ on its own line; LaTeX with KaTeX.
     Mathematics.configure({ katexOptions: { throwOnError: false, strict: "ignore" } }),
   ];

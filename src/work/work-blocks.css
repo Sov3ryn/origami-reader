@@ -1730,3 +1730,99 @@
 .study-face .picture-face {
   max-width: 100%;
 }
+
+/* Voice notes */
+.voice-block {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--work-softer, var(--panel));
+}
+.voice-block.selected {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.voice-block.recording {
+  border-color: #d9564a;
+}
+.voice-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-small);
+}
+.voice-meta {
+  color: var(--muted);
+  font-size: var(--fs-caption);
+}
+.voice-spacer {
+  flex: 1;
+}
+.voice-start,
+.voice-recording,
+.voice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.voice-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d9564a;
+  animation: voice-pulse 1.4s ease-in-out infinite;
+}
+@keyframes voice-pulse {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .voice-dot {
+    animation: none;
+  }
+}
+.voice-time {
+  font-variant-numeric: tabular-nums;
+  min-width: 3.2em;
+}
+.voice-level {
+  flex: 1;
+  min-width: 80px;
+  max-width: 240px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--work-soft, var(--line));
+  overflow: hidden;
+}
+.voice-level span {
+  display: block;
+  height: 100%;
+  background: #d9564a;
+  transition: width 0.1s linear;
+}
+.voice-block audio {
+  width: 100%;
+  max-width: 520px;
+  height: 36px;
+}
+.voice-transcript {
+  margin: 0;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.voice-transcript-edit {
+  width: 100%;
+  font: inherit;
+  line-height: 1.55;
+}
+.voice-working {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}

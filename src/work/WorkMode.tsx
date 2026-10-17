@@ -119,6 +119,8 @@ import { VaultMenu } from "./VaultMenu";
 import { PlanPage } from "./plans/PlanPage";
 import { PlanContext, type PlanWorld } from "./plans/PlanBlock";
 import { PluginBlockContext, type PluginBlockWorld } from "./plugins/PluginBlock";
+import { VoiceContext, type VoiceWorld } from "./voice/VoiceBlock";
+import { listRecordings, loadRecording } from "./voice/voice";
 import { linesToHtml, readPhoto } from "./ink/ink";
 import { newPlan, planText, type PlanDoc } from "./plans/model";
 import { exportWorkspace, importWorkspace, inWorkspace, mainWorkspace, MAIN, rememberWorkspace, savedWorkspace, stamp, workspaceColors, workspaceOf, type WorkspaceDoc } from "./workspaces";
@@ -295,6 +297,22 @@ export function WorkMode({
       .catch(() => setManifests([]));
   }, [open, pluginPrefs, pluginsOff]);
   const activePlugins = useMemo(() => manifests.filter((m) => pluginActive(m, pluginPrefs, pluginsOff)), [manifests, pluginPrefs, pluginsOff]);
+  // Voice notes: recordings saved for the open note, in its vault and workspace.
+  const voiceNoteRef = useRef<{ id: string; vault?: string; workspace?: string } | null>(null);
+  const voiceWorld = useMemo<VoiceWorld>(
+    () => ({
+      save: async (r) => {
+        const note = voiceNoteRef.current;
+        if (!note) throw new Error(t("Open a note to record a voice note."));
+        await saveWork([{ ...r, note: note.id, ...(note.vault ? { vault: note.vault } : {}), ...(note.workspace ? { workspace: note.workspace } : {}) } as unknown as WorkItem]);
+      },
+      load: (id) => loadRecording(id).catch(() => null),
+      remove: (id) => void deleteWork([id]).catch(() => undefined),
+      notify,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
   const pluginBlockWorld = useMemo<PluginBlockWorld>(
     () => ({ active: new Map(activePlugins.map((p) => [p.id, p])), dark: theme === "dark", notify }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -403,6 +421,7 @@ export function WorkMode({
   const cards = data?.cards || [];
   const bookById = useMemo(() => new Map(books.map((b) => [b.id, b])), [books]);
   const current = view.kind === "note" ? notes.find((n) => n.id === view.id) : undefined;
+  voiceNoteRef.current = current ? { id: current.id, vault: current.vault, workspace: (current as { workspace?: string }).workspace } : null;
   // A vault that locks takes its notes and books with it: leave them.
   useEffect(() => {
     if (!data) return;
@@ -655,7 +674,8 @@ export function WorkMode({
     try {
       const all = await loadWork();
       const items: WorkItem[] = [];
-      for (const list of Object.values(all) as WorkItem[][]) for (const i of list) if (["subject", "note", "card", "sheet", "chart", "board", "sticky", "plan"].includes(i.kind) && workspaceOf(i as { workspace?: string }) === w.id) items.push(i);
+      for (const list of Object.values(all) as WorkItem[][]) for (const i of list) if (["subject", "note", "card", "sheet", "chart", "board", "sticky", "plan", "picture"].includes(i.kind) && workspaceOf(i as { workspace?: string }) === w.id) items.push(i);
+      for (const r of await listRecordings().catch(() => [])) if (workspaceOf(r) === w.id) items.push(r as unknown as WorkItem);
       await seal(items, w.vault, vault);
       const { vault: _v, ...plain } = w;
       await saveWork([vault ? { ...plain, vault } : plain]);
@@ -674,6 +694,8 @@ export function WorkMode({
       ...d.cards.filter((c) => c.noteId === doc.id),
       ...d.stickies.filter((s) => s.doc === doc.id),
       ...d.charts.filter((c) => c.source.kind === "sheet" && c.source.sheetId === doc.id),
+      // Voice recordings follow their note.
+      ...((await listRecordings().catch(() => [])).filter((r) => r.note === doc.id) as unknown as WorkItem[]),
     ];
     try {
       await seal(related, doc.vault, vault);
@@ -709,7 +731,8 @@ export function WorkMode({
       return;
     const own = cards.filter((c) => c.noteId === note.id);
     const keep = own.filter((c) => c.origin === "manual").map((c) => ({ ...c, noteId: undefined }));
-    await put(keep, [note.id, ...own.filter((c) => c.origin === "note").map((c) => c.id), ...stickies.filter((s) => s.doc === note.id).map((s) => s.id)]);
+    const recordings = (await listRecordings().catch(() => [])).filter((r) => r.note === note.id).map((r) => r.id);
+    await put(keep, [note.id, ...own.filter((c) => c.origin === "note").map((c) => c.id), ...stickies.filter((s) => s.doc === note.id).map((s) => s.id), ...recordings]);
     void pruneVersions(note.id, 0).catch(() => undefined);
     setView(note.subjectId ? { kind: "subject", id: note.subjectId } : { kind: "today" });
   }
@@ -1935,6 +1958,7 @@ export function WorkMode({
       <ChartContext value={chartWorld}>
       <PlanContext value={planWorld}>
       <PluginBlockContext value={pluginBlockWorld}>
+      <VoiceContext value={voiceWorld}>
       <PictureContext value={pictureMap}>
       {!sidebarOpen && (
         <button className="icon-only sidebar-reopen" data-tip={t("Show sidebar")} data-keys={shortcuts.sidebar} onClick={() => setSidebarOpen(true)}>
@@ -2353,6 +2377,7 @@ export function WorkMode({
         </PageBoundary>
       </main>
       </PictureContext>
+      </VoiceContext>
       </PluginBlockContext>
       </PlanContext>
       </ChartContext>
