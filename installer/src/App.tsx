@@ -120,6 +120,36 @@ function Toggle({
     </label>
   );
 }
+// Progress lines from the installer script, in the setup's language.
+function progressText(message: string) {
+  const fixed: Record<string, string> = {
+    "Installing speech packages": t("Installing speech packages"),
+    "Installing light voice packages": t("Installing light voice packages"),
+    "Preparing package installation": t("Preparing package installation"),
+    "Removing the earlier version": t("Removing the earlier version"),
+    "Applying your preferences": t("Applying your preferences"),
+    "Installing Origami": t("Installing Origami"),
+  };
+  if (fixed[message]) return fixed[message];
+  const downloading = message.match(/^Downloading (.+)$/);
+  if (downloading) return t("Downloading {name}", { name: downloading[1] });
+  const preparing = message.match(/^Preparing (.+)$/);
+  if (preparing) return t("Preparing {name}", { name: preparing[1] });
+  const installing = message.match(/^Installing (.+)$/);
+  if (installing) return t("Installing {name}", { name: installing[1] });
+  return t(message);
+}
+// Messages from the installer script, in the setup's language when known.
+function setupMessage(message: string) {
+  const known: Record<string, string> = {
+    "Choose a new, empty application folder. Existing installations are kept intact.": t("Choose a new, empty application folder. Existing installations are kept intact."),
+    "There is not enough free space in the installation location.": t("There is not enough free space in the installation location."),
+    "Choose a destination outside the extracted setup package.": t("Choose a destination outside the extracted setup package."),
+    "Accept the image model license before installing that model.": t("Accept the image model license before installing that model."),
+    "Installation cancelled. Your selections have been kept.": t("Installation cancelled. Your selections have been kept."),
+  };
+  return known[message] || message;
+}
 type DownloadGroup = { bytes?: number; voices?: number; estimate?: number | Record<string, number> };
 export default function App() {
   const [options, setOptions] = useState<SetupOptions>(() => ({
@@ -135,6 +165,8 @@ export default function App() {
   }));
   const [installMessage, setInstallMessage] = useState("");
   const [installError, setInstallError] = useState("");
+  // Folder of an earlier Origami found by setup, offered for replacement.
+  const [earlier, setEarlier] = useState("");
   const [terms, setTerms] = useState(false);
   // Origami Reader's own license, accepted before installing.
   const [appTerms, setAppTerms] = useState(false);
@@ -240,7 +272,7 @@ export default function App() {
       if (payload.percent !== undefined) setProgress(payload.percent);
       if (payload.message)
         setInstallMessage(
-          t(payload.message) + (payload.file ? ` · ${payload.file}` : ""),
+          progressText(payload.message) + (payload.file ? ` · ${payload.file}` : ""),
         );
     });
     const closeListener = listen("install-close-requested", () =>
@@ -450,8 +482,9 @@ export default function App() {
     // The payload-free preview cannot launch an installed application.
     if (action === "close") window.close();
   }
-  async function startPreview() {
+  async function startPreview(replaceEarlier = false) {
     setInstallError("");
+    setEarlier("");
     setInstallMessage("Preparing your setup");
     setProgress(0);
     setPaused(false);
@@ -465,6 +498,7 @@ export default function App() {
             lightVoices: hasLight && options.lightVoices,
             turboModel: hasTurbo && options.turboModel,
             speechDevice: system?.speech || "cpu",
+            replaceEarlier,
             amdSpeech:
               options.speech && options.amdSpeech && system?.speech === "rocm",
           },
@@ -472,7 +506,11 @@ export default function App() {
         setWarnings(result.warnings);
         setStep(7);
       } catch (error) {
-        setInstallError(String(error));
+        const message = String(error).replace(/^Error:\s*/, "");
+        // An earlier version is installed: ask before replacing it.
+        const found = message.match(/EARLIER:(.+)$/);
+        if (found) setEarlier(found[1].trim());
+        else setInstallError(message);
         setStep(5);
       }
     }
@@ -618,8 +656,24 @@ export default function App() {
           <div className={`content step-${step}`}>
             {installError && (
               <p className="error" role="alert">
-                {installError}
+                {setupMessage(installError)}
               </p>
+            )}
+            {earlier && (
+              <div className="info-card" role="alert">
+                <div>
+                  <strong>{t("An earlier version of Origami is installed")}</strong>
+                  <p>
+                    {t(
+                      "It is in {folder}. Setup can replace it with this version. Your library, notes, cards and settings are kept.",
+                      { folder: earlier },
+                    )}
+                  </p>
+                  <button className="primary" onClick={() => void startPreview(true)}>
+                    {t("Replace it and install")}
+                  </button>
+                </div>
+              </div>
             )}
             {native && step === 5 && (
               <div className="info-card">
@@ -1614,7 +1668,9 @@ export default function App() {
         <span>{t("ORIGAMI")}</span>
         <span>
           {native
-            ? t("Origami Reader · Offline beta package")
+            ? downloads
+              ? t("Origami Reader · Online beta setup")
+              : t("Origami Reader · Offline beta package")
             : t("Installer design preview · No application payload")}
         </span>
         <button

@@ -20,7 +20,10 @@ $configRoot = Join-Path $env:APPDATA 'app.origami.reader'
 $marker = Join-Path $configRoot 'installation.json'
 if (Test-Path -LiteralPath $marker) {
     $installed = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
-    if ($installed.root -eq $installRoot) {
+    # Same folder (letter case and a trailing backslash do not matter), or a
+    # folder that no longer exists: the settings belong to no other install.
+    $recorded = [IO.Path]::GetFullPath([string]$installed.root).TrimEnd('\')
+    if ([string]::Equals($recorded, $installRoot.TrimEnd('\'), [StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath (Join-Path $recorded 'origami-reader.exe'))) {
         foreach ($name in @('worker.json', 'cover-engine.json', 'installation.json')) {
             $target = Join-Path $configRoot $name
             if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target }

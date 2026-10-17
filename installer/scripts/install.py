@@ -384,6 +384,49 @@ def write_light_venv(dest, py):
         ".".join(map(str, sys.version_info[:3])) + "\n", encoding="utf-8")
 
 
+CONFIG_FILES = ("worker.json", "cover-engine.json", "installation.json")
+
+
+def earlier_install(config, platform):
+    """The folder of an earlier Origami still installed for this account, or None."""
+    try:
+        root = Path(json.loads((config / "installation.json").read_text(encoding="utf-8-sig"))["root"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    exe = root / ("origami-reader.exe" if platform == "windows" else "origami-reader")
+    receipt = root / "installation.json"
+    return root if exe.is_file() and receipt.is_file() else None
+
+
+def remove_earlier(root):
+    """Removes an earlier program folder, after checking its own receipt names it."""
+    receipt = json.loads((root / "installation.json").read_text(encoding="utf-8-sig"))
+    if os.path.normcase(os.path.abspath(receipt.get("root", ""))) != os.path.normcase(os.path.abspath(root)):
+        raise ValueError("The earlier installation's receipt does not match its folder, so it was left as it is. "
+                         "Uninstall it from Windows Settings, Apps, then run setup again.")
+    if root == Path(root.anchor) or root == Path.home():
+        raise ValueError("The earlier installation is in an unexpected folder, so it was left as it is.")
+    for link in receipt.get("shortcuts", []):
+        if str(link).lower().endswith((".lnk", ".desktop")):
+            Path(link).unlink(missing_ok=True)
+    try:
+        shutil.rmtree(long_path(root))
+    except OSError as error:
+        raise ValueError("The earlier version could not be removed. Close Origami Reader and run setup again. "
+                         f"({error})")
+
+
+def set_aside_configs(config):
+    """Moves leftover settings files into a dated folder instead of deleting them."""
+    found = [config / name for name in CONFIG_FILES if (config / name).exists()]
+    if not found:
+        return
+    backup = config / ("previous-setup-" + time.strftime("%Y%m%d-%H%M%S"))
+    backup.mkdir(parents=True, exist_ok=True)
+    for path in found:
+        shutil.move(str(path), str(backup / path.name))
+
+
 def install(base, options):
     manifest = json.loads((base / "payload/manifest.json").read_text(encoding="utf-8"))
     platform = {"win32": "windows", "linux": "linux", "darwin": "macos"}[sys.platform]
@@ -396,15 +439,24 @@ def install(base, options):
     if (options.get("coverModel") or options.get("portraitModel") or turbo) and not options.get("modelTermsAccepted"):
         raise ValueError("Accept the image model license before installing that model.")
     dest = Path(os.path.expandvars(os.path.expanduser(options["installPath"].strip()))).resolve()
-    if not dest.is_absolute() or dest == Path(dest.anchor) or dest == Path.home() or dest.exists():
+    config = Path(options["configDir"]).resolve()
+    data = Path(options["dataDir"]).resolve()
+    # An earlier beta: its program folder is replaced only when the reader
+    # agrees; settings files left behind without a program are set aside.
+    # The library (origami.sqlite3 in the data folder) is never touched.
+    earlier = earlier_install(config, platform)
+    if earlier and not options.get("replaceEarlier"):
+        raise ValueError("EARLIER:" + str(earlier))
+    # The folder of the version being replaced may be chosen again.
+    replacing = bool(earlier) and os.path.normcase(str(dest)) == os.path.normcase(str(earlier.resolve()))
+    if not dest.is_absolute() or dest == Path(dest.anchor) or dest == Path.home() or (dest.exists() and not replacing):
         raise ValueError("Choose a new, empty application folder. Existing installations are kept intact.")
     if dest.is_relative_to(base.resolve()) or base.resolve().is_relative_to(dest):
         raise ValueError("Choose a destination outside the extracted setup package.")
-    config = Path(options["configDir"]).resolve()
-    data = Path(options["dataDir"]).resolve()
-    for name in ("worker.json", "cover-engine.json", "installation.json"):
-        if (config / name).exists():
-            raise ValueError("Origami is already configured for this account. This beta installer supports fresh installations only.")
+    if earlier:
+        send(event="progress", percent=0, message="Removing the earlier version")
+        remove_earlier(earlier)
+    set_aside_configs(config)
     groups = {"core"}
     # "speech" holds the shared Python packages; Qwen and the light readers
     # each add their own models.
@@ -451,7 +503,7 @@ def install(base, options):
                     writer.write(chunk)
                     digest.update(chunk)
                     count += len(chunk)
-                    progress.add(len(chunk), "Installing " + item["group"], Path(item["path"]).name)
+                    progress.add(len(chunk), "Installing Origami", Path(item["path"]).name)
             if count != item["size"] or digest.hexdigest() != item["sha256"]:
                 raise ValueError("Package integrity check failed: " + item["path"])
             shutil.copymode(source, target)

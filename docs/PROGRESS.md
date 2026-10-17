@@ -505,3 +505,10 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 ## Donation link, 17 October 2026
 
 - SUPPORT_URL is https://ko-fi.com/sov3ryn (src-tauri/src/lib.rs): the Support Origami Reader card, the one-time request and the quiet Donate link now open the Ko-fi page in the default browser. Checked in a release build: the card shows "Support on Ko-fi" and the click opened the page. The hub's front page links to it too.
+
+## Setup over an earlier beta, 17 October 2026
+
+- A tester was stopped by "Origami is already configured for this account": settings files from an earlier beta were still in %APPDATA%\app.origami.reader after uninstalling. Setup now handles both cases itself: settings left without a program are moved to a dated previous-setup folder, and an earlier version still installed is offered for replacement ("Replace it and install"; its folder is removed only when its own receipt names it). The library, notes, cards and settings in origami.sqlite3 are never touched.
+- The uninstaller now also removes those settings when their folder matches regardless of letter case or a trailing backslash, or no longer holds the program.
+- Setup's new lines, installer messages and progress lines are translated (French complete, 2396 strings); the footer says "Online beta setup" for online kits.
+- Checked with setup's own script in scratch folders: fresh install, a second install stops and asks, replacing keeps the data folder, leftover settings are set aside. The hub's beta 6 ZIP was replaced (SHA-256 b570a5de5ac8989ae46f52783aa0dda28acde6e57f99fa79ec3ff9914b5ea1d3); it also carries the Ko-fi link.
