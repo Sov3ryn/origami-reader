@@ -49,9 +49,43 @@
     "cuda": "speech-torch-cu128.txt",
     "cpu": "speech-torch-cpu.txt"
    },
+   "wheels": {
+    "cuda": [
+     {
+      "url": "https://download-r2.pytorch.org/whl/cu128/torch-2.10.0%2Bcu128-cp312-cp312-win_amd64.whl",
+      "file": "torch-2.10.0+cu128-cp312-cp312-win_amd64.whl",
+      "size": 2867409626,
+      "sha256": "fbde8f6a9ec8c76979a0d14df21c10b9e5cab6f0d106a73ca73e2179bc597cae"
+     },
+     {
+      "url": "https://download-r2.pytorch.org/whl/cu128/torchaudio-2.10.0%2Bcu128-cp312-cp312-win_amd64.whl",
+      "file": "torchaudio-2.10.0+cu128-cp312-cp312-win_amd64.whl",
+      "size": 1952021,
+      "sha256": "9a890dfbc7a3301f5ce7930f3ce452841f0c34e51686609628e99ed52c5cc775"
+     }
+    ],
+    "cpu": [
+     {
+      "url": "https://download-r2.pytorch.org/whl/cpu/torch-2.10.0%2Bcpu-cp312-cp312-win_amd64.whl",
+      "file": "torch-2.10.0+cpu-cp312-cp312-win_amd64.whl",
+      "size": 113671330,
+      "sha256": "21cb5436978ef47c823b7a813ff0f8c2892e266cfe0f1d944879b5fba81bf4e1"
+     },
+     {
+      "url": "https://download-r2.pytorch.org/whl/cpu/torchaudio-2.10.0%2Bcpu-cp312-cp312-win_amd64.whl",
+      "file": "torchaudio-2.10.0+cpu-cp312-cp312-win_amd64.whl",
+      "size": 473210,
+      "sha256": "32707736ef079a673433ca36c227c135375602b74d41ee21ff18d1e75caee0b0"
+     }
+    ]
+   },
    "estimate": {
-    "cuda": 4300000000,
-    "cpu": 1300000000
+    "cuda": 700000000,
+    "cpu": 700000000
+   },
+   "wheelBytes": {
+    "cuda": 2869361647,
+    "cpu": 114144540
    },
    "bytes": 0
   },

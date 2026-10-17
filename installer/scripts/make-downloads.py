@@ -64,6 +64,42 @@ def model(repo, folder, only=None, rename=None, rev=None):
     return picked
 
 
+def torch_wheels(build):
+    """The Windows wheels named in a PyTorch lock, with URL, size and hash, so
+    setup downloads them itself (several connections, visible progress)."""
+    import html.parser
+    import re
+    import urllib.parse
+
+    class Links(html.parser.HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.links = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag == "a":
+                self.links.append(dict(attrs).get("href", ""))
+
+    lock = (REPO / f"installer/locks/speech-torch-{build}.txt").read_text(encoding="utf-8")
+    wheels = []
+    for name, version in re.findall(r"^(\S+)==(\S+) ", lock, re.M):
+        with urllib.request.urlopen(f"https://download.pytorch.org/whl/{build}/{name}/", timeout=60) as r:
+            page = Links()
+            page.feed(r.read().decode())
+        for href in page.links:
+            file = urllib.parse.unquote(href.split("/")[-1].split("#")[0])
+            if file.startswith(f"{name}-{version}-cp312-cp312-win_amd64"):
+                url, sha = href.split("#sha256=")
+                url = url if url.startswith("http") else urllib.parse.urljoin(f"https://download.pytorch.org/whl/{build}/{name}/", url)
+                head = urllib.request.Request(url, method="HEAD")
+                with urllib.request.urlopen(head, timeout=60) as r:
+                    size = int(r.headers["Content-Length"])
+                wheels.append({"url": url, "file": file, "size": size, "sha256": sha})
+    if len(wheels) != 2:
+        raise SystemExit(f"Expected torch and torchaudio wheels for {build}, found {len(wheels)}")
+    return wheels
+
+
 def main():
     groups = {}
     groups["core"] = {
@@ -78,9 +114,13 @@ def main():
                 rename={"onnx/model_quint8_avx2.onnx": "models/embeddings/standard/model.onnx",
                         "tokenizer.json": "models/embeddings/standard/tokenizer.json"}),
     }
+    wheels = {"cuda": torch_wheels("cu128"), "cpu": torch_wheels("cpu")}
+    # The estimate covers the packages pip downloads; the PyTorch wheels are
+    # counted from their real sizes.
     groups["speech"] = {"label": "Speech packages", "pip": "speech.txt",
                         "torch": {"cuda": "speech-torch-cu128.txt", "cpu": "speech-torch-cpu.txt"},
-                        "estimate": {"cuda": 4_300_000_000, "cpu": 1_300_000_000}}
+                        "wheels": wheels, "estimate": {"cuda": 700_000_000, "cpu": 700_000_000},
+                        "wheelBytes": {k: sum(w["size"] for w in v) for k, v in wheels.items()}}
     groups["speech-qwen"] = {"label": "Qwen3-TTS 0.6B",
                              "files": model("Qwen/Qwen3-TTS-12Hz-0.6B-Base", "models/Qwen3-TTS-12Hz-0.6B-Base")}
     groups["speech-light"] = {"label": "Light voices", "pip": "light.txt", "estimate": 330_000_000,

@@ -516,3 +516,10 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 ## Beta 7 update published, 17 October 2026
 
 - 0.1.0-beta.7 (app component only, 89 MB encrypted) is the newest release of Promethor/origami-updates: the Ko-fi support link and the setup fixes. Checked through GitHub: a fresh beta 6 from the hub found beta 7, installed it in 1.7 s, and the installed program matches the new build byte for byte. The hub's installer stays beta 6 (it already has the Ko-fi link); new friends are offered beta 7 within a day of installing.
+
+## Faster downloads and a single setup file (beta 7 on the hub), 17 October 2026
+
+- Testers saw setup sit at 3 to 4% on the handwriting step. That step finished; the next one, pip downloading PyTorch (2.9 GB with an NVIDIA card), showed nothing, and a progress throttle could swallow the new step's message. Now a new step always shows at once, and setup downloads PyTorch itself (wheel URLs, sizes and hashes in installer/downloads.json, installed by pip from disk with the locked hashes).
+- Large files download in 16 MB pieces over four connections; a piece with no data for 20 seconds restarts, finished pieces are kept for the next attempt, and the progress line shows each file's amount and speed.
+- One setup file: installer/scripts/SingleFileSetup.cs and make-single-exe.ps1 append the sealed kit ZIP to a small program that unpacks it to a temporary folder, runs setup and removes the folder when setup closes. Released on the hub as v0.1.0-beta.7 (Origami-Reader-Setup-Beta-7.exe, 486 MB, SHA-256 4fa8033f36c0710605b1bb7e0599ac66d42c0111793c620e89c0bfd13d30dac4).
+- Checked: installs with processor and NVIDIA PyTorch (the installed copy sees the card); the single file opened setup in 16 seconds and left no temporary files after setup closed.

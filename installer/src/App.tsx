@@ -150,7 +150,7 @@ function setupMessage(message: string) {
   };
   return known[message] || message;
 }
-type DownloadGroup = { bytes?: number; voices?: number; estimate?: number | Record<string, number> };
+type DownloadGroup = { bytes?: number; voices?: number; estimate?: number | Record<string, number>; wheelBytes?: Record<string, number> };
 export default function App() {
   const [options, setOptions] = useState<SetupOptions>(() => ({
     ...initialOptions(),
@@ -350,6 +350,7 @@ export default function App() {
       sum += g.bytes || 0;
       const e = g.estimate;
       sum += typeof e === "number" ? e : e ? e[device] || 0 : 0;
+      sum += g.wheelBytes?.[device] || 0;
     }
     return sum;
   })();

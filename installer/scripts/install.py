@@ -161,15 +161,36 @@ HIDDEN = {"creationflags": 0x08000000} if sys.platform == "win32" else {}
 
 
 class Progress:
+    """Overall progress, safe to update from several download threads. The
+    file label carries the amount and the speed, so a slow download is
+    visibly moving rather than looking stuck."""
     def __init__(self, total):
         self.total, self.done, self.last = max(total, 1), 0, 0.0
+        self.lock = threading.Lock()
+        self.samples = []
 
-    def add(self, amount, message, file=""):
-        self.done += amount
-        if time.monotonic() - self.last > .15:
-            send(event="progress", percent=min(self.done / self.total * 94, 94), bytesDone=int(self.done),
-                 bytesTotal=self.total, message=message, file=file)
-            self.last = time.monotonic()
+    def speed(self):
+        if len(self.samples) < 2:
+            return 0.0
+        (t0, d0), (t1, d1) = self.samples[0], self.samples[-1]
+        return (d1 - d0) / max(t1 - t0, 1e-3)
+
+    def add(self, amount, message, file="", downloading=False):
+        with self.lock:
+            self.done += amount
+            now = time.monotonic()
+            self.samples.append((now, self.done))
+            while len(self.samples) > 2 and now - self.samples[0][0] > 6:
+                self.samples.pop(0)
+            # A new step always shows at once; within a step, a few times a second.
+            if now - self.last > .25 or message != getattr(self, "message", None):
+                self.message = message
+                label = file
+                if downloading and self.speed() > 0:
+                    label += f" \u00b7 {self.speed() / 1e6:.1f} MB/s"
+                send(event="progress", percent=min(self.done / self.total * 94, 94), bytesDone=int(self.done),
+                     bytesTotal=self.total, message=message, file=label)
+                self.last = now
 
 
 def sha256_of(path):
@@ -181,59 +202,162 @@ def sha256_of(path):
     return digest.hexdigest()
 
 
+SEGMENT = 16 * 1024 * 1024   # large files download in pieces of this size,
+CONNECTIONS = 4              # this many at a time,
+STALL = 20                   # and a piece with no data for this long restarts.
+
+
+class NoRanges(Exception):
+    pass
+
+
 def fetch(item, progress, message):
-    """Downloads one file into the cache, resuming a partial download, and
-    returns the verified cached file."""
-    import urllib.error
-    import urllib.request
+    """Downloads one file into the cache and returns the verified cached file.
+    Large files come in pieces over several connections; finished pieces are
+    kept, so a new attempt continues where the last one stopped."""
+    import json as _json
     CACHE.mkdir(parents=True, exist_ok=True)
     final = CACHE / item["sha256"]
     name = item.get("path", item["url"]).rsplit("/", 1)[-1]
-    if final.is_file() and final.stat().st_size == item["size"]:
-        progress.add(item["size"], message, name)
+    size = item["size"]
+    if final.is_file() and final.stat().st_size == size:
+        progress.add(size, message, name)
         return final
     part = CACHE / (item["sha256"] + ".part")
+    if size >= 2 * SEGMENT:
+        try:
+            fetch_pieces(item, part, progress, message, name)
+        except NoRanges:
+            part.unlink(missing_ok=True)
+            (CACHE / (item["sha256"] + ".pieces")).unlink(missing_ok=True)
+            fetch_stream(item, part, progress, message, name)
+    else:
+        fetch_stream(item, part, progress, message, name)
+    if part.stat().st_size != size or sha256_of(part) != item["sha256"]:
+        part.unlink(missing_ok=True)
+        (CACHE / (item["sha256"] + ".pieces")).unlink(missing_ok=True)
+        raise ValueError(f"The download of {name} did not match its published fingerprint. Run setup again.")
+    part.replace(final)
+    (CACHE / (item["sha256"] + ".pieces")).unlink(missing_ok=True)
+    return final
+
+
+def open_url(url, headers):
+    import urllib.request
+    return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "Origami-Setup/1", **headers}),
+                                  timeout=STALL)
+
+
+def fetch_pieces(item, part, progress, message, name):
+    import json as _json
+    from concurrent.futures import ThreadPoolExecutor
+    size = item["size"]
+    record = CACHE / (item["sha256"] + ".pieces")
+    pieces = [(i, i * SEGMENT, min(size, (i + 1) * SEGMENT) - 1) for i in range((size + SEGMENT - 1) // SEGMENT)]
+    try:
+        done = set(_json.loads(record.read_text())) if record.exists() and part.exists() else set()
+    except ValueError:
+        done = set()
+    if not part.exists() or part.stat().st_size != size:
+        with part.open("wb") as f:
+            f.truncate(size)
+        done = set()
+    lock = threading.Lock()
+    received = [sum(b - a + 1 for i, a, b in pieces if i in done)]
+    progress.add(received[0], message, name)
+
+    def label():
+        return f"{name} \u00b7 {received[0] / 1e6:.0f} of {size / 1e6:.0f} MB"
+
+    def get(piece):
+        index, first, last = piece
+        for attempt in range(8):
+            checkpoint()
+            got = 0
+            try:
+                with open_url(item["url"], {"Range": f"bytes={first}-{last}"}) as response:
+                    if response.status != 206:
+                        raise NoRanges()
+                    with part.open("r+b") as writer:
+                        writer.seek(first)
+                        while chunk := response.read(256 * 1024):
+                            checkpoint()
+                            writer.write(chunk)
+                            got += len(chunk)
+                            with lock:
+                                received[0] += len(chunk)
+                            progress.add(len(chunk), message, label(), downloading=True)
+                if got != last - first + 1:
+                    raise OSError("short piece")
+                with lock:
+                    done.add(index)
+                    record.write_text(_json.dumps(sorted(done)))
+                return
+            except NoRanges:
+                raise
+            except Exception as error:
+                if cancelled.is_set():
+                    raise
+                # Take back what this attempt counted; the piece starts again.
+                with lock:
+                    received[0] -= got
+                progress.add(-got, message, label())
+                if attempt == 7:
+                    raise RuntimeError(f"Could not download {name}. Check the internet connection and run setup "
+                                       f"again; what was already downloaded is kept. ({error})")
+                time.sleep(min(20, 2 ** attempt))
+
+    missing = [p for p in pieces if p[0] not in done]
+    pool = ThreadPoolExecutor(CONNECTIONS)
+    try:
+        for future in [pool.submit(get, p) for p in missing]:
+            future.result()
+    except BaseException:
+        # Pieces not started are dropped; finished ones stay for next time.
+        pool.shutdown(wait=True, cancel_futures=True)
+        raise
+    pool.shutdown()
+
+
+def fetch_stream(item, part, progress, message, name):
+    """One connection, resuming with a range request after an interruption."""
+    import urllib.error
+    size = item["size"]
     counted = 0
-    for attempt in range(6):
+    for attempt in range(8):
         checkpoint()
         have = part.stat().st_size if part.exists() else 0
-        if have > item["size"]:
+        if have > size:
             part.unlink()
             have = 0
         if have > counted:
             progress.add(have - counted, message, name)
             counted = have
-        if have == item["size"]:
-            break
-        headers = {"User-Agent": "Origami-Setup/1"}
-        if have:
-            headers["Range"] = f"bytes={have}-"
+        if have == size:
+            return
         try:
-            with urllib.request.urlopen(urllib.request.Request(item["url"], headers=headers), timeout=60) as response:
+            with open_url(item["url"], {"Range": f"bytes={have}-"} if have else {}) as response:
                 if have and response.status != 206:
                     # The server sent the whole file again.
                     part.unlink()
-                    have = 0
+                    progress.add(-counted, message, name)
+                    counted = have = 0
                 with part.open("ab") as writer:
-                    while chunk := response.read(1024 * 1024):
+                    while chunk := response.read(256 * 1024):
                         checkpoint()
                         writer.write(chunk)
                         counted += len(chunk)
-                        progress.add(len(chunk), message, name)
-            if part.stat().st_size == item["size"]:
-                break
+                        progress.add(len(chunk), message, f"{name} \u00b7 {counted / 1e6:.0f} of {size / 1e6:.0f} MB",
+                                     downloading=True)
+            if part.stat().st_size == size:
+                return
         except (OSError, urllib.error.URLError) as error:
             if cancelled.is_set():
                 raise
-            if attempt == 5:
+            if attempt == 7:
                 raise RuntimeError(f"Could not download {name}. Check the internet connection and run setup "
                                    f"again; what was already downloaded is kept. ({error})")
-            time.sleep(min(30, 2 ** attempt))
-    if part.stat().st_size != item["size"] or sha256_of(part) != item["sha256"]:
-        part.unlink(missing_ok=True)
-        raise ValueError(f"The download of {name} did not match its published fingerprint. Run setup again.")
-    part.replace(final)
-    return final
+            time.sleep(min(20, 2 ** attempt))
 
 
 def place(cached, target):
@@ -287,6 +411,7 @@ def online_plan(downloads, groups, options):
         weight += group.get("bytes", 0)
         estimate = group.get("estimate", 0)
         weight += estimate.get(device, 0) if isinstance(estimate, dict) else estimate
+        weight += group.get("wheelBytes", {}).get(device, 0)
     if any(name in groups for name in ("speech", "speech-light")):
         weight += 3_000_000
     return steps, weight, device
@@ -316,12 +441,25 @@ def run_online(base, dest, py, steps, device, progress, downloads):
         label = group.get("label", name)
         if name == "speech":
             torch = locks / group["torch"][device]
-            index = "https://download.pytorch.org/whl/" + ("cu128" if device == "cuda" else "cpu")
             estimate = group.get("estimate", {}).get(device, 0)
-            pip_install(py, ["-r", str(torch), "--index-url", index], progress, "Installing speech packages",
-                        estimate * 0.6, lock_count(torch))
+            if group.get("wheels"):
+                # PyTorch is the largest download: fetched here, in pieces and
+                # with visible progress, then installed by pip from disk
+                # (still checked against the locked hashes).
+                wheels = CACHE / "wheels"
+                wheels.mkdir(parents=True, exist_ok=True)
+                for wheel in group["wheels"][device]:
+                    target = wheels / wheel["file"]
+                    if not target.exists():
+                        place(fetch({**wheel, "path": wheel["file"]}, progress, "Downloading PyTorch"), target)
+                pip_install(py, ["-r", str(torch), "--no-index", "--find-links", str(wheels)], progress,
+                            "Installing speech packages", 0, lock_count(torch))
+            else:
+                index = "https://download.pytorch.org/whl/" + ("cu128" if device == "cuda" else "cpu")
+                pip_install(py, ["-r", str(torch), "--index-url", index], progress, "Installing speech packages",
+                            estimate * 0.6, lock_count(torch))
             pip_install(py, ["-r", str(locks / group["pip"])], progress, "Installing speech packages",
-                        estimate * 0.4, lock_count(locks / group["pip"]))
+                        estimate, lock_count(locks / group["pip"]))
             continue
         for item in group.get("files", []):
             place(fetch(item, progress, "Downloading " + label), contained(dest, item["path"]))

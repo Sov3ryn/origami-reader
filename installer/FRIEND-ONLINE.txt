@@ -1,10 +1,9 @@
-ORIGAMI READER 0.1.0 BETA 6, WINDOWS
+ORIGAMI READER 0.1.0 BETA 7, WINDOWS
 
 This is a private beta for invited friends. Please do not share or re-upload it.
 
 ALREADY INSTALLED AN EARLIER BETA?
-Uninstall it first: Windows Settings > Apps > Installed apps > Origami Reader
-> Uninstall. Your library, notes, cards and settings are kept.
+Setup offers to replace it. Your library, notes, cards and settings are kept.
 
 INSTALL
 1. Keep this whole folder together and stay connected to the internet.
