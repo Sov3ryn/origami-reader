@@ -369,15 +369,37 @@ export function WorkMode({
 
   // The tour, added once (and again on request from the menu).
   const seeding = useRef(false);
-  async function addTutorial() {
+  // The tutorial workspace. On a first start, the first workspace becomes
+  // "Tutorial"; anyone who already has notes gets it as a workspace of its
+  // own (their notes are never moved). "Add the tour again" makes a new copy.
+  async function addTutorial(again = false) {
     if (seeding.current) return;
     seeding.current = true;
     try {
       const lang = (language || currentLanguage()).startsWith("fr") ? "fr" : "en";
-      const items = await buildTutorial(lang, books, readBook);
-      await put([...items, { id: "meta:tutorial", kind: "meta", value: "1" }]);
+      const name = lang === "fr" ? "Tutoriel" : "Tutorial";
+      const all = await loadWork();
+      const main = inWorkspace(all, MAIN);
+      const empty = !main.notes.length && !main.sheets.length && !main.boards.length && !main.plans.length && !main.cards.length;
+      let target = MAIN;
+      const extra: WorkItem[] = [];
+      if (empty && !again) {
+        const named = all.workspaces.find((w) => w.id === MAIN) || mainWorkspace();
+        extra.push({ ...named, name });
+      } else {
+        const w: WorkspaceDoc = { id: crypto.randomUUID(), kind: "workspace", name, color: workspaceColors[1], created: Date.now() };
+        extra.push(w);
+        target = w.id;
+      }
+      const items = await buildTutorial(lang, books, readBook, target);
+      await saveWork([...extra, ...items, { id: "meta:tutorial", kind: "meta", value: "1" }, { id: "meta:tutorial-2", kind: "meta", value: "1" }]);
+      wsRef.current = target;
+      setWsId(target);
+      rememberWorkspace(target);
+      await reload();
       const first = items.find((i): i is Note => i.kind === "note");
       if (first) setView({ kind: "note", id: first.id });
+      notify(empty && !again ? t("Welcome! This first workspace is a tutorial. Make your own from the workspace menu when you are ready.") : t("The tutorial is in its own workspace, \"{name}\".", { name }));
     } catch (e) {
       fail(e);
     } finally {
@@ -385,7 +407,7 @@ export function WorkMode({
     }
   }
   useEffect(() => {
-    if (open && data && !data.meta.some((m) => m.id === "meta:tutorial")) void addTutorial();
+    if (open && data && !data.meta.some((m) => m.id === "meta:tutorial-2")) void addTutorial();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, data]);
 
@@ -1914,7 +1936,7 @@ export function WorkMode({
                   <Download size={15} />
                   {t("Export all notes and cards")}
                 </button>
-                <button role="menuitem" onClick={() => (setMenu(false), void addTutorial())}>
+                <button role="menuitem" onClick={() => (setMenu(false), void addTutorial(true))}>
                   <Sparkles size={15} />
                   {t("Add the Work mode tour again")}
                 </button>

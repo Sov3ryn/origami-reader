@@ -97,7 +97,7 @@ describe("colour marks", () => {
 });
 
 describe("tutorial", () => {
-  it("builds linked notes, dated tasks and cards tied to the starter books", async () => {
+  it("builds a tutorial workspace with linked chapters, documents and cards", async () => {
     const books = [
       { id: "pp", title: "Pride and Prejudice" },
       { id: "dr", title: "Dracula" },
@@ -108,19 +108,41 @@ describe("tutorial", () => {
     };
     const read = async (id: string) => ({ meta: books.find((b) => b.id === id)!, paragraphs: [{ id: id + "-p", text: text[id], kind: "paragraph", chapter: 0 }] }) as Book;
     for (const lang of ["en", "fr"] as const) {
-      const items = await buildTutorial(lang, books, read, new Date(2026, 9, 17).getTime());
+      const items = await buildTutorial(lang, books, read, "ws-tutorial", new Date(2026, 9, 17).getTime());
       const notes = items.filter((i): i is Note => i.kind === "note");
       const titles = notes.map((n) => n.title);
-      expect(notes).toHaveLength(5);
+      expect(notes).toHaveLength(20);
+      expect(items.filter((i) => i.kind === "subject")).toHaveLength(6);
       // Every [[link]] points at a tutorial note.
       for (const n of notes) for (const l of noteLinks(n.html)) expect(titles).toContain(l);
-      expect(notes.flatMap((n) => noteTasks(n)).length).toBeGreaterThanOrEqual(6);
-      expect(passageLinks(notes[1].html)[0]).toMatchObject({ bookId: "pp", paragraphId: "pp-p" });
-      // The linking lesson mentions the cards note without linking it.
-      expect(unlinkedMentions(notes[1].html, [notes[2].title])).toHaveLength(1);
+      expect(notes.flatMap((n) => noteTasks(n)).length).toBeGreaterThanOrEqual(9);
+      const linking = notes.find((n) => passageLinks(n.html).length && /\[\[|data-note/.test(n.html) && unlinkedMentions(n.html, [notes[9].title]).length)!;
+      expect(passageLinks(linking.html)[0]).toMatchObject({ bookId: "pp", paragraphId: "pp-p" });
+      // Working documents, and the blocks that show them in notes.
+      const sheet = items.find((i) => i.kind === "sheet")!;
+      const charts = items.filter((i) => i.kind === "chart");
+      const plan = items.find((i) => i.kind === "plan")!;
+      expect(charts).toHaveLength(2);
+      expect(charts.some((c) => c.kind === "chart" && c.source.kind === "sheet" && c.source.sheetId === sheet.id)).toBe(true);
+      expect(items.find((i) => i.kind === "board")).toBeTruthy();
+      const html = notes.map((n) => n.html).join("");
+      for (const c of charts) expect(html).toContain(`data-chart="${c.id}"`);
+      expect(html).toContain(`data-plan="${plan.id}"`);
+      expect(html).toMatch(/data-type="block-math"/);
+      expect(html).toMatch(/data-diagram="mindmap/);
+      expect(html).toMatch(/data-embed="https:\/\/www\.youtube\.com/);
+      expect(html).toMatch(/data-voice=""/);
+      expect(html).toMatch(/data-ink="/);
+      expect(items.some((i) => i.kind === "sticky")).toBe(true);
+      // Cards from note lines and from the books (the picture needs a canvas,
+      // which the test page does not have).
       const cards = items.filter((i) => i.kind === "card");
-      expect(cards.length).toBe(5);
+      expect(cards.length).toBeGreaterThanOrEqual(12);
       expect(cards.filter((c) => c.kind === "card" && c.source).length).toBe(2);
+      // Everything that belongs to a workspace is in the tutorial's.
+      const scoped = items.filter((i) => ["subject", "note", "card", "sheet", "chart", "board", "sticky", "plan", "picture"].includes(i.kind));
+      expect(scoped.every((i) => (i as { workspace?: string }).workspace === "ws-tutorial")).toBe(true);
+      expect(items.find((i) => i.kind === "subject" && "exam" in i && i.exam)).toBeTruthy();
       expect(JSON.stringify(items)).not.toMatch(/—/);
     }
   });
