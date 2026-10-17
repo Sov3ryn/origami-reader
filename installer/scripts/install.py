@@ -370,20 +370,39 @@ def place(cached, target):
 
 
 def pip_install(py, args, progress, message, weight, count):
-    """Runs pip with hash checking; progress moves with each package."""
+    """Runs pip with hash checking. The screen names the package being
+    installed and a running time, so a long unpack (PyTorch is about 4.5 GB
+    once unpacked) never looks frozen."""
     command = [str(py), "-m", "pip", "install", "--no-deps", "--require-hashes", "--disable-pip-version-check",
                "--no-warn-script-location", "--progress-bar", "off", "--cache-dir", str(CACHE / "pip"), *args]
+    # Unbuffered, so pip's lines arrive as they happen.
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-                               encoding="utf-8", errors="replace", **HIDDEN)
+                               encoding="utf-8", errors="replace", env={**os.environ, "PYTHONUNBUFFERED": "1"}, **HIDDEN)
     step, seen, output = weight / max(count, 1), 0, []
+    current = {"name": "", "since": time.monotonic()}
+    started = time.monotonic()
+    progress.add(0, message, "")
+
+    def heartbeat():
+        while process.poll() is None:
+            minutes, seconds = divmod(int(time.monotonic() - started), 60)
+            label = (current["name"] + " · " if current["name"] else "") + f"{minutes}:{seconds:02d}"
+            progress.add(0, message, label)
+            time.sleep(1)
+
+    threading.Thread(target=heartbeat, daemon=True).start()
     try:
         for line in process.stdout:
             output.append(line)
             if cancelled.is_set():
                 raise RuntimeError("Installation cancelled. Your selections have been kept.")
+            words = line.split()
             if line.startswith(("Collecting", "Processing")) and seen < count:
                 seen += 1
-                progress.add(step, message, line.split()[1][:60] if len(line.split()) > 1 else "")
+                current["name"] = words[1].split("/")[-1].split("\\")[-1][:60] if len(words) > 1 else ""
+                progress.add(step, message, current["name"])
+            elif line.startswith("Installing collected packages"):
+                current["name"] = "unpacking"
         if process.wait():
             raise RuntimeError(message + " failed. Check the internet connection and run setup again. "
                                + "".join(output[-6:])[-500:])
