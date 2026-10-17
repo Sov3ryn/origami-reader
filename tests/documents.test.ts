@@ -6,6 +6,19 @@ import {
   epubParagraphs,
 } from "../src/documents";
 describe("structured reading", () => {
+  it("skips addresses, automation messages and decoration without damaging prose", () => {
+    expect(
+      cleanSpokenText(
+        "Read [the guide](https://example.test/docs). Visit https://example.test/a?q=1\n<heartbeat><message>Internal status</message></heartbeat>\n✨ Done.",
+      ),
+    ).toBe("Read the guide. Visit \n \n Done.");
+    const prose =
+      "It costs $12.50, a 5% increase. 日本語 한국어 हिन्दी. 2 + 2 = 4.";
+    expect(cleanSpokenText(prose)).toBe(prose);
+    const literal = "https://example.test <message>hello</message> ✨";
+    expect(cleanSpokenText(literal, false)).toBe(literal);
+    expect(splitSpeech(literal, 400, false).join(" ")).toBe(literal);
+  });
   it("separates nested diary paragraphs and headings and retains list introductions once", () => {
     const doc = new DOMParser().parseFromString(
       '<html xmlns="http://www.w3.org/1999/xhtml"><body><blockquote><h3>Journal</h3><p>First entry.</p><p>Second entry.</p></blockquote><ul><li>Introduction<ul><li>Nested item</li></ul>Conclusion</li></ul></body></html>',

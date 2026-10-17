@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { openSettings } from "./sections";
 import AxeBuilder from "@axe-core/playwright";
 
 test.beforeEach(async ({ page }) => {
@@ -47,6 +48,14 @@ test.beforeEach(async ({ page }) => {
         target.artProof.calls.push({ command, args });
         const state = load();
         switch (command) {
+          case "list_vaults":
+            return [];
+          case "parental_pin_status":
+            return false;
+          case "voice_studio_state":
+            return { installed: false, busy: false, previews: [] };
+          case "cancel_voice_design":
+            return;
           case "purge_trash":
             return [];
           case "starter_library_installed":
@@ -209,7 +218,7 @@ test("automatic portraits can be disabled, manually generated, edited and replac
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await openSettings(page, "Cover art");
   const automatic = page.getByLabel(
     "Generate missing voice portraits automatically",
     { exact: true },

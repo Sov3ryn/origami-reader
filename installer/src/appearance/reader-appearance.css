@@ -1,0 +1,418 @@
+/* Synced reader scene effects and paper textures. */
+.background-art {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  contain: layout paint;
+}
+.background-still,
+.previous-still,
+.still-stage,
+.ambient-effects {
+  position: absolute;
+  inset: 0;
+}
+.lake-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, calc(max(100cqh, 540px) * 1672 / 941));
+  aspect-ratio: 1672 / 941;
+  transform: translate(-50%, -50%);
+}
+.background-still,
+.previous-still {
+  background-size: cover;
+  background-position: center;
+}
+.background-paper .background-still {
+  background:
+    linear-gradient(150deg, transparent 55%, #5c526c 55.2%, transparent 82%),
+    linear-gradient(210deg, transparent 40%, #776883 40.3%, transparent 85%),
+    linear-gradient(135deg, #38313e, transparent 45%);
+}
+.ambient-layer {
+  position: absolute;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.ambient-mist {
+  width: 76%;
+  height: 20%;
+  object-fit: fill;
+  animation: mist-drift 56s ease-in-out infinite alternate;
+}
+.mist-near {
+  left: -4%;
+  top: 41%;
+  height: 10%;
+}
+.mist-far {
+  left: 38%;
+  top: 39%;
+  width: 60%;
+  height: 10%;
+  animation-duration: 73s;
+  animation-delay: -31s;
+  animation-direction: alternate-reverse;
+}
+.ambient-petal,
+.ambient-leaf {
+  height: auto;
+  animation: reader-petal-wind 60s linear infinite;
+}
+.mountain-fog {
+  object-fit: fill;
+  animation: mountain-drift 92s ease-in-out infinite alternate;
+}
+.fog-west {
+  left: 14%;
+  top: 28%;
+  width: 46%;
+  height: 16%;
+  animation-delay: -43s;
+}
+.fog-east {
+  left: 52%;
+  top: 32%;
+  width: 43%;
+  height: 12%;
+  animation-duration: 117s;
+  animation-delay: -78s;
+}
+.lake-ripple {
+  object-fit: fill;
+  animation: ripple-drift 28s ease-in-out infinite;
+}
+.ripple-near {
+  left: 36%;
+  top: 74%;
+  width: 41%;
+  height: 9%;
+  animation-delay: -18s;
+}
+.ripple-middle {
+  left: 20%;
+  top: 57%;
+  width: 37%;
+  height: 7%;
+  animation-duration: 34s;
+  animation-delay: -7s;
+}
+.ripple-far {
+  left: 74%;
+  top: 53%;
+  width: 24%;
+  height: 5%;
+  animation-duration: 39s;
+  animation-delay: -29s;
+}
+.cabin-light {
+  left: 78.95%;
+  top: 43.5%;
+  width: 2%;
+  height: 3.1%;
+  background: radial-gradient(
+    ellipse,
+    #ffc38280 0%,
+    #f4af6460 17%,
+    #ed98442b 35%,
+    #ed984400 70%
+  );
+  animation: cabin-flicker 17s ease-in-out infinite;
+}
+.moon-cloud {
+  left: 86%;
+  top: 20.2%;
+  width: 19%;
+  height: 7%;
+  object-fit: fill;
+  animation: cloud-pass 154s linear infinite;
+  animation-delay: -34s;
+}
+.sky-cloud {
+  object-fit: fill;
+  animation: sky-drift 138s ease-in-out infinite alternate;
+}
+.sky-cloud-high {
+  left: 22%;
+  top: 8%;
+  width: 43%;
+  height: 11%;
+  animation-delay: -53s;
+}
+.sky-cloud-low {
+  left: 57%;
+  top: 17%;
+  width: 29%;
+  height: 7%;
+  animation-duration: 173s;
+  animation-delay: -112s;
+}
+.ambient-firefly {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #fffbd4 0% 12%,
+    #fff29aca 22%,
+    #dfdf7866 42%,
+    #d6d67d00 72%
+  );
+  animation: firefly-drift 23s ease-in-out infinite;
+}
+.fish-feeding {
+  position: absolute;
+  aspect-ratio: 4.8;
+  transform: translate(-50%, -50%);
+}
+.fish-ring {
+  inset: 0;
+  border: 1.5px solid #ffe3bbcc;
+  border-radius: 50%;
+  box-shadow:
+    0 1px 1px #182c4699,
+    inset 0 1px 1px #f6dca940;
+  animation: fish-ring-expand 10s ease-out both;
+}
+@keyframes fish-ring-expand {
+  0% {
+    transform: scale(0.08);
+    opacity: 0;
+  }
+  14% {
+    opacity: 0.9;
+  }
+  42% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+.ambient-snow {
+  top: -5%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #ffffffed 0%,
+    #edf3fa9c 35%,
+    #edf3fa00 72%
+  );
+  animation: snowfall 42s linear infinite;
+}
+@keyframes sky-drift {
+  from {
+    transform: translate3d(16%, 0, 0);
+    opacity: 0.45;
+  }
+  to {
+    transform: translate3d(-23%, 2%, 0);
+    opacity: 0.85;
+  }
+}
+@keyframes firefly-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.12;
+  }
+  23% {
+    opacity: 1;
+  }
+  46% {
+    transform: translate3d(-32px, -26px, 0);
+    opacity: 0.4;
+  }
+  68% {
+    opacity: 1;
+  }
+  85% {
+    transform: translate3d(-60px, -9px, 0);
+    opacity: 0.25;
+  }
+}
+@keyframes snowfall {
+  0% {
+    transform: translate3d(0, -3cqh, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.95;
+  }
+  55% {
+    transform: translate3d(calc(var(--snow-drift) * 0.6), 53cqh, 0);
+  }
+  88% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(var(--snow-drift), 109cqh, 0);
+    opacity: 0;
+  }
+}
+@keyframes mountain-drift {
+  from {
+    transform: translate3d(8%, 0, 0);
+    opacity: 0.45;
+  }
+  to {
+    transform: translate3d(-12%, 4%, 0);
+    opacity: 0.85;
+  }
+}
+@keyframes ripple-drift {
+  0%,
+  100% {
+    transform: translate3d(0, -2%, 0) scaleX(0.95);
+    opacity: 0.18;
+  }
+  45% {
+    opacity: 0.65;
+  }
+  90% {
+    transform: translate3d(-2%, 14%, 0) scaleX(1.08);
+    opacity: 0.18;
+  }
+}
+@keyframes cabin-flicker {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  18% {
+    opacity: 0.85;
+  }
+  34% {
+    opacity: 0.5;
+  }
+  48% {
+    opacity: 0.75;
+  }
+  67% {
+    opacity: 0.38;
+  }
+  83% {
+    opacity: 0.8;
+  }
+}
+@keyframes cloud-pass {
+  0%,
+  12% {
+    transform: translate3d(105%, 0, 0);
+    opacity: 0;
+  }
+  24% {
+    opacity: 0.92;
+  }
+  65% {
+    opacity: 0.92;
+  }
+  84%,
+  100% {
+    transform: translate3d(-110%, 6%, 0);
+    opacity: 0;
+  }
+}
+@keyframes mist-drift {
+  0% {
+    transform: translate3d(6%, 0, 0);
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(-12%, 4%, 0);
+    opacity: 0.55;
+  }
+}
+@keyframes reader-petal-wind {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scaleX(0.8);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.95;
+  }
+  35% {
+    transform: translate3d(
+        calc(var(--petal-drift) * 0.35),
+        calc(var(--petal-fall) * 0.3),
+        0
+      )
+      rotate(calc(var(--petal-turn) * 0.4)) scaleX(0.35);
+  }
+  65% {
+    transform: translate3d(
+        calc(var(--petal-drift) * 0.65),
+        calc(var(--petal-fall) * 0.68),
+        0
+      )
+      rotate(calc(var(--petal-turn) * 0.7)) scaleX(0.9);
+  }
+  88% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(var(--petal-drift), var(--petal-fall), 0)
+      rotate(var(--petal-turn)) scaleX(0.45);
+    opacity: 0;
+  }
+}
+.surface-paper {
+  background-color: #f4efe3;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23000' opacity='.045' filter='url(%23n)' d='M0 0h160v160H0z'/%3E%3C/svg%3E");
+}
+.surface-light {
+  background: #fff;
+  color: #171717;
+}
+.surface-parchment {
+  background-color: #ebdcbb;
+  background-image: radial-gradient(
+    ellipse at 50% 20%,
+    #fff9df55,
+    transparent 70%
+  );
+  color: #3a3022;
+}
+.surface-dark {
+  background-color: #1b1c1f;
+  color: #e3dfd7;
+  --page-muted: #aaa59e;
+  --mark-bg: #51465e;
+  --mark-ink: #fcf5ff;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' opacity='.028' filter='url(%23n)' d='M0 0h160v160H0z'/%3E%3C/svg%3E");
+}
+/* Squared paper, like a maths exercise book: 5 mm squares, a bolder line
+   every 2 cm, and a red margin line. */
+.surface-grid {
+  background-color: #fbfbf7;
+  color: #1d2a44;
+  background-image:
+    linear-gradient(90deg, transparent 47px, #e2747466 47px, #e2747466 49px, transparent 49px),
+    linear-gradient(#7c9cc93a 1px, transparent 1px),
+    linear-gradient(90deg, #7c9cc93a 1px, transparent 1px),
+    linear-gradient(#7c9cc92a 1px, transparent 1px),
+    linear-gradient(90deg, #7c9cc92a 1px, transparent 1px);
+  background-size: 100% 100%, 76px 76px, 76px 76px, 19px 19px, 19px 19px;
+}
+/* Blueprint: white lines on deep blue. */
+.surface-blueprint {
+  background-color: #1f4e8c;
+  color: #eef5ff;
+  --page-muted: #b9cdea;
+  --mark-bg: #4f7fc0;
+  --mark-ink: #ffffff;
+  background-image:
+    linear-gradient(#ffffff2e 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff2e 1px, transparent 1px),
+    linear-gradient(#ffffff14 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff14 1px, transparent 1px);
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+}

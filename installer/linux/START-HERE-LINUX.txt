@@ -1,0 +1,52 @@
+Origami Reader, private beta for Linux
+======================================
+
+Thank you for testing! This is a private beta shared only with trusted
+testers. Please do not pass it on.
+
+What you get
+------------
+- The full reader: library, book mode (two pages, page turns, the opening
+  from the cover), notes, bookmarks, the offline author notes and portraits,
+  language flags, imports (EPUB, PDF, Kindle, Word, text and more).
+- Local speech with 20 English voices (Qwen3-TTS 0.6B). It uses an NVIDIA
+  card when there is one, and the processor otherwise (slower).
+- Optional local artwork for covers and voice portraits (DreamShaper 8 LCM).
+
+Nothing is sent anywhere while you read. The installer itself downloads build
+tools and Python packages once, from their official sources.
+
+Origami Reader is made by Sov3ryn. It is free to use at home, school or work;
+copies may not be shared, sold or modified. The installer asks you to accept
+the full terms in LICENSE.txt first (running it with --yes counts as accepting).
+
+Install
+-------
+1. Extract this folder somewhere in your home folder (not on a USB stick).
+2. Open a terminal in the folder and run:
+
+       ./install-linux.sh
+
+   It explains each step and asks before using sudo or downloading
+   anything. Building takes roughly 10 to 30 minutes the first time,
+   depending on the computer and the connection.
+3. Open "Origami Reader" from your applications menu.
+
+Needs: a 64-bit computer, about 14 GB of free space, an internet connection
+during the install, and Python 3.10 to 3.13 (most current distributions have
+it). Tested distributions: see the notes from the sender. Debian/Ubuntu,
+Fedora and Arch are supported by the script; others need the packages listed
+at https://v2.tauri.app/start/prerequisites/ installed first.
+
+If something goes wrong
+-----------------------
+Everything is logged to ~/origami-install.log. Please send that file, plus:
+- your distribution and version, and your graphics card,
+- what you clicked and what you expected.
+Inside the app, a short note of what happened and when is very helpful too.
+
+Remove
+------
+    ~/.local/share/origami-reader/uninstall-origami.sh
+
+Your books, notes and settings stay unless you add --remove-library.

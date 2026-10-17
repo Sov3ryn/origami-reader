@@ -1,0 +1,15 @@
+{
+  "name": "origami-installer-preview",
+  "version": "0.1.0",
+  "private": true,
+  "license": "SEE LICENSE IN ../LICENSE",
+  "author": "Sov3ryn",
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/sync-appearance.mjs",
+    "prebuild": "node scripts/sync-appearance.mjs",
+    "dev": "vite --host 127.0.0.1 --port 1432 --strictPort",
+    "build": "tsc --noEmit && vite build && node scripts/portable.mjs",
+    "preview": "vite preview --host 127.0.0.1 --port 1432 --strictPort"
+  }
+}

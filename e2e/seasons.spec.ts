@@ -1,4 +1,7 @@
 import { test, expect } from "@playwright/test";
+import { openSettings } from "./sections";
+import { expandSections } from "./sections";
+import { chooseScene } from "./scenes";
 
 for (const scene of [
   {
@@ -37,9 +40,14 @@ for (const scene of [
     await page
       .getByRole("button", { name: "Appearance settings", exact: true })
       .click();
-    await page.getByRole("button", { name: scene.name, exact: true }).click();
+    await expandSections(page);
+    await chooseScene(page, scene.name);
     await expect(page.locator(".background-art")).toHaveClass(
-      "background-art background-" + scene.id,
+      "background-art background-" +
+        scene.id +
+        (scene.id === "spring" || scene.id === "winter"
+          ? " time-day"
+          : " time-night"),
     );
     await expect(page.locator(".ambient-options input")).toHaveCount(
       scene.id === "summer" ? 6 : 5,
@@ -63,6 +71,7 @@ for (const scene of [
     await page
       .getByRole("button", { name: "Appearance settings", exact: true })
       .click();
+    await expandSections(page);
     await expect(
       page.getByRole("button", { name: scene.name, exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
@@ -106,8 +115,8 @@ test("startup voice preload can be disabled and remains off after reopening", as
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
-  const preload = page.getByLabel("Preload last used voice at startup", {
+  await openSettings(page, "Performance");
+  const preload = page.getByLabel("Load the voice when Origami opens", {
     exact: true,
   });
   await expect(preload).toBeChecked();
@@ -125,21 +134,16 @@ test("each background restores its palette, opacity and effect switches across r
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Spring morning", exact: true })
-    .click();
+  await expandSections(page);
+  await chooseScene(page, "Spring morning");
   await page.getByLabel("App theme", { exact: true }).selectOption("forest");
   await page.getByLabel("Background opacity", { exact: true }).fill("73");
   await page.getByLabel("Windblown petals", { exact: true }).uncheck();
-  await page
-    .getByRole("button", { name: "Winter daylight", exact: true })
-    .click();
+  await chooseScene(page, "Winter daylight");
   await page.getByLabel("App theme", { exact: true }).selectOption("plum");
   await page.getByLabel("Background opacity", { exact: true }).fill("36");
   await page.getByLabel("Subtle background motion", { exact: true }).uncheck();
-  await page
-    .getByRole("button", { name: "Spring morning", exact: true })
-    .click();
+  await chooseScene(page, "Spring morning");
   await expect(page.getByLabel("App theme", { exact: true })).toHaveValue(
     "forest",
   );
@@ -158,12 +162,11 @@ test("each background restores its palette, opacity and effect switches across r
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   await expect(page.getByLabel("App theme", { exact: true })).toHaveValue(
     "forest",
   );
-  await page
-    .getByRole("button", { name: "Winter daylight", exact: true })
-    .click();
+  await chooseScene(page, "Winter daylight");
   await expect(page.getByLabel("App theme", { exact: true })).toHaveValue(
     "plum",
   );

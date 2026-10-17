@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { ImagePlus, LoaderCircle, RefreshCw, X } from "lucide-react";
 import { coverImage } from "../covers";
@@ -16,7 +17,7 @@ export function VoicePortrait({
       {voice.portrait ? (
         <img
           src={voice.portrait}
-          alt={"Illustrated portrait for " + voice.name}
+          alt={t("Illustrated portrait for {name}", { name: voice.name })}
           width={256}
           height={256}
         />
@@ -103,11 +104,11 @@ export function VoicePortraitDialog({
         }}
       >
         <div className="section-row">
-          <h2 id="portrait-dialog-title">Voice portrait</h2>
+          <h2 id="portrait-dialog-title">{t("Voice portrait")}</h2>
           <button
             ref={close}
             className="icon-button"
-            aria-label="Close portrait editor"
+            aria-label={t("Close portrait editor")}
             disabled={active || saving}
             onClick={onClose}
           >
@@ -119,15 +120,16 @@ export function VoicePortraitDialog({
           <div>
             <h3>{voice.name}</h3>
             <p className="hint">
-              Fictional character artwork based on the voice profile. You can
-              choose a different appearance.
+              {t(
+                "Fictional character artwork based on the voice profile. You can choose a different appearance.",
+              )}
             </p>
             <input
               ref={input}
               type="file"
               hidden
               accept="image/png,image/jpeg,image/webp"
-              aria-label="Voice portrait image file"
+              aria-label={t("Voice portrait image file")}
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
@@ -147,12 +149,12 @@ export function VoicePortraitDialog({
               onClick={() => input.current?.click()}
             >
               <ImagePlus size={17} />
-              Choose image
+              {t("Choose image")}
             </button>
             <label>
-              Portrait description
+              {t("Portrait description")}
               <textarea
-                aria-label="Portrait description"
+                aria-label={t("Portrait description")}
                 maxLength={1400}
                 value={prompt}
                 disabled={active || saving}
@@ -160,10 +162,9 @@ export function VoicePortraitDialog({
               />
             </label>
             <p className="hint">
-              Describe ethnicity, age, hair, clothing and expression here. For
-              example: adult Black woman, short curly hair, green wool jacket.
-              Portraits are saved at 256 × 256. Cover content settings do not
-              apply.
+              {t(
+                "Describe ethnicity, age, hair, clothing and expression here. For example: adult Black woman, short curly hair, green wool jacket. Portraits are saved at 256 × 256. Cover content settings do not apply.",
+              )}
             </p>
             <div className="dialog-actions">
               <button
@@ -181,7 +182,9 @@ export function VoicePortraitDialog({
                 ) : (
                   <RefreshCw size={17} />
                 )}
-                {voice.portrait ? "Regenerate portrait" : "Generate portrait"}
+                {voice.portrait
+                  ? t("Regenerate portrait")
+                  : t("Generate portrait")}
               </button>
               {active && (
                 <button
@@ -189,18 +192,22 @@ export function VoicePortraitDialog({
                     void onCancel().catch((e) => setError(String(e)));
                   }}
                 >
-                  Cancel generation
+                  {t("Cancel generation")}
                 </button>
               )}
             </div>
             <p className="hint">
               {!installed
-                ? "Set up the local cover engine to generate portraits, or choose an image."
+                ? t(
+                    "Set up the local cover engine to generate portraits, or choose an image.",
+                  )
                 : !idle
-                  ? "Stop playback before generating artwork."
+                  ? t("Stop playback before generating artwork.")
                   : busy && !active
-                    ? "Another image is being generated."
-                    : "Each generation uses a new seed and unloads the image model afterward."}
+                    ? t("Another image is being generated.")
+                    : t(
+                        "Each generation uses a new seed and unloads the image model afterward.",
+                      )}
             </p>
             {error && <p role="alert">{error}</p>}
           </div>

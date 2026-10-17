@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { expandSections } from "./sections";
+import { chooseScene } from "./scenes";
 
 test("scene defaults match the chosen palettes and surfaces, and opacity increases to the right", async ({
   page,
@@ -7,6 +9,7 @@ test("scene defaults match the chosen palettes and surfaces, and opacity increas
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   for (const [scene, theme, surface, opacity] of [
     ["Moonlit lake", "plum", "Night", "50"],
     ["Spring morning", "forest", "Sepia", "50"],
@@ -14,7 +17,7 @@ test("scene defaults match the chosen palettes and surfaces, and opacity increas
     ["Autumn dusk", "copper", "Sepia", "65"],
     ["Winter daylight", "white", "Paper", "85"],
   ]) {
-    await page.getByRole("button", { name: scene, exact: true }).click();
+    await chooseScene(page, scene);
     await expect(page.getByLabel("App theme", { exact: true })).toHaveValue(
       theme,
     );
@@ -43,12 +46,8 @@ test("scene defaults match the chosen palettes and surfaces, and opacity increas
     .click();
   await expect(opacity).toHaveValue("85");
   await page.getByRole("button", { name: "Night", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Summer evening", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Winter daylight", exact: true })
-    .click();
+  await chooseScene(page, "Summer evening");
+  await chooseScene(page, "Winter daylight");
   await expect(
     page.getByRole("button", { name: "Night", exact: true }),
   ).toHaveClass("active");
@@ -62,6 +61,7 @@ test("seasonal backgrounds change at local midnight and manual selection disable
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   await page
     .getByLabel("Background selection", { exact: true })
     .selectOption("seasonal");
@@ -69,20 +69,22 @@ test("seasonal backgrounds change at local midnight and manual selection disable
   await page.clock.fastForward("12:00:01");
   await expect(page.locator(".background-autumn")).toBeVisible();
   await page.getByLabel("Seasons in", { exact: true }).selectOption("south");
-  await expect(page.locator(".background-spring")).toBeVisible();
+  // Southern spring, still at night: the Moonlit lake.
+  await expect(page.locator(".background-lake")).toBeVisible();
   await page.waitForTimeout(150);
   await page.reload();
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   await expect(
     page.getByLabel("Background selection", { exact: true }),
   ).toHaveValue("seasonal");
   await expect(page.getByLabel("Seasons in", { exact: true })).toHaveValue(
     "south",
   );
-  await expect(page.locator(".background-spring")).toBeVisible();
-  await page.getByRole("button", { name: "Moonlit lake", exact: true }).click();
+  await expect(page.locator(".background-lake")).toBeVisible();
+  await chooseScene(page, "Moonlit lake");
   await expect(
     page.getByLabel("Background selection", { exact: true }),
   ).toHaveValue("manual");
@@ -97,23 +99,27 @@ test("random mode selects one different scene on each launch and keeps that scen
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   await page
     .getByLabel("Background selection", { exact: true })
     .selectOption("random");
   await expect(page.locator(".background-lake")).toBeVisible();
   await page.waitForTimeout(150);
-  let previous = "background-art background-lake";
+  let previous = "background-art background-lake time-night";
   for (let launch = 0; launch < 3; launch++) {
     await page.reload();
     await page
       .getByRole("button", { name: "Appearance settings", exact: true })
       .click();
+    await expandSections(page);
     await expect(
       page.getByLabel("Background selection", { exact: true }),
     ).toHaveValue("random");
     const scene = await page.locator(".background-art").getAttribute("class");
     expect(scene).not.toBe(previous);
-    expect(scene).toMatch(/background-(lake|spring|summer|autumn|winter)$/);
+    expect(scene).toMatch(
+      /background-(lake|spring|summer|autumn|winter)(-day|-night)? time-(day|night)$/,
+    );
     await page
       .getByRole("slider", { name: "Text size", exact: true })
       .fill("24");
@@ -131,9 +137,8 @@ test("fish rings occur at different open-water spots and stop when disabled, hid
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Summer evening", exact: true })
-    .click();
+  await expandSections(page);
+  await chooseScene(page, "Summer evening");
   await expect(page.locator(".fish-feeding")).toHaveCount(0);
   await page.clock.fastForward(23000);
   const rings = page.locator(".fish-ring");
@@ -195,9 +200,7 @@ test("fish rings occur at different open-water spots and stop when disabled, hid
   await page.clock.fastForward(60000);
   await expect(rings).toHaveCount(0);
   await page.getByLabel("Fish feeding ripples", { exact: true }).check();
-  await page
-    .getByRole("button", { name: "Winter daylight", exact: true })
-    .click();
+  await chooseScene(page, "Winter daylight");
   await page.clock.fastForward(60000);
   await expect(rings).toHaveCount(0);
 });

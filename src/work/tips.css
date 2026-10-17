@@ -1,0 +1,135 @@
+/* Tooltips with shortcuts, and the "Did you know?" tips. */
+
+.hover-tip {
+  position: fixed;
+  z-index: 1000;
+  transform: translate(-50%, -100%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 320px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: #15161b;
+  color: #f2f2f5;
+  font: 500 12px/1.35 "Inter", "Segoe UI", system-ui, sans-serif;
+  box-shadow: 0 8px 22px -10px rgb(0 0 0 / 0.6);
+  pointer-events: none;
+  animation: tip-in 120ms ease-out;
+}
+.hover-tip.below {
+  transform: translate(-50%, 0);
+}
+@keyframes tip-in {
+  from {
+    opacity: 0;
+  }
+}
+.keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+.keys-combo {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+.keys-or {
+  opacity: 0.6;
+  margin: 0 2px;
+}
+.keys kbd {
+  min-width: 18px;
+  padding: 2px 5px;
+  border-radius: 5px;
+  font: 600 10.5px/1.2 "Inter", system-ui, sans-serif;
+  text-align: center;
+  color: inherit;
+  background: rgb(255 255 255 / 0.12);
+  border: 1px solid rgb(255 255 255 / 0.16);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+/* Did you know? */
+.tip-card {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  z-index: 30;
+  width: min(340px, calc(100% - 44px));
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px 12px;
+  border-radius: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 44px -20px rgb(0 0 0 / 0.55);
+  color: var(--ink);
+  font-size: var(--fs-body);
+  animation: tip-card-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes tip-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+.tip-card header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tip-card header svg {
+  color: var(--accent);
+  flex: none;
+}
+.tip-card header strong {
+  flex: 1;
+  font-size: var(--fs-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.tip-card header button {
+  border: 0;
+  background: transparent;
+  padding: 3px;
+  color: var(--muted);
+}
+.tip-card p {
+  margin: 0;
+  line-height: 1.5;
+}
+.tip-card .keys kbd {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  border-color: var(--line);
+}
+.tip-card footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tip-card footer .spacer {
+  flex: 1;
+}
+.tip-card footer button {
+  border: 0;
+  background: transparent;
+  padding: 3px 4px;
+  font-size: var(--fs-small);
+  color: var(--accent);
+}
+.tip-card footer .never {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hover-tip,
+  .tip-card {
+    animation: none;
+  }
+}

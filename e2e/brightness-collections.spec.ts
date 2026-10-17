@@ -1,7 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
+import { expandSections } from "./sections";
+import { chooseScene } from "./scenes";
 
 async function paperPixel(page: Page) {
-  const box = (await page.locator(".reading-page").boundingBox())!;
+  const box = (await page.locator(".reading-page").first().boundingBox())!;
   const png = await page.screenshot({
     clip: {
       x: Math.round(box.x + 12),
@@ -33,13 +35,14 @@ test("page brightness changes paper pixels, preserves ink and controls, and reme
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   await page.getByRole("button", { name: "Paper", exact: true }).click();
   const brightness = page.getByRole("slider", {
     name: "Page brightness",
     exact: true,
   });
   await expect(brightness).toHaveValue("100");
-  const paper = page.locator(".reading-page");
+  const paper = page.locator(".reading-page").first();
   const ink = await paper.evaluate((el) => getComputedStyle(el).color);
   const sidebar = await page
     .locator(".sidebar")
@@ -53,11 +56,9 @@ test("page brightness changes paper pixels, preserves ink and controls, and reme
   await brightness.fill("130");
   expect(await paperPixel(page)).toBeGreaterThanOrEqual(normal);
   await brightness.fill("75");
-  await page
-    .getByRole("button", { name: "Spring morning", exact: true })
-    .click();
+  await chooseScene(page, "Spring morning");
   await expect(brightness).toHaveValue("100");
-  await page.getByRole("button", { name: "Moonlit lake", exact: true }).click();
+  await chooseScene(page, "Moonlit lake");
   await expect(brightness).toHaveValue("75");
   await page.waitForTimeout(150);
   await page.reload();
@@ -112,15 +113,13 @@ test("collections remain when empty, reject duplicate names, and deletion preser
     ),
   });
   await expect(research.locator(".count")).toHaveText("1");
-  await page
-    .locator("input[type=file]")
-    .setInputFiles({
-      name: "Trashed collection note.txt",
-      mimeType: "text/plain",
-      buffer: Buffer.from(
-        "This document stays in Trash when its collection is removed.",
-      ),
-    });
+  await page.locator("input[type=file]").setInputFiles({
+    name: "Trashed collection note.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from(
+      "This document stays in Trash when its collection is removed.",
+    ),
+  });
   await page
     .getByLabel("Select Trashed collection note", { exact: true })
     .check();
@@ -164,7 +163,6 @@ test("collections remain when empty, reject duplicate names, and deletion preser
   ).toBeVisible();
   await page.locator(".voice-link").click();
   await page.getByRole("tab", { name: "Document", exact: true }).click();
-  await page.getByRole("button", { name: "Edit details", exact: true }).click();
   await expect(page.getByLabel("Collection", { exact: true })).toHaveValue(
     "Unsorted",
   );

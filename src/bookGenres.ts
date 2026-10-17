@@ -15,13 +15,29 @@ export function bookGenres(book: BookMeta): string[] {
   );
   return edition ? starterGenres[edition.id] || [edition.category] : [];
 }
+// Twelve clearly different hues. Common genres have fixed colors; any other
+// tag always gets the same color from its name.
+const genreHues: [RegExp, number][] = [
+  [/romance|love/i, 0],
+  [/horror|gothic/i, 1],
+  [/thriller|crime/i, 2],
+  [/adventure|action/i, 3],
+  [/classic|literary/i, 4],
+  [/short stor|poetry|essay/i, 5],
+  [/mystery|detective/i, 6],
+  [/science|sci-fi/i, 7],
+  [/histor/i, 8],
+  [/suspense/i, 9],
+  [/speculative|fantasy/i, 10],
+  [/humou?r|comedy|children/i, 11],
+];
 export function genreColor(genre: string) {
-  if (/romance/i.test(genre)) return "rose";
-  if (/horror|suspense/i.test(genre)) return "violet";
-  if (/science|speculative/i.test(genre)) return "blue";
-  if (/mystery/i.test(genre)) return "teal";
-  if (/adventure|historical/i.test(genre)) return "amber";
-  return "neutral";
+  const known = genreHues.find(([pattern]) => pattern.test(genre));
+  if (known) return "hue-" + known[1];
+  let hash = 0;
+  for (const c of genre.toLocaleLowerCase())
+    hash = (hash * 31 + c.charCodeAt(0)) >>> 0;
+  return "hue-" + (hash % 12);
 }
 export function normalizeGenres(text: string): string[] {
   const genres = text

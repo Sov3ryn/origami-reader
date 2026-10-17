@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { openSection } from "./sections";
 test("Trash retention is explicit, persists, grants legacy grace and purges expired entries", async ({
   page,
 }) => {
@@ -16,13 +17,11 @@ test("Trash retention is explicit, persists, grants legacy grace and purges expi
     ] as const) {
       const r = t.objectStore("metadata").get(id);
       r.onsuccess = () =>
-        t
-          .objectStore("metadata")
-          .put({
-            ...r.result,
-            deleted: true,
-            ...(stamp === null ? {} : { deletedAt: stamp }),
-          });
+        t.objectStore("metadata").put({
+          ...r.result,
+          deleted: true,
+          ...(stamp === null ? {} : { deletedAt: stamp }),
+        });
     }
     t.objectStore("annotations").put({
       id: "expired-note",
@@ -91,11 +90,9 @@ test("imported genre tags persist, filter the library and can be cleared", async
   await page
     .getByLabel("Genre tags", { exact: true })
     .fill("Romance, Suspense, romance");
-  await page
-    .getByRole("button", { name: "Save genre tags", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Save details", exact: true }).click();
   await page.locator(".back-library").click();
-  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  await openSection(page, "Filter and sort");
   await page.getByLabel("Filter library by genre").selectOption("Romance");
   await expect(page.locator(".book-card")).toHaveCount(2);
   await expect(
@@ -109,9 +106,7 @@ test("imported genre tags persist, filter the library and can be cleared", async
   await page.locator(".book-open").filter({ hasText: "Tagged book" }).click();
   await page.getByRole("tab", { name: "Document", exact: true }).click();
   await page.getByLabel("Genre tags", { exact: true }).fill("");
-  await page
-    .getByRole("button", { name: "Save genre tags", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Save details", exact: true }).click();
   await page.locator(".back-library").click();
   await expect(page.locator(".book-card")).toHaveCount(1);
 });

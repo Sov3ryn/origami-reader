@@ -36,7 +36,7 @@ describe("accepted narration wording", () => {
       { start: 5, end: 9, text: "" },
     ];
     expect(spokenText(p, defaultPreferences, { start: 5, end: 9 })).toBe("");
-    expect(spokenText(p, defaultPreferences)).toBe("First.  Three.");
+    expect(spokenText(p, defaultPreferences)).toBe("First. Three.");
     p.spokenEdits = replaceSpokenRange(p, { start: 5, end: 9 }, null);
     expect(spokenText(p, defaultPreferences)).toBe("First. Two. Three.");
   });

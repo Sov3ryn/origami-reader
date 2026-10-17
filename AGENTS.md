@@ -2,8 +2,8 @@
 
 - Keep the existing Maeve app, files, hooks, processes and settings independent and working. Never migrate destructively.
 - Build against the approved first-release plan in docs/PRODUCT-PLAN.html. Update docs/PROGRESS.md when completing a milestone.
-- Windows and Linux are target platforms. Do not claim Linux runtime validation until executed there.
-- App code is MPL 2.0 licensed. Keep personal voice recordings, model weights, credentials and local worker paths out of Git.
+- Windows, macOS and Linux are target platforms. Do not claim macOS or Linux runtime validation until executed there.
+- App code is source-available under PolyForm Strict 1.0.0 (copyright Sov3ryn); the released app is under APP-LICENSE.md. Do not describe Origami as open source. Keep personal voice recordings, model weights, credentials and local worker paths out of Git.
 - Use direct UI labels. No slogans such as "A place for every story" or "Words sound better here".
 - Do not use Unicode em dashes in authored text or code comments.
 - Both side panels must remain independently collapsible. Inspector tabs are contextual and must preserve note drafts.

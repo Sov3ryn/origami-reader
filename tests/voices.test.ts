@@ -91,3 +91,14 @@ describe("voice catalog metadata", () => {
     expect(voices[0].id).toBe("1");
   });
 });
+it("shows only voices for the selected model until the model filter asks", () => {
+  const mixed = [
+    { ...base, id: "q", name: "Q", engine: "qwen", languages: ["English"], gender: "female", styles: [] },
+    { ...base, id: "k", name: "K", engine: "kokoro", available: false, otherModel: true, languages: ["English"], gender: "male", styles: [] },
+  ] as Voice[];
+  const ids = (model: string) =>
+    filterVoices(mixed, { ...emptyVoiceFilters, model }, []).map((v) => v.id);
+  expect(ids("current")).toEqual(["q"]);
+  expect(ids("all").sort()).toEqual(["k", "q"]);
+  expect(ids("kokoro")).toEqual(["k"]);
+});

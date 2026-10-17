@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { openSection } from "./sections";
 import AxeBuilder from "@axe-core/playwright";
 
 test("author editing creates or reuses a collection and filters persist with accurate counts", async ({
@@ -14,14 +15,14 @@ test("author editing creates or reuses a collection and filters persist with acc
   await page
     .getByLabel("Create collection with author's name", { exact: true })
     .check();
-  await page.getByRole("button", { name: "Save author", exact: true }).click();
+  await page.getByRole("button", { name: "Save details", exact: true }).click();
   await expect(page.locator(".inspector")).toContainText("A. Test Writer");
   await page.getByLabel("Finished reading", { exact: true }).check();
   await page.locator(".back-library").click();
   await expect(
     page.locator(".collection-title").filter({ hasText: "A. Test Writer" }),
   ).toHaveCount(1);
-  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  await openSection(page, "Filter and sort");
   await page
     .getByLabel("Filter collections by author")
     .selectOption("A. Test Writer");
@@ -39,7 +40,7 @@ test("author editing creates or reuses a collection and filters persist with acc
   ).toHaveText("1");
   await page.reload();
   await expect(page.locator(".book-card")).toHaveCount(1);
-  await page.getByRole("button", { name: /Filters/ }).click();
+  await openSection(page, "Filter and sort");
   await expect(page.getByLabel("Filter collections by author")).toHaveValue(
     "A. Test Writer",
   );
@@ -71,10 +72,16 @@ test("global and per-book cover text switches retain metadata and selected artwo
   await page.getByRole("button", { name: "Close cover editor" }).click();
   await expect(card.locator(".cover-title")).toHaveCount(0);
   await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page
+    .getByRole("navigation", { name: "Settings sections" })
+    .getByRole("button", { name: "Cover art", exact: true })
+    .click();
   const show = page.getByLabel("Show title and author on covers", {
     exact: true,
   });
   await show.uncheck();
+  // Let the setting save before the page reloads.
+  await page.waitForTimeout(150);
   await page.reload();
   await expect(page.locator(".cover-title")).toHaveCount(0);
   await expect(page.locator(".book-card h3")).toHaveCount(6);

@@ -31,9 +31,37 @@ export type BookMeta = {
   coverOrigin?: "imported" | "custom" | "generated";
   coverText?: "auto" | "show" | "hide";
   finished?: boolean;
+  // Kept for books that use their own voice; others follow the shared voice.
   voice: string;
+  uniqueVoice?: boolean;
+  // Reading comfort settings used only for this book.
+  comfort?: Partial<
+    Pick<
+      Preferences,
+      | "readerFont"
+      | "fontSize"
+      | "lineHeight"
+      | "letterSpacing"
+      | "wordSpacing"
+      | "textTone"
+      | "justify"
+      | "hyphenate"
+      | "focusTool"
+    >
+  >;
   sourceHash: string;
   genres?: string[];
+  // Language code such as "en" or "ko"; empty when it could not be told.
+  language?: string;
+  // False after the reader deletes this book's cover, so automatic artwork
+  // does not bring it back. Generating or importing one still works.
+  autoCover?: boolean;
+  // The vault this book is locked in; its text, notes and details are stored
+  // encrypted and it only appears while that vault is unlocked.
+  vault?: string;
+  // A source for Work Mode: imported there, or added from the book menu.
+  // Work Mode shows only these by default, so leisure reading stays apart.
+  work?: boolean;
 };
 export type Book = { meta: BookMeta; paragraphs: Paragraph[] };
 export type Annotation = {
@@ -43,7 +71,8 @@ export type Annotation = {
   start: number;
   end: number;
   quote: string;
-  kind: "note" | "underline" | "bookmark";
+  // "sticky": a sticky note in the margin beside the passage.
+  kind: "note" | "underline" | "bookmark" | "sticky";
   color: string;
   text: string;
   group: string;
@@ -78,9 +107,19 @@ export type Preferences = {
   fishRipples: boolean;
   leaves: boolean;
   snow: boolean;
+  fountain: boolean;
+  gardenShadows: boolean;
   fontSize: number;
   lineHeight: number;
   pageWidth: number;
+  readingMode: "continuous" | "paged" | "snap" | "book";
+  // Book mode: the opening animation, a soft page sound, and printed-book
+  // typography (justified, hyphenated, indented paragraphs).
+  bookOpening: boolean;
+  bookSound: boolean;
+  bookTypeset: boolean;
+  pageGap: number;
+  readingProgress: "pages" | "paragraphs" | "percentage";
   leftOpen: boolean;
   rightOpen: boolean;
   inspector: InspectorTab;
@@ -97,12 +136,108 @@ export type Preferences = {
   randomVoiceAtStartup: boolean;
   autoGenerateCovers: boolean;
   autoGenerateVoicePortraits: boolean;
+  // Voices whose portrait the reader deleted; automatic portraits skip them.
+  portraitsRemoved: string[];
+  // Every voice this app has seen installed, so removed ones can be offered
+  // for download again.
+  seenVoices: Record<string, { name: string; languages: string[] }>;
   showCoverText: boolean;
   libraryFilters: LibraryFilters;
   librarySort: string;
   allowMatureCovers: boolean;
   romanNumeralHeadings: boolean;
+  skipSpeechMarkup: boolean;
+  skipCitations: boolean;
+  skipAuthorYear: boolean;
+  pronunciations: PronunciationRule[];
+  voiceTemperature: number;
+  // Interface language code; empty follows the operating system.
+  uiLanguage: string;
+  // "later" means the reader chose Maybe later once; it is asked one last time.
+  supportPrompt: "ask" | "later" | "never";
+  supportPromptAfter: number;
+  sentencePause: number;
+  paragraphPause: number;
+  headingPause: number;
+  highlight: "sentence" | "paragraph" | "off";
+  readerFont: string;
+  letterSpacing: number;
+  wordSpacing: number;
+  justify: boolean;
+  hyphenate: boolean;
+  uiScale: number;
+  // Interface size follows the window size until the reader picks one.
+  uiScaleAuto: boolean;
+  timeMode: "manual" | "system" | "clock";
+  dayStarts: string;
+  nightStarts: string;
   trashRetentionDays: number | null;
+  // Installed model versions; empty uses the configured default.
+  speechModel: string;
+  imageModel: string;
+  // The first-launch look at this computer, used for performance defaults.
+  hardware: HardwareCheck | null;
+  // Keeps the speech model loaded while artwork is generated.
+  keepSpeechDuringArt: boolean;
+  // Collapsible groups in the inspector and Settings, by id.
+  openSections: Record<string, boolean>;
+  settingsCategory: string;
+  // Reading text color on the page: as designed, softer, or high contrast.
+  textTone: "default" | "soft" | "contrast";
+  // Tracking aids: a highlighted line under the pointer, a reading strip that
+  // dims the text around it, or focus on one paragraph.
+  focusTool: "off" | "line" | "strip" | "paragraph";
+  // Library presentation.
+  libraryView: "grid" | "list";
+  libraryCardSize: number;
+  libraryDensity: "comfortable" | "compact";
+  libraryBookmarks: boolean;
+  // What each library book shows, and larger titles and author names.
+  libraryCovers: boolean;
+  libraryFlags: boolean;
+  libraryGenres: boolean;
+  libraryAuthors: boolean;
+  libraryLargeText: boolean;
+  // How the library page looks: "classic" or a 3D room (src/libraryThemes.ts).
+  libraryTheme: string;
+  // Selecting text in a book switches the inspector to the Selection tab.
+  selectionOpensTab: boolean;
+  // Minutes without activity before open vaults lock; 0 never.
+  vaultIdleMinutes: number;
+  // Work Mode (src/work): open instead of the reader, and study settings.
+  workMode: boolean;
+  studyFourButtons: boolean;
+  studyNewPerDay: number;
+  // "standard" (Granite 97M) or "precise" (Granite 311M) for Related notes.
+  connectionsModel: string;
+  // Work Mode's sources: "work" (marked for work) or "all" books.
+  workSources: string;
+  // "reading" (the scene and reader colours), "light" or "dark" professional.
+  workTheme: string;
+  // "Did you know?" tips in Work mode.
+  workTips: boolean;
+  // Online embeds (videos, posts, maps) in notes; off until accepted.
+  onlineEmbeds: boolean;
+  // Look for app updates when an update address is configured.
+  autoUpdate: boolean;
+  // Work mode plugins: which are on and the permissions granted to each.
+  plugins: Record<string, { on: boolean; granted: string[] }>;
+  pluginsOff: boolean;
+};
+export type HardwareCheck = {
+  tier: "high" | "standard" | "light";
+  summary: string;
+  checkedAt: number;
+  // False when the computer did not report its graphics or memory.
+  detected?: boolean;
+};
+export type PronunciationRule = {
+  id: string;
+  from: string;
+  to: string;
+  bookId?: string;
+  matchCase?: boolean;
+  wholeWord?: boolean;
 };
 export type SceneAppearance = Pick<
   Preferences,
@@ -123,6 +258,8 @@ export type SceneAppearance = Pick<
   | "fishRipples"
   | "leaves"
   | "snow"
+  | "fountain"
+  | "gardenShadows"
 >;
 export type Voice = {
   id: string;
@@ -138,6 +275,10 @@ export type Voice = {
   portraitPrompt?: string;
   portraitOrigin?: "generated" | "custom";
   portraitAppearance?: string;
+  // Ready, but made for a speech model other than the selected one.
+  otherModel?: boolean;
+  // Made in the voice designer rather than installed with Origami.
+  created?: boolean;
 };
 export type LibraryFilters = {
   author: string;
@@ -145,7 +286,12 @@ export type LibraryFilters = {
   status: string;
   genre?: string;
 };
-export type SpeechResult = { audio: string; rate: number; duration: number };
+export type SpeechResult = {
+  audio: string;
+  rate: number;
+  duration: number;
+  unvoiced?: boolean;
+};
 export const defaultPreferences: Preferences = {
   theme: "plum",
   surface: "dark",
@@ -169,9 +315,17 @@ export const defaultPreferences: Preferences = {
   fishRipples: true,
   leaves: true,
   snow: true,
+  fountain: true,
+  gardenShadows: true,
   fontSize: 21,
   lineHeight: 1.8,
   pageWidth: 850,
+  readingMode: "continuous",
+  bookOpening: true,
+  bookSound: false,
+  bookTypeset: true,
+  pageGap: 32,
+  readingProgress: "pages",
   leftOpen: true,
   rightOpen: false,
   inspector: "appearance",
@@ -179,7 +333,7 @@ export const defaultPreferences: Preferences = {
   rightWidth: 310,
   speed: 1,
   volume: 0.8,
-  voice: "maeve-crimson-desert",
+  voice: "alistair-highland-scholar",
   follow: true,
   preloadAtStartup: true,
   lastVoice: "",
@@ -188,10 +342,65 @@ export const defaultPreferences: Preferences = {
   randomVoiceAtStartup: false,
   autoGenerateCovers: true,
   autoGenerateVoicePortraits: true,
+  portraitsRemoved: [],
+  seenVoices: {},
   showCoverText: true,
   libraryFilters: { author: "all", type: "all", status: "all", genre: "all" },
   librarySort: "recent",
   allowMatureCovers: false,
   romanNumeralHeadings: true,
+  skipSpeechMarkup: true,
+  skipCitations: true,
+  skipAuthorYear: false,
+  pronunciations: [],
+  voiceTemperature: 0.9,
+  uiLanguage: "",
+  supportPrompt: "ask",
+  supportPromptAfter: 0,
+  sentencePause: 120,
+  paragraphPause: 450,
+  headingPause: 800,
+  highlight: "sentence",
+  readerFont: "book",
+  letterSpacing: 0,
+  wordSpacing: 0,
+  justify: false,
+  hyphenate: false,
+  uiScale: 100,
+  uiScaleAuto: true,
+  timeMode: "manual",
+  dayStarts: "07:00",
+  nightStarts: "19:00",
   trashRetentionDays: null,
+  speechModel: "",
+  imageModel: "",
+  hardware: null,
+  keepSpeechDuringArt: false,
+  openSections: {},
+  settingsCategory: "general",
+  textTone: "default",
+  focusTool: "off",
+  libraryView: "grid",
+  libraryCardSize: 100,
+  libraryDensity: "comfortable",
+  libraryBookmarks: true,
+  libraryCovers: true,
+  libraryFlags: true,
+  libraryGenres: true,
+  libraryAuthors: true,
+  libraryLargeText: false,
+  libraryTheme: "classic",
+  selectionOpensTab: true,
+  vaultIdleMinutes: 10,
+  workMode: false,
+  studyFourButtons: false,
+  studyNewPerDay: 20,
+  connectionsModel: "standard",
+  workSources: "work",
+  workTheme: "reading",
+  workTips: true,
+  onlineEmbeds: false,
+  autoUpdate: false,
+  plugins: {},
+  pluginsOff: false,
 };

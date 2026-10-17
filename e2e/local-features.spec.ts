@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { expandSections, openSettings } from "./sections";
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -142,7 +143,7 @@ test("missing covers generate automatically, can be disabled, and can be regener
     .locator(".book-card")
     .filter({ hasText: "Automatic cover" });
   await expect(card.locator(".cover")).toHaveClass(/cover-image/);
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await openSettings(page, "Cover art");
   const auto = page.getByLabel("Generate missing covers automatically", {
     exact: true,
   });
@@ -193,7 +194,7 @@ test("mature covers require an opt-in, persist the choice, and remain disabled f
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await openSettings(page, "Cover art");
   const setting = page.getByLabel("Allow mature cover artwork (NSFW)", {
     exact: true,
   });
@@ -301,22 +302,46 @@ test("mature covers require an opt-in, persist the choice, and remain disabled f
   expect(latest).toBe(false);
 });
 
-test("a default voice choice also updates an open document with its own saved voice", async ({
+test("books share one voice unless a book opts in to its own from its menu", async ({
   page,
 }) => {
+  const storedMeta = () =>
+    page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("local-feature-fixture")!).books[
+          "starter-dracula"
+        ].meta,
+    );
   await page.goto("/");
   await page.getByRole("button", { name: /Open book/ }).click();
   await page.locator(".voice-link").click();
+  await expandSections(page);
   await page
     .getByLabel("Voice language", { exact: true })
     .selectOption("French");
   await page
     .getByRole("button", { name: "Use French voice one", exact: true })
     .click();
+  await expect(page.locator(".voice-link")).toContainText("French voice one");
+  expect((await storedMeta()).uniqueVoice).toBeFalsy();
+  // Opting in from the book's menu keeps the current voice for that book.
   await page
     .getByRole("button", { name: "Library", exact: true })
     .first()
     .click();
+  await page
+    .locator(".book-card")
+    .filter({ hasText: "Dracula" })
+    .getByRole("button", { name: /More options for Dracula/ })
+    .click();
+  const unique = page.getByRole("menuitemcheckbox", {
+    name: /Unique voice for this book/,
+  });
+  await expect(unique).toHaveAttribute("aria-checked", "false");
+  await unique.click();
+  await expect.poll(async () => (await storedMeta()).uniqueVoice).toBe(true);
+  expect((await storedMeta()).voice).toBe("fr1");
+  // Changing the shared voice leaves that book on its own voice.
   await page.getByRole("button", { name: "Voices", exact: true }).click();
   await page
     .getByRole("main")
@@ -326,20 +351,20 @@ test("a default voice choice also updates an open document with its own saved vo
     .getByRole("main")
     .getByRole("button", { name: "Use English voice", exact: true })
     .click();
-  const stored = await page.evaluate(
-    () =>
-      JSON.parse(localStorage.getItem("local-feature-fixture")!).books[
-        "starter-dracula"
-      ].meta.voice,
-  );
-  expect(stored).toBe("en1");
+  await page
+    .getByRole("button", { name: "Library", exact: true })
+    .first()
+    .click();
+  await page.locator(".book-open").filter({ hasText: "Dracula" }).click();
+  await expect(page.locator(".voice-link")).toContainText("French voice one");
+  expect((await storedMeta()).voice).toBe("fr1");
 });
 
-test("startup randomization uses the selected language and selection unloads without preloading", async ({
+test("startup randomization uses the selected language and a new voice is prepared without reloading the model", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await openSettings(page, "Voices and speech");
   await page
     .getByLabel("Startup voice language", { exact: true })
     .selectOption("French");
@@ -366,9 +391,11 @@ test("startup randomization uses the selected language and selection unloads wit
       (window as unknown as { proof: { calls: { command: string }[] } }).proof
         .calls,
   );
-  expect(after.filter((c) => c.command === "cancel_speech")).toHaveLength(1);
+  // One model serves every voice: nothing is unloaded, the new voice is
+  // prepared in the background.
+  expect(after.filter((c) => c.command === "cancel_speech")).toHaveLength(0);
   expect(after.filter((c) => c.command === "prepare_voice")).toHaveLength(
-    before,
+    before + 1,
   );
   expect(after.filter((c) => c.command === "synthesize")).toHaveLength(0);
 });

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { openSection, openSettings } from "./sections";
 import { join } from "node:path";
 import { readFileSync } from "node:fs";
 const manifest = JSON.parse(
@@ -44,13 +45,13 @@ test("the complete six-book pack imports, persists and reaches the end of Monte 
     .last();
   await expect(ending).toBeVisible();
   await ending.click();
-  await expect(page.locator(".reading-page")).toContainText("Wait and hope");
+  await expect(page.locator(".reading-pages")).toContainText("Wait and hope");
   await page.reload();
   await page
     .locator(".book-open")
     .filter({ hasText: "The Count of Monte Cristo" })
     .click();
-  await expect(page.locator(".reading-page")).toContainText("Wait and hope");
+  await expect(page.locator(".reading-pages")).toContainText("Wait and hope");
 });
 
 test("first launch preloads complete editions with offline covers and license notices", async ({
@@ -90,7 +91,8 @@ test("first launch preloads complete editions with offline covers and license no
       ),
     );
   expect(sizes).toEqual(Array.from({ length: 6 }, () => [320, 448]));
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await openSettings(page, "About and support");
+  await openSection(page, "Copyright and licenses");
   await page
     .getByText("Starter library credits and licenses", { exact: true })
     .click();

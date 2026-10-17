@@ -2,8 +2,8 @@ Origami starter library: commercial and international edition record
 Reviewed 13 October 2026. Pack version 3, English.
 
 The intended release is pay what you want, including paid copies. No
-selected text has a NonCommercial-only license. Origami code remains
-MPL 2.0; the book texts and edition contributions keep separate rights.
+selected text has a NonCommercial-only license. Origami code is under
+its own license; the book texts and edition contributions keep separate rights.
 These editions are preloaded once by the app, with original local cover
 illustrations dedicated under CC0 1.0. Source-edition art is not included.
 Existing imports and annotations are retained. The three demo books and
@@ -98,7 +98,7 @@ remain later work. Each edition needs translator/publication/rights review.
 An old original does not grant rights to a modern translation. New
 translators must grant worldwide commercial distribution rights. CC BY-SA
 adaptations retain their applicable terms. English hashes are not language
-clearance. Book-specific credits and licenses remain separate from app MPL.
+clearance. Book-specific credits and licenses remain separate from the app license.
 
 See manifest.json for source and EPUB hashes, and international-review.json
 for scoped territorial rules, release gates and primary references.

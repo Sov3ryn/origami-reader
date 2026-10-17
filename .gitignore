@@ -17,3 +17,13 @@ __pycache__/
 
 *.tsbuildinfo
 *.lnk
+
+installer/src-tauri/gen/
+installer/src-tauri/target/
+
+# Generated locally; embeds a subset of a Windows system font (not redistributable).
+e2e/fixtures/korean-lake.pdf
+
+# Update signing keys never go in Git (see docs/UPDATES.md).
+*.key
+src-tauri/target-*/

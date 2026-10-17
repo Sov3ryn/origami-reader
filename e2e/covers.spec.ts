@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { openSection } from "./sections";
+import { expandSections } from "./sections";
 import { zipSync, strToU8 } from "fflate";
 import AxeBuilder from "@axe-core/playwright";
 let png: Buffer;
@@ -45,6 +47,7 @@ test("cover controls appear on hover, copy raster art and persist it in Reader d
     .click();
   await page.getByRole("tab", { name: "Document", exact: true }).click();
   await expect(page.locator(".inspector .cover")).toHaveClass(/cover-image/);
+  await openSection(page, "Cover");
   await page.getByRole("button", { name: "Change cover", exact: true }).click();
   await expect(dialog).toBeVisible();
   await dialog.getByLabel("Cover image file").setInputFiles({
@@ -100,6 +103,7 @@ test("focus mode restores saved panel visibility and widths, including a previou
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   const left = page.getByRole("separator", { name: "Resize navigation" });
   const right = page.getByRole("separator", { name: "Resize inspector" });
   await left.press("ArrowRight");

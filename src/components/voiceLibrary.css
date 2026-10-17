@@ -1,0 +1,471 @@
+/* The Voices page: one centered column shared by both tabs. */
+.voices-page {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.voices-page .voice-studio {
+  max-width: none;
+}
+
+.voice-library {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* The voice in use, presented like an album sleeve. */
+.vl-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr minmax(260px, 340px);
+  gap: 28px;
+  align-items: center;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      120% 140% at 0% 0%,
+      color-mix(in srgb, var(--accent) 22%, transparent),
+      transparent 55%
+    ),
+    color-mix(in srgb, var(--panel, #25232b) 92%, transparent);
+  box-shadow: 0 14px 44px #00000024;
+}
+.vl-hero-portrait {
+  display: grid;
+  place-items: center;
+  width: 164px;
+  height: 164px;
+  border-radius: 18px;
+  color: var(--accent);
+  box-shadow:
+    0 18px 38px #00000045,
+    0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.vl-hero-body {
+  min-width: 0;
+}
+.vl-hero-body h2 {
+  margin: 6px 0 6px;
+  font-size: 34px;
+  line-height: 1.1;
+}
+.vl-hero-body p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  max-width: 62ch;
+  line-height: 1.55;
+}
+.vl-hero-meta {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+.vl-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.vl-hero-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  padding: 8px 15px;
+}
+.vl-hero-extra {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 24px;
+  border-left: 1px solid var(--line);
+}
+
+/* Search and filters, always in view. */
+.vl-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--panel, #25232b) 88%, transparent);
+}
+.vl-search {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 260px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--input, color-mix(in srgb, var(--panel, #25232b) 80%, #000));
+  color: var(--muted);
+  margin: 0;
+}
+.vl-search input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 10px 0;
+  color: var(--ink);
+  font: inherit;
+  outline: none;
+}
+.vl-toolbar select {
+  width: auto;
+  min-width: 130px;
+  padding: 9px 10px;
+  border-radius: 10px;
+}
+.vl-chips {
+  display: flex;
+  gap: 6px;
+}
+.vl-chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 8px 13px;
+  font-size: 13px;
+}
+.vl-chips button.active {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.vl-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 0 4px;
+}
+.vl-summary > span {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.vl-summary-tools .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* A switch, so turning deletion on reads as a deliberate setting. */
+.vl-switch {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--ink);
+}
+.vl-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.vl-switch > span {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 35%, transparent);
+  transition: background 0.2s ease;
+}
+.vl-switch > span::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: transform 0.2s ease;
+}
+.vl-switch input:checked + span {
+  background: #c8584a;
+}
+.vl-switch input:checked + span::after {
+  transform: translateX(16px);
+}
+.vl-switch input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.vl-manage {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, #c8584a 55%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, #c8584a 10%, transparent);
+}
+.vl-manage .check-label {
+  margin: 0;
+}
+.vl-manage > span {
+  flex: 1;
+  color: var(--muted);
+  font-size: 13px;
+}
+.voice-library button.danger,
+.vl-dialog button.danger {
+  background: #b3463a;
+  border-color: #b3463a;
+  color: #fff;
+}
+.voice-library button.danger:disabled {
+  opacity: 0.5;
+}
+.vl-problem {
+  margin: 0;
+  color: #e0705a;
+}
+
+/* Voice cards. */
+.vl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.vl-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--panel, #25232b) 90%, transparent);
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.vl-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  box-shadow: 0 12px 28px #0000002a;
+}
+.vl-card.in-use {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 12px 30px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.vl-card.chosen {
+  border-color: #c8584a;
+  background: color-mix(in srgb, #c8584a 9%, var(--panel, #25232b));
+}
+.vl-card.unavailable {
+  opacity: 0.55;
+  cursor: default;
+}
+.vl-card-check {
+  position: absolute;
+  top: 20px;
+  right: 52px;
+  width: 18px;
+  height: 18px;
+  z-index: 1;
+  accent-color: #c8584a;
+}
+.vl-card-top {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.vl-card-portrait {
+  position: relative;
+  flex-shrink: 0;
+}
+.vl-card-portrait .voice-portrait {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+}
+.vl-portrait-busy {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  color: var(--accent);
+}
+.vl-card-name {
+  flex: 1;
+  min-width: 0;
+}
+.vl-card-name strong {
+  display: block;
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vl-card-name small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.vl-fav {
+  align-self: flex-start;
+}
+.vl-fav.on {
+  color: #e2768a;
+}
+.vl-card-desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.vl-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.vl-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.vl-tag.in-use {
+  color: var(--ink);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.vl-tag.created {
+  color: #e9c46a;
+  border-color: color-mix(in srgb, #e9c46a 45%, transparent);
+}
+.vl-tag.model {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  color: var(--ink);
+}
+.vl-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+.vl-preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+.vl-preview.large {
+  width: auto;
+  height: auto;
+  padding: 9px 17px;
+  border-radius: 999px;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink, #241c30);
+  font-weight: 600;
+}
+.vl-preview.on:not(.large) {
+  background: var(--accent);
+  color: var(--accent-ink, #241c30);
+}
+.vl-use,
+.vl-delete {
+  flex: 1;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.vl-use.on {
+  color: var(--accent);
+  border-color: transparent;
+  background: transparent;
+}
+.vl-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #f0a093;
+  border-color: color-mix(in srgb, #c8584a 55%, var(--line));
+}
+.vl-empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 40px 20px;
+  color: var(--muted);
+  text-align: center;
+}
+.vl-empty h3 {
+  margin: 4px 0 0;
+  color: var(--ink);
+}
+.vl-footnote {
+  margin: 0;
+}
+.vl-dialog {
+  width: 460px;
+  max-width: calc(100vw - 32px);
+}
+.vl-dialog-icon {
+  color: #e0705a;
+}
+.vl-dialog h2 {
+  margin: 10px 0 8px;
+}
+.vl-dialog ul {
+  line-height: 1.6;
+}
+
+@media (max-width: 1100px) {
+  .vl-hero {
+    grid-template-columns: auto 1fr;
+  }
+  .vl-hero-extra {
+    grid-column: 1 / -1;
+    padding: 18px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+@media (max-width: 700px) {
+  .vl-hero {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+}

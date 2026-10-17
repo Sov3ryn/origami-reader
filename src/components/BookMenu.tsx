@@ -1,0 +1,229 @@
+import { t } from "../i18n";
+import { useEffect, useRef, useState } from "react";
+import {
+  AudioLines,
+  BookOpen,
+  Check,
+  Ellipsis,
+  ImagePlus,
+  RotateCcw,
+  Star,
+  Trash2,
+  Undo2,
+  BriefcaseBusiness,
+} from "lucide-react";
+import type { BookMeta } from "../types";
+
+export type BookMenuActions = {
+  open: (book: BookMeta) => void;
+  favorite: (book: BookMeta) => void;
+  editCover: (book: BookMeta) => void;
+  uniqueVoice: (book: BookMeta, unique: boolean) => void;
+  startOver: (book: BookMeta) => void;
+  trash: (book: BookMeta) => void;
+  restore: (book: BookMeta) => void;
+  work: (book: BookMeta, on: boolean) => void;
+};
+
+// The "More" menu on each book. It also opens with a right-click on the card.
+export function BookMenu({
+  book,
+  voiceName,
+  actions,
+  openAt,
+  onClosed,
+}: {
+  book: BookMeta;
+  voiceName: string;
+  actions: BookMenuActions;
+  // A right-click position, or null for the button.
+  openAt: { x: number; y: number } | null;
+  onClosed: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  // Fixed coordinates keep the menu clear of scrolling panels and the player.
+  const [place, setPlace] = useState<{ left: number; top: number } | null>(
+    null,
+  );
+  const button = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (openAt) show(openAt.x, openAt.y);
+  }, [openAt]);
+  function show(x: number, y: number, above = y) {
+    const width = 280;
+    const height = 370;
+    setPlace({
+      left: Math.max(8, Math.min(x, window.innerWidth - width - 8)),
+      top:
+        y + height < window.innerHeight - 8 ? y : Math.max(8, above - height),
+    });
+    setOpen(true);
+  }
+  useEffect(() => {
+    if (!open) return;
+    requestAnimationFrame(() =>
+      menu.current
+        ?.querySelector<HTMLElement>("[role=menuitem],[role=menuitemcheckbox]")
+        ?.focus({ preventScroll: true }),
+    );
+    const outside = (e: PointerEvent) => {
+      if (
+        !menu.current?.contains(e.target as Node) &&
+        !button.current?.contains(e.target as Node)
+      )
+        close(false);
+    };
+    window.addEventListener("pointerdown", outside);
+    return () => window.removeEventListener("pointerdown", outside);
+  }, [open]);
+  function close(focus = true) {
+    setOpen(false);
+    onClosed();
+    if (focus) button.current?.focus();
+  }
+  function run(action: () => void) {
+    close();
+    action();
+  }
+  const items = () =>
+    Array.from(
+      menu.current?.querySelectorAll<HTMLElement>(
+        "[role=menuitem],[role=menuitemcheckbox]",
+      ) || [],
+    );
+  return (
+    <div className="book-menu">
+      <button
+        ref={button}
+        type="button"
+        className="icon-button"
+        aria-label={t("More options for {title}", { title: book.title })}
+        title={t("More options")}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={(e) => {
+          if (open) return close();
+          const r = e.currentTarget.getBoundingClientRect();
+          show(r.right - 270, r.bottom + 4, r.top - 4);
+        }}
+      >
+        <Ellipsis size={16} />
+      </button>
+      {open && (
+        <div
+          ref={menu}
+          className="book-menu-popup"
+          role="menu"
+          aria-label={t("Options for {title}", { title: book.title })}
+          style={place || undefined}
+          onKeyDown={(e) => {
+            const list = items();
+            const i = list.indexOf(document.activeElement as HTMLElement);
+            if (e.key === "Escape") {
+              e.preventDefault();
+              e.stopPropagation();
+              close();
+            } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+              e.preventDefault();
+              const step = e.key === "ArrowDown" ? 1 : -1;
+              list[(i + step + list.length) % list.length]?.focus();
+            } else if (e.key === "Tab") close(false);
+          }}
+        >
+          {book.deleted ? (
+            <button
+              role="menuitem"
+              onClick={() => run(() => actions.restore(book))}
+            >
+              <RotateCcw size={15} />
+              {t("Restore")}
+            </button>
+          ) : (
+            <>
+              <button
+                role="menuitem"
+                onClick={() => run(() => actions.open(book))}
+              >
+                <BookOpen size={15} />
+                {t("Open")}
+              </button>
+              <button
+                role="menuitem"
+                onClick={() => run(() => actions.favorite(book))}
+              >
+                <Star
+                  size={15}
+                  fill={book.favorite ? "currentColor" : "none"}
+                />
+                {book.favorite
+                  ? t("Remove from favorites")
+                  : t("Add to favorites")}
+              </button>
+              <button
+                role="menuitem"
+                onClick={() => run(() => actions.editCover(book))}
+              >
+                <ImagePlus size={15} />
+                {t("Change cover")}
+              </button>
+              <button
+                role="menuitem"
+                disabled={!book.position && !book.opened && !book.finished}
+                onClick={() => run(() => actions.startOver(book))}
+              >
+                <Undo2 size={15} />
+                {t("Start over")}
+              </button>
+              <div className="book-menu-separator" role="separator" />
+              <button
+                role="menuitemcheckbox"
+                aria-checked={Boolean(book.uniqueVoice)}
+                className="book-menu-voice"
+                onClick={() =>
+                  run(() => actions.uniqueVoice(book, !book.uniqueVoice))
+                }
+              >
+                <AudioLines size={15} />
+                <span>
+                  {t("Unique voice for this book")}
+                  <small>
+                    {book.uniqueVoice
+                      ? t(
+                          "Uses {name}. Choose it in the Voice tab while reading.",
+                          {
+                            name: voiceName,
+                          },
+                        )
+                      : t(
+                          "May add loading time when you switch to or from this book.",
+                        )}
+                  </small>
+                </span>
+                {book.uniqueVoice && <Check size={15} />}
+              </button>
+              <button
+                role="menuitemcheckbox"
+                aria-checked={Boolean(book.work)}
+                onClick={() => run(() => actions.work(book, !book.work))}
+              >
+                <BriefcaseBusiness size={15} />
+                {t("Use in Work mode")}
+                {book.work && <Check size={15} />}
+              </button>
+              <div className="book-menu-separator" role="separator" />
+              <button
+                role="menuitem"
+                className="danger"
+                onClick={() => run(() => actions.trash(book))}
+              >
+                <Trash2 size={15} />
+                {t("Move to Trash")}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

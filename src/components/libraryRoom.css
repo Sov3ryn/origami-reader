@@ -1,0 +1,236 @@
+/* The 3D library room. */
+/* Fills the app window behind every panel, like the scenic backgrounds. */
+.library-room {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: #0d0a08;
+  touch-action: none;
+  user-select: none;
+}
+.library-room-layers {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.library-room-layers img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.library-room-layers .lr-night-dim {
+  opacity: var(--night, 0);
+}
+.library-room-layers .lr-night {
+  opacity: calc(var(--night, 0) * var(--flicker, 1));
+}
+.library-room-books,
+.library-room-dust {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.library-room-dust {
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+.library-room-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #e9dcc1;
+  background: #0d0a08;
+  font-family: Georgia, serif;
+  letter-spacing: 0.04em;
+}
+.library-room-tip {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  gap: 3px;
+  max-width: 280px;
+  padding: 10px 13px;
+  border-radius: 10px;
+  background: #15100cdd;
+  color: #f3e7cc;
+  border: 1px solid #c9a25a55;
+  box-shadow: 0 10px 30px #00000066;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+}
+.library-room-tip strong {
+  font-family: Georgia, serif;
+  font-size: 15px;
+  line-height: 1.3;
+}
+.library-room-tip span,
+.library-room-tip small {
+  color: #d8c8a6;
+  font-size: 12px;
+}
+.library-room-tip small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.library-room-tip img {
+  width: 16px;
+  border-radius: 2px;
+}
+.library-room-hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(86px * var(--ui-zoom, 1) + 14px);
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #0d0a08aa;
+  color: #e9dcc1;
+  font-size: 12px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.library-room-failed {
+  padding: 40px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+/* Over the room, the middle column is see-through and lets the pointer reach
+   the room, except on its own controls. */
+.center.room-active {
+  background: transparent;
+  pointer-events: none;
+}
+.center.room-active > :not(.workspace),
+.workspace.room-mode > * {
+  pointer-events: auto;
+}
+.workspace.room-mode {
+  pointer-events: none;
+}
+/* Keeps the page title and search readable over the room. */
+.library-room::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 300px;
+  background: linear-gradient(#0b0807d9, #0b080780 55%, transparent);
+  pointer-events: none;
+}
+/* The usual library sections step aside while the room is shown. */
+.room-mode .continue-section,
+.room-mode .shelf-heading,
+.room-mode .book-grid,
+.room-mode .empty {
+  display: none;
+}
+
+/* Library theme cards (library header and Settings, Appearance). */
+.theme-menu {
+  width: 340px;
+}
+.library-themes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+}
+.library-themes.compact {
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.library-theme-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 6px;
+  text-align: left;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 85%, transparent);
+}
+.library-theme-card.chosen {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.library-theme-card:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.library-theme-preview {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent) 10%, #15121a);
+}
+.library-theme-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.library-theme-classic,
+.library-theme-soon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.library-theme-classic {
+  color: var(--accent);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 18%, color-mix(in srgb, var(--accent) 14%, transparent) 18% 20%),
+    color-mix(in srgb, var(--accent) 8%, #17141c);
+}
+.library-theme-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink, #241c30);
+}
+.library-theme-text {
+  display: grid;
+  gap: 3px;
+  padding: 0 4px 4px;
+}
+.library-theme-text strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.library-theme-text small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.library-theme-badge {
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+}

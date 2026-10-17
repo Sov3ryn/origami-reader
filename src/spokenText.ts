@@ -1,5 +1,10 @@
 import { cleanSpokenText } from "./documents";
-import type { Paragraph, Preferences, SpokenEdit } from "./types";
+import type {
+  Paragraph,
+  Preferences,
+  PronunciationRule,
+  SpokenEdit,
+} from "./types";
 
 export type SpokenRange = { start: number; end: number };
 type Rule = SpokenRange & { text: string };
@@ -114,24 +119,88 @@ export function replaceSpokenRange(
   validateSpokenEdits(paragraph.text, edits);
   return edits;
 }
+export type SpeechRules = Pick<Preferences, "romanNumeralHeadings"> &
+  Partial<
+    Pick<
+      Preferences,
+      "skipSpeechMarkup" | "skipCitations" | "skipAuthorYear" | "pronunciations"
+    >
+  >;
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export function pronunciationsFor(
+  rules: PronunciationRule[] | undefined,
+  bookId?: string,
+) {
+  return (rules || [])
+    .filter((r) => r.from.trim() && (!r.bookId || r.bookId === bookId))
+    .sort((a, b) => b.from.length - a.from.length);
+}
+export function applyPronunciations(
+  text: string,
+  rules: PronunciationRule[],
+): string {
+  for (const rule of rules) {
+    const word = escapeRegExp(rule.from.trim());
+    const pattern =
+      rule.wholeWord === false
+        ? word
+        : `(?<![\\p{L}\\p{N}])${word}(?![\\p{L}\\p{N}])`;
+    text = text.replace(
+      new RegExp(pattern, rule.matchCase ? "gu" : "giu"),
+      () => rule.to,
+    );
+  }
+  return text;
+}
+// Reference markers belong to the page, not the listening experience.
+export function skipReferences(
+  text: string,
+  citations = true,
+  authorYear = false,
+): string {
+  if (citations)
+    text = text
+      .replace(/\s?\[\d+(?:\s*[-–,]\s*\d+)*\]/g, "")
+      .replace(/(?<=[\p{L}.,;:!?’")])[¹²³⁰-⁹]+/gu, "")
+      .replace(/(?<=[\p{L}.,;:!?’")])[†‡]+/gu, "");
+  if (authorYear)
+    text = text.replace(
+      /\s?\((?:see\s+)?(?:[A-Z][\p{L}'’-]+(?:\s+et al\.)?(?:,?\s+(?:and|&)\s+[A-Z][\p{L}'’-]+)?,?\s+\d{4}[a-z]?(?:,\s*(?:p|pp)\.\s*\d+(?:[-–]\d+)?)?(?:;\s*)?)+\)/gu,
+      "",
+    );
+  return text;
+}
 export function spokenText(
   paragraph: Paragraph,
-  prefs: Pick<Preferences, "romanNumeralHeadings">,
+  prefs: SpeechRules,
   range: SpokenRange = { start: 0, end: paragraph.text.length },
+  bookId?: string,
 ): string {
   const rules =
     paragraph.kind === "heading" && prefs.romanNumeralHeadings
       ? headingRules(paragraph.text)
       : [];
+  const lexicon = pronunciationsFor(prefs.pronunciations, bookId);
+  // Automatic rules apply to the book wording only; saved spoken edits are kept
+  // exactly as the reader wrote them.
+  const automatic = (text: string) =>
+    applyPronunciations(
+      skipReferences(
+        text,
+        prefs.skipCitations !== false,
+        prefs.skipAuthorYear === true,
+      ),
+      lexicon,
+    );
   const original = (start: number, end: number) => {
     let result = "",
       at = start;
     for (const rule of rules) {
       if (rule.start < start || rule.end > end) continue;
-      result += paragraph.text.slice(at, rule.start) + rule.text;
+      result += automatic(paragraph.text.slice(at, rule.start)) + rule.text;
       at = rule.end;
     }
-    return result + paragraph.text.slice(at, end);
+    return result + automatic(paragraph.text.slice(at, end));
   };
   let at = range.start,
     result = "";
@@ -141,5 +210,5 @@ export function spokenText(
     at = Math.max(at, edit.end);
   }
   result += original(Math.min(at, range.end), range.end);
-  return cleanSpokenText(result);
+  return cleanSpokenText(result, prefs.skipSpeechMarkup !== false);
 }

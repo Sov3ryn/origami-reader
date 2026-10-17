@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { expandSections } from "./sections";
 
 test("ambient controls preserve opacity, pause motion and keep reading opaque", async ({
   page,
@@ -7,6 +8,7 @@ test("ambient controls preserve opacity, pause motion and keep reading opaque", 
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   const opacity = page.getByRole("slider", {
     name: "Background opacity",
     exact: true,
@@ -86,6 +88,7 @@ test("ambient controls preserve opacity, pause motion and keep reading opaque", 
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   await expect(opacity).toHaveValue("63");
   await expect(
     page.getByLabel("Subtle background motion", { exact: true }),
@@ -122,6 +125,7 @@ test("library uses the full workspace and thumbnail previews survive hover", asy
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   await expect(page.locator(".inspector")).toBeVisible();
   await page
     .getByRole("button", { name: "Library", exact: true })
@@ -139,6 +143,7 @@ test("library uses the full workspace and thumbnail previews survive hover", asy
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   await expect(
     page.getByRole("heading", { name: "Settings", exact: true }),
   ).toBeVisible();
@@ -147,7 +152,7 @@ test("library uses the full workspace and thumbnail previews survive hover", asy
   const before = await thumbnail.evaluate(
     (el) => getComputedStyle(el).backgroundImage,
   );
-  expect(before).toContain("moonlit-lake.png");
+  expect(before).toContain("moonlit-lake.webp");
   await page.getByRole("button", { name: "Paper hills", exact: true }).click();
   const lake = page.getByRole("button", { name: "Moonlit lake", exact: true });
   await lake.hover();
@@ -166,7 +171,7 @@ test("library uses the full workspace and thumbnail previews survive hover", asy
     .first()
     .click();
   await page.locator(".voice-link").click();
-  await expect(page.locator(".reading-page")).toBeVisible();
+  await expect(page.locator(".reading-page").first()).toBeVisible();
   await expect(
     page.getByRole("tab", { name: "Voice", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
@@ -181,7 +186,8 @@ test("reader page width persists and fits narrow and wide windows", async ({
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
-  const paper = page.locator(".reading-page");
+  await expandSections(page);
+  const paper = page.locator(".reading-page").first();
   const width = page.getByRole("slider", { name: "Page width", exact: true });
   await expect(paper).toHaveCSS("width", "850px");
   await width.fill("1500");
@@ -192,7 +198,8 @@ test("reader page width persists and fits narrow and wide windows", async ({
   await expect(width).toHaveValue("1500");
   await expect(paper).toHaveCSS("width", "1500px");
   await page.getByLabel("Use full reading width", { exact: true }).check();
-  expect((await paper.boundingBox())!.width).toBeGreaterThan(1900);
+  // The interface fits itself to this large screen (wider side panels).
+  expect((await paper.boundingBox())!.width).toBeGreaterThan(1700);
   await expect(width).toBeDisabled();
   await page.screenshot({
     path: "test-results/reader-wide.png",

@@ -1,4 +1,4 @@
-import type { Preferences, Voice } from "./types";
+import type { BookMeta, Preferences, Voice } from "./types";
 export function startupVoice(
   prefs: Preferences,
   voices: Voice[],
@@ -21,8 +21,12 @@ export type VoiceFilters = {
   style: string;
   favoritesOnly: boolean;
   sort: "name" | "name-desc";
+  // "current" shows voices for the selected speech model, "all" every voice,
+  // anything else one engine's voices.
+  model: string;
 };
 export const emptyVoiceFilters: VoiceFilters = {
+  model: "current",
   query: "",
   language: "all",
   gender: "all",
@@ -59,8 +63,21 @@ export function filterVoices(
     .filter((v) => filters.gender === "all" || v.gender === filters.gender)
     .filter((v) => filters.style === "all" || v.styles.includes(filters.style))
     .filter((v) => !filters.favoritesOnly || favorites.includes(v.id))
+    .filter((v) =>
+      filters.model === "current"
+        ? !v.otherModel
+        : filters.model === "all" || v.engine === filters.model,
+    )
     .sort(
       (a, b) =>
         a.name.localeCompare(b.name) * (filters.sort === "name" ? 1 : -1),
     );
+}
+// Books share one voice, so changing books never loads another voice. A book
+// can opt in to its own voice from its menu in the Library.
+export function bookVoice(
+  meta: Pick<BookMeta, "voice" | "uniqueVoice"> | undefined,
+  prefs: Pick<Preferences, "voice">,
+) {
+  return (meta?.uniqueVoice && meta.voice) || prefs.voice;
 }

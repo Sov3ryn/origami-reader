@@ -1,0 +1,51 @@
+ORIGAMI READER 0.1.0 BETA
+
+WINDOWS PACKAGE
+1. Extract the entire archive to a local folder.
+2. Open Origami Reader Installer.exe. Keep all package folders beside it.
+   It checks for WebView2 and Visual C++ and offers their included Microsoft
+   installers if needed. A runtime installation may require a restart.
+3. Select a NEW installation directory and the voices/models you want.
+4. Accept the image model terms if installing covers or portraits.
+5. Choose Close Installer and Launch Origami when setup finishes.
+
+This package includes the app, 43 voice references, Qwen 0.6B speech weights,
+standalone Python with speech dependencies, and the shared DreamShaper model
+for book covers and portraits. All four voice packs are selected initially.
+No ElevenLabs account is required. Voice creation history is not included.
+
+Windows 10/11 x64 and Microsoft Edge WebView2 are required.
+NVIDIA speech acceleration needs a compatible NVIDIA driver. Without CUDA,
+speech uses the CPU and may be substantially slower. AMD GPU acceleration for
+speech is not implemented in this beta. Cover/portrait generation uses Vulkan
+and requires compatible graphics drivers. Automatic speech preload is off to
+keep first launch responsive. Models load when you use the corresponding feature.
+
+Hindi references are included but experimental. Hindi is NOT among Qwen's
+documented supported languages; this pack uses automatic language mode.
+English, Korean and Spanish are within the model's supported languages.
+Reference availability is not a claim that all generated passages were auditioned.
+
+This is an unsigned private beta. Do not disable Windows security protections.
+Microsoft runtime installers are included for computers that need them.
+The beta installer supports fresh per-user installations only. It preserves an
+existing Origami configuration by refusing to replace it. Updates and Studio
+are not implemented yet. Use Windows Installed Apps or Uninstall Origami.ps1
+inside the installation folder to remove the program. Your library and notes
+remain in your account's app data folder.
+
+Please report your OS, GPU, selected features, what you tried, and any error text.
+Installation and speech have not been end-to-end tested on a clean friend machine.
+CPU speech and Linux/macOS builds require platform validation.
+
+Linux and macOS are NOT included as ready binaries in this Windows archive.
+They need native builds and platform-specific Python/image runtimes.
+See installer/PLATFORM-BUILDS.md in the included source archive.
+
+LICENSES
+Origami Reader, copyright (c) 2026 Sov3ryn. Free to use; copies may not be shared,
+sold or modified (licenses/Origami-Reader-App-License.txt).
+Qwen weights retain Apache 2.0; DreamShaper retains CreativeML OpenRAIL-M.
+Model use restrictions apply independently from the app's source license.
+Dependency license metadata accompanies the bundled Python packages and image runtime.
+This is a free private beta, not a paid model bundle.

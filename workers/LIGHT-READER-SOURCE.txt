@@ -1,0 +1,29 @@
+Origami light reader: license and source
+=========================================
+
+light_tts.py in this folder is the light reader, a separate program that
+Origami Reader starts to read aloud with the Kitten and Kokoro speech models.
+
+It is free software under the GNU General Public License, version 3 or (at
+your option) any later version: see LICENSE-GPL-3.0.txt. Its complete source
+is light_tts.py itself, a plain Python file, which you may copy, change and
+share under that license. Copyright (c) 2026 Sov3ryn.
+
+Why a separate license: the light reader uses phonemizer (phonemizer-fork) and
+espeak-ng, which are GPL-3. The rest of Origami Reader is under its own terms
+(LICENSE and APP-LICENSE.md). The light reader runs as its own process and
+talks to the app only through one JSON message per line on standard input and
+output. It shares no code with the rest of Origami.
+
+GPL components the light reader uses, with their source code:
+
+- phonemizer-fork 3.3.2 (GPL-3.0-or-later)
+  https://pypi.org/project/phonemizer-fork/3.3.2/#files
+  https://github.com/bootphon/phonemizer
+- espeak-ng, as packaged by espeakng-loader 0.2.4 (espeak-ng is GPL-3.0-or-later)
+  https://pypi.org/project/espeakng-loader/0.2.4/#files
+  https://github.com/espeak-ng/espeak-ng
+
+Packaging requirement: any Origami kit that includes these components must
+also include their corresponding source archives (or a written offer for them,
+valid for three years), not only these links. See docs/LIGHT-READER-LICENSING.md.

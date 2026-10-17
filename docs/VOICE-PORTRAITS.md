@@ -25,7 +25,7 @@ On Windows, `scripts/install-cover-engine.ps1` installs the runtime and shared D
 
 The configuration is compatible with a corresponding Linux runtime, which has not been exercised natively. `portrait.backend` can override the common backend, for example `cpu`; otherwise it inherits the cover backend. CPU and Vulkan are supported by the existing runtime. A 3 GiB managed-budget test does not certify a physical 3 or 4 GB card, and excludes unrelated processes and driver allocations. CPU operation worked in the Windows CLI test but was much slower.
 
-[DreamShaper 8 LCM](https://huggingface.co/Lykon/dreamshaper-8-lcm) uses CreativeML OpenRAIL-M, separately from Origami's MPL 2.0 source license. The [author release](https://civitai.com/models/4384?modelVersionId=252914) allows image use and does not permit selling the model itself. Keep model restrictions, licenses and notices when distributing weights. SD-Turbo's terms also remain separate. Model weights and personal generated portraits are excluded from the source repository.
+[DreamShaper 8 LCM](https://huggingface.co/Lykon/dreamshaper-8-lcm) uses CreativeML OpenRAIL-M, separately from Origami's own license. The [author release](https://civitai.com/models/4384?modelVersionId=252914) allows image use and does not permit selling the model itself. Keep model restrictions, licenses and notices when distributing weights. SD-Turbo's terms also remain separate. Model weights and personal generated portraits are excluded from the source repository.
 
 ## Local comparison
 

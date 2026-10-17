@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { ImagePlus, RefreshCw, X, LoaderCircle } from "lucide-react";
 import type { BookMeta } from "../types";
@@ -90,11 +91,11 @@ export function CoverDialog({
         }}
       >
         <div className="section-row">
-          <h2 id="cover-dialog-title">Change cover</h2>
+          <h2 id="cover-dialog-title">{t("Change cover")}</h2>
           <button
             ref={close}
             className="icon-button"
-            aria-label="Close cover editor"
+            aria-label={t("Close cover editor")}
             disabled={active}
             onClick={onClose}
           >
@@ -106,24 +107,24 @@ export function CoverDialog({
           <div>
             <h3>{book.title}</h3>
             <label>
-              Cover text
+              {t("Cover text")}
               <select
-                aria-label="Cover text overlay"
+                aria-label={t("Cover text overlay")}
                 value={book.coverText || "auto"}
                 onChange={(e) =>
                   onText(e.target.value as BookMeta["coverText"])
                 }
               >
-                <option value="auto">Automatic</option>
-                <option value="show">Show title and author</option>
-                <option value="hide">Hide title and author</option>
+                <option value="auto">{t("Automatic")}</option>
+                <option value="show">{t("Show title and author")}</option>
+                <option value="hide">{t("Hide title and author")}</option>
               </select>
             </label>
             <input
               ref={input}
               type="file"
               accept="image/png,image/jpeg,image/webp"
-              aria-label="Cover image file"
+              aria-label={t("Cover image file")}
               hidden
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -144,23 +145,24 @@ export function CoverDialog({
               onClick={() => input.current?.click()}
             >
               <ImagePlus size={17} />
-              Choose image
+              {t("Choose image")}
             </button>
             <p className="hint">
-              PNG, JPEG or WebP. The image is copied into your library.
+              {t("PNG, JPEG or WebP. The image is copied into your library.")}
             </p>
             <label>
-              Cover description
+              {t("Cover description")}
               <textarea
-                aria-label="Cover description"
+                aria-label={t("Cover description")}
                 value={prompt}
                 maxLength={1400}
                 onChange={(e) => setPrompt(e.target.value)}
               />
             </label>
             <p className="hint">
-              Saves 320 × 448 book-cover artwork. The prompt requests no text.
-              Origami adds the title and author.
+              {t(
+                "Saves 320 × 448 book-cover artwork. The prompt requests no text. Origami adds the title and author.",
+              )}
             </p>
             <label className="check-label">
               <input
@@ -169,12 +171,14 @@ export function CoverDialog({
                 disabled={starter || active}
                 onChange={(e) => onMature(e.target.checked)}
               />
-              Allow mature cover artwork (NSFW)
+              {t("Allow mature cover artwork (NSFW)")}
             </label>
             <p className="hint">
               {starter
-                ? "Starter-library covers always use standard mode."
-                : "Standard mode requests clothed, non-explicit artwork. This is prompt guidance, not an image-content filter."}
+                ? t("Starter-library covers always use standard mode.")
+                : t(
+                    "Standard mode requests clothed, non-explicit artwork. This is prompt guidance, not an image-content filter.",
+                  )}
             </p>
             <div className="dialog-actions">
               <button
@@ -191,8 +195,8 @@ export function CoverDialog({
                   <RefreshCw size={17} />
                 )}
                 {book.coverOrigin === "generated"
-                  ? "Regenerate cover"
-                  : "Generate cover"}
+                  ? t("Regenerate cover")
+                  : t("Generate cover")}
               </button>
               {active && (
                 <button
@@ -200,18 +204,22 @@ export function CoverDialog({
                     void onCancel();
                   }}
                 >
-                  Cancel generation
+                  {t("Cancel generation")}
                 </button>
               )}
             </div>
             <p className="hint">
               {!installed
-                ? "Local cover generation requires the cover engine setup. You can choose an image now."
+                ? t(
+                    "Local cover generation requires the cover engine setup. You can choose an image now.",
+                  )
                 : !idle
-                  ? "Stop playback to generate a cover."
+                  ? t("Stop playback to generate a cover.")
                   : busy && !active
-                    ? "Another image is being generated."
-                    : "Each generation uses a new random seed. The image model unloads when it finishes."}
+                    ? t("Another image is being generated.")
+                    : t(
+                        "Each generation uses a new random seed. The image model unloads when it finishes.",
+                      )}
             </p>
             {error && <p role="alert">{error}</p>}
           </div>

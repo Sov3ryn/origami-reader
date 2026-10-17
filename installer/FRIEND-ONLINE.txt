@@ -1,0 +1,34 @@
+ORIGAMI READER 0.1.0 BETA 6, WINDOWS
+
+This is a private beta for invited friends. Please do not share or re-upload it.
+
+ALREADY INSTALLED AN EARLIER BETA?
+Uninstall it first: Windows Settings > Apps > Installed apps > Origami Reader
+> Uninstall. Your library, notes, cards and settings are kept.
+
+INSTALL
+1. Keep this whole folder together and stay connected to the internet.
+2. Run Origami Reader Installer.exe. If Windows says the app is unrecognised
+   (this beta is not signed), choose More info, then Run anyway. Do not turn
+   off Windows security. Setup offers the included Microsoft installers for
+   WebView2 and Visual C++ if they are missing.
+3. Choose a new installation folder, your languages, appearance and models.
+   The review page shows how much setup will download. Only what you choose
+   is downloaded, each part from its publisher, checked before use.
+4. Accept the app license (and the image model licenses for pictures).
+5. When setup finishes, choose Launch Origami.
+
+For a small laptop: light voices and SD-Turbo, without Qwen or DreamShaper.
+If a download stops, run setup again: finished downloads are kept.
+
+The full guide and the feedback page are on the private Origami page where
+you downloaded this.
+
+LICENSES
+Origami Reader, copyright (c) 2026 Sov3ryn. Free to use; copies may not be
+shared, sold or modified (licenses/Origami-Reader-App-License.txt). Each model
+keeps its own license, installed beside it: Apache 2.0 (Qwen, Kitten, Kokoro,
+IBM Granite), MIT (TrOCR), CreativeML OpenRAIL-M (DreamShaper), Stability AI
+Community License (SD-Turbo; Powered by Stability AI). The light reader
+program (workers/light_tts.py) is GPL-3.0. Library notices are in
+licenses/THIRD-PARTY-NOTICES.txt.

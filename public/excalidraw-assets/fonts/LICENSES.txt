@@ -1,0 +1,13 @@
+Fonts used by Boards (Excalidraw drawing surface), copied unmodified from the
+@excalidraw/excalidraw 0.18.1 package (MIT). Each font keeps its own licence:
+
+Excalifont, Virgil        SIL Open Font License 1.1
+Nunito                    SIL Open Font License 1.1
+Lilita One                SIL Open Font License 1.1
+Assistant                 SIL Open Font License 1.1
+Cascadia Code             SIL Open Font License 1.1
+Liberation Sans           SIL Open Font License 1.1
+Comic Shanns              MIT License
+
+The Xiaolai font (Chinese, Japanese and Korean handwriting style, 13 MB) is not
+included; that text uses the system's fonts instead.

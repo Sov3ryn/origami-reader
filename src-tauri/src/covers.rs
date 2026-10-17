@@ -21,21 +21,54 @@ enum ArtworkKind {
 impl ArtworkKind {
     fn size(self, profile: &str) -> (&'static str, &'static str) {
         match self {
-            Self::Cover if profile == "dreamshaper-8-lcm" => ("512", "704"),
+            Self::Cover if matches!(profile, "dreamshaper-8-lcm" | "sd15-lcm") => ("512", "704"),
+            Self::Cover if matches!(profile, "sdxl-lightning" | "z-image-turbo") => ("768", "1024"),
             Self::Cover => (COVER_WIDTH, COVER_HEIGHT),
+            Self::VoicePortrait if matches!(profile, "sdxl-lightning" | "z-image-turbo") => {
+                ("1024", "1024")
+            }
             Self::VoicePortrait => ("512", "512"),
         }
     }
 }
-fn image_profile(kind: ArtworkKind, c: &Value) -> Result<(&Value, &str)> {
+// How an artwork job runs: an optional installed model version, and whether
+// the speech model may stay loaded beside it on a graphics card with room.
+#[derive(Default, Clone)]
+pub struct ArtOptions {
+    pub model: Option<String>,
+    pub keep_speech: bool,
+}
+fn image_profile<'a>(
+    kind: ArtworkKind,
+    c: &'a Value,
+    chosen: Option<&str>,
+) -> Result<(&'a Value, &'a str)> {
     let key = match kind {
         ArtworkKind::Cover => "cover",
         ArtworkKind::VoicePortrait => "portrait",
     };
-    let selected = if c[key].is_object() { &c[key] } else { c };
+    let chosen = chosen
+        .filter(|id| !id.is_empty())
+        .or_else(|| c["defaultModel"].as_str());
+    if let Some(id) = chosen {
+        if c["models"][id]["disabled"] == true || !c["models"][id].is_object() {
+            return Err(
+                "The selected image model is not installed. Choose one in Settings, Models.".into(),
+            );
+        }
+    }
+    let named = chosen.map(|id| &c["models"][id]).filter(|m| m.is_object());
+    let selected = match named {
+        Some(model) => model,
+        None if c[key].is_object() => &c[key],
+        None => c,
+    };
     let profile = selected["profile"].as_str().unwrap_or("sd-turbo");
-    if !matches!(profile, "sd-turbo" | "dreamshaper-8-lcm") {
-        return Err("Unsupported image model profile. Use sd-turbo or dreamshaper-8-lcm.".into());
+    if !matches!(
+        profile,
+        "sd-turbo" | "dreamshaper-8-lcm" | "sd15-lcm" | "sdxl-lightning" | "z-image-turbo"
+    ) {
+        return Err("Unsupported image model profile.".into());
     }
     Ok((selected, profile))
 }
@@ -135,20 +168,34 @@ fn config(app: &AppHandle) -> Result<Value> {
 }
 pub fn status(app: &AppHandle) -> Value {
     let settings = config(app).ok();
-    let installed = settings.as_ref().is_some_and(|c| {
-        c["executable"]
-            .as_str()
-            .is_some_and(|p| PathBuf::from(p).is_file())
-            && image_profile(ArtworkKind::Cover, c).is_ok_and(|(m, _)| {
-                m["model"]
-                    .as_str()
-                    .is_some_and(|p| PathBuf::from(p).is_file())
-            })
-    });
-    let dreamshaper = settings.as_ref().is_some_and(|c| {
-        image_profile(ArtworkKind::Cover, c).is_ok_and(|(_, p)| p == "dreamshaper-8-lcm")
-    });
-    json!({"installed":installed,"name":if dreamshaper {"DreamShaper 8 LCM · local"} else {"SD-Turbo · local"},"attribution":if dreamshaper {"DreamShaper by Lykon; Stable Diffusion base"} else {"Powered by Stability AI"}})
+    // Optional named versions, for example a faster model for laptops.
+    let models: Vec<Value> = settings
+        .as_ref()
+        .and_then(|c| c["models"].as_object())
+        .map(|models| {
+            models
+                .iter()
+                .filter(|(_, m)| {
+                    m["disabled"] != true
+                        && crate::models::present(m, settings.as_ref().unwrap(), "image")
+                })
+                .map(|(id, m)| {
+                    json!({
+                        "id": id,
+                        "name": m["name"].as_str().unwrap_or(id),
+                        "description": m["description"].as_str().unwrap_or(""),
+                        "tier": m["tier"].as_str().unwrap_or(""),
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    let installed = !models.is_empty()
+        || settings.as_ref().is_some_and(|c| {
+            image_profile(ArtworkKind::Cover, c, None)
+                .is_ok_and(|(m, _)| crate::models::present(m, c, "image"))
+        });
+    json!({"installed":installed,"name":"Local image generation","attribution":"Model credits and terms are listed in Settings, Models.","models":models,"default":settings.as_ref().and_then(|c|c["defaultModel"].as_str()).unwrap_or("")})
 }
 impl Covers {
     pub fn generation_epoch(&self) -> u64 {
@@ -163,6 +210,16 @@ impl Covers {
             .take()
         {
             let mut child = child.lock().map_err(|_| "Cover process lock failed")?;
+            #[cfg(windows)]
+            {
+                use std::os::windows::process::CommandExt;
+                let _ = Command::new("taskkill.exe")
+                    .args(["/PID", &child.id().to_string(), "/T", "/F"])
+                    .creation_flags(0x08000000)
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null())
+                    .status();
+            }
             let _ = child.kill();
             let _ = child.wait();
         }
@@ -179,8 +236,17 @@ impl Covers {
         seed: u32,
         mature: bool,
         epoch: u64,
+        options: ArtOptions,
     ) -> Result<String> {
-        self.generate_image(app, prompt, seed, mature, epoch, ArtworkKind::Cover)
+        self.generate_image(
+            app,
+            prompt,
+            seed,
+            mature,
+            epoch,
+            ArtworkKind::Cover,
+            options,
+        )
     }
     pub fn portrait(
         &self,
@@ -188,8 +254,17 @@ impl Covers {
         prompt: String,
         seed: u32,
         epoch: u64,
+        options: ArtOptions,
     ) -> Result<String> {
-        self.generate_image(app, prompt, seed, false, epoch, ArtworkKind::VoicePortrait)
+        self.generate_image(
+            app,
+            prompt,
+            seed,
+            false,
+            epoch,
+            ArtworkKind::VoicePortrait,
+            options,
+        )
     }
     fn generate_image(
         &self,
@@ -199,6 +274,7 @@ impl Covers {
         mature: bool,
         epoch: u64,
         kind: ArtworkKind,
+        options: ArtOptions,
     ) -> Result<String> {
         if prompt.trim().is_empty() || prompt.chars().count() > 1400 {
             return Err("Use an image description of 1 to 1,400 characters.".into());
@@ -211,14 +287,25 @@ impl Covers {
             return Err("Cover generation cancelled.".into());
         }
         // Register a job and release speech under the same cancellation lock.
-        // A queued image request cannot unload a newer speech session.
-        app.state::<crate::speech::Speech>().cancel()?;
+        // A queued image request cannot unload a newer speech session. Graphics
+        // cards with enough memory keep the speech model ready instead.
+        if !options.keep_speech {
+            app.state::<crate::speech::Speech>().cancel()?;
+        }
+        if app.state::<crate::voice_studio::Studio>().busy() {return Err("Finish or cancel voice creation before generating artwork.".into());}
+        let _models = crate::models::OPERATIONS
+            .read()
+            .map_err(|_| "Model operation lock failed")?;
         let c = config(&app)?;
         let is_portrait = matches!(kind, ArtworkKind::VoicePortrait);
-        let (model_config, profile) = image_profile(kind, &c)?;
+        let (model_config, profile) = image_profile(kind, &c, options.model.as_deref())?;
+        if !crate::models::present(model_config, &c, "image") {
+            return Err("The image model or runtime files are missing.".into());
+        }
         let (steps, cfg, sampler, scheduler) = match profile {
             "sd-turbo" => ("2", "1", "euler", "discrete"),
             "dreamshaper-8-lcm" => ("6", "2", "lcm", "lcm"),
+            "sd15-lcm" | "sdxl-lightning" | "z-image-turbo" => ("0", "0", "", ""),
             _ => {
                 return Err(
                     "Unsupported portrait model profile. Use sd-turbo or dreamshaper-8-lcm.".into(),
@@ -241,55 +328,107 @@ impl Covers {
             ArtworkKind::Cover => generation_prompt(&prompt, mature),
             ArtworkKind::VoicePortrait => portrait_prompt(&prompt),
         };
-        let result = (|| {
-            let mut command =
-                Command::new(c["executable"].as_str().ok_or("Missing cover executable")?);
+        // One render on a backend. The processor is slower, so it gets longer.
+        let attempt = |backend: &str| -> Result<String> {
+            let python_job = matches!(profile, "sd15-lcm" | "sdxl-lightning" | "z-image-turbo");
+            let mut command = if python_job {
+                let dev =
+                    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../workers/image_worker.py");
+                let script = if cfg!(debug_assertions) && dev.exists() {
+                    dev
+                } else {
+                    app.path()
+                        .resource_dir()
+                        .map_err(|e| e.to_string())?
+                        .join("workers/image_worker.py")
+                };
+                let mut cmd = Command::new(
+                    model_config["python"]
+                        .as_str()
+                        .ok_or("Missing image Python runtime")?,
+                );
+                cmd.arg("-u")
+                    .arg(script)
+                    .arg("--config")
+                    .arg(crate::models::path(&app, "image")?)
+                    .args([
+                        "--model",
+                        options
+                            .model
+                            .as_deref()
+                            .filter(|id| !id.is_empty())
+                            .or_else(|| c["defaultModel"].as_str())
+                            .unwrap_or(""),
+                        "--prompt",
+                        &rendered_prompt,
+                        "--negative",
+                        negative_prompt(kind, mature),
+                        "--width",
+                        width,
+                        "--height",
+                        height,
+                    ])
+                    .arg("--seed")
+                    .arg(seed.to_string())
+                    .arg("--output")
+                    .arg(&path);
+                cmd
+            } else {
+                Command::new(
+                    model_config["executable"]
+                        .as_str()
+                        .or_else(|| c["executable"].as_str())
+                        .ok_or("Missing cover executable")?,
+                )
+            };
+            if !python_job {
+                command
+                    .arg("-m")
+                    .arg(
+                        model_config["model"]
+                            .as_str()
+                            .ok_or("Missing image model")?,
+                    )
+                    .arg("-p")
+                    .arg(&rendered_prompt)
+                    .arg("-o")
+                    .arg(&path)
+                    .args([
+                        "--steps",
+                        steps,
+                        "--cfg-scale",
+                        cfg,
+                        "--sampling-method",
+                        sampler,
+                        "--scheduler",
+                        scheduler,
+                        "-W",
+                        width,
+                        "-H",
+                        height,
+                        "--disable-image-metadata",
+                        "--log-level",
+                        "error",
+                    ])
+                    .arg("--seed")
+                    .arg(seed.to_string())
+                    .arg("--backend")
+                    .arg(backend)
+                    .stdin(Stdio::null())
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null());
+                if is_portrait || profile == "dreamshaper-8-lcm" {
+                    command.args(["--max-vram", "3"]);
+                }
+                if profile == "dreamshaper-8-lcm" {
+                    command.args(["-n", negative_prompt(kind, mature)]);
+                }
+            }
             command
-                .arg("-m")
-                .arg(
-                    model_config["model"]
-                        .as_str()
-                        .ok_or("Missing image model")?,
-                )
-                .arg("-p")
-                .arg(rendered_prompt)
-                .arg("-o")
-                .arg(&path)
-                .args([
-                    "--steps",
-                    steps,
-                    "--cfg-scale",
-                    cfg,
-                    "--sampling-method",
-                    sampler,
-                    "--scheduler",
-                    scheduler,
-                    "-W",
-                    width,
-                    "-H",
-                    height,
-                    "--disable-image-metadata",
-                    "--log-level",
-                    "error",
-                ])
-                .arg("--seed")
-                .arg(seed.to_string())
-                .arg("--backend")
-                .arg(
-                    model_config["backend"]
-                        .as_str()
-                        .or(c["backend"].as_str())
-                        .unwrap_or("cpu"),
-                )
                 .stdin(Stdio::null())
                 .stdout(Stdio::null())
-                .stderr(Stdio::null());
-            if is_portrait || profile == "dreamshaper-8-lcm" {
-                command.args(["--max-vram", "3"]);
-            }
-            if profile == "dreamshaper-8-lcm" {
-                command.args(["-n", negative_prompt(kind, mature)]);
-            }
+                .stderr(Stdio::null())
+                .env("PYTHONUTF8", "1");
             #[cfg(windows)]
             {
                 use std::os::windows::process::CommandExt;
@@ -328,7 +467,12 @@ impl Covers {
                     }
                     break;
                 }
-                if started.elapsed() > Duration::from_secs(180) {
+                let limit = if backend == "cpu" || python_job {
+                    900
+                } else {
+                    180
+                };
+                if started.elapsed() > Duration::from_secs(limit) {
                     self.cancel()?;
                     return Err("Cover generation timed out and was unloaded.".into());
                 }
@@ -339,7 +483,26 @@ impl Covers {
                 return Err("Invalid generated cover image".into());
             }
             Ok(format!("data:image/png;base64,{}", STANDARD.encode(bytes)))
-        })();
+        };
+        let configured = model_config["backend"]
+            .as_str()
+            .or(c["backend"].as_str())
+            .unwrap_or("cpu")
+            .to_string();
+        // A graphics backend that is missing or fails (no driver, a virtual
+        // machine, too little memory) falls back to the processor once.
+        let result = match attempt(&configured) {
+            Err(error)
+                if configured != "cpu"
+                    && !matches!(profile, "sd15-lcm" | "sdxl-lightning" | "z-image-turbo")
+                    && (error.starts_with("The local cover generator failed")
+                        || error.starts_with("No generated cover")) =>
+            {
+                let _ = std::fs::remove_file(&path);
+                attempt("cpu")
+            }
+            other => other,
+        };
         let _ = std::fs::remove_file(&path);
         *self
             .active
@@ -373,23 +536,33 @@ mod tests {
     #[test]
     fn covers_use_the_selected_profile_and_portrait_overrides_are_independent() {
         let c = json!({"model":"covers", "profile":"dreamshaper-8-lcm", "portrait":{"model":"avatars", "profile":"sd-turbo"}});
-        let (cover, profile) = image_profile(ArtworkKind::Cover, &c).unwrap();
+        let (cover, profile) = image_profile(ArtworkKind::Cover, &c, None).unwrap();
         assert_eq!(cover["model"], "covers");
         assert_eq!(profile, "dreamshaper-8-lcm");
         assert_eq!(ArtworkKind::Cover.size(profile), ("512", "704"));
-        let (portrait, profile) = image_profile(ArtworkKind::VoicePortrait, &c).unwrap();
+        let (portrait, profile) = image_profile(ArtworkKind::VoicePortrait, &c, None).unwrap();
         assert_eq!(portrait["model"], "avatars");
         assert_eq!(profile, "sd-turbo");
         assert_eq!(
-            image_profile(ArtworkKind::Cover, &json!({"model":"legacy"}))
+            image_profile(ArtworkKind::Cover, &json!({"model":"legacy"}), None)
                 .unwrap()
                 .1,
             "sd-turbo"
         );
-        assert!(image_profile(ArtworkKind::Cover, &json!({"profile":"unsupported"})).is_err());
+        assert!(
+            image_profile(ArtworkKind::Cover, &json!({"profile":"unsupported"}), None).is_err()
+        );
+        let versions = json!({"cover":{"model":"standard", "profile":"dreamshaper-8-lcm"},
+            "models":{"fast":{"model":"turbo", "profile":"sd-turbo"}}});
+        let (fast, profile) = image_profile(ArtworkKind::Cover, &versions, Some("fast")).unwrap();
+        assert_eq!(
+            (fast["model"].as_str(), profile),
+            (Some("turbo"), "sd-turbo")
+        );
+        assert!(image_profile(ArtworkKind::Cover, &versions, Some("gone")).is_err());
         let upgrade = json!({"model":"legacy-sd-model", "cover":{"model":"new-model", "profile":"dreamshaper-8-lcm"}});
         assert_eq!(
-            image_profile(ArtworkKind::Cover, &upgrade).unwrap().0["model"],
+            image_profile(ArtworkKind::Cover, &upgrade, None).unwrap().0["model"],
             "new-model"
         );
         assert_eq!(upgrade["model"], "legacy-sd-model");

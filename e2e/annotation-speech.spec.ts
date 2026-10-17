@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { expandSections, openSection } from "./sections";
 import AxeBuilder from "@axe-core/playwright";
 
 async function select(page: Page, id: string, start = 0, end?: number) {
@@ -46,6 +47,10 @@ async function settings(page: Page) {
     .first()
     .click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page
+    .getByRole("navigation", { name: "Settings sections" })
+    .getByRole("button", { name: "Reading aloud", exact: true })
+    .click();
 }
 
 test("partial spoken edits persist, allow silence and reset while source and drafts stay intact", async ({
@@ -61,6 +66,7 @@ test("partial spoken edits persist, allow silence and reset while source and dra
   );
   await select(page, "p-1", 0, end);
   await page.getByRole("button", { name: "More", exact: true }).click();
+  await openSection(page, "Spoken version");
   const editor = page.getByLabel("Spoken version", { exact: true });
   await editor.fill("Maeve reads the edited sentence.");
   await page
@@ -120,6 +126,7 @@ test("Roman heading normalization is enabled by default, reversible, and subordi
   );
   await select(page, "p-0");
   await page.getByRole("button", { name: "More", exact: true }).click();
+  await openSection(page, "Spoken version");
   const editor = page.getByLabel("Spoken version", { exact: true });
   await expect(editor).toHaveValue("Chapter 16");
   await expect(page.locator('[data-paragraph="p-0"]')).toHaveText(
@@ -131,6 +138,8 @@ test("Roman heading normalization is enabled by default, reversible, and subordi
   });
   await expect(option).toBeChecked();
   await option.uncheck();
+  // Let the setting save before the page reloads.
+  await page.waitForTimeout(150);
   await reopen(page, title);
   await select(page, "p-0");
   await expect(editor).toHaveValue("Chapter XVI");
@@ -140,6 +149,8 @@ test("Roman heading normalization is enabled by default, reversible, and subordi
     .click();
   await settings(page);
   await option.check();
+  // Let the setting save before the page reloads.
+  await page.waitForTimeout(150);
   await reopen(page, title);
   await select(page, "p-0");
   await expect(editor).toHaveValue("The sixteenth chapter.");
@@ -232,6 +243,7 @@ test("notes filter and sort by source, and a temporary bookmark survives several
   const cards = page.locator(".annotation-card");
   await expect(cards).toHaveCount(3);
   await expect(cards.first()).toContainText("Zulu note");
+  await expandSections(page);
   await page.getByLabel("Annotation order").selectOption("book-desc");
   await expect(cards.first()).toContainText("Source paragraph 80");
   await page.getByLabel("Annotation order").selectOption("text-asc");
@@ -266,7 +278,7 @@ test("notes filter and sort by source, and a temporary bookmark survives several
     .filter({ hasText: "Beta foreign note" })
     .locator("button.quote")
     .click();
-  await expect(page.locator(".reading-page")).toContainText(
+  await expect(page.locator(".reading-pages")).toContainText(
     "A foreign paragraph has different context.",
   );
   await page

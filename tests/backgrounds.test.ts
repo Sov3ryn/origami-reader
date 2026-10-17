@@ -84,12 +84,13 @@ describe("background selection", () => {
     });
   });
 
-  it("randomizes among illustrated scenes once at startup and avoids the last scene", () => {
+  it("randomizes among other seasons once at startup and keeps the time of day", () => {
     const prefs = { ...defaultPreferences, backgroundMode: "random" as const };
-    const choices = [0, 0.25, 0.5, 0.999].map(
+    const choices = [0, 0.4, 0.999].map(
       (value) => startupBackground(prefs, new Date(), () => value).scene,
     );
-    expect(choices).toEqual(["spring", "summer", "autumn", "winter"]);
+    // The default Moonlit lake is spring at night.
+    expect(choices).toEqual(["summer", "autumn", "winter-night"]);
     const started = startupBackground(prefs, new Date(), () => 0.5);
     expect(changeAppearance(started, { fontSize: 24 }).scene).toBe("autumn");
     expect(startupBackground(defaultPreferences)).toBe(defaultPreferences);
@@ -110,7 +111,8 @@ describe("background selection", () => {
       backgroundOpacity: 0.72,
     });
     prefs = changeAppearance(prefs, { seasonHemisphere: "south" }, date);
-    expect(prefs.scene).toBe("spring");
+    // Spring in the south, still at night: the Moonlit lake.
+    expect(prefs.scene).toBe("lake");
     prefs = changeAppearance(
       prefs,
       { scene: "summer", backgroundMode: "manual" },

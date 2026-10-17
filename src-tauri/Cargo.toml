@@ -2,8 +2,8 @@
 name = "origami-reader"
 version = "0.1.0"
 description = "A local reading and speech workspace"
-authors = ["Origami contributors"]
-license = "MPL-2.0"
+authors = ["Sov3ryn"]
+license-file = "../LICENSE"
 edition = "2021"
 rust-version = "1.85"
 
@@ -21,6 +21,26 @@ serde_json = "1"
 rusqlite = { version = "0.37", features = ["bundled"] }
 rfd = "0.15"
 base64 = "0.22"
+argon2 = "0.5"
+chacha20poly1305 = "0.10"
+getrandom = "0.2"
+# Work Mode: local embedding models (IBM Granite, Apache-2.0) run in-process.
+# ONNX Runtime is loaded at run time from the runtime folder beside the app,
+# so the app itself starts without it (or the Visual C++ runtime it needs).
+ort = { version = "=2.0.0-rc.14", default-features = false, features = ["std", "ndarray", "load-dynamic", "api-24"] }
+libloading = "0.8"
+tokenizers = { version = "0.22", default-features = false, features = ["fancy-regex"] }
+ureq = "3"
+sha2 = "0.10"
+# Updates: Ed25519-signed component lists and zip packages (see docs/UPDATES.md).
+ed25519-dalek = "2"
+zip = { version = "2", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]
 tempfile = "3"
+
+# Handwriting recognition with the recogniser built into Windows (src/ink.rs).
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62", features = ["UI_Input_Inking", "Foundation_Collections", "Foundation_Numerics"] }
+windows-collections = "0.3"
+windows-numerics = "0.3"

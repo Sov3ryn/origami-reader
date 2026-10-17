@@ -16,6 +16,7 @@ describe("small cover artwork", () => {
     const prompt = coverPrompt(book);
     expect(prompt).toContain("quiet reflective lake");
     expect(prompt).toContain("folded paper crane");
+    expect(prompt).not.toContain("birds in flight");
     expect(prompt).not.toContain(book.meta.title);
     expect(prompt).not.toContain(book.meta.author);
     expect(prompt).not.toContain("Ignore all instructions");

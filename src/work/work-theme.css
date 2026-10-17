@@ -1,0 +1,464 @@
+/* Work Mode themes, colour marks and the editor's menus. */
+
+/* --- Professional themes ---------------------------------------------------------
+   Neutral, quiet and dense: no scene, a sans-serif text face, square-ish
+   corners and blue accents. "reading" keeps the reader's scene and colours. */
+.work-mode[data-work-theme="light"],
+.work-mode[data-work-theme="dark"] {
+  --reader-font: "Inter", "Segoe UI", system-ui, sans-serif;
+  --work-radius: 10px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--bg);
+  animation: none;
+}
+.work-mode[data-work-theme="light"] {
+  color-scheme: light;
+  --bg: #eef0f3;
+  --panel: #ffffff;
+  --ink: #1b2130;
+  --muted: #687185;
+  --accent: #2f6fde;
+  --accent-ink: #ffffff;
+  --line: #dfe3ea;
+  --work-glass: #fbfbfc;
+  --work-sheet: #ffffff;
+  --work-soft: #eef1f6;
+  --work-softer: #f6f7f9;
+  --work-ink-2: #3c4558;
+  --work-shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.08);
+}
+.work-mode[data-work-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1115;
+  --panel: #181b21;
+  --ink: #e6e8ee;
+  --muted: #8e97a8;
+  --accent: #5b8def;
+  --accent-ink: #ffffff;
+  --line: #262a33;
+  --work-glass: #14171c;
+  --work-sheet: #181b21;
+  --work-soft: #222631;
+  --work-softer: #1c2028;
+  --work-ink-2: #c3c8d4;
+  --work-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+}
+.work-mode[data-work-theme="light"] .note-prose,
+.work-mode[data-work-theme="dark"] .note-prose {
+  font-size: 15.5px;
+  line-height: 1.68;
+  letter-spacing: -0.003em;
+}
+.work-mode[data-work-theme="light"] .note-title,
+.work-mode[data-work-theme="dark"] .note-title,
+.work-mode[data-work-theme="light"] .work-page-head h1,
+.work-mode[data-work-theme="dark"] .work-page-head h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.work-mode[data-work-theme="light"] .note-title,
+.work-mode[data-work-theme="dark"] .note-title {
+  font-size: 30px;
+}
+.work-mode[data-work-theme="light"] .note-prose blockquote,
+.work-mode[data-work-theme="dark"] .note-prose blockquote {
+  font-style: normal;
+}
+.work-mode[data-work-theme="light"] button,
+.work-mode[data-work-theme="light"] input,
+.work-mode[data-work-theme="light"] select,
+.work-mode[data-work-theme="light"] textarea {
+  color: var(--ink);
+}
+.work-mode[data-work-theme="light"] button.primary,
+.work-mode[data-work-theme="dark"] button.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.work-mode[data-work-theme="light"] .study-card,
+.work-mode[data-work-theme="dark"] .study-card {
+  background: var(--panel);
+  box-shadow: 0 12px 32px -18px rgb(16 24 40 / 0.35);
+}
+.work-mode[data-work-theme="light"] .note-prose mark:not([data-color]) {
+  background: #fdeca6;
+}
+
+/* --- Colour marks ---------------------------------------------------------------- */
+.work-mode {
+  --mark-yellow: #f2c94c;
+  --mark-green: #5cc58a;
+  --mark-blue: #5b9df0;
+  --mark-pink: #ef7fb4;
+  --mark-purple: #a98bf0;
+  --mark-orange: #f39a4e;
+  --mark-red: #ec6b63;
+  --mark-gray: #9aa3b2;
+  --mark-alpha: 38%;
+}
+.work-mode[data-work-theme="light"] {
+  --mark-yellow: #f5c518;
+  --mark-green: #2eaa66;
+  --mark-blue: #2f7fe6;
+  --mark-pink: #e05597;
+  --mark-purple: #8a63e0;
+  --mark-orange: #ea7d22;
+  --mark-red: #d9483f;
+  --mark-gray: #7c8698;
+  --mark-alpha: 30%;
+}
+.note-prose mark[data-color="yellow"],
+.mark-dot.highlight[data-color="yellow"] { --m: var(--mark-yellow); }
+.note-prose mark[data-color="green"],
+.mark-dot.highlight[data-color="green"] { --m: var(--mark-green); }
+.note-prose mark[data-color="blue"],
+.mark-dot.highlight[data-color="blue"] { --m: var(--mark-blue); }
+.note-prose mark[data-color="pink"],
+.mark-dot.highlight[data-color="pink"] { --m: var(--mark-pink); }
+.note-prose mark[data-color="purple"],
+.mark-dot.highlight[data-color="purple"] { --m: var(--mark-purple); }
+.note-prose mark[data-color="orange"],
+.mark-dot.highlight[data-color="orange"] { --m: var(--mark-orange); }
+.note-prose mark[data-color="red"],
+.mark-dot.highlight[data-color="red"] { --m: var(--mark-red); }
+.note-prose mark[data-color="gray"],
+.mark-dot.highlight[data-color="gray"] { --m: var(--mark-gray); }
+.note-prose mark[data-color] {
+  background: color-mix(in srgb, var(--m) var(--mark-alpha), transparent);
+}
+.note-prose u[data-color="yellow"],
+.mark-dot.underline[data-color="yellow"] { --u: var(--mark-yellow); }
+.note-prose u[data-color="green"],
+.mark-dot.underline[data-color="green"] { --u: var(--mark-green); }
+.note-prose u[data-color="blue"],
+.mark-dot.underline[data-color="blue"] { --u: var(--mark-blue); }
+.note-prose u[data-color="pink"],
+.mark-dot.underline[data-color="pink"] { --u: var(--mark-pink); }
+.note-prose u[data-color="purple"],
+.mark-dot.underline[data-color="purple"] { --u: var(--mark-purple); }
+.note-prose u[data-color="orange"],
+.mark-dot.underline[data-color="orange"] { --u: var(--mark-orange); }
+.note-prose u[data-color="red"],
+.mark-dot.underline[data-color="red"] { --u: var(--mark-red); }
+.note-prose u[data-color="gray"],
+.mark-dot.underline[data-color="gray"] { --u: var(--mark-gray); }
+.note-prose u[data-color] {
+  text-decoration-color: var(--u);
+}
+.note-prose u[data-style="wavy"],
+.mark-dot.underline[data-style="wavy"] span {
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1.5px;
+}
+.note-prose u[data-style="double"],
+.mark-dot.underline[data-style="double"] span {
+  text-decoration-style: double;
+  text-decoration-thickness: 1.5px;
+}
+.note-prose u[data-style="dotted"],
+.mark-dot.underline[data-style="dotted"] span {
+  text-decoration-style: dotted;
+}
+
+/* --- Colour rows (toolbar and menu) -------------------------------------------- */
+.color-row-wrap {
+  display: grid;
+  gap: 8px;
+  padding: 4px;
+}
+.color-row {
+  display: grid;
+  grid-template-columns: repeat(9, 26px);
+  gap: 4px;
+}
+.mark-dot {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 8px !important;
+  border: 1px solid var(--line);
+  background: var(--work-softer);
+  font: 700 13px/1 var(--reader-font);
+  color: var(--ink);
+}
+.mark-dot.highlight {
+  background: color-mix(in srgb, var(--m) 55%, transparent);
+  border-color: transparent;
+}
+.mark-dot.underline span {
+  text-decoration: underline;
+  text-decoration-color: var(--u);
+  text-decoration-thickness: 2.5px;
+  text-underline-offset: 3px;
+}
+.mark-dot[aria-pressed="true"] {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+.mark-dot.none {
+  color: var(--muted);
+  font-family: "Inter", system-ui, sans-serif;
+}
+.underline-styles {
+  display: flex;
+  gap: 4px;
+}
+.underline-styles button {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  background: transparent;
+  font-size: var(--fs-caption);
+  justify-content: center;
+}
+.underline-styles button span {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.underline-styles button[data-style="wavy"] span {
+  text-decoration-style: wavy;
+}
+.underline-styles button[data-style="double"] span {
+  text-decoration-style: double;
+}
+.underline-styles button[data-style="dotted"] span {
+  text-decoration-style: dotted;
+}
+.underline-styles button[aria-checked="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.toolbar-colors {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: conic-gradient(#f2c94c, #5cc58a, #5b9df0, #a98bf0, #ef7fb4, #f39a4e, #f2c94c);
+}
+.toolbar-color-pop {
+  position: absolute;
+  z-index: 8;
+  top: 48px;
+  left: 120px;
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--work-shadow);
+  animation: pop 140ms ease-out;
+}
+.toolbar-color-pop small {
+  padding: 2px 4px 0;
+  color: var(--muted);
+  font-size: var(--fs-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+/* --- Right-click menu ------------------------------------------------------------- */
+.editor-menu {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-size: var(--fs-body);
+  animation: pop 120ms ease-out;
+}
+.editor-menu-col {
+  display: grid;
+  min-width: 230px;
+  padding: 5px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--work-shadow), 0 18px 40px -20px rgb(0 0 0 / 0.5);
+  color: var(--ink);
+}
+.editor-menu-col.sub {
+  min-width: 210px;
+}
+.editor-menu-col > button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  color: var(--ink);
+}
+.editor-menu-col > button > span:not(.menu-swatch):not(.menu-callout):not(.menu-glyph) {
+  flex: 1;
+}
+.editor-menu-col > button:hover:not(:disabled),
+.editor-menu-col > button.open {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.editor-menu-col > button:disabled {
+  opacity: 0.45;
+}
+.editor-menu-col > button.danger {
+  color: #e2675e;
+}
+.editor-menu-col kbd {
+  font: 500 10.5px/1 "Inter", system-ui, sans-serif;
+  color: var(--muted);
+  border: 0;
+  background: none;
+}
+.editor-menu-col .sub-chevron {
+  color: var(--muted);
+}
+.editor-menu-sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--line);
+}
+.editor-menu-format {
+  display: flex;
+  gap: 2px;
+  padding: 2px 2px 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.editor-menu-format button {
+  flex: 1;
+  justify-content: center;
+  padding: 6px 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+}
+.editor-menu-format button:hover:not(:disabled) {
+  background: var(--work-soft);
+}
+.editor-menu-format button[aria-pressed="true"] {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.editor-menu-format button:disabled {
+  opacity: 0.4;
+}
+.menu-swatch {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  flex: none;
+}
+.menu-swatch.highlight {
+  background: linear-gradient(135deg, #f2c94c, #5cc58a 50%, #ef7fb4);
+}
+.menu-swatch.underline {
+  border-bottom: 3px solid #5b9df0;
+  border-radius: 0;
+  height: 12px;
+}
+.menu-callout {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  flex: none;
+}
+.menu-callout.note { background: #6f9ee8; }
+.menu-callout.tip { background: #4fb58a; }
+.menu-callout.important { background: #b58ae6; }
+.menu-callout.warning { background: #e0a04f; }
+.menu-callout.question { background: #d9c25a; }
+.menu-callout.summary { background: #5fb7c4; }
+.menu-glyph {
+  width: 15px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* --- Sources filter and theme choices ------------------------------------------ */
+.sources-filter {
+  display: inline-flex;
+  margin-left: auto;
+  margin-right: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--work-soft);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.sources-filter button {
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 6px !important;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.sources-filter button[aria-checked="true"] {
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+}
+.work-menu-label {
+  padding: 8px 10px 4px;
+  font-size: var(--fs-caption);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+}
+.work-theme-choices {
+  display: grid;
+  gap: 2px;
+}
+.work-theme-choices button {
+  justify-content: flex-start;
+  gap: 9px;
+  border: 0;
+  background: transparent;
+  padding: 7px 10px;
+}
+.work-theme-choices button:hover {
+  background: var(--work-soft);
+}
+.work-theme-choices button[aria-checked="true"] {
+  color: var(--accent);
+  font-weight: 600;
+}
+.theme-swatch > span {
+  width: 18px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+}
+.theme-swatch.reading > span {
+  background: linear-gradient(135deg, #3b2c63, #8f5b9a);
+}
+.theme-swatch.light > span {
+  background: linear-gradient(135deg, #ffffff 50%, #2f6fde 50%);
+}
+.theme-swatch.dark > span {
+  background: linear-gradient(135deg, #181b21 50%, #5b8def 50%);
+}
+
+/* Headings follow the note's text face (the app's global h1 and h2 are Georgia),
+   and the editor shows no focus box around the whole page. */
+.note-prose h1,
+.note-prose h2,
+.note-prose h3 {
+  font-family: var(--reader-font);
+}
+.note-prose:focus-visible,
+.note-content .ProseMirror:focus-visible {
+  outline: none !important;
+}

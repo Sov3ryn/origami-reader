@@ -1,1 +1,32 @@
-/* Use installed fonts; the application does not load fonts from a network. */
+/* Use installed fonts; the application does not load fonts from a network.
+   OpenDyslexic ships with the app: the author's original, unmodified WOFF2
+   files under the SIL Open Font License 1.1 (public/fonts/opendyslexic/OFL.txt).
+   It loads only when chosen as the reading font. */
+@font-face {
+  font-family: "OpenDyslexic";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/opendyslexic/OpenDyslexic-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "OpenDyslexic";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/opendyslexic/OpenDyslexic-Bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "OpenDyslexic";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/opendyslexic/OpenDyslexic-Italic.woff2") format("woff2");
+}
+@font-face {
+  font-family: "OpenDyslexic";
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/opendyslexic/OpenDyslexic-Bold-Italic.woff2") format("woff2");
+}

@@ -1,0 +1,269 @@
+{
+ "schemaVersion": 1,
+ "pip": {
+  "url": "https://files.pythonhosted.org/packages/f3/6e/1736e5b4ae2b778ef2f81c47d797de9f891d4d8acb047a24ca37a60294dd/pip-26.2.1-py3-none-any.whl",
+  "sha256": "71138adf1f4ca900cdb7d289c21b7494329f2332b6d85f0e1c42108c0384ed3e",
+  "file": "pip-26.2.1-py3-none-any.whl"
+ },
+ "groups": {
+  "core": {
+   "label": "Handwriting and Related notes models",
+   "files": [
+    {
+     "url": "https://huggingface.co/Xenova/trocr-base-handwritten/resolve/e301d1c4c4d4ece88f164518eb7aee07062eaca2/onnx/decoder_model_quantized.onnx",
+     "path": "models/handwriting/trocr-base/decoder.onnx",
+     "size": 248853923,
+     "sha256": "83ead15ae5a4a2875d58a86116254e5a1e93daf2cc47387ae8faca39d72795a5"
+    },
+    {
+     "url": "https://huggingface.co/Xenova/trocr-base-handwritten/resolve/e301d1c4c4d4ece88f164518eb7aee07062eaca2/onnx/encoder_model_quantized.onnx",
+     "path": "models/handwriting/trocr-base/encoder.onnx",
+     "size": 88082928,
+     "sha256": "8689f7a6122816789922e2e4f1063646ab69396ad0d1144437bba95dcbab5c86"
+    },
+    {
+     "url": "https://huggingface.co/Xenova/trocr-base-handwritten/resolve/e301d1c4c4d4ece88f164518eb7aee07062eaca2/tokenizer.json",
+     "path": "models/handwriting/trocr-base/tokenizer.json",
+     "size": 2108614,
+     "sha256": "2f1a555a1ee93656b4e6f67aa75d492a843c225e5ef754bae24c36bd85851cd7"
+    },
+    {
+     "url": "https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2/resolve/835ad14087e140460703cf0fae09f97d469d65c2/onnx/model_quint8_avx2.onnx",
+     "path": "models/embeddings/standard/model.onnx",
+     "size": 98247878,
+     "sha256": "a6022dd8220ea6f6595562a1328ee216f4a94faa55362f2f4747c80f1e78772e"
+    },
+    {
+     "url": "https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2/resolve/835ad14087e140460703cf0fae09f97d469d65c2/tokenizer.json",
+     "path": "models/embeddings/standard/tokenizer.json",
+     "size": 25301672,
+     "sha256": "4f2842d568e2724370aec203652a42ac783c7937f8347a1a2cc7506d71f1582f"
+    }
+   ],
+   "bytes": 462595015
+  },
+  "speech": {
+   "label": "Speech packages",
+   "pip": "speech.txt",
+   "torch": {
+    "cuda": "speech-torch-cu128.txt",
+    "cpu": "speech-torch-cpu.txt"
+   },
+   "estimate": {
+    "cuda": 4300000000,
+    "cpu": 1300000000
+   },
+   "bytes": 0
+  },
+  "speech-qwen": {
+   "label": "Qwen3-TTS 0.6B",
+   "files": [
+    {
+     "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base/resolve/5d83992436eae1d760afd27aff78a71d676296fc/README.md",
+     "path": "models/Qwen3-TTS-12Hz-0.6B-Base/README.md",
+     "size": 3640,
+     "sha256": "181187b6057906bd960bc7f938d0b7a16652509776a0d52c4885b4ae5ccda0ea"
+    },
+    {
+     "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base/resolve/5d83992436eae1d760afd27aff78a71d676296fc/config.json",
+     "path": "models/Qwen3-TTS-12Hz-0.6B-Base/config.json",
+     "size": 4494,
+     "sha256": "2e714c787c8edb98b05432685cddb634add2de4d4e645f653d68251ef72ba011"
+    },
+    {
+     "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base/resolve/5d83992436eae1d760afd27aff78a71d676296fc/generation_config.json",
+     "path": "models/Qwen3-TTS-12Hz-0.6B-Base/generation_config.json",
+     "size": 245,
+     "sha256": "f1b90b4513f3b34c62851049e2492d7b4c5940daf1276f89c82b8ef04127f3aa"
+    },
+    {
+     "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base/resolve/5d83992436eae1d760afd27aff78a71d676296fc/merges.txt",
+     "path": "models/Qwen3-TTS-12Hz-0.6B-Base/merges.txt",
+     "size": 1671839,
+     "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3"
+    },
+    {
+     "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base/resolve/5d83992436eae1d760afd27aff78a71d676296fc/model.safetensors",
+     "path": "models/Qwen3-TTS-12Hz-0.6B-Base/model.safetensors",
+     "size": 1829344272,
+     "sha256": "180b3b10eb1c9f1b4db7806d5475bae3071c0243c299d49926bab1da3b6946f6"
+    },
+    {
+     "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base/resolve/5d83992436eae1d760afd27aff78a71d676296fc/preprocessor_config.json",
+     "path": "models/Qwen3-TTS-12Hz-0.6B-Base/preprocessor_config.json",
+     "size": 127,
+     "sha256": "efdde1022ea9d76928bf7a9cd53139138f5ba2e466e837f08f6105ab1af1c119"
+    },
+    {
+     "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base/resolve/5d83992436eae1d760afd27aff78a71d676296fc/speech_tokenizer/config.json",
+     "path": "models/Qwen3-TTS-12Hz-0.6B-Base/speech_tokenizer/config.json",
+     "size": 2336,
+     "sha256": "ee65bb901c876664ab8707c487157aa1a6ee57c65969b28fb5ec9dc211e68167"
+    },
+    {
+     "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base/resolve/5d83992436eae1d760afd27aff78a71d676296fc/speech_tokenizer/configuration.json",
+     "path": "models/Qwen3-TTS-12Hz-0.6B-Base/speech_tokenizer/configuration.json",
+     "size": 76,
+     "sha256": "6bc26d64eb5024b4d1dab5a52371958b429256d6c9d59787f1f5294a54e0cebd"
+    },
+    {
+     "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base/resolve/5d83992436eae1d760afd27aff78a71d676296fc/speech_tokenizer/model.safetensors",
+     "path": "models/Qwen3-TTS-12Hz-0.6B-Base/speech_tokenizer/model.safetensors",
+     "size": 682293092,
+     "sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258"
+    },
+    {
+     "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base/resolve/5d83992436eae1d760afd27aff78a71d676296fc/speech_tokenizer/preprocessor_config.json",
+     "path": "models/Qwen3-TTS-12Hz-0.6B-Base/speech_tokenizer/preprocessor_config.json",
+     "size": 234,
+     "sha256": "fcb3805e597e786d4067706e602f6688524640f8d3396790e2e09b5942fcbdfb"
+    },
+    {
+     "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base/resolve/5d83992436eae1d760afd27aff78a71d676296fc/tokenizer_config.json",
+     "path": "models/Qwen3-TTS-12Hz-0.6B-Base/tokenizer_config.json",
+     "size": 7344,
+     "sha256": "dc3c31c3bdaedd5016382bb3cbe07323026775ad51f5a4fb564505992ae4a670"
+    },
+    {
+     "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base/resolve/5d83992436eae1d760afd27aff78a71d676296fc/vocab.json",
+     "path": "models/Qwen3-TTS-12Hz-0.6B-Base/vocab.json",
+     "size": 2776833,
+     "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    }
+   ],
+   "bytes": 2516104532
+  },
+  "speech-light": {
+   "label": "Light voices",
+   "pip": "light.txt",
+   "estimate": 330000000,
+   "files": [
+    {
+     "url": "https://huggingface.co/KittenML/kitten-tts-mini-0.8/resolve/c02725660cea441db4c383af69f1f26f5cd00947/README.md",
+     "path": "models/kitten-tts-mini-0.8/README.md",
+     "size": 734,
+     "sha256": "cab0af19aa75f409684d165407c32a0d845cc8fc660606c379f4b0663f87abae"
+    },
+    {
+     "url": "https://huggingface.co/KittenML/kitten-tts-mini-0.8/resolve/c02725660cea441db4c383af69f1f26f5cd00947/config.json",
+     "path": "models/kitten-tts-mini-0.8/config.json",
+     "size": 470,
+     "sha256": "6b160bc9b19e24ecb21e84bc14f8a7da21fdf47ec72d42450bc5cf514b61804a"
+    },
+    {
+     "url": "https://huggingface.co/KittenML/kitten-tts-mini-0.8/resolve/c02725660cea441db4c383af69f1f26f5cd00947/kitten_tts_mini_v0_8.onnx",
+     "path": "models/kitten-tts-mini-0.8/kitten_tts_mini_v0_8.onnx",
+     "size": 78268016,
+     "sha256": "0f5bbae4fc4800c98dbc544a87ecfa79510de2fb8222db30d12e5bfe9177df91"
+    },
+    {
+     "url": "https://huggingface.co/KittenML/kitten-tts-mini-0.8/resolve/c02725660cea441db4c383af69f1f26f5cd00947/voices.npz",
+     "path": "models/kitten-tts-mini-0.8/voices.npz",
+     "size": 3278902,
+     "sha256": "40ad2638952b77b7b2f30127e2608e169fc69dd256b53bd8aaa3409a33193c42"
+    },
+    {
+     "url": "https://huggingface.co/KittenML/kitten-tts-micro-0.8/resolve/1ccf72b2c2048fd17efac7de2fab32d10e225084/README.md",
+     "path": "models/kitten-tts-micro-0.8/README.md",
+     "size": 736,
+     "sha256": "bdee9c78ef3877a7993dceff93394ce3d58117c32768114da6a055a90e5b2905"
+    },
+    {
+     "url": "https://huggingface.co/KittenML/kitten-tts-micro-0.8/resolve/1ccf72b2c2048fd17efac7de2fab32d10e225084/config.json",
+     "path": "models/kitten-tts-micro-0.8/config.json",
+     "size": 473,
+     "sha256": "1f0bd2208348f9211cb0da64fcd1536eb28228571cc6b09e767eb6e203a0a532"
+    },
+    {
+     "url": "https://huggingface.co/KittenML/kitten-tts-micro-0.8/resolve/1ccf72b2c2048fd17efac7de2fab32d10e225084/kitten_tts_micro_v0_8.onnx",
+     "path": "models/kitten-tts-micro-0.8/kitten_tts_micro_v0_8.onnx",
+     "size": 41384970,
+     "sha256": "95481626fee1ba70ce683e69c534fc7cb38433c46ce42d3abbeafb4b9f1a4123"
+    },
+    {
+     "url": "https://huggingface.co/KittenML/kitten-tts-micro-0.8/resolve/1ccf72b2c2048fd17efac7de2fab32d10e225084/voices.npz",
+     "path": "models/kitten-tts-micro-0.8/voices.npz",
+     "size": 3278902,
+     "sha256": "112710c1be8ad0e967c190fb0fd95cbe5848ec4791b93209f20b28b7da20dac1"
+    },
+    {
+     "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/README.md",
+     "path": "models/Kokoro-82M/README.md",
+     "size": 6348,
+     "sha256": "91dcabced89db6f109b8786642f50402d3ee87450e8189589b6f85520e7f4d78"
+    },
+    {
+     "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/config.json",
+     "path": "models/Kokoro-82M/config.json",
+     "size": 2351,
+     "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
+    },
+    {
+     "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/kokoro-v1_0.pth",
+     "path": "models/Kokoro-82M/kokoro-v1_0.pth",
+     "size": 327212226,
+     "sha256": "496dba118d1a58f5f3db2efc88dbdc216e0483fc89fe6e47ee1f2c53f18ad1e4"
+    },
+    {
+     "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/voices/bf_emma.pt",
+     "path": "models/Kokoro-82M/voices/bf_emma.pt",
+     "size": 523420,
+     "sha256": "d0a423deabf4a52b4f49318c51742c54e21bb89bbbe9a12141e7758ddb5da701"
+    },
+    {
+     "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/voices/bf_isabella.pt",
+     "path": "models/Kokoro-82M/voices/bf_isabella.pt",
+     "size": 523440,
+     "sha256": "cdd4c37003805104d1d08fb1e05855c8fb2c68de24ca6e71f264a30aaa59eefd"
+    },
+    {
+     "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/voices/bm_daniel.pt",
+     "path": "models/Kokoro-82M/voices/bm_daniel.pt",
+     "size": 523430,
+     "sha256": "fc3fce4e9c12ed4dbc8fa9680cfe51ee190a96444ce7c3ad647549a30823fc5d"
+    },
+    {
+     "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/voices/bm_george.pt",
+     "path": "models/Kokoro-82M/voices/bm_george.pt",
+     "size": 523430,
+     "sha256": "f1bc812213dc59774769e5c80004b13eeb79bd78130b11b2d7f934542dab811b"
+    }
+   ],
+   "bytes": 455527848
+  },
+  "image-runtime": {
+   "label": "Picture runtime (stable-diffusion.cpp)",
+   "archive": {
+    "url": "https://github.com/leejet/stable-diffusion.cpp/releases/download/master-959-d637cfb/sd-master-d637cfb-bin-win-vulkan-x64.zip",
+    "sha256": "b28606d62b8b819bf9d91bd7224a04513aa33edac30f9487d5172af5a59785f2",
+    "size": 30139117,
+    "path": "image-runtime"
+   },
+   "bytes": 30139117
+  },
+  "images": {
+   "label": "DreamShaper 8 LCM",
+   "files": [
+    {
+     "url": "https://huggingface.co/Lykon/dreamshaper-8-lcm/resolve/4645d8bc6a8e6b106d21606d63e8460cdad4f1a6/DreamShaper8_LCM.safetensors",
+     "path": "models/dreamshaper-8-lcm.safetensors",
+     "size": 2133804992,
+     "sha256": "a4f3e1526c5dc4fcbe342f5c410d83ae202c7a415fcefcbb92e0f93fcd0a87c3"
+    }
+   ],
+   "bytes": 2133804992
+  },
+  "images-turbo": {
+   "label": "SD-Turbo",
+   "convert": {
+    "url": "https://huggingface.co/stabilityai/sd-turbo/resolve/b261bac6fd2cf515557d5d0707481eafa0485ec2/sd_turbo.safetensors",
+    "path": "models/sd-turbo/sd_turbo.safetensors",
+    "size": 5214561328,
+    "sha256": "3f067a1b943cf162f2b8f8588f6cf5824bd5b4c7d1d88d87164b9ca123616549",
+    "output": "models/sd-turbo/sd-turbo-f16.gguf",
+    "outputSha256": "1e090f6aaee21d9392599bc0ae5056543c72aee917fa971b05e597a6109bafe6"
+   },
+   "bytes": 5214561328
+  }
+ }
+}

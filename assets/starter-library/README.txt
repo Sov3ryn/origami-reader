@@ -21,7 +21,7 @@ No selected text has an NC-only license. Paid and zero-price distribution
 is the intended use, subject to the notices in RIGHTS.txt. Older texts meet
 the recorded age criteria, and Standard Ebooks contributions are CC0. The
 modern collection remains CC BY-SA 4.0 with attribution, source/license
-notices and applicable ShareAlike terms. App code remains MPL 2.0.
+notices and applicable ShareAlike terms. App code is under Origami's own license.
 
 The economic-term review is broader than the earlier US/Canada/UK review,
 but local public-domain fees and other requirements prevent an unqualified

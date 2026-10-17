@@ -4,18 +4,26 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePlayer } from "../src/usePlayer";
 import * as storage from "../src/storage";
 import { defaultPreferences, type Book } from "../src/types";
+// Natural pauses are covered separately; these lifecycle tests advance immediately.
+const instant = {
+  ...defaultPreferences,
+  sentencePause: 0,
+  paragraphPause: 0,
+  headingPause: 0,
+};
 
 vi.mock("../src/storage", () => ({
   desktop: true,
   synthesize: vi.fn(),
   cancelSpeech: vi.fn(),
+  interruptSpeech: vi.fn(),
 }));
 let root: Root;
 let player: ReturnType<typeof usePlayer>;
 const report = vi.fn();
 const used = vi.fn();
 const book = {
-  meta: { voice: "book-voice" },
+  meta: { voice: "book-voice", uniqueVoice: true },
   paragraphs: [{ text: "A short passage.", kind: "paragraph" }],
 } as Book;
 const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -49,6 +57,7 @@ beforeEach(async () => {
     }),
   );
   vi.mocked(storage.cancelSpeech).mockResolvedValue(undefined);
+  vi.mocked(storage.interruptSpeech).mockResolvedValue(undefined);
   root = createRoot(document.createElement("div"));
   await act(async () => root.render(createElement(Harness)));
 });
@@ -65,7 +74,7 @@ describe("preloaded voice lifetime", () => {
       duration: 1,
     });
     const edited = {
-      meta: { id: "edited", voice: "voice" },
+      meta: { id: "edited", voice: "voice", uniqueVoice: true },
       paragraphs: [
         { id: "p-0", text: "Chapter XVI", kind: "heading", chapter: 1 },
         {
@@ -85,27 +94,25 @@ describe("preloaded voice lifetime", () => {
       ],
     } as Book;
     await act(async () => {
-      await player.start(edited, 0, defaultPreferences, vi.fn());
+      await player.start(edited, 0, instant, vi.fn());
     });
     expect(
       vi.mocked(storage.synthesize).mock.calls.map(([text]) => text),
     ).toEqual(["Chapter 16", "Accepted wording."]);
     vi.mocked(storage.synthesize).mockClear();
     await act(async () => {
-      await player.start(edited, 1, defaultPreferences, vi.fn(), {
+      await player.start(edited, 1, instant, vi.fn(), {
         paragraphId: "p-1",
         start: 0,
         end: 17,
         text: "Original wording.",
       });
     });
-    expect(storage.synthesize).toHaveBeenCalledWith(
-      "Accepted wording.",
-      "voice",
-    );
+    expect(player.currentText).toBe("Accepted wording.");
+    expect(storage.synthesize).not.toHaveBeenCalled();
     vi.mocked(storage.synthesize).mockClear();
     await act(async () => {
-      await player.start(edited, 2, defaultPreferences, vi.fn(), {
+      await player.start(edited, 2, instant, vi.fn(), {
         paragraphId: "p-2",
         start: 0,
         end: 10,
@@ -121,26 +128,31 @@ describe("preloaded voice lifetime", () => {
       duration: 1,
     });
     const original = {
-      meta: { id: "changed", voice: "voice" },
+      meta: { id: "changed", voice: "voice", uniqueVoice: true },
       paragraphs: [
         { id: "p", text: "Chapter XVI", kind: "heading", chapter: 1 },
       ],
     } as Book;
     await act(async () => {
-      await player.start(original, 0, defaultPreferences, vi.fn());
+      await player.start(original, 0, instant, vi.fn());
     });
     vi.mocked(storage.synthesize).mockClear();
     await act(async () => {
       await player.start(
         original,
         0,
-        { ...defaultPreferences, romanNumeralHeadings: false },
+        { ...instant, romanNumeralHeadings: false },
         vi.fn(),
         undefined,
         true,
       );
     });
-    expect(storage.synthesize).toHaveBeenCalledWith("Chapter XVI", "voice");
+    expect(storage.synthesize).toHaveBeenCalledWith(
+      "Chapter XVI",
+      "voice",
+      0.9,
+      "",
+    );
     vi.mocked(storage.synthesize).mockClear();
     const edited = {
       ...original,
@@ -152,23 +164,22 @@ describe("preloaded voice lifetime", () => {
       ],
     };
     await act(async () => {
-      await player.start(
-        edited,
-        0,
-        defaultPreferences,
-        vi.fn(),
-        undefined,
-        true,
-      );
+      await player.start(edited, 0, instant, vi.fn(), undefined, true);
     });
     expect(storage.synthesize).toHaveBeenCalledWith(
       "Changed heading.",
       "voice",
+      0.9,
+      "",
     );
   });
-  it("unloads an idle voice immediately when its selection changes", async () => {
+  it("keeps the loaded model when the voice changes and unloads it for a new model", async () => {
     await act(async () => {
       await player.changeVoice();
+    });
+    expect(storage.cancelSpeech).not.toHaveBeenCalled();
+    await act(async () => {
+      await player.unload();
     });
     expect(storage.cancelSpeech).toHaveBeenCalledTimes(1);
     expect(storage.synthesize).not.toHaveBeenCalled();
@@ -192,7 +203,7 @@ describe("preloaded voice lifetime", () => {
       duration: 1,
     });
     const original = {
-      meta: { id: "story", voice: "old" },
+      meta: { id: "story", voice: "old", uniqueVoice: true },
       paragraphs: [
         {
           text: "First sentence. Second sentence. Third sentence.",
@@ -202,7 +213,7 @@ describe("preloaded voice lifetime", () => {
     } as Book;
     let first!: Promise<void>;
     await act(async () => {
-      first = player.start(original, 0, defaultPreferences, vi.fn());
+      first = player.start(original, 0, instant, vi.fn());
       await flush();
     });
     await act(async () => {
@@ -215,13 +226,13 @@ describe("preloaded voice lifetime", () => {
       await first;
     });
     expect(audio[1].pause).toHaveBeenCalled();
-    expect(storage.cancelSpeech).toHaveBeenCalledTimes(1);
+    expect(storage.cancelSpeech).not.toHaveBeenCalled();
     let second!: Promise<void>;
     await act(async () => {
       second = player.start(
         { ...original, meta: { ...original.meta, voice: "new" } },
         0,
-        defaultPreferences,
+        instant,
         vi.fn(),
         undefined,
         true,
@@ -260,16 +271,18 @@ describe("preloaded voice lifetime", () => {
       duration: 1,
     });
     await act(async () => {
-      await player.start(book, 0, defaultPreferences, vi.fn());
+      await player.start(book, 0, instant, vi.fn());
     });
     expect(storage.cancelSpeech).not.toHaveBeenCalled();
     expect(storage.synthesize).toHaveBeenCalledWith(
       "A short passage.",
       "book-voice",
+      0.9,
+      "",
     );
     expect(used).toHaveBeenCalledWith("book-voice");
   });
-  it("still cancels an in-flight generation and ignores its late result", async () => {
+  it("interrupts in-flight generation without unloading and ignores its late result", async () => {
     let complete!: (value: {
       audio: string;
       rate: number;
@@ -282,7 +295,7 @@ describe("preloaded voice lifetime", () => {
     );
     let playback!: Promise<void>;
     await act(async () => {
-      playback = player.start(book, 0, defaultPreferences, vi.fn());
+      playback = player.start(book, 0, instant, vi.fn());
       await flush();
     });
     await act(async () => {
@@ -290,8 +303,69 @@ describe("preloaded voice lifetime", () => {
       complete({ audio: "AA==", rate: 24000, duration: 1 });
       await playback;
     });
-    expect(storage.cancelSpeech).toHaveBeenCalledTimes(1);
+    expect(storage.interruptSpeech).toHaveBeenCalledTimes(1);
+    expect(storage.cancelSpeech).not.toHaveBeenCalled();
     expect(used).not.toHaveBeenCalled();
     expect(player.status).toBe("idle");
+  });
+  it("replays cached speech, drops it on deletion, and honors the literal-text option", async () => {
+    vi.mocked(storage.synthesize).mockResolvedValue({
+      audio: "AA==",
+      rate: 24000,
+      duration: 1,
+    });
+    const original = { ...book, meta: { ...book.meta, id: "cache-book" } };
+    await act(async () => {
+      await player.start(original, 0, instant, vi.fn());
+      await player.start(original, 0, instant, vi.fn());
+    });
+    expect(storage.synthesize).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      player.forgetBooks(new Set(["cache-book"]));
+      await player.start(original, 0, instant, vi.fn());
+    });
+    expect(storage.synthesize).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      await player.start(
+        original,
+        0,
+        { ...instant, skipSpeechMarkup: false },
+        vi.fn(),
+        "https://example.test",
+      );
+    });
+    expect(storage.synthesize).toHaveBeenLastCalledWith(
+      "https://example.test",
+      "book-voice",
+      0.9,
+      "",
+    );
+  });
+  it("switches reading position during generation while retaining the same model", async () => {
+    let finishOld!: (value: {
+      audio: string;
+      rate: number;
+      duration: number;
+    }) => void;
+    vi.mocked(storage.synthesize)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finishOld = resolve;
+          }),
+      )
+      .mockResolvedValue({ audio: "AA==", rate: 24000, duration: 1 });
+    let old!: Promise<void>;
+    await act(async () => {
+      old = player.start(book, 0, instant, vi.fn(), "Old passage.");
+      await flush();
+      await player.start(book, 0, instant, vi.fn(), "New passage.");
+      finishOld({ audio: "AA==", rate: 24000, duration: 1 });
+      await old;
+    });
+    expect(storage.interruptSpeech).toHaveBeenCalledTimes(1);
+    expect(storage.cancelSpeech).not.toHaveBeenCalled();
+    expect(player.currentText).toBe("New passage.");
+    expect(used).toHaveBeenCalledTimes(1);
   });
 });

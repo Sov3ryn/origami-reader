@@ -1,0 +1,85 @@
+ORIGAMI READER 0.1.0 BETA 5, ENGLISH
+
+This is a private beta for friends. Please do not share or re-upload it.
+
+ALREADY INSTALLED AN EARLIER BETA?
+Uninstall it first: Windows Settings > Apps > Installed apps > Origami Reader
+> Uninstall. Your library, notes, cards and settings are kept and appear again
+in the new version.
+
+INSTALL
+1. Extract the entire ZIP to a local folder with a short path, for example
+   C:\Origami-Setup. Extracting needs about 14 GB; once it is done you can
+   delete the ZIP. The installed app needs up to 14 GB more with every model,
+   and much less if you leave models out (see below).
+2. Open Origami Reader Installer.exe inside the extracted folder.
+   Keep bootstrap, prerequisites and payload beside the installer.
+   It checks for WebView2 and Visual C++ and offers the included Microsoft
+   installers if needed. A runtime installation may require a restart.
+3. Choose a NEW installation folder, then the models you want (Preferences).
+   Accept the app license, and the image model terms to install pictures.
+4. When setup finishes, choose Close Installer and Launch Origami.
+5. Open a book and press Play (or the Space bar). Change voices with the voice
+   button in the player or the Voice tab.
+
+CHOOSING MODELS (all optional, all offline)
+- Light voices (about 0.8 GB): Kitten Mini, Kitten Micro and Kokoro, 12
+  English voices that run on the processor. Best for laptops without a strong
+  graphics card. On such computers Origami starts with Kitten Mini; switch in
+  Settings, Voices and speech. The very first sentence can take a minute while
+  Windows checks the new files; after that it is quick.
+- Qwen voices (Set up local speech, about 2.4 GB plus the voices): more
+  natural, custom voices, several languages. Best with an NVIDIA card; on the
+  processor it works but is slow.
+- Fast picture model, SD-Turbo (about 2.5 GB): covers and portraits in
+  seconds. Powered by Stability AI.
+- Book cover and portrait model, DreamShaper (about 2 GB): richer pictures,
+  slower. Needs a graphics card with Vulkan drivers for good speed.
+For a small laptop: light voices and SD-Turbo are a good start; you can leave
+Qwen and DreamShaper out. The shared speech packages (about 4.7 GB) install
+with either kind of voice.
+Handwriting reading and Related notes now come with the app; nothing to
+download.
+
+NEW IN THIS BETA
+- Picture cards: cover parts of a diagram, map or photo and learn what is under
+  them (Work mode, ... menu > All study cards > Picture cards).
+- Practice tests, exam dates that bring cards forward, and card sets you can
+  share as files.
+- Plans can sit inside notes; arcs and angle dimensions.
+- Sticky notes on sheets, boards, plans and book pages (right-click a
+  paragraph > Add a sticky note).
+- Handwriting: photos of handwritten pages, unsure words underlined in orange
+  with other readings offered.
+- Read a note aloud; import a folder of Markdown or Obsidian notes; subjects
+  inside subjects; plugin blocks (the sample adds a focus timer).
+- Vaults can be unlocked from Work mode.
+
+ALREADY IN WORK MODE (Ctrl+Shift+W switches between Read and Work)
+Notes with headings, tables, callouts, [[links]], sticky notes and seven
+papers; study cards (FSRS) with a Listen mode and pen answers; formulas,
+diagrams, charts, spreadsheets with Excel import and export, boards and precise
+plans (DXF export); templates (Ctrl+Shift+N), workspaces with export and
+import, vaults; online embeds only after you allow them; plugins. Press / in a
+note for blocks, Ctrl+K to search everything. Work mode opens with a short
+"Getting started" tour.
+
+REQUIREMENTS AND LIMITS
+Windows 10/11 x64. NVIDIA speech acceleration needs a recent driver. Picture
+generation needs graphics drivers with Vulkan. This is an unsigned private
+beta: do not disable Windows security protections. New versions still come as
+a full kit like this one.
+
+Please report your Windows version, computer model, graphics card (if any),
+which models you installed, what you tried and any error text.
+
+LICENSES
+Origami Reader, copyright (c) 2026 Sov3ryn. Free to use; copies may not be
+shared, sold or modified (licenses/Origami-Reader-App-License.txt). Each model
+keeps its own license, in its folder under models: Qwen, Kitten and Kokoro
+(Apache 2.0), DreamShaper (CreativeML OpenRAIL-M), SD-Turbo (Stability AI
+Community License; "This Stability AI Model is licensed under the Stability AI
+Community License, Copyright (c) Stability AI Ltd. All Rights Reserved"),
+TrOCR (MIT) and IBM Granite Embedding (Apache 2.0). The light reader program
+(workers/light_tts.py) is GPL-3.0. Notices for the libraries Origami uses are
+in licenses/THIRD-PARTY-NOTICES.txt.

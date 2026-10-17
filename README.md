@@ -1,14 +1,20 @@
 # Origami
 
-A local desktop reader and text-to-speech workspace for Windows and Linux. MPL-2.0-licensed source code. This is an early development build, not the completed first release.
+A local desktop reader and text-to-speech workspace for Windows, macOS and Linux. Copyright (c) 2026 Sov3ryn. Source-available under PolyForm Strict 1.0.0: readable and auditable, not redistributable. This is an early development build, not the completed first release.
 
 ![Library](docs/screenshots/library.png)
 
 ## Available now
 
+- Works offline: no account, ads, analytics or tracking. Books, notes, voices and settings stay on the computer.
+- Interface in 20 languages (system language by default, flag picker in the sidebar and Settings). Book text and voices keep their own language.
+- Day and night version of every seasonal scene with a Sun/Moon switch, or automatic by system appearance or local time.
+- Reliable narration: no runaway noise on short headings, configurable pauses, sentence skipping and highlighting, sleep timer, media keys, pronunciation dictionary and citation skipping. Voice variation (model temperature) is adjustable.
+- Keyboard shortcuts (press ?), settings search, drag and drop of files and folders, interface size.
+- Pay what you want: a Support button in Settings and one polite request after a day of use, with "Don't ask again". Nothing is ever locked.
 - Library with search, sorting, collections, favorites, bulk selection and recoverable Trash.
 - Create or delete collections from the sidebar, including empty collections. Deletion moves their books to Unsorted and offers Undo. New imports use the selected collection; Reader details can change a document's collection.
-- TXT, UTF-8 Markdown and unprotected text EPUB import. Quick Read for pasted text.
+- Import of EPUB, PDF (text PDFs; headers, footers and page numbers removed), DRM-free Kindle MOBI/AZW/AZW3/PRC, FB2, Word DOCX, OpenDocument ODT, RTF, HTML, Markdown and TXT (including legacy encodings such as EUC-KR, Shift JIS and GB18030). Quick Read for pasted text. Scanned PDFs, old .doc and Kindle KFX are not supported.
 - Reader with chapter navigation, saved narration position, bounded page rendering and adjustable page width, including full width.
 - Twelve annotation colors, margin notes, bookmarks, grouping and annotation export. Search note wording and source paragraphs, filter by type/color or book, and sort alphabetically or by position in the book. Note and bookmark jumps keep one temporary return marker until it is used, dismissed or the app closes.
 - Editable spoken versions for selected passages, with explicit Save, Reset and an unsaved preview. Saved wording and skipped passages persist while original book text and annotation anchors remain intact. Roman heading numbers are normalized for speech by default, with a reversible setting; manual replacements take priority.
@@ -97,7 +103,7 @@ Changes should include validation appropriate to the behavior. Maintain platform
 
 ## License and assets
 
-App source: [MPL 2.0](LICENSE). Dependencies retain their licenses. Model weights, voice references and user documents have separate terms and are not relicensed by this repository. The current demo passages are original text with fictional author names. See [asset provenance](docs/ASSETS.md).
+Copyright (c) 2026 Sov3ryn. Source code: [PolyForm Strict 1.0.0](LICENSE), so it may be read, studied and audited, but not distributed, sold or changed. The released app: [Origami Reader App License](APP-LICENSE.md), free to use for any purpose, not to be shared, sold or modified. Dependencies retain their licenses. Model weights, voice references and user documents have separate terms and are not relicensed by this repository. The current demo passages are original text with fictional author names. See [asset provenance](docs/ASSETS.md).
 
 Six complete English text EPUBs are bundled from [the starter-library pack](assets/starter-library/README.txt) as the preloaded library: Dracula, Journey to the Center of the Earth, The Moonstone, Pride and Prejudice, Grayson's Book of Stories and The Count of Monte Cristo. All selected text has a commercial redistribution basis for the intended pay-what-you-want release. The five classics use conservative age criteria and CC0 Standard Ebooks contributions; the contemporary collection is separately CC BY-SA 4.0 with explicit commercial permission. The broader economic-term review and special-country release gates are recorded in [the rights record](assets/starter-library/RIGHTS.txt) and [international review](assets/starter-library/international-review.json). This is not unconditional worldwide clearance. Third-party covers and fonts are excluded. First launch and this upgrade install missing editions and their original cover art once. Matching imports and custom covers are retained. The three demo books are removed after a local backup of their text and annotations; other books and settings are preserved. Starter credits and full licenses are available in Settings. Approximately twenty language editions remain later work, with separate translation rights checks.
 

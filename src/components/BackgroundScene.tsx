@@ -1,6 +1,12 @@
-import { memo, type CSSProperties } from "react";
-import { enabledEffects, getBackground } from "../backgrounds";
+import { memo, useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  backgroundImage,
+  counterpart,
+  enabledEffects,
+  getBackground,
+} from "../backgrounds";
 import type { Preferences } from "../types";
+import { GardenEffects } from "./GardenEffects";
 import { FishRipples } from "./FishRipples";
 
 const petals = [
@@ -151,12 +157,43 @@ const fireflies = Array.from({ length: 16 }, (_, i) => ({
   size: 15 + (i % 4) * 2,
 }));
 
+type Art = { url: string; filter?: string } | undefined;
+const artStyle = (art: Art): CSSProperties | undefined =>
+  art
+    ? { backgroundImage: 'url("' + art.url + '")', filter: art.filter }
+    : undefined;
+
 export const BackgroundScene = memo(function BackgroundScene({
   prefs,
 }: {
   prefs: Preferences;
+  // Changes when painted art replaces a draft, so the scene re-renders.
+  artVersion?: number;
 }) {
   const scene = getBackground(prefs.scene);
+  const art = backgroundImage(scene);
+  const artKey = art ? art.url + (art.filter || "") : scene.id;
+  // Day/night and season changes crossfade from the previous painting.
+  const [previous, setPrevious] = useState<Art>(undefined);
+  const shown = useRef<{ key: string; art: Art }>({ key: artKey, art });
+  useEffect(() => {
+    if (shown.current.key === artKey) return;
+    setPrevious(shown.current.art);
+    shown.current = { key: artKey, art };
+    const timer = setTimeout(() => setPrevious(undefined), 1400);
+    return () => clearTimeout(timer);
+  }, [artKey]);
+  // Decode the other half of the day/night pair in advance so the Sun/Moon
+  // switch crossfades immediately.
+  const twin = counterpart(scene.id);
+  const twinArt = twin ? backgroundImage(getBackground(twin)) : undefined;
+  useEffect(() => {
+    if (!twinArt || typeof Image === "undefined") return;
+    const probe = new Image();
+    probe.decoding = "async";
+    probe.src = twinArt.url;
+    void probe.decode?.().catch(() => {});
+  }, [twinArt?.url]);
   if (scene.id === "none" || prefs.backgroundOpacity <= 0) return null;
   const active = new Set(enabledEffects(prefs));
   const stageEffects = [...active].some(
@@ -166,21 +203,29 @@ export const BackgroundScene = memo(function BackgroundScene({
   const leaves = active.has("leaves");
   return (
     <div
-      className={"background-art background-" + scene.id}
+      className={
+        "background-art background-" +
+        scene.id +
+        (scene.time ? " time-" + scene.time : "") +
+        (scene.location === "garden" ? " garden-scene" : "")
+      }
       style={{ opacity: prefs.backgroundOpacity }}
       aria-hidden="true"
     >
       <div className={scene.image ? "lake-stage" : "still-stage"}>
-        <div
-          className="background-still"
-          style={
-            scene.image
-              ? { backgroundImage: 'url("' + scene.image + '")' }
-              : undefined
-          }
-        />
-        {stageEffects && (
-          <div className="ambient-effects">
+        <div className="background-still" style={artStyle(art)} />
+        {previous && (
+          <div
+            key={previous.url + (previous.filter || "")}
+            className="previous-still"
+            style={artStyle(previous)}
+          />
+        )}
+        {scene.location === "garden" && (
+          <GardenEffects active={active} night={scene.time === "night"} />
+        )}
+        {stageEffects && scene.location !== "garden" && (
+          <div className="ambient-effects" key={scene.id}>
             {active.has("mist") && (
               <>
                 <img

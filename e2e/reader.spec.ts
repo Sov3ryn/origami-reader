@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { expandSections } from "./sections";
 import AxeBuilder from "@axe-core/playwright";
 import { zipSync, strToU8 } from "fflate";
 async function selectPassage(page: import("@playwright/test").Page) {
@@ -22,6 +23,7 @@ test("library, inspector, night paper and palette persist", async ({
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   await page.getByLabel("App theme", { exact: true }).selectOption("forest");
   await page.getByRole("button", { name: "Night", exact: true }).click();
   await page
@@ -38,18 +40,23 @@ test("library, inspector, night paper and palette persist", async ({
     page.getByRole("button", { name: "Expand navigation", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: /Open book/ }).click();
-  await expect(page.locator(".reading-page")).toHaveClass(/surface-dark/);
+  await expect(page.locator(".reading-page").first()).toHaveClass(
+    /surface-dark/,
+  );
   await page
     .getByRole("button", { name: "Expand navigation", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   await expect(page.getByLabel("App theme", { exact: true })).toHaveValue(
     "forest",
   );
   await page.getByLabel("Paper texture", { exact: true }).uncheck();
-  await expect(page.locator(".reading-page")).toHaveClass(/texture-off/);
+  await expect(page.locator(".reading-page").first()).toHaveClass(
+    /texture-off/,
+  );
   await page.getByLabel("Paper texture", { exact: true }).check();
   await page.getByLabel("App theme", { exact: true }).selectOption("plum");
   await page.screenshot({
@@ -186,6 +193,7 @@ test("keyboard and accessibility checks on library and reader", async ({
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
+  await expandSections(page);
   await page.getByRole("tab", { name: "Appearance", exact: true }).focus();
   await page.keyboard.press("ArrowLeft");
   await expect(

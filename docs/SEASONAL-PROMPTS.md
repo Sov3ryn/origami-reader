@@ -1,5 +1,7 @@
 # Seasonal background prompts
 
+> Update, 13 October 2026: sources moved to assets/scenes-source (PNG) and ship as WebP. Each season now has a day and a night version. Still to paint, each as an edit of its existing pair so the composition matches exactly: summer-day (from summer-evening), autumn-day (from autumn-dusk) and winter-night (from winter-daylight). For night versions keep the moon at about 93.6% across and 24.2% down and light the cabin window at about 80% across and 45% down; for day versions leave the window unlit and the moon out. Save the PNG to assets/scenes-source/<name>.png and run `python scripts/optimize-scenes.py <name>`. The app replaces the draft art automatically.
+
 Generated with the built-in image generation tool on 12 October 2026. Each is an edit of public/moonlit-lake.png. The original source is preserved. The resulting assets are shipped in public/backgrounds; no generated-file location outside this project is needed at runtime.
 
 ## Spring morning

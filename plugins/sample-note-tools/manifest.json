@@ -1,0 +1,10 @@
+{
+  "id": "sample-note-tools",
+  "name": "Note tools (sample)",
+  "version": "1.1.1",
+  "author": "Sov3ryn",
+  "description": "Statistics for the open note, a table of contents from its headings, today's date and a focus timer block. A starting point for writing your own plugin.",
+  "main": "main.js",
+  "permissions": ["notes:read", "notes:write"],
+  "panel": { "title": "Note tools" }
+}
