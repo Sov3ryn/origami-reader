@@ -4,6 +4,6 @@
 // PRIVATE_BETA to false and change the window title in
 // src-tauri/tauri.conf.json back to "Origami Reader".
 export const PRIVATE_BETA = true;
-export const VERSION = "0.1.0-beta.6";
+export const VERSION = "0.1.0-beta.7";
 // The day this build was made, stamped by Vite.
 export const BUILD_DATE: string = __BUILD_DATE__;

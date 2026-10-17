@@ -512,3 +512,7 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - The uninstaller now also removes those settings when their folder matches regardless of letter case or a trailing backslash, or no longer holds the program.
 - Setup's new lines, installer messages and progress lines are translated (French complete, 2396 strings); the footer says "Online beta setup" for online kits.
 - Checked with setup's own script in scratch folders: fresh install, a second install stops and asks, replacing keeps the data folder, leftover settings are set aside. The hub's beta 6 ZIP was replaced (SHA-256 b570a5de5ac8989ae46f52783aa0dda28acde6e57f99fa79ec3ff9914b5ea1d3); it also carries the Ko-fi link.
+
+## Beta 7 update published, 17 October 2026
+
+- 0.1.0-beta.7 (app component only, 89 MB encrypted) is the newest release of Promethor/origami-updates: the Ko-fi support link and the setup fixes. Checked through GitHub: a fresh beta 6 from the hub found beta 7, installed it in 1.7 s, and the installed program matches the new build byte for byte. The hub's installer stays beta 6 (it already has the Ko-fi link); new friends are offered beta 7 within a day of installing.
