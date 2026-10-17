@@ -1,5 +1,8 @@
 name: Build and check
-on: [push, pull_request]
+# Runs only when started by hand (Actions, Build and check, Run workflow):
+# private repositories have limited Actions minutes, and macOS counts ten times.
+on:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
