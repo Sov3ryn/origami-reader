@@ -30,7 +30,7 @@ async fn change_model_installation(app: tauri::AppHandle, id: String, install: b
 }
 // The only web pages Origami can open, and only when the reader clicks them.
 // Fill these in before a public release; empty links are hidden in the app.
-const SUPPORT_URL: &str = "";
+const SUPPORT_URL: &str = "https://ko-fi.com/sov3ryn";
 const SOURCE_URL: &str = "";
 #[tauri::command]
 fn external_links() -> Value {

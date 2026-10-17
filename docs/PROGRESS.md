@@ -501,3 +501,7 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - Voice pack ZIPs are now reproducible (fixed dates and order), so rebuilding a kit never breaks published fingerprints; the packs were re-uploaded once.
 - The hub's beta 6 installer was replaced with this update-ready build before anyone installed it (ZIP SHA-256 655394260375d3cfa16046914343ad4e8dacd3eab3130830e85058848e66fc70). The first update list (beta 6, app and workers) is published.
 - Checked: an installed beta 6 found a local encrypted beta 7 update, installed it in 0.4 s, restarted and removed the old program file; then, through GitHub itself, a copy marked beta 5 found beta 6, downloaded the 89 MB encrypted app in 2 s and installed it. 34 Rust tests pass.
+
+## Donation link, 17 October 2026
+
+- SUPPORT_URL is https://ko-fi.com/sov3ryn (src-tauri/src/lib.rs): the Support Origami Reader card, the one-time request and the quiet Donate link now open the Ko-fi page in the default browser. Checked in a release build: the card shows "Support on Ko-fi" and the click opened the page. The hub's front page links to it too.
