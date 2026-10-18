@@ -800,6 +800,7 @@ async fn studio_recording_readalong(files: Vec<String>, chapters: Vec<Value>, me
             // An edition aligned with the ebook keeps the book's text; otherwise it was transcribed.
             ai: meta["note"].as_str().filter(|n| !n.is_empty()).unwrap_or("Text transcribed from the recording with Origami Studio.").to_string(),
             rights: Vec::new(),
+            theme: String::new(),
         };
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
         let path = studio_audio::free_path(&folder, &format!("{} (read-along)", studio_audio::safe_name(&title)), "epub");
@@ -1150,6 +1151,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                         narrator: text(&meta_in["narrator"]),
                         ai: text(&options["aiLine"]),
                         rights: options["manuscript"]["rights"].as_array().map(|r| r.iter().filter_map(|x| x.as_str().map(str::to_string)).collect()).unwrap_or_default(),
+                        theme: text(&options["manuscript"]["theme"]),
                     };
                     let cover = cover_raw.as_deref().and_then(|c| studio_audio::jpeg(c).ok());
                     let path = studio_audio::free_path(&folder, &format!("{} (read-along)", studio_audio::safe_name(&title)), "epub");

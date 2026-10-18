@@ -884,6 +884,8 @@ pub struct ReadMeta {
     pub narrator: String,
     pub ai: String,
     pub rights: Vec<String>,
+    // The book design ("classic", "modern" or "elegant").
+    pub theme: String,
 }
 
 /// A media clock value, "h:mm:ss.fff".
@@ -918,7 +920,7 @@ pub fn readalong_epub(meta: &ReadMeta, chapters: &[ReadChapter], cover_jpeg: Opt
         b"<?xml version=\"1.0\"?>\n<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\"><rootfiles><rootfile full-path=\"OEBPS/content.opf\" media-type=\"application/oebps-package+xml\"/></rootfiles></container>\n",
         deflated,
     )?;
-    let css = format!("{EPUB_CSS}.-epub-media-overlay-active {{ background: rgba(255, 214, 102, 0.45); border-radius: 3px; }}\n");
+    let css = format!("{EPUB_CSS}{}.-epub-media-overlay-active {{ background: rgba(255, 214, 102, 0.45); border-radius: 3px; }}\n", theme_css(&meta.theme));
     put(&mut zip, "OEBPS/style.css", css.as_bytes(), deflated)?;
     put(&mut zip, "OEBPS/crane.png", CRANE_PNG, stored)?;
     let mut manifest = vec![
@@ -1126,7 +1128,7 @@ mod tests {
             seconds: 4.0,
             paragraphs: vec![vec![ReadLine { id: "p1-u0".into(), text: "Hello & bye.".into(), start: 1.0, end: 2.5 }]],
         }];
-        let meta = ReadMeta { title: "T".into(), author: "A".into(), lang: "en".into(), narrator: "Digital voices".into(), ai: "Narrated by AI voices.".into(), rights: vec![] };
+        let meta = ReadMeta { title: "T".into(), author: "A".into(), lang: "en".into(), narrator: "Digital voices".into(), ai: "Narrated by AI voices.".into(), rights: vec![], theme: "elegant".into() };
         let out = dir.join("r.epub");
         readalong_epub(&meta, &chapters, None, "OS-1", &out).unwrap();
         let mut z = zip::ZipArchive::new(std::fs::File::open(&out).unwrap()).unwrap();
