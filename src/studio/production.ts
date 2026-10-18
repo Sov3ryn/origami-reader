@@ -8,6 +8,8 @@ import type { Book, Preferences } from "../types";
 // app in its own folder (src-tauri/src/studio.rs).
 
 export type ProductionInfo = {
+  // A background sound under the narration, copied into the production (phase 6).
+  bed?: { file: string; name: string; level: "quiet" | "low" | "medium" };
   id: string;
   title: string;
   author: string;
@@ -316,6 +318,8 @@ export type Verification = {
 };
 // Portable productions: one file with the takes, the book and the designed voices.
 export type PortableOpened = { id: string; voicesAdded: string[]; missingVoices: string[]; bookAdded: boolean };
+export const chooseBed = (id: string) => invoke<{ file: string; name: string } | null>("studio_choose_bed", { id, path: null });
+export const clearBed = (id: string) => invoke<void>("studio_clear_bed", { id });
 export const savePortable = (id: string) => invoke<string | null>("studio_save_portable", { id, path: null });
 export const openPortable = () => invoke<PortableOpened | null>("studio_open_portable", { path: null });
 export const verifyFile = (path?: string) => invoke<Verification>("studio_verify_file", { path: path ?? null });

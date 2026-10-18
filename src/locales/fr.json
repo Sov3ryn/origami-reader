@@ -2764,5 +2764,11 @@
   "Text as heard": "Texte tel qu’entendu",
   "Text of the read-along": "Texte de l’édition lue",
   "The text of a book in the library": "Le texte d’un livre de la bibliothèque",
-  "This recording does not seem to read that book.": "Cet enregistrement ne semble pas lire ce livre."
+  "This recording does not seem to read that book.": "Cet enregistrement ne semble pas lire ce livre.",
+  "Add a background sound": "Ajouter un son de fond",
+  "Background sound": "Son de fond",
+  "Level": "Niveau",
+  "Low": "Bas",
+  "Quiet": "Discret",
+  "Your own file, looped under every chapter and lowered while anyone speaks; it is mixed at export and is its own stem. Audiobook stores ask for narration without background sound.": "Votre propre fichier, en boucle sous chaque chapitre et baissé dès que quelqu’un parle ; il est mixé à l’export et forme sa propre piste. Les boutiques de livres audio demandent une narration sans son de fond."
 }

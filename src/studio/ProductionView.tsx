@@ -7,6 +7,7 @@ import {
   Download,
   Flag,
   Lock,
+  Music,
   Package,
   PanelLeft,
   PanelRight,
@@ -39,6 +40,8 @@ import {
   renderRunning,
   revealFile,
   savePortable,
+  chooseBed,
+  clearBed,
   replaceProductionUnits,
   checkTakes,
   cancelCheck,
@@ -669,6 +672,10 @@ export function ProductionView({
               confirming={confirming}
               setConfirming={setConfirming}
               onDelete={onDelete}
+              onInfo={async (next) => {
+                await saveProductionInfo(next);
+                onChange({ ...production, info: next });
+              }}
             />
           )}
         </aside>
@@ -946,6 +953,7 @@ function Overview({
   confirming,
   setConfirming,
   onDelete,
+  onInfo,
 }: {
   production: Production;
   voices: Voice[];
@@ -957,6 +965,7 @@ function Overview({
   confirming: boolean;
   setConfirming: (v: boolean) => void;
   onDelete: () => Promise<void>;
+  onInfo: (info: Production["info"]) => Promise<void>;
 }) {
   const { info, units } = production;
   const total = units.length;
@@ -1020,6 +1029,7 @@ function Overview({
           <li>{t("Double-click a line to play from there.")}</li>
         </ul>
       </div>
+      <BackgroundSound production={production} onInfo={onInfo} />
       <PortableCopy id={info.id} />
       <div className="studio-danger">
         {confirming ? (
@@ -1125,5 +1135,69 @@ function LineVoice({ production, unit, cast, voices, onVoice, disabled }: { prod
       </select>
       {current !== usual && <small className="muted">{t("This line has its own voice. A new take is made when you change it.")}</small>}
     </label>
+  );
+}
+
+// A background sound under every chapter (rain, a fire, music), lowered while anyone
+// speaks. It is mixed at export and is also its own stem.
+function BackgroundSound({ production, onInfo }: { production: Production; onInfo: (info: Production["info"]) => Promise<void> }) {
+  const { info } = production;
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const bed = info.bed;
+  return (
+    <div className="studio-bed">
+      <div className="studio-panel-head">
+        <span>{t("Background sound")}</span>
+      </div>
+      {bed ? (
+        <>
+          <p className="studio-bed-name">
+            <Music size={14} /> <span title={bed.name}>{bed.name}</span>
+          </p>
+          <div className="studio-row">
+            <select value={bed.level} onChange={(e) => void onInfo({ ...info, bed: { ...bed, level: e.target.value as "quiet" | "low" | "medium" }, updated: Date.now() })} aria-label={t("Level")}>
+              <option value="quiet">{t("Quiet")}</option>
+              <option value="low">{t("Low")}</option>
+              <option value="medium">{t("Medium")}</option>
+            </select>
+            <button
+              onClick={async () => {
+                await clearBed(info.id).catch(() => undefined);
+                const next = { ...info, updated: Date.now() };
+                delete next.bed;
+                await onInfo(next);
+              }}
+            >
+              {t("Remove")}
+            </button>
+          </div>
+        </>
+      ) : (
+        <button
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            setError("");
+            try {
+              const got = await chooseBed(info.id);
+              if (got) await onInfo({ ...info, bed: { ...got, level: "quiet" }, updated: Date.now() });
+            } catch (e) {
+              setError(String(e));
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <Music size={14} /> {t("Add a background sound")}
+        </button>
+      )}
+      <p className="studio-hint">{t("Your own file, looped under every chapter and lowered while anyone speaks; it is mixed at export and is its own stem. Audiobook stores ask for narration without background sound.")}</p>
+      {error && (
+        <p className="studio-error" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

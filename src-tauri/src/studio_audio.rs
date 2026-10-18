@@ -685,6 +685,8 @@ pub struct AudioJob<'a> {
     pub comment: String,
     // A retail sample: the opening minutes of the story, for store pages.
     pub sample: bool,
+    // A background sound under every chapter but the opening credits.
+    pub bed: Option<Bed>,
     pub watermark: Option<Watermark>,
     pub message: u16,
     pub progress: &'a dyn Fn(String, f64),
@@ -720,7 +722,7 @@ pub fn free_dir(dir: &Path, stem: &str) -> PathBuf {
 
 /// Masters one chapter: joins its takes with their pauses, masters, adds the watermark
 /// and resamples to 44.1 kHz. Returns the audio and each line's start and end.
-fn master_chapter(ch: &ChapterPlan, seed: u64, watermark: Option<&mut Watermark>, message: u16) -> Result<(Vec<f32>, Vec<(String, f64, f64)>)> {
+fn master_chapter(ch: &ChapterPlan, seed: u64, watermark: Option<&mut Watermark>, message: u16, bed: Option<(&Bed, usize)>) -> Result<(Vec<f32>, Vec<(String, f64, f64)>)> {
     let mut joined: Vec<f32> = Vec::new();
     let mut rate = 0u32;
     let mut spans = Vec::new();
@@ -743,11 +745,81 @@ fn master_chapter(ch: &ChapterPlan, seed: u64, watermark: Option<&mut Watermark>
         w.apply(&mut m, rate, message)?;
     }
     let mut hi = resample(&m, rate, MASTER_RATE)?;
+    if let Some((bed, offset)) = bed {
+        let under = bed.track(hi.len(), offset, &hi);
+        for (v, b) in hi.iter_mut().zip(under) {
+            *v += b;
+        }
+    }
     limit(&mut hi, MASTER_RATE, CEILING_DB);
     // master() puts one second of room tone first.
     let head = 1.0;
     let lines = spans.into_iter().map(|(u, s, e)| (u, head + s as f64 / rate as f64, head + e as f64 / rate as f64)).collect();
     Ok((hi, lines))
+}
+
+// --- Background sound -----------------------------------------------------------------------
+
+/// A background sound under the narration (rain, a fire, music): the reader's own file,
+/// at 44.1 kHz, prepared to loop without a click, and its level when nobody speaks.
+pub struct Bed {
+    samples: Vec<f32>,
+    gain: f32,
+}
+
+impl Bed {
+    /// `level` is the bed's RMS in dBFS between lines; under speech it is 12 dB lower.
+    pub fn new(x: &[f32], rate: u32, level: f64) -> Result<Self> {
+        let x = if rate == MASTER_RATE { x.to_vec() } else { resample(x, rate, MASTER_RATE)? };
+        let cf = (MASTER_RATE as usize / 2).min(x.len() / 4);
+        if x.len() < MASTER_RATE as usize * 2 {
+            return Err("The background sound is too short (two seconds at least).".into());
+        }
+        // The loop: the end fades into the start, so wrapping around is seamless.
+        let mut samples = x[cf..].to_vec();
+        let n = samples.len();
+        for k in 0..cf {
+            let t = k as f32 / cf as f32;
+            samples[n - cf + k] = samples[n - cf + k] * (1.0 - t) + x[k] * t;
+        }
+        let rms = rms_db(&samples);
+        let gain = if rms.is_finite() { 10f64.powf((level - rms) / 20.0) as f32 } else { 0.0 };
+        Ok(Bed { samples, gain })
+    }
+
+    /// `len` samples of the bed from `offset`, lowered wherever `speech` (a signal at
+    /// 44.1 kHz of the same length) has voice, with a short look-ahead, and faded in
+    /// and out over two seconds.
+    pub fn track(&self, len: usize, offset: usize, speech: &[f32]) -> Vec<f32> {
+        let rate = MASTER_RATE as usize;
+        let frame = rate / 50;
+        let frames = len.div_ceil(frame);
+        let loud: Vec<bool> = (0..frames)
+            .map(|f| {
+                let a = (f * frame).min(speech.len());
+                let b = ((f + 1) * frame).min(speech.len());
+                b > a && rms_db(&speech[a..b]) > -42.0
+            })
+            .collect();
+        // Duck 100 ms before a line starts; come back up slowly after it.
+        let ducked = 10f32.powf(-12.0 / 20.0);
+        let mut g = 1.0f32;
+        let mut gains = Vec::with_capacity(frames);
+        for f in 0..frames {
+            let soon = (f..(f + 5).min(frames)).any(|k| loud[k]);
+            let target = if soon { ducked } else { 1.0 };
+            let k = if target < g { 0.35 } else { 0.04 };
+            g += (target - g) * k;
+            gains.push(g);
+        }
+        let fade = (2 * rate).min(len / 2).max(1);
+        (0..len)
+            .map(|i| {
+                let edge = (i.min(len - 1 - i) as f32 / fade as f32).min(1.0);
+                self.samples[(offset + i) % self.samples.len()] * self.gain * gains[i / frame] * edge
+            })
+            .collect()
+    }
 }
 
 /// Adds a RIFF LIST INFO chunk (title, artist, comment, software, date) to a WAV file.
@@ -779,7 +851,7 @@ fn tag_wav(path: &Path, fields: &[(&[u8; 4], &str)]) -> Result<()> {
 /// with the mastered chapter (the same second of lead-in), for a sound editor. The
 /// stems share one gain, so their balance is the mix's; nothing is limited or added,
 /// apart from the watermark in each stem.
-fn write_stems(ch: &ChapterPlan, number: u32, dir: &Path, watermark: Option<&mut Watermark>, message: u16, meta: &Meta, comment: &str) -> Result<Vec<PathBuf>> {
+fn write_stems(ch: &ChapterPlan, number: u32, dir: &Path, watermark: Option<&mut Watermark>, message: u16, meta: &Meta, comment: &str, bed: Option<(&Bed, usize)>) -> Result<Vec<PathBuf>> {
     let mut joined: Vec<f32> = Vec::new();
     let mut rate = 0u32;
     let mut spans: Vec<(String, usize, usize)> = Vec::new();
@@ -832,6 +904,32 @@ fn write_stems(ch: &ChapterPlan, number: u32, dir: &Path, watermark: Option<&mut
         }
         out.finalize().map_err(|e| e.to_string())?;
         let name = format!("{} - {} - {}", meta.title, ch.title, speaker);
+        let note = format!("{comment} Export {}.", meta.export_id);
+        tag_wav(&path, &[(b"INAM", &name), (b"IART", &meta.author), (b"ICMT", note.trim()), (b"ISFT", "Origami Studio"), (b"ICRD", &meta.year)])?;
+        written.push(path);
+    }
+    // The background sound as its own stem, lowered where anyone speaks.
+    if let Some((bed, offset)) = bed {
+        let mut voice = vec![0.0f32; head + joined.len() + tail];
+        for (_, a, b) in &spans {
+            for i in *a..*b {
+                voice[head + i] = joined[i] * g;
+            }
+        }
+        let voice = resample(&voice, rate, MASTER_RATE)?;
+        let mut under = bed.track(voice.len(), offset, &voice);
+        drop(voice);
+        if let Some(w) = watermark.as_deref_mut() {
+            w.apply(&mut under, MASTER_RATE, message)?;
+        }
+        let path = free_path(&folder, "Background", "wav");
+        let spec = hound::WavSpec { channels: 1, sample_rate: MASTER_RATE, bits_per_sample: 32, sample_format: hound::SampleFormat::Float };
+        let mut out = hound::WavWriter::create(&path, spec).map_err(|e| e.to_string())?;
+        for v in &under {
+            out.write_sample(*v).map_err(|e| e.to_string())?;
+        }
+        out.finalize().map_err(|e| e.to_string())?;
+        let name = format!("{} - {} - Background", meta.title, ch.title);
         let note = format!("{comment} Export {}.", meta.export_id);
         tag_wav(&path, &[(b"INAM", &name), (b"IART", &meta.author), (b"ICMT", note.trim()), (b"ISFT", "Origami Studio"), (b"ICRD", &meta.year)])?;
         written.push(path);
@@ -890,6 +988,8 @@ pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTim
         let mut track = 0u32;
         let mut stems_written = false;
         let mut sample_left = job.sample;
+        // Where the background sound is: it carries on from one chapter to the next.
+        let mut bed_at = 0usize;
         let chapters = std::mem::take(&mut job.chapters);
         for (i, ch) in chapters.iter().enumerate() {
             if (job.cancelled)() {
@@ -901,16 +1001,21 @@ pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTim
             track += 1;
             if let Some(dir) = &job.stems {
                 (job.progress)(format!("Writing the stems of {}", ch.title), i as f64 / total);
-                write_stems(ch, track, dir, job.watermark.as_mut(), job.message, &job.meta, &job.comment)?;
+                let bed = job.bed.as_ref().filter(|_| !ch.takes.iter().any(|t| t.unit == "credit")).map(|b| (b, bed_at));
+                write_stems(ch, track, dir, job.watermark.as_mut(), job.message, &job.meta, &job.comment, bed)?;
                 stems_written = true;
             }
             if m4b.is_none() && !job.mp3 && job.readalong.is_none() && !sample_left {
                 continue;
             }
             (job.progress)(format!("Mastering {}", ch.title), i as f64 / total);
-            let (audio, lines) = master_chapter(ch, 0x5eed + i as u64, job.watermark.as_mut(), job.message)?;
+            let bed = job.bed.as_ref().filter(|_| !ch.takes.iter().any(|t| t.unit == "credit")).map(|b| (b, bed_at));
+            let (audio, lines) = master_chapter(ch, 0x5eed + i as u64, job.watermark.as_mut(), job.message, bed)?;
             if audio.is_empty() {
                 continue;
+            }
+            if bed.is_some() {
+                bed_at += audio.len();
             }
             let mut level = levels(&audio, MASTER_RATE);
             level["title"] = json!(ch.title);
@@ -1010,7 +1115,7 @@ mod tests {
             ],
         };
         let meta = Meta { title: "Book".into(), author: "Author".into(), narrator: String::new(), year: "2026".into(), export_id: "OS-0001".into() };
-        let out = write_stems(&ch, 1, &dir.join("stems"), None, 0, &meta, "AI-generated voices.").unwrap();
+        let out = write_stems(&ch, 1, &dir.join("stems"), None, 0, &meta, "AI-generated voices.", None).unwrap();
         assert_eq!(out.len(), 2);
         let lens: Vec<u32> = out.iter().map(|p| hound::WavReader::open(p).unwrap().duration()).collect();
         assert_eq!(lens[0], lens[1]);
@@ -1036,6 +1141,27 @@ mod tests {
         // The last line ending by 295 s ends at 288 s; then 0.15 s and one second of room tone.
         assert!((x.len() as f64 / rate as f64 - (288.0 + 0.15 + 1.0)).abs() < 0.01);
         assert!(retail_sample(&audio, &lines[..5]).is_none());
+    }
+
+    #[test]
+    fn the_background_sound_loops_and_ducks_under_speech() {
+        let rate = MASTER_RATE as usize;
+        let x: Vec<f32> = (0..rate * 3).map(|i| ((i as f32) * 0.37).sin() * 0.2).collect();
+        let bed = Bed::new(&x, MASTER_RATE, -30.0).unwrap();
+        // Ten seconds: speech from 4 s to 6 s.
+        let mut speech = vec![0.0f32; rate * 10];
+        for v in &mut speech[rate * 4..rate * 6] {
+            *v = 0.2;
+        }
+        let t = bed.track(speech.len(), 0, &speech);
+        let at = |a: f64, b: f64| rms_db(&t[(a * rate as f64) as usize..(b * rate as f64) as usize]);
+        assert!((at(2.5, 3.5) + 30.0).abs() < 1.5, "{}", at(2.5, 3.5));
+        assert!(at(4.8, 5.8) < at(2.5, 3.5) - 9.0);
+        assert!(at(0.0, 0.05) < -45.0 && at(9.95, 10.0) < -45.0);
+        // Looping past the end of the file is seamless: no sample jumps.
+        let long = bed.track(rate * 8, rate * 2, &vec![0.0; rate * 8]);
+        let jump = long.windows(2).map(|w| (w[1] - w[0]).abs()).fold(0.0f32, f32::max);
+        assert!(jump < 0.05, "{jump}");
     }
 
     #[test]

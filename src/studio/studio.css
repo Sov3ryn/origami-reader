@@ -1414,3 +1414,22 @@
     opacity: 0.35;
   }
 }
+
+/* Phase 6: background sound */
+.studio-bed {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+.studio-bed-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  min-width: 0;
+}
+.studio-bed-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

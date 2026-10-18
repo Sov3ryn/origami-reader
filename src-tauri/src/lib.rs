@@ -963,6 +963,57 @@ async fn studio_recording_clip(path: String, start: f64, end: f64) -> Result<Str
     .map_err(|e| e.to_string())?
 }
 
+/// The production's folder, which holds the background sound next to the takes.
+fn production_dir(data: &std::path::Path, id: &str) -> Result<std::path::PathBuf> {
+    studio::takes_dir(data, id)?.parent().map(|p| p.to_path_buf()).ok_or_else(|| "Unknown production.".to_string())
+}
+
+/// Chooses a background sound: the file is copied into the production, so it stays
+/// available when the original moves. Returns its stored name and the original name.
+#[tauri::command]
+async fn studio_choose_bed(app: tauri::AppHandle, id: String, path: Option<String>) -> Result<Option<Value>> {
+    let data = data_root(&app)?;
+    let dir = production_dir(&data, &id)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let picked = match path {
+            Some(p) => Some(std::path::PathBuf::from(p)),
+            None => rfd::FileDialog::new().set_title("Choose a background sound").add_filter("Audio", &["mp3", "m4a", "wav", "flac", "ogg"]).pick_file(),
+        };
+        let Some(source) = picked else { return Ok(None) };
+        let ext = source.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+        if !["mp3", "m4a", "wav", "flac", "ogg"].contains(&ext.as_str()) {
+            return Err("Choose an MP3, M4A, WAV, FLAC or OGG file.".into());
+        }
+        if std::fs::metadata(&source).map(|m| m.len()).unwrap_or(0) > 300 << 20 {
+            return Err("The background sound is too large (300 MB at most).".into());
+        }
+        // A check that it decodes, before it is kept.
+        studio_verify::decode_range(&source, 0.0, 5.0)?;
+        for e in std::fs::read_dir(&dir).map_err(|e| e.to_string())?.flatten() {
+            if e.file_name().to_string_lossy().starts_with("bed.") {
+                let _ = std::fs::remove_file(e.path());
+            }
+        }
+        let file = format!("bed.{ext}");
+        std::fs::copy(&source, dir.join(&file)).map_err(|e| e.to_string())?;
+        let name = source.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+        Ok(Some(serde_json::json!({ "file": file, "name": name })))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+fn studio_clear_bed(app: tauri::AppHandle, id: String) -> Result<()> {
+    let dir = production_dir(&data_root(&app)?, &id)?;
+    for e in std::fs::read_dir(&dir).map_err(|e| e.to_string())?.flatten() {
+        if e.file_name().to_string_lossy().starts_with("bed.") {
+            let _ = std::fs::remove_file(e.path());
+        }
+    }
+    Ok(())
+}
+
 /// Pages of the print book as images, for the export dialog's preview.
 #[tauri::command]
 async fn studio_preview_print(manuscript: Value, print: Value, first: usize, count: usize) -> Result<Value> {
@@ -1110,6 +1161,19 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                     readalong: readalong_dir.clone(),
                     stems: flag("stems").then(|| studio_audio::free_dir(&folder, &format!("{} (stems)", studio_audio::safe_name(&title)))),
                     sample: flag("sample"),
+                    bed: match p["info"]["bed"]["file"].as_str().filter(|f| f.starts_with("bed.") && !f.contains(['/', '\\'])) {
+                        Some(file) => {
+                            progress("Preparing the background sound".into(), 0.02);
+                            let (x, rate) = studio_verify::decode_range(&production_dir(&data, &id)?.join(file), 0.0, 3600.0)?;
+                            let level = match p["info"]["bed"]["level"].as_str() {
+                                Some("medium") => -27.0,
+                                Some("low") => -31.0,
+                                _ => -36.0,
+                            };
+                            Some(studio_audio::Bed::new(&x, rate, level)?)
+                        }
+                        None => None,
+                    },
                     comment: format!("{} {}", text(&options["aiLine"]), text(&options["credit"])).trim().to_string(),
                     watermark: Some(watermark),
                     message,
@@ -1720,7 +1784,7 @@ pub fn run() {
             studio_analysis_status, studio_analysis_chat, studio_analysis_stop, studio_replace_units,
             studio_verify_file, studio_check_takes, studio_cancel_check,
             studio_asr_ready, studio_pick_recordings, studio_transcribe, studio_cancel_transcribe, studio_preview_print,
-            studio_save_portable, studio_open_portable, studio_recording_clip, studio_recording_readalong,
+            studio_save_portable, studio_open_portable, studio_recording_clip, studio_choose_bed, studio_clear_bed, studio_recording_readalong,
             studio_setup_status, studio_setup_download, studio_setup_cancel,
             starter_library_installed,
             install_starter_library,
