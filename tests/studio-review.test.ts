@@ -123,3 +123,21 @@ describe("export text", () => {
     expect(fallback.chapters[0].blocks[0].text).toBe("Mr. Darcy bowed.");
   });
 });
+
+describe("phase 3", () => {
+  const a = unit("a", 0, { pause: "long" });
+  const b = unit("b", 0, { pause: "short" });
+  const c = unit("c", 1);
+  it("lets a line's pause be shorter or longer", () => {
+    expect(gapAfter(a, c)).toBe(1.625);
+    expect(gapAfter(b, c)).toBeCloseTo(0.26);
+    expect(gapAfter(unit("x", 0, { pause: "long" }), unit("y", 0))).toBe(1.2);
+    expect(gapAfter(a, undefined)).toBe(0);
+  });
+  it("flags a take whose words were not heard", () => {
+    const heardWrong = take("a", 4, { checks: { peak: -6, rms: -20, lead: 0.1, trail: 0.2, heard: "something else", match: 0.4 } });
+    expect(takeIssues(heardWrong, unit("a", 0), 15)).toContain("mismatch");
+    const heardRight = take("a", 4, { checks: { peak: -6, rms: -20, lead: 0.1, trail: 0.2, heard: "same", match: 0.95 } });
+    expect(takeIssues(heardRight, unit("a", 0), 15)).not.toContain("mismatch");
+  });
+});

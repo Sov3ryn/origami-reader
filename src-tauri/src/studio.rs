@@ -174,6 +174,17 @@ pub fn add_takes(data: &Path, id: &str, takes: &[Value]) -> Result<()> {
     tx.commit().map_err(|e| e.to_string())
 }
 
+/// Saves changed takes (measurements added later, such as a transcription check).
+pub fn update_takes(data: &Path, id: &str, takes: &[Value]) -> Result<()> {
+    let mut db = open(&folder(data, id)?)?;
+    let tx = db.transaction().map_err(|e| e.to_string())?;
+    for take in takes {
+        tx.execute("UPDATE takes SET data=?2 WHERE id=?1", params![take["id"].as_str().unwrap_or_default(), take.to_string()])
+            .map_err(|e| e.to_string())?;
+    }
+    tx.commit().map_err(|e| e.to_string())
+}
+
 /// A take's audio file, read for playback.
 pub fn take_audio(data: &Path, id: &str, file: &str) -> Result<Vec<u8>> {
     if !(file.ends_with(".wav") || file.ends_with(".flac")) || file.contains(['/', '\\']) || file.contains("..") {

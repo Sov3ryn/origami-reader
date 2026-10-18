@@ -12,6 +12,7 @@ mod studio;
 mod studio_audio;
 mod studio_book;
 mod studio_llm;
+mod studio_verify;
 mod update;
 mod vault;
 mod voice_studio;
@@ -511,6 +512,163 @@ fn studio_analysis_stop(analysis: State<studio_llm::Analysis>) {
 fn studio_replace_units(app: tauri::AppHandle, id: String, units: Vec<Value>) -> Result<()> {
     studio::replace_units(&data_root(&app)?, &id, units)
 }
+// --- Studio phase 3: verify a file, and check takes by transcribing them ---------------------
+#[tauri::command]
+async fn studio_verify_file(app: tauri::AppHandle, path: Option<String>) -> Result<Value> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let path = match path {
+            Some(p) => std::path::PathBuf::from(p),
+            None => match rfd::FileDialog::new()
+                .set_title("Choose an audio file to verify")
+                .add_filter("Audio", &["m4b", "m4a", "mp3", "wav", "flac"])
+                .pick_file()
+            {
+                Some(p) => p,
+                None => return Ok(serde_json::json!({"cancelled": true})),
+            },
+        };
+        let (x, sr) = studio_verify::decode_any(&path)?;
+        let x16 = studio_audio::resample(&x, sr, 16_000)?;
+        let labels = studio_verify::labels(&path);
+        let dir = watermark_dir(&app)?;
+        let watermark = if dir.join("audioseal_detector_5s.onnx").is_file() {
+            let mut d = studio_verify::Detector::open(&dir, embed::runtime_env(&app)?)?;
+            let f = d.find(&x16)?;
+            let detected = f.probability > 0.5 && f.confidence > 0.2;
+            // The 16 bits are matched against the exports made on this computer.
+            let data = data_root(&app)?;
+            let mut matched = Value::Null;
+            if detected {
+                for p in studio::list(&data).unwrap_or_default() {
+                    let id = p["id"].as_str().unwrap_or_default().to_string();
+                    let Ok(full) = studio::read(&data, &id) else { continue };
+                    if let Some(e) = full["info"]["exports"].as_array().and_then(|list| list.iter().rev().find(|e| e["message"].as_u64() == Some(f.message as u64))) {
+                        matched = serde_json::json!({"title": full["info"]["title"], "author": full["info"]["author"], "export": e["id"], "date": e["date"]});
+                        break;
+                    }
+                }
+            }
+            serde_json::json!({"detected": detected, "probability": (f.probability * 100.0).round() / 100.0, "confidence": (f.confidence * 100.0).round() / 100.0, "message": format!("{:04X}", f.message), "offset": f.offset, "match": matched})
+        } else {
+            serde_json::json!({"missing": true})
+        };
+        Ok(serde_json::json!({
+            "file": path.file_name().map(|n| n.to_string_lossy().into_owned()),
+            "seconds": (x.len() as f64 / sr.max(1) as f64).round(),
+            "labels": labels,
+            "watermark": watermark,
+        }))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+/// Two words heard as the same: equal, or one letter apart (two for long words), so a name
+/// spelled another way ("Bennet", "Bennett") still counts as heard.
+fn near(a: &str, b: &str) -> bool {
+    if a == b {
+        return true;
+    }
+    let (x, y): (Vec<char>, Vec<char>) = (a.chars().collect(), b.chars().collect());
+    let allowed = match x.len().min(y.len()) {
+        0..=3 => return false,
+        4..=6 => 1,
+        _ => 2,
+    };
+    if x.len().abs_diff(y.len()) > allowed {
+        return false;
+    }
+    let mut prev: Vec<usize> = (0..=y.len()).collect();
+    for i in 1..=x.len() {
+        let mut cur = vec![i; y.len() + 1];
+        for j in 1..=y.len() {
+            cur[j] = (prev[j] + 1).min(cur[j - 1] + 1).min(prev[j - 1] + usize::from(x[i - 1] != y[j - 1]));
+        }
+        prev = cur;
+    }
+    prev[y.len()] <= allowed
+}
+/// How much of a line was heard in its take: 1 when every word was heard, 0 when none.
+/// Numbers and punctuation are left out, since "16" and "sixteen" are both right.
+fn heard_share(reference: &str, heard: &str) -> f64 {
+    let words = |s: &str| -> Vec<String> {
+        s.split(|c: char| !c.is_alphanumeric() && c != '\'' && c != '\u{2019}')
+            .map(|w| w.trim_matches(|c| c == '\'' || c == '\u{2019}').to_lowercase())
+            .filter(|w| !w.is_empty() && !w.chars().all(|c| c.is_ascii_digit()))
+            .collect()
+    };
+    let (a, b) = (words(reference), words(heard));
+    if a.is_empty() {
+        return 1.0;
+    }
+    // Word-level edit distance.
+    let mut prev: Vec<usize> = (0..=b.len()).collect();
+    for i in 1..=a.len() {
+        let mut cur = vec![i; b.len() + 1];
+        for j in 1..=b.len() {
+            let cost = usize::from(!near(&a[i - 1], &b[j - 1]));
+            cur[j] = (prev[j] + 1).min(cur[j - 1] + 1).min(prev[j - 1] + cost);
+        }
+        prev = cur;
+    }
+    (1.0 - prev[b.len()] as f64 / a.len() as f64).max(0.0)
+}
+#[tauri::command]
+fn studio_check_takes(app: tauri::AppHandle, job: State<CheckJob>, id: String, units: Vec<String>, model: String) -> Result<()> {
+    use std::sync::atomic::Ordering;
+    use tauri::Emitter;
+    if job.running.swap(true, Ordering::SeqCst) {
+        return Err("A check is already running.".into());
+    }
+    job.cancel.store(false, Ordering::SeqCst);
+    let data = data_root(&app)?;
+    std::thread::spawn(move || {
+        let job = app.state::<CheckJob>();
+        let outcome = (|| -> Result<usize> {
+            let p = studio::read(&data, &id)?;
+            let language = p["info"]["language"].as_str().unwrap_or("").chars().take(2).collect::<String>().to_lowercase();
+            let dir = studio::takes_dir(&data, &id)?;
+            let takes: std::collections::HashMap<String, Value> = p["takes"].as_array().cloned().unwrap_or_default().into_iter().map(|t| (t["id"].as_str().unwrap_or_default().to_string(), t)).collect();
+            let all = p["units"].as_array().cloned().unwrap_or_default();
+            let mut flagged = 0;
+            for (n, unit_id) in units.iter().enumerate() {
+                if job.cancel.load(Ordering::SeqCst) {
+                    return Err("cancelled".into());
+                }
+                let Some(unit) = all.iter().find(|u| u["id"].as_str() == Some(unit_id)) else { continue };
+                let Some(mut take) = unit["take"].as_str().and_then(|t| takes.get(t)).cloned() else { continue };
+                let (x, sr) = studio_audio::decode(&dir.join(take["file"].as_str().unwrap_or_default()))?;
+                let x16 = studio_audio::resample(&x, sr, 16_000)?;
+                let heard = app.state::<whisper::Transcriber>().transcribe(&app, &model, &x16, &language)?;
+                let text = heard["text"].as_str().unwrap_or_default().to_string();
+                let share = heard_share(take["text"].as_str().unwrap_or_default(), &text);
+                if share < 0.8 {
+                    flagged += 1;
+                }
+                take["checks"]["heard"] = serde_json::json!(text);
+                take["checks"]["match"] = serde_json::json!((share * 100.0).round() / 100.0);
+                studio::update_takes(&data, &id, &[take])?;
+                let _ = app.emit("studio-check-progress", serde_json::json!({"id": id, "done": n + 1, "total": units.len()}));
+            }
+            Ok(flagged)
+        })();
+        job.running.store(false, Ordering::SeqCst);
+        let _ = app.emit("studio-check-done", match outcome {
+            Ok(flagged) => serde_json::json!({"id": id, "ok": true, "flagged": flagged}),
+            Err(e) if e == "cancelled" => serde_json::json!({"id": id, "ok": true, "cancelled": true}),
+            Err(e) => serde_json::json!({"id": id, "ok": false, "message": e}),
+        });
+    });
+    Ok(())
+}
+#[derive(Default)]
+struct CheckJob {
+    running: std::sync::atomic::AtomicBool,
+    cancel: std::sync::atomic::AtomicBool,
+}
+#[tauri::command]
+fn studio_cancel_check(job: State<CheckJob>) {
+    job.cancel.store(true, std::sync::atomic::Ordering::SeqCst);
+}
 // Studio export: one at a time, in the background, with progress events.
 #[derive(Default)]
 struct ExportJob {
@@ -593,11 +751,17 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                         continue;
                     }
                     let next = units.get(i + 1).filter(|n| n["chapter"] == u["chapter"]);
-                    let gap = match next {
+                    let base = match next {
                         None => 0.0,
                         Some(n) if u["heading"] == true || n["heading"] == true => 1.2,
                         Some(n) if n["paragraph"] == u["paragraph"] => 0.25,
                         Some(_) => 0.65,
+                    };
+                    // The reader can make a pause shorter or longer (same rule as the player).
+                    let gap = match (next.is_some(), u["pause"].as_str()) {
+                        (true, Some("short")) => base * 0.4,
+                        (true, Some("long")) => f64::max(1.2, base * 2.5),
+                        _ => base,
                     };
                     plans.last_mut().unwrap().takes.push((path, gap));
                 }
@@ -1171,6 +1335,7 @@ pub fn run() {
             app.manage(StudioJob::default());
             app.manage(ExportJob::default());
             app.manage(studio_llm::Analysis::default());
+            app.manage(CheckJob::default());
             app.manage(covers::Covers::default());
             app.manage(voice_studio::Studio::default());
             app.manage(embed::Embedder::default());
@@ -1186,6 +1351,7 @@ pub fn run() {
             list_productions, create_production, read_production, save_production_info, save_production_units, delete_production, studio_render, studio_cancel_render, studio_render_running, studio_take_audio,
             studio_choose_folder, studio_reveal, studio_watermark_ready, studio_cancel_export, studio_export,
             studio_analysis_status, studio_analysis_chat, studio_analysis_stop, studio_replace_units,
+            studio_verify_file, studio_check_takes, studio_cancel_check,
             starter_library_installed,
             install_starter_library,
             read_book,
@@ -1287,5 +1453,18 @@ mod artwork_tests {
         assert_eq!(artwork_file_name("..", "webp"), "image.webp");
         assert_eq!(artwork_file_name("호수 이야기", "webp"), "호수 이야기.webp");
         assert_eq!(artwork_file_name(&"x".repeat(200), "jpg").len(), 84);
+    }
+}
+
+#[cfg(test)]
+mod studio_check_tests {
+    #[test]
+    fn heard_share_ignores_case_punctuation_and_numbers() {
+        assert_eq!(super::heard_share("It is a truth, universally acknowledged.", "it is a truth universally acknowledged"), 1.0);
+        assert!(super::heard_share("Is he married or single?", "Is he married?") < 0.8);
+        assert_eq!(super::heard_share("Four or five thousand, 16 in all.", "four or five thousand sixteen in all"), 1.0 - 1.0 / 6.0);
+        assert_eq!(super::heard_share("", "anything"), 1.0);
+        assert_eq!(super::heard_share("Mr. Bennet replied that he had not.", "Mr. Bennett replied that he had not."), 1.0);
+        assert!(super::heard_share("What a fine thing", "What a feeny thing") < 1.0);
     }
 }

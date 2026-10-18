@@ -1190,3 +1190,58 @@
   align-items: center;
   gap: 6px;
 }
+
+/* Phase 3: checks, pauses, verification */
+.studio-chips.small {
+  width: fit-content;
+}
+.studio-chips.small button {
+  padding: 3px 10px;
+}
+.studio-heard {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--studio-soft);
+  font-size: var(--fs-small, 13px);
+}
+.studio-verdict {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--studio-soft);
+}
+.studio-verdict p {
+  margin: 4px 0 0;
+}
+.studio-verdict.yes {
+  background: color-mix(in srgb, var(--studio-good) 16%, transparent);
+}
+.studio-verdict.yes svg {
+  flex: none;
+  color: var(--studio-good);
+}
+.studio-labels {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  font-size: var(--fs-small, 13px);
+}
+.studio-labels div {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 8px;
+}
+.studio-labels dt {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.studio-labels dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

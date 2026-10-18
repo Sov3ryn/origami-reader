@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { BookOpen, Clapperboard, Headphones, Mic2, Play, Plus, Search, Square, Wand2, X } from "lucide-react";
+import { BookOpen, Clapperboard, Headphones, Mic2, Play, Plus, Search, ShieldCheck, Square, Wand2, X } from "lucide-react";
 import { t } from "../i18n";
 import * as store from "../storage";
 import type { Book, BookMeta, Preferences, Voice } from "../types";
-import { createProduction, deleteProduction, listProductions, newProduction, progress, readProduction, type Production, type ProductionInfo } from "./production";
+import { createProduction, deleteProduction, listProductions, newProduction, progress, readProduction, verifyFile, type Production, type ProductionInfo, type Verification } from "./production";
 import { ProductionView } from "./ProductionView";
 import "./studio.css";
 
@@ -24,6 +24,8 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
   const [current, setCurrent] = useState<Production | null>(null);
   const [book, setBook] = useState<Book | null>(null);
   const [creating, setCreating] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verified, setVerified] = useState<Verification | null>(null);
   const [error, setError] = useState("");
   const usable = useMemo(() => voices.filter((v) => v.available), [voices]);
   const covers = useMemo(() => new Map(books.map((b) => [b.id, b.coverImage])), [books]);
@@ -84,6 +86,23 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
           <span>{t("Audiobooks and books made from your library")}</span>
         </div>
         <span className="studio-spacer" />
+        <button
+          onClick={async () => {
+            setVerifying(true);
+            try {
+              const r = await verifyFile();
+              if (!r.cancelled) setVerified(r);
+            } catch (e) {
+              setError(String(e));
+            } finally {
+              setVerifying(false);
+            }
+          }}
+          disabled={!store.desktop || verifying}
+          data-tip={t("Check whether an audio file was made with Origami Studio")}
+        >
+          <ShieldCheck size={16} /> {verifying ? t("Checking") : t("Verify a file")}
+        </button>
         <button className="primary" onClick={() => setCreating(true)} disabled={!store.desktop}>
           <Plus size={16} /> {t("New production")}
         </button>
@@ -163,6 +182,7 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
           </>
         )}
       </div>
+      {verified && <VerifyResult result={verified} onClose={() => setVerified(null)} />}
       {creating && (
         <NewProduction
           books={books}
@@ -334,6 +354,67 @@ function NewProduction({
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function VerifyResult({ result, onClose }: { result: Verification; onClose: () => void }) {
+  const w = result.watermark;
+  const labels = Object.entries(result.labels || {});
+  return (
+    <div className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <section className="studio-dialog studio-verify" role="dialog" aria-modal="true" aria-labelledby="studio-verify-title">
+        <header>
+          <h2 id="studio-verify-title">{t("Verify a file")}</h2>
+          <button className="icon-only" onClick={onClose} aria-label={t("Close")}>
+            <X size={17} />
+          </button>
+        </header>
+        <p>
+          <strong>{result.file}</strong>
+        </p>
+        {w?.missing ? (
+          <p className="studio-warn">{t("The watermark detector is not installed, so only the file's labels can be read.")}</p>
+        ) : w?.detected ? (
+          <div className="studio-verdict yes">
+            <ShieldCheck size={20} />
+            <div>
+              <strong>{t("Made with Origami Studio")}</strong>
+              <p>{t("This audio carries the Origami Studio watermark: it was narrated with AI-generated voices.")}</p>
+              {w.match ? (
+                <p className="muted small">
+                  {t("Export {id} of {title}, {date}.", { id: w.match.export, title: w.match.title, date: new Date(w.match.date).toLocaleDateString() })}
+                </p>
+              ) : (
+                <p className="muted small">{t("Made on another computer (mark {m}).", { m: w.message || "" })}</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="studio-verdict no">
+            <strong>{t("No Origami Studio watermark found.")}</strong>
+            <p className="muted small">{t("Short or heavily changed audio (sped up, cut very short) can lose it.")}</p>
+          </div>
+        )}
+        {labels.length > 0 && (
+          <>
+            <h3>{t("Labels in the file")}</h3>
+            <dl className="studio-labels">
+              {labels.map(([k, v]) => (
+                <div key={k}>
+                  <dt>{k}</dt>
+                  <dd>{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </>
+        )}
+        <div className="studio-row end">
+          <button className="primary" onClick={onClose}>
+            {t("Done")}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

@@ -47,6 +47,8 @@ image = { version = "0.25", default-features = false, features = ["jpeg", "png",
 typst = "0.15.1"
 typst-pdf = "0.15.1"
 typst-layout = "0.15.1"
+# Studio "Verify a file" (src/studio_verify.rs): reading MP3 and MPEG-4 audio.
+symphonia = { version = "0.6.1", default-features = false, features = ["mp3", "aac", "isomp4", "wav", "pcm"] }
 
 [dev-dependencies]
 tempfile = "3"

@@ -19,6 +19,7 @@ import {
   Trash2,
   Undo2,
   Wand2,
+  Ear,
 } from "lucide-react";
 import { t } from "../i18n";
 import type { Book, Preferences, Voice } from "../types";
@@ -36,6 +37,11 @@ import {
   readProduction,
   renderRunning,
   replaceProductionUnits,
+  checkTakes,
+  cancelCheck,
+  transcriptionModels,
+  type CheckDone,
+  type CheckProgress,
   saveProductionInfo,
   saveProductionUnits,
   spokenLength,
@@ -122,6 +128,8 @@ export function ProductionView({
   const [progressNote, setProgressNote] = useState("");
   const [status, setStatus] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [checkModels, setCheckModels] = useState<string[]>([]);
   const [confirming, setConfirming] = useState(false);
   const started = useRef<{ at: number; done: number } | null>(null);
   const script = useRef<HTMLDivElement>(null);
@@ -143,6 +151,7 @@ export function ProductionView({
   }
   useEffect(() => {
     void renderRunning().then(setRendering);
+    void transcriptionModels().then(setCheckModels).catch(() => setCheckModels([]));
     const off = [
       listen<RenderProgress>("studio-progress", (e) => {
         if (e.payload.id !== info.id) return;
@@ -153,6 +162,24 @@ export function ProductionView({
         const left = e.payload.total - e.payload.done;
         const eta = rate > 0 ? t(" · about {time} left", { time: clock(left / rate) }) : "";
         setProgressNote(t("{done} of {total} lines", { done: String(e.payload.done), total: String(e.payload.total) }) + eta);
+        void reload();
+      }),
+      listen<CheckProgress>("studio-check-progress", (e) => {
+        if (e.payload.id !== info.id) return;
+        setProgressNote(t("Listening to {done} of {total} lines", { done: String(e.payload.done), total: String(e.payload.total) }));
+        if (e.payload.done % 10 === 0) void reload();
+      }),
+      listen<CheckDone>("studio-check-done", (e) => {
+        if (e.payload.id !== info.id) return;
+        setChecking(false);
+        setProgressNote("");
+        setStatus(
+          e.payload.ok
+            ? e.payload.cancelled
+              ? t("Check stopped.")
+              : t("{n} lines may not say their text.", { n: String(e.payload.flagged || 0) })
+            : e.payload.message || t("The check failed."),
+        );
         void reload();
       }),
       listen<RenderDone>("studio-render-done", (e) => {
@@ -175,6 +202,21 @@ export function ProductionView({
       setRendering(true);
       started.current = null;
       setProgressNote(t("Starting the voice"));
+    } catch (e) {
+      setStatus(String(e));
+    }
+  }
+  // Listens to every generated line of the chapter with the local transcription model
+  // and compares the words with the text; mismatches join "To review".
+  async function checkChapter() {
+    const model = checkModels.includes("small") ? "small" : checkModels[0];
+    if (!model) return setStatus(t("Download a transcription model in Settings, Work mode, Voice notes to check takes."));
+    const ids = chapterUnits.filter((u) => u.take && u.status !== "pending").map((u) => u.id);
+    if (!ids.length) return;
+    try {
+      await checkTakes(info.id, ids, model);
+      setChecking(true);
+      setProgressNote(t("Listening to the chapter"));
     } catch (e) {
       setStatus(String(e));
     }
@@ -411,7 +453,7 @@ export function ProductionView({
           <span>{info.author}</span>
         </div>
         <span className="studio-spacer" />
-        {rendering ? (
+        {rendering || checking ? (
           <span className="studio-pill busy" role="status">
             <span className="studio-spinner" aria-hidden="true" />
             {progressNote || t("Rendering")}
@@ -421,7 +463,11 @@ export function ProductionView({
             {status}
           </span>
         ) : null}
-        {rendering ? (
+        {checking ? (
+          <button onClick={() => void cancelCheck()}>
+            <Square size={14} /> {t("Stop")}
+          </button>
+        ) : rendering ? (
           <button onClick={() => void cancelRender()}>
             <Square size={14} /> {t("Stop")}
           </button>
@@ -432,6 +478,15 @@ export function ProductionView({
             </button>
             <button className="primary" onClick={() => void render()} disabled={!counts.pending}>
               <Wand2 size={15} /> {t("Generate all")}
+            </button>
+            <button
+              className="icon-only"
+              onClick={() => void checkChapter()}
+              disabled={!chapterUnits.some((u) => u.take && u.status !== "pending")}
+              aria-label={t("Check this chapter by listening to it")}
+              data-tip={checkModels.length ? t("Check this chapter by listening to it") : t("Needs a transcription model (Settings, Work mode, Voice notes)")}
+            >
+              <Ear size={16} />
             </button>
           </div>
         )}
@@ -567,6 +622,7 @@ export function ProductionView({
               onApprove={() => approve(unit)}
               onRegenerate={() => void render({ units: [unit.id] })}
               onNext={() => nextToReview(unit.id)}
+              onPause={(pause) => void saveUnits([{ ...unit, pause }])}
               cast={info.cast || []}
               chapterSpeakers={chapterSpeakers}
               onSpeaker={(who) => void setSpeaker(unit, who)}
@@ -582,6 +638,8 @@ export function ProductionView({
                 onChange({ ...production, info: next });
               }}
               onReview={() => nextToReview("")}
+              onRegenerateFlagged={() => void render({ units: [...issues.keys()].filter((id) => units.find((u) => u.id === id)?.status !== "approved") })}
+              rendering={rendering}
               confirming={confirming}
               setConfirming={setConfirming}
               onDelete={onDelete}
@@ -662,7 +720,9 @@ function LineInspector({
   cast,
   chapterSpeakers,
   onSpeaker,
+  onPause,
 }: {
+  onPause: (pause: ProductionUnit["pause"]) => void;
   cast: CastMember[];
   chapterSpeakers: string[];
   onSpeaker: (speaker: string) => void;
@@ -760,6 +820,28 @@ function LineInspector({
         )}
       </div>
 
+      <div className="studio-field">
+        <span>{t("Pause after")}</span>
+        <div className="studio-chips small" role="radiogroup" aria-label={t("Pause after")}>
+          {(
+            [
+              [undefined, t("Normal")],
+              ["short", t("Short")],
+              ["long", t("Long")],
+            ] as [ProductionUnit["pause"], string][]
+          ).map(([value, label]) => (
+            <button key={label} role="radio" aria-checked={unit.pause === value} onClick={() => onPause(value)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      {chosenTake(production, unit)?.checks?.heard !== undefined && (
+        <p className="studio-heard">
+          <span className="muted small">{t("Heard ({n}% of the words)", { n: String(Math.round((chosenTake(production, unit)?.checks?.match ?? 0) * 100)) })}</span>
+          <span>{chosenTake(production, unit)?.checks?.heard || t("nothing")}</span>
+        </p>
+      )}
       {issues.length > 0 && (
         <div className="studio-issues" role="note">
           <strong>
@@ -828,6 +910,8 @@ function Overview({
   counts,
   onVoice,
   onReview,
+  onRegenerateFlagged,
+  rendering,
   confirming,
   setConfirming,
   onDelete,
@@ -837,6 +921,8 @@ function Overview({
   counts: { rendered: number; approved: number; review: number; pending: number };
   onVoice: (voice: string) => void;
   onReview: () => void;
+  onRegenerateFlagged: () => void;
+  rendering: boolean;
   confirming: boolean;
   setConfirming: (v: boolean) => void;
   onDelete: () => Promise<void>;
@@ -880,9 +966,14 @@ function Overview({
           <dd>{clock(spokenLength(production, units))}</dd>
         </div>
       </dl>
-      <button onClick={onReview} disabled={!counts.review}>
-        <Flag size={14} /> {t("Review flagged lines")}
-      </button>
+      <div className="studio-row">
+        <button onClick={onReview} disabled={!counts.review}>
+          <Flag size={14} /> {t("Review flagged lines")}
+        </button>
+        <button onClick={onRegenerateFlagged} disabled={!counts.review || rendering} data-tip={t("A new take for every flagged line that is not approved")}>
+          <RotateCcw size={14} /> {t("Regenerate them")}
+        </button>
+      </div>
       <div className="studio-help">
         <strong>{t("Shortcuts")}</strong>
         <ul>

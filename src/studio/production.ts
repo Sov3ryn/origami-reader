@@ -49,6 +49,8 @@ export type ProductionUnit = {
   speech?: string;
   confidence?: number;
   voice?: string;
+  // The pause after the line, when the reader changed it (phase 3).
+  pause?: "short" | "long";
 };
 
 export type Take = {
@@ -63,7 +65,7 @@ export type Take = {
   created: number;
   rate?: number;
   // Measured by the speech worker (dBFS and seconds); older takes have none.
-  checks?: { peak: number; rms: number; lead: number; trail: number };
+  checks?: { peak: number; rms: number; lead: number; trail: number; heard?: string; match?: number };
   ended?: boolean;
 };
 
@@ -151,7 +153,7 @@ export type RenderProgress = { id: string; done: number; total: number };
 export type RenderDone = { id: string; ok: boolean; cancelled?: boolean; message?: string };
 
 // --- Review ------------------------------------------------------------------------------
-export type Issue = "cut" | "fast" | "slow" | "clipping" | "quiet" | "pause" | "changed";
+export type Issue = "cut" | "fast" | "slow" | "clipping" | "quiet" | "pause" | "changed" | "mismatch";
 
 /** Speaking pace of a take in characters per second. */
 export const pace = (take: Pick<Take, "text" | "duration">) => take.text.replace(/\s+/g, " ").trim().length / Math.max(0.2, take.duration);
@@ -179,6 +181,7 @@ export function takeIssues(take: Take | undefined, unit: ProductionUnit, typical
     if (c.peak > -0.3) out.push("clipping");
     if (c.rms < -36) out.push("quiet");
     if (c.lead > 1.2 || c.trail > 1.6) out.push("pause");
+    if (c.match !== undefined && c.match < 0.8) out.push("mismatch");
   }
   return out;
 }
@@ -191,6 +194,7 @@ export const issueText: Record<Issue, string> = {
   quiet: "Much quieter than usual",
   pause: "Long silence before or after the speech",
   changed: "The text changed since this take",
+  mismatch: "What was heard does not match the text",
 };
 
 /** The take a unit plays: its chosen take. */
@@ -206,8 +210,8 @@ export function takesOf(p: Production, unitId: string) {
 /** Pauses between lines when playing or mastering: longer between paragraphs and around headings. */
 export function gapAfter(unit: ProductionUnit, next: ProductionUnit | undefined) {
   if (!next) return 0;
-  if (unit.heading || next.heading) return 1.2;
-  return unit.paragraph === next.paragraph ? 0.25 : 0.65;
+  const base = unit.heading || next.heading ? 1.2 : unit.paragraph === next.paragraph ? 0.25 : 0.65;
+  return unit.pause === "short" ? base * 0.4 : unit.pause === "long" ? Math.max(1.2, base * 2.5) : base;
 }
 
 /** Estimated length in seconds of a list of units with their chosen takes, gaps included. */
@@ -276,6 +280,40 @@ export const cancelExport = () => invoke<void>("studio_cancel_export");
 export const chooseFolder = () => invoke<string | null>("studio_choose_folder");
 export const revealFile = (path: string) => invoke<void>("studio_reveal", { path });
 export const watermarkReady = (): Promise<boolean> => (desktop ? invoke("studio_watermark_ready") : Promise.resolve(false));
+
+// --- Checks and verification (phase 3) ---------------------------------------------------
+export const checkTakes = (id: string, units: string[], model: string) => invoke<void>("studio_check_takes", { id, units, model });
+export const cancelCheck = () => invoke<void>("studio_cancel_check");
+export type CheckProgress = { id: string; done: number; total: number };
+export type CheckDone = { id: string; ok: boolean; flagged?: number; cancelled?: boolean; message?: string };
+export type Verification = {
+  cancelled?: boolean;
+  file?: string;
+  seconds?: number;
+  labels?: Record<string, string>;
+  watermark?: { missing?: boolean; detected?: boolean; probability?: number; confidence?: number; message?: string; match?: { title: string; author: string; export: string; date: number } | null };
+};
+export const verifyFile = (path?: string) => invoke<Verification>("studio_verify_file", { path: path ?? null });
+/** The transcription models installed for voice notes, smallest first. */
+export async function transcriptionModels(): Promise<string[]> {
+  if (!desktop) return [];
+  const s = await invoke<{ models: { id: string; installed: boolean }[]; runtime: boolean }>("voice_model_status");
+  return s.runtime ? s.models.filter((m) => m.installed).map((m) => m.id) : [];
+}
+
+// --- Store profiles (phase 3) --------------------------------------------------------------
+// Where the audiobook goes, what the store calls AI narration, and the format it wants.
+// Stores change their rules: the dialog says to check before publishing.
+export type StoreProfile = { id: string; name: string; narrator: string; note: string; m4b: boolean; mp3: boolean };
+export const storeProfiles: StoreProfile[] = [
+  { id: "personal", name: "Personal listening", narrator: "Digital voices", note: "For your own devices and audiobook apps.", m4b: true, mp3: false },
+  { id: "direct", name: "Direct sale or your website", narrator: "Digital voices", note: "Say in the description that the narration uses AI-generated voices.", m4b: true, mp3: true },
+  { id: "google", name: "Google Play Books", narrator: "Digital voice", note: "Google Play accepts digitally narrated audiobooks; follow its current disclosure rules.", m4b: false, mp3: true },
+  { id: "kobo", name: "Kobo", narrator: "Synthesised voice", note: "Kobo asks for the narrator to be credited as a synthesised voice.", m4b: false, mp3: true },
+  { id: "storytel", name: "Storytel", narrator: "AI voice", note: "Storytel shows the narrator with \"(AI voice)\".", m4b: false, mp3: true },
+  { id: "librofm", name: "Libro.fm", narrator: "Digital voices", note: "Libro.fm marks audiobooks narrated with AI voices.", m4b: false, mp3: true },
+];
+export const refusingStores = "Audible (ACX), Apple Books and INaudio do not accept audiobooks narrated with AI voices made on your own computer.";
 
 const CREDITS: Record<string, (title: string, author: string) => string> = {
   en: (t, a) => `${t}, by ${a}. Narrated by digital voices. Made with Origami Studio.`,

@@ -13,6 +13,8 @@ import {
   manuscript,
   revealFile,
   watermarkReady,
+  refusingStores,
+  storeProfiles,
   type ExportDone,
   type ExportProgress,
   type Production,
@@ -47,6 +49,8 @@ export function ExportDialog({
   const [font, setFont] = useState("EB Garamond");
   const [large, setLarge] = useState(false);
   const [narrator, setNarrator] = useState(t("Digital voices"));
+  const [store, setStore] = useState("personal");
+  const profile = storeProfiles.find((s) => s.id === store) || storeProfiles[0];
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [rights, setRights] = useState("");
   const [folder, setFolder] = useState("");
@@ -190,6 +194,28 @@ export function ExportDialog({
           </div>
         ) : (
           <>
+            <label className="studio-field">
+              <span>{t("Where will it go?")}</span>
+              <select
+                value={store}
+                onChange={(e) => {
+                  const next = storeProfiles.find((s) => s.id === e.target.value) || storeProfiles[0];
+                  setStore(next.id);
+                  setNarrator(t(next.narrator));
+                  setM4b(next.m4b);
+                  setMp3(next.mp3);
+                }}
+              >
+                {storeProfiles.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {t(s.name)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="studio-hint">
+              {t(profile.note)} {t("Check the store's current rules before publishing.")} {t(refusingStores)}
+            </p>
             <div className="studio-export-grid">
               <fieldset>
                 <legend>
