@@ -1,3 +1,4 @@
+import { sentencePieces } from "./sentenceSplit";
 import { t } from "./i18n";
 import type { Paragraph } from "./types";
 import { romanValue } from "./spokenText";
@@ -112,9 +113,8 @@ export function searchSnippet(text: string, query: string, radius = 48) {
   };
 }
 
-const segmenter = () => new Intl.Segmenter("en", { granularity: "sentence" });
 export function sentenceRanges(text: string) {
-  return Array.from(segmenter().segment(text))
+  return sentencePieces(text)
     .filter((s) => s.segment.trim())
     .map((s) => ({
       start: s.index,

@@ -2780,6 +2780,14 @@ html[data-hidden="true"] .ambient-layer {
     background-color 220ms ease,
     color 220ms ease;
 }
+/* The word being read (painted with the Custom Highlight API). */
+::highlight(spoken-word) {
+  background-color: var(--word-bg, color-mix(in srgb, var(--accent) 45%, transparent));
+  color: var(--mark-ink, inherit);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+}
 .unvoiced-marker {
   color: #c4573d !important;
 }
@@ -4956,12 +4964,23 @@ html[data-hidden="true"] .previous-still {
    reading, and the voice is a small chip on the right. */
 .player {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 760px) minmax(0, 1fr);
+  /* The right column is never narrower than its controls, so they cannot
+     slide under the time of the centre column. */
+  grid-template-columns: minmax(48px, 1fr) minmax(0, 760px) minmax(max-content, 1fr);
   gap: 24px;
 }
 .player > .now-playing {
   justify-self: start;
   max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  container-type: inline-size;
+}
+/* The word "Origami" beside the logo goes when its column is narrow. */
+@container (max-width: 150px) {
+  .player-brand {
+    font-size: 0;
+  }
 }
 .player-center {
   display: flex;
@@ -7081,3 +7100,37 @@ html[data-hidden="true"] .garden-effects * {
 .page-sticky .sticky-tool:hover {
   background: rgb(0 0 0 / 0.08);
 }
+
+/* Narrow windows: the navigation slides over the page too (the inspector
+   already does at 950 px), and a scrim beside an open panel closes it. */
+.panel-scrim {
+  position: absolute;
+  inset: 0 0 calc(86px * var(--ui-zoom, 1)) 0;
+  z-index: 19;
+  background: rgb(0 0 0 / 0.36);
+  animation: scrim-in 160ms ease;
+}
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (max-width: 760px) {
+  .app {
+    grid-template-columns: 0 minmax(0, 1fr) 0;
+  }
+  .sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: calc(86px * var(--ui-zoom, 1));
+    width: var(--left-width);
+    z-index: 21;
+    background: var(--bg);
+    box-shadow: 12px 0 30px #00000040;
+  }
+  .sidebar.collapsed {
+    box-shadow: none;
+  }
+}
+

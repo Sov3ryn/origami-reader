@@ -418,6 +418,17 @@ export function AppearancePanel({
         </label>
         <label
           className="check-label"
+          data-help={t("Marks each word as it is read, on its own or inside the highlighted sentence.")}
+        >
+          <input
+            type="checkbox"
+            checked={prefs.wordHighlight}
+            onChange={(e) => onChange({ wordHighlight: e.target.checked })}
+          />
+          {t("Highlight each word")}
+        </label>
+        <label
+          className="check-label"
           data-help={t("Scrolls the page to keep up with the voice.")}
         >
           <input

@@ -2774,5 +2774,7 @@
   "Late": "En retard",
   "Empty sheet": "Feuille vide",
   "This book is a script: the speakers come from its labels, and the labels are not read.": "Ce livre est un script : les locuteurs viennent de ses étiquettes, qui ne sont pas lues.",
-  "Script line": "Ligne du script"
+  "Script line": "Ligne du script",
+  "Highlight each word": "Surligner chaque mot",
+  "Marks each word as it is read, on its own or inside the highlighted sentence.": "Marque chaque mot pendant la lecture, seul ou dans la phrase surlignée."
 }

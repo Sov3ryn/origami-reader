@@ -40,6 +40,8 @@ export type BookNav = {
   turn: (direction: 1 | -1) => void;
   show: (paragraph: number) => void;
   edge: (end: boolean) => void;
+  // The word being read (its places on screen), to turn when it is on the next page.
+  word: (ranges: Range[]) => void;
 };
 
 const COVER = -2;
@@ -330,6 +332,8 @@ export function BookView({
   const [phase, setPhase] = useState<
     "closed" | "opening" | "title" | "ready" | "closing"
   >(playOpening ? "closed" : "ready");
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
   // Waits on the closed cover for a click: a new book until the reader opens
   // it, and a book the reader closed.
   const [held, setHeld] = useState(playOpening);
@@ -599,6 +603,19 @@ export function BookView({
         return;
       }
       const target = pagination.spreadOfParagraph(paragraph);
+      // Going to a passage (contents, a note) while the book is closed or
+      // opening opens it straight onto that passage.
+      if (phaseRef.current !== "ready") {
+        cancelAnimationFrame(frame.current);
+        busy.current = false;
+        setTurn(null);
+        setHeld(false);
+        setShut(false);
+        setPhase("ready");
+        setFade((f) => f + 1);
+        setSpread(target);
+        return;
+      }
       const k = spreadRef.current;
       if (k === null || target === k) return;
       if (busy.current) {
@@ -657,6 +674,16 @@ export function BookView({
       if (!pagination) return;
       setFade((f) => f + 1);
       setSpread(end ? pagination.spreads - 1 : 1);
+    },
+    // A long sentence that runs onto the next page turns it when the voice gets
+    // there, not when the next sentence starts.
+    word: (ranges) => {
+      if (!follow || !playing || busy.current || phase !== "ready") return;
+      const right = bookEl.current?.querySelector<HTMLElement>(".book-page.right .book-text");
+      if (!right) return;
+      const limit = right.getBoundingClientRect().right;
+      const here = ranges.find((r) => right.contains(r.startContainer));
+      if (here && here.getBoundingClientRect().left >= limit - 2) beginTurn(1);
     },
   };
 

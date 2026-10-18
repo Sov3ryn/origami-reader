@@ -160,6 +160,8 @@ export type Preferences = {
   paragraphPause: number;
   headingPause: number;
   highlight: "sentence" | "paragraph" | "off";
+  // The word being read, marked on its own (with or without the sentence).
+  wordHighlight: boolean;
   readerFont: string;
   letterSpacing: number;
   wordSpacing: number;
@@ -365,6 +367,7 @@ export const defaultPreferences: Preferences = {
   paragraphPause: 450,
   headingPause: 800,
   highlight: "sentence",
+  wordHighlight: false,
   readerFont: "book",
   letterSpacing: 0,
   wordSpacing: 0,

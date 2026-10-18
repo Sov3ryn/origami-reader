@@ -1,3 +1,4 @@
+import { sentencePieces } from "./sentenceSplit";
 import { unzipSync, strFromU8 } from "fflate";
 import type { Book, BookMeta, Paragraph } from "./types";
 import { coverImage } from "./covers";
@@ -244,10 +245,9 @@ export function isShortSpeech(text: string) {
   return words.length < 2 || letters < 6;
 }
 export function sentences(text: string): string[] {
-  return Array.from(
-    new Intl.Segmenter("en", { granularity: "sentence" }).segment(text),
-    (s) => s.segment,
-  ).filter((s) => s.trim());
+  return sentencePieces(text)
+    .map((s) => s.segment)
+    .filter((s) => s.trim());
 }
 // A speech unit covers sentences first..last of the cleaned text.
 export type SpeechUnit = { text: string; first: number; last: number };

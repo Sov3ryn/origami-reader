@@ -219,6 +219,8 @@ import { ConnectionsSettings } from "./work/ConnectionsSettings";
 import { makeCard } from "./work/cards";
 import { followBooks, loadWork, saveWork } from "./work/store";
 import type { Subject as WorkSubject } from "./work/types";
+import { paintWord, playedFraction, rangesFor, wordAt } from "./spokenWord";
+import { useMedia } from "./useMedia";
 type ReadingAnchor = {
   bookId: string;
   paragraphId: string;
@@ -552,8 +554,9 @@ export default function App() {
     player.status !== "idle" && prefs.highlight !== "off" ? player.current : -1;
   // The sentence being read aloud, mapped back to the book text.
   const speakingUnit = player.status === "idle" ? null : player.currentUnit;
-  const sentenceMark = useMemo(() => {
-    if (!book || !speakingUnit || prefs.highlight !== "sentence") return null;
+  // Where the spoken unit sits in the book text, whatever is highlighted.
+  const spokenRange = useMemo(() => {
+    if (!book || !speakingUnit) return null;
     const p = book.paragraphs[speakingUnit.paragraph];
     if (!p || speakingUnit.first < 0) return null;
     const count = sentences(
@@ -579,6 +582,33 @@ export default function App() {
     prefs.skipAuthorYear,
     prefs.pronunciations,
   ]);
+  const sentenceMark = prefs.highlight === "sentence" ? spokenRange : null;
+  // The word being read: estimated as the clip plays, painted when asked for,
+  // and passed to the book so a sentence running onto the next page turns it.
+  useEffect(() => {
+    const paragraph = spokenRange && book?.paragraphs[spokenRange.paragraph];
+    if (!spokenRange || !paragraph || !player.duration) {
+      paintWord(null);
+      return;
+    }
+    let last = "";
+    const tick = () => {
+      const word = wordAt(paragraph.text, spokenRange.start, spokenRange.end, playedFraction(player.getTime(), player.duration));
+      const key = word ? word.start + ":" + word.end : "";
+      if (!word || key === last) return;
+      last = key;
+      const ranges = rangesFor(paragraph.id, word);
+      paintWord(prefs.wordHighlight ? ranges : null);
+      bookNav.current?.word(ranges);
+    };
+    tick();
+    const off = player.subscribeTime(tick);
+    return () => {
+      off();
+      paintWord(null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spokenRange, player.duration, prefs.wordHighlight, book?.paragraphs]);
   const covers = useCovers(
     prefs.autoGenerateCovers,
     player.status === "idle" && !studioBusy,
@@ -1912,6 +1942,24 @@ export default function App() {
   // --- Work Mode ---------------------------------------------------------------
   const appMode: AppMode = prefs.studioMode && STUDIO_ENABLED ? "studio" : prefs.workMode ? "work" : "read";
   const otherMode = appMode !== "read";
+  // Narrow windows: the inspector (950 px and less) and then the navigation
+  // (760 px and less) slide over the page instead of taking a column. Only one
+  // is open at a time there; a click beside it closes it.
+  const overlayInspector = useMedia("(max-width: 950px)");
+  const overlayNavigation = useMedia("(max-width: 760px)");
+  const lastPanel = useRef<"left" | "right">("right");
+  useEffect(() => {
+    if (prefs.leftOpen) lastPanel.current = "left";
+  }, [prefs.leftOpen]);
+  useEffect(() => {
+    if (prefs.rightOpen) lastPanel.current = "right";
+  }, [prefs.rightOpen]);
+  useEffect(() => {
+    if (overlayNavigation && navigationOpen && inspectorOpen)
+      patchPrefs(lastPanel.current === "left" ? { rightOpen: false } : { leftOpen: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overlayNavigation, navigationOpen, inspectorOpen]);
+  const overlayOpen = !otherMode && ((overlayInspector && inspectorOpen) || (overlayNavigation && navigationOpen));
   // Studio asks for a voice to be designed for a character: open the voice
   // designer, which starts from the draft Studio left for it.
   useEffect(() => {
@@ -2376,6 +2424,15 @@ export default function App() {
       }),
     );
   }
+  // A window too narrow for the open book falls back to pages (and back):
+  // either way the reader stays on the same passage.
+  const wasBookActive = useRef(bookActive);
+  useEffect(() => {
+    if (wasBookActive.current === bookActive) return;
+    wasBookActive.current = bookActive;
+    if (book) revealPassage(book.meta.position);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookActive]);
   async function returnToReading() {
     const anchor = returnRef.current;
     if (!anchor || jumpRef.current) return;
@@ -7502,6 +7559,18 @@ export default function App() {
                     ),
                   });
               }}
+            />
+          )}
+          {overlayOpen && (
+            <div
+              className="panel-scrim"
+              aria-hidden="true"
+              onClick={() =>
+                patchPrefs({
+                  ...(overlayInspector && inspectorOpen ? { rightOpen: false } : {}),
+                  ...(overlayNavigation && navigationOpen ? { leftOpen: false } : {}),
+                })
+              }
             />
           )}
           {inspectorAvailable && (

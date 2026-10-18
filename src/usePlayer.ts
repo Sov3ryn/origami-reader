@@ -294,14 +294,34 @@ export function usePlayer(
         return;
       }
       setStatus("generating");
-      let next = get(units[0]);
+      // The voice keeps working ahead of the reader: up to AHEAD units are
+      // generated, one at a time and in order, while the current one plays,
+      // so a long sentence after a short one is ready when its turn comes.
+      const AHEAD = 3;
+      const pending: ReturnType<typeof get>[] = [];
+      let chain: Promise<unknown> = Promise.resolve();
+      const ensure = (upTo: number) => {
+        for (let k = pending.length; k <= Math.min(upTo, units.length - 1); k++) {
+          const request = chain.then(() =>
+            generation.current === token
+              ? get(units[k])
+              : { result: null, error: null },
+          );
+          pending[k] = request;
+          chain = request.then(
+            () => undefined,
+            () => undefined,
+          );
+        }
+      };
+      ensure(AHEAD);
       for (let i = 0; i < units.length; i++) {
-        const response = await next;
+        ensure(i + AHEAD);
+        const response = await pending[i];
         if (generation.current !== token) return;
         if (!response.result) throw response.error;
         const result = response.result;
         if (i === 0) onVoiceUsed(voice);
-        if (i + 1 < units.length) next = get(units[i + 1]);
         session.current!.index = i;
         setCurrent(units[i].paragraph);
         setCurrentUnit(units[i]);
