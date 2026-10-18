@@ -404,12 +404,14 @@ body.resizing-panel {
 .work-sidebar-foot {
   margin-top: auto;
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   align-items: center;
   padding-top: 6px;
 }
+/* "New note" keeps its label: in a narrow sidebar the other buttons go below. */
 .new-note {
-  flex: 1;
+  flex: 1 0 auto;
   gap: 8px;
   padding: 9px 12px;
 }

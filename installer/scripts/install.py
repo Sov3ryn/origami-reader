@@ -430,7 +430,7 @@ def online_plan(downloads, groups, options):
     """The downloads for the chosen groups and their weight in bytes."""
     device = "cuda" if options.get("speechDevice") == "cuda" else "cpu"
     steps, weight = [], 0
-    order = ["core", "speech", "speech-qwen", "speech-light", "image-runtime", "images", "images-turbo"]
+    order = ["core", "speech", "speech-qwen", "speech-qwen-large", "voice-design", "speech-light", "image-runtime", "images", "images-turbo"]
     order += sorted(name for name in downloads["groups"] if name.startswith("voices-"))
     for name in order:
         group = downloads["groups"].get(name)
@@ -551,7 +551,7 @@ def write_light_venv(dest, py):
         ".".join(map(str, sys.version_info[:3])) + "\n", encoding="utf-8")
 
 
-CONFIG_FILES = ("worker.json", "cover-engine.json", "installation.json")
+CONFIG_FILES = ("worker.json", "cover-engine.json", "voice-design.json", "installation.json")
 # The voices a new installation starts with (two women's, two men's per language).
 STARTER_VOICES = {
     "origami-en-f-01", "origami-en-f-03", "origami-en-m-01", "origami-en-m-05",
@@ -637,6 +637,12 @@ def install(base, options):
     if options.get("speech"):
         groups.add("speech-qwen")
         groups.update("voices-" + lang for lang in options.get("languages", []))
+        # The larger reader, for strong NVIDIA cards (optional).
+        if options.get("largeModel"):
+            groups.add("speech-qwen-large")
+    # The voice designer's model (optional; it uses the shared speech packages).
+    if options.get("voiceDesign"):
+        groups.update({"speech", "voice-design"})
     if light: groups.add("speech-light")
     if options.get("coverModel") or options.get("portraitModel"): groups.update({"images", "image-runtime"})
     if turbo: groups.update({"images-turbo", "image-runtime"})
@@ -744,10 +750,18 @@ def install(base, options):
             # voices chosen, Qwen reads first even without a graphics card.
             other_language = any(code != "en" for code in options.get("languages", []))
             default = "qwen3-tts-0.6b" if "qwen3-tts-0.6b" in models and (strong or not light or other_language) else "kitten-mini" if light else next(iter(models))
+            # The larger reader starts first when it was chosen for a CUDA card.
+            if "qwen3-tts-1.7b" in models and options.get("speechDevice") == "cuda":
+                default = "qwen3-tts-1.7b"
             worker = {"python": str(py), "model": models[default]["path"], "models": models,
                       "defaultModel": default, "device": "auto", "voices": voices}
             path = config / "worker.json"
             write_owned_json(path, worker, owned_configs)
+        if "voice-design" in groups:
+            designer = {"name": "Qwen VoiceDesign 1.7B", "model": str(dest / "models/Qwen3-TTS-12Hz-1.7B-VoiceDesign"),
+                        "python": str(py), "device": "auto"}
+            write_owned_json(config / "voice-design.json", {"python": str(py), "models": {"qwen-voice-design": designer}},
+                             owned_configs)
         if "image-runtime" in groups:
             exe = str(dest / ("image-runtime/sd-cli.exe" if platform == "windows" else "image-runtime/sd-cli"))
             image_models = {}

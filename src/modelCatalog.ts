@@ -25,6 +25,7 @@ export const modelCatalog: ModelEntry[] = [
       "A capable NVIDIA GPU is recommended. CPU generation can be slow; the model unloads after each batch.",
     license: "Apache 2.0",
     downloadUrl: null,
+    download: { bytes: 4_520_162_313 },
   },
   {
     id: "kitten-mini",
@@ -83,6 +84,7 @@ export const modelCatalog: ModelEntry[] = [
     license: "Apache 2.0",
     voices: "custom",
     downloadUrl: null,
+    download: { bytes: 4_544_228_181 },
   },
   {
     id: "sd15-lcm",
@@ -161,8 +163,10 @@ export function recommendations(
   );
   return {
     reader:
-      nvidia >= 5500 || !english
-        ? "qwen3-tts-0.6b"
+      nvidia >= 10000
+        ? "qwen3-tts-1.7b"
+        : nvidia >= 5500 || !english
+          ? "qwen3-tts-0.6b"
         : p.memoryMb >= 8000 && p.threads >= 4
           ? "kokoro"
           : p.memoryMb < 4000

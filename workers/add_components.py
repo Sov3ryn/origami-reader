@@ -19,7 +19,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 LIGHT = ("kitten-mini", "kitten-micro", "kokoro")
 IMAGES = ("dreamshaper-8-lcm", "sd-turbo")
-MODELS = ("qwen3-tts-0.6b", *LIGHT, *IMAGES)
+READERS = ("qwen3-tts-0.6b", "qwen3-tts-1.7b")
+MODELS = (*READERS, "qwen-voice-design", *LIGHT, *IMAGES)
 
 
 def load_setup():
@@ -68,6 +69,10 @@ def main():
     groups = set()
     if model == "qwen3-tts-0.6b":
         groups.add("speech-qwen")
+    if model == "qwen3-tts-1.7b":
+        groups.add("speech-qwen-large")
+    if model == "qwen-voice-design":
+        groups.add("voice-design")
     if model in LIGHT:
         groups.add("speech-light")
     if groups and not has_torch:
@@ -79,7 +84,7 @@ def main():
     if model in IMAGES and not sd.is_file():
         groups.add("image-runtime")
     # A graphics card for speech gets the CUDA packages, like setup.
-    device = "cuda" if model == "qwen3-tts-0.6b" and nvidia() else "cpu"
+    device = "cuda" if model not in LIGHT and nvidia() else "cpu"
     steps, weight, device = s.online_plan(downloads, groups, {"speechDevice": device})
     extra = downloads["groups"]["images-turbo"]["bytes"] if "images-turbo" in groups else 0
     if shutil.disk_usage(dest).free < weight + extra + 512 * 1024**2:
@@ -88,7 +93,16 @@ def main():
     s.run_online(dest, dest, py, steps, device, progress, downloads)
     s.send(event="progress", percent=96, message="Applying")
 
-    if model == "qwen3-tts-0.6b" or model in LIGHT:
+    if model == "qwen-voice-design":
+        # The voice designer's configuration sits beside the speech one.
+        designer_path = worker_path.with_name("voice-design.json")
+        designer = read_json(designer_path)
+        designer.setdefault("python", str(py))
+        designer.setdefault("models", {})["qwen-voice-design"] = {
+            "name": "Qwen VoiceDesign 1.7B", "model": str(dest / "models/Qwen3-TTS-12Hz-1.7B-VoiceDesign"),
+            "python": str(py), "device": "auto"}
+        write_json(designer_path, designer)
+    elif model in READERS or model in LIGHT:
         worker = read_json(worker_path)
         worker.setdefault("python", str(py))
         worker.setdefault("device", "auto")
@@ -98,6 +112,9 @@ def main():
             models[model] = {"engine": "qwen", "path": str(dest / "models/Qwen3-TTS-12Hz-0.6B-Base"), "name": "Qwen3-TTS 0.6B",
                              "description": "Natural voices, custom voices and several languages. Best with a graphics card.",
                              "tier": "standard"}
+        elif model == "qwen3-tts-1.7b":
+            models[model] = {"engine": "qwen", "path": str(dest / "models/Qwen3-TTS-12Hz-1.7B-Base"), "name": "Qwen3-TTS 1.7B",
+                             "description": "Most natural. Needs a strong NVIDIA graphics card.", "tier": "high"}
         else:
             light_python = dest / ("python-light/Scripts/python.exe" if sys.platform == "win32" else "python-light/bin/python3")
             for key, folder, name, description in (

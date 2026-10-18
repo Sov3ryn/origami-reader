@@ -179,6 +179,9 @@ export default function App() {
   // Optional model packs present in this kit.
   const [hasLight, setHasLight] = useState(!native);
   const [hasTurbo, setHasTurbo] = useState(!native);
+  // The larger Qwen models are offered when the kit's catalog lists them.
+  const [hasLarge, setHasLarge] = useState(false);
+  const [hasDesigner, setHasDesigner] = useState(false);
   const [availableLanguages, setAvailableLanguages] = useState(
     native ? ([] as typeof languages) : languages,
   );
@@ -276,6 +279,8 @@ export default function App() {
         const turbo = info.files.some((f) => f.group === "images-turbo") || Boolean(groups?.["images-turbo"]);
         setHasLight(light);
         setHasTurbo(turbo);
+        setHasLarge(Boolean(groups?.["speech-qwen-large"]));
+        setHasDesigner(Boolean(groups?.["voice-design"]));
         setOptions((previous) => ({
           ...previous,
           // Online, only English is ticked at first: each pack is a download.
@@ -385,6 +390,8 @@ export default function App() {
     options.portraitModel && "Portrait model",
     hasLight && options.lightVoices && "Light voices",
     hasTurbo && options.turboModel && "Fast picture model",
+    hasLarge && options.speech && options.largeModel && "Qwen3-TTS 1.7B",
+    hasDesigner && options.voiceDesign && "Voice designer",
   ].filter(Boolean) as string[];
   const folderError = pathError(options.platform, folderDraft);
   // What setup will download for the current choices, in bytes.
@@ -398,6 +405,8 @@ export default function App() {
       options.languages.forEach((id) => chosen.add(`voices-${id}`));
     }
     if (hasLight && options.lightVoices) chosen.add("speech-light");
+    if (hasLarge && options.speech && options.largeModel) chosen.add("speech-qwen-large");
+    if (hasDesigner && options.voiceDesign) ["speech", "voice-design"].forEach((g) => chosen.add(g));
     if (options.coverModel || options.portraitModel) ["images", "image-runtime"].forEach((g) => chosen.add(g));
     if (hasTurbo && options.turboModel) ["images-turbo", "image-runtime"].forEach((g) => chosen.add(g));
     let sum = 0;
@@ -549,6 +558,8 @@ export default function App() {
             modelTermsAccepted: terms,
             lightVoices: hasLight && options.lightVoices,
             turboModel: hasTurbo && options.turboModel,
+            largeModel: hasLarge && options.speech && options.largeModel,
+            voiceDesign: hasDesigner && options.voiceDesign,
             speechDevice: system?.speech || "cpu",
             replaceEarlier,
             amdSpeech:
@@ -1257,6 +1268,28 @@ export default function App() {
                     )}
                     checked={options.lightVoices}
                     onChange={(value) => update("lightVoices", value)}
+                  />
+                )}
+                {hasLarge && (
+                  <Toggle
+                    label={t("Install Qwen3-TTS 1.7B")}
+                    detail={t(
+                      "The most natural voices, beside Qwen3-TTS 0.6B. For NVIDIA graphics cards with 10 GB of memory or more. About 4.5 GB.",
+                    )}
+                    checked={options.speech && options.largeModel}
+                    onChange={(value) =>
+                      setOptions((prev) => ({ ...prev, largeModel: value, speech: value || prev.speech }))
+                    }
+                  />
+                )}
+                {hasDesigner && (
+                  <Toggle
+                    label={t("Install the voice designer")}
+                    detail={t(
+                      "Qwen VoiceDesign 1.7B creates new voices from a description. Best with an NVIDIA graphics card. About 4.5 GB.",
+                    )}
+                    checked={options.voiceDesign}
+                    onChange={(value) => update("voiceDesign", value)}
                   />
                 )}
                 {hasTurbo && (

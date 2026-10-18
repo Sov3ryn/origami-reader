@@ -2785,5 +2785,10 @@
   "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini, Kitten Micro và Kokoro được tải xuống cùng nhau.",
   "More voices to download": "Thêm giọng để tải xuống",
   "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "Gợi ý chỉ là điểm khởi đầu, không phải yêu cầu. Bạn có thể dùng bất kỳ mô hình đã cài nào hoặc tải xuống mô hình khác tại đây. Mỗi tệp đến từ nhà phát hành mô hình và được kiểm tra trước khi dùng.",
-  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "Các giọng này do Qwen3-TTS đọc. Hãy tải xuống trong Cài đặt, Mô hình."
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "Các giọng này do Qwen3-TTS đọc. Hãy tải xuống trong Cài đặt, Mô hình.",
+  "Install Qwen3-TTS 1.7B": "Cài Qwen3-TTS 1.7B",
+  "Install the voice designer": "Cài trình thiết kế giọng",
+  "Qwen VoiceDesign 1.7B creates new voices from a description. Best with an NVIDIA graphics card. About 4.5 GB.": "Qwen VoiceDesign 1.7B tạo giọng mới từ một mô tả. Chạy tốt nhất với card đồ họa NVIDIA. Khoảng 4,5 GB.",
+  "Qwen3-TTS 1.7B": "Qwen3-TTS 1.7B",
+  "The most natural voices, beside Qwen3-TTS 0.6B. For NVIDIA graphics cards with 10 GB of memory or more. About 4.5 GB.": "Giọng tự nhiên nhất, bên cạnh Qwen3-TTS 0.6B. Dành cho card đồ họa NVIDIA có bộ nhớ từ 10 GB trở lên. Khoảng 4,5 GB."
 }

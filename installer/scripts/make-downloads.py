@@ -18,6 +18,8 @@ SD_TURBO_GGUF = {"sha256": "1e090f6aaee21d9392599bc0ae5056543c72aee917fa971b05e5
 # Same revisions the app downloads from (src-tauri/src/handwriting.rs, embed.rs).
 TROCR = ("Xenova/trocr-base-handwritten", "e301d1c4c4d4ece88f164518eb7aee07062eaca2")
 GRANITE = ("ibm-granite/granite-embedding-97m-multilingual-r2", "835ad14087e140460703cf0fae09f97d469d65c2")
+QWEN_LARGE = ("Qwen/Qwen3-TTS-12Hz-1.7B-Base", "fd4b254389122332181a7c3db7f27e918eec64e3")
+VOICE_DESIGN = ("Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign", "5ecdb67327fd37bb2e042aab12ff7391903235d3")
 
 
 def api(path):
@@ -123,6 +125,12 @@ def main():
                         "wheelBytes": {k: sum(w["size"] for w in v) for k, v in wheels.items()}}
     groups["speech-qwen"] = {"label": "Qwen3-TTS 0.6B",
                              "files": model("Qwen/Qwen3-TTS-12Hz-0.6B-Base", "models/Qwen3-TTS-12Hz-0.6B-Base")}
+    # Optional larger readers: Qwen3-TTS 1.7B (strong NVIDIA cards) and the
+    # voice designer's model, offered in setup and in Settings, Models.
+    groups["speech-qwen-large"] = {"label": "Qwen3-TTS 1.7B",
+                                   "files": model(*QWEN_LARGE[:1], "models/Qwen3-TTS-12Hz-1.7B-Base", rev=QWEN_LARGE[1])}
+    groups["voice-design"] = {"label": "Qwen VoiceDesign 1.7B",
+                              "files": model(*VOICE_DESIGN[:1], "models/Qwen3-TTS-12Hz-1.7B-VoiceDesign", rev=VOICE_DESIGN[1])}
     groups["speech-light"] = {"label": "Light voices", "pip": "light.txt", "estimate": 330_000_000,
                               "files": model("KittenML/kitten-tts-mini-0.8", "models/kitten-tts-mini-0.8")
                               + model("KittenML/kitten-tts-micro-0.8", "models/kitten-tts-micro-0.8")

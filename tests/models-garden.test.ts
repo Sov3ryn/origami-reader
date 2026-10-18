@@ -34,9 +34,9 @@ it("recommendations point to downloadable models and use conservative unknown ha
       threads: 24,
       laptop: false,
     }),
-  ).toEqual({ reader: "qwen3-tts-0.6b", image: "dreamshaper-8-lcm" });
+  ).toEqual({ reader: "qwen3-tts-1.7b", image: "dreamshaper-8-lcm" });
   expect(modelCatalog).toHaveLength(11);
-  const recommendable = ["kitten-mini", "kokoro", "qwen3-tts-0.6b", "dreamshaper-8-lcm"];
+  const recommendable = ["kitten-mini", "kokoro", "qwen3-tts-0.6b", "qwen3-tts-1.7b", "qwen-voice-design", "dreamshaper-8-lcm"];
   expect(recommendable.every((id) => modelCatalog.find((m) => m.id === id)?.download)).toBe(true);
   expect(modelCatalog.every((m) => m.downloadUrl === null)).toBe(true);
 });

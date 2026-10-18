@@ -46,6 +46,10 @@ export interface SetupOptions {
   lightVoices: boolean;
   // SD-Turbo: fast covers and portraits on modest computers.
   turboModel: boolean;
+  // Qwen3-TTS 1.7B beside 0.6B, for strong NVIDIA cards (optional download).
+  largeModel: boolean;
+  // Qwen VoiceDesign 1.7B, the voice designer's model (optional download).
+  voiceDesign: boolean;
   shortcuts: boolean;
   updates: boolean;
   startOnLogin: boolean;
@@ -109,6 +113,8 @@ export function initialOptions(): SetupOptions {
     portraitModel: false,
     lightVoices: true,
     turboModel: false,
+    largeModel: false,
+    voiceDesign: false,
     shortcuts: true,
     updates: true,
     startOnLogin: false,

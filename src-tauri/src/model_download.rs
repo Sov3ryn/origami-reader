@@ -87,7 +87,7 @@ pub fn download(app: &AppHandle, model: &str, accept_terms: bool, language: &str
         }
     }
     // The natural voices need voices of their own: the starters for the language.
-    if model == "qwen3-tts-0.6b" {
+    if model.starts_with("qwen3-tts") {
         let has_voice = crate::speech::voices(app).iter().any(|v| v["engine"].as_str().unwrap_or("qwen") == "qwen");
         if !has_voice {
             let ids = STARTERS.iter().find(|(code, _)| *code == language).unwrap_or(&STARTERS[0]).1;

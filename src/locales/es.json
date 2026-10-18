@@ -2785,5 +2785,10 @@
   "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini, Kitten Micro y Kokoro se descargan juntos.",
   "More voices to download": "Más voces para descargar",
   "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "Las recomendaciones son puntos de partida, no requisitos. Puedes usar cualquier modelo instalado o descargar otro aquí. Cada archivo procede del editor del modelo y se comprueba antes de usarlo.",
-  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "Estas voces las lee Qwen3-TTS. Descárgalo en Ajustes, Modelos."
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "Estas voces las lee Qwen3-TTS. Descárgalo en Ajustes, Modelos.",
+  "Install Qwen3-TTS 1.7B": "Instalar Qwen3-TTS 1.7B",
+  "Install the voice designer": "Instalar el diseñador de voces",
+  "Qwen VoiceDesign 1.7B creates new voices from a description. Best with an NVIDIA graphics card. About 4.5 GB.": "Qwen VoiceDesign 1.7B crea voces nuevas a partir de una descripción. Funciona mejor con una tarjeta gráfica NVIDIA. Unos 4,5 GB.",
+  "Qwen3-TTS 1.7B": "Qwen3-TTS 1.7B",
+  "The most natural voices, beside Qwen3-TTS 0.6B. For NVIDIA graphics cards with 10 GB of memory or more. About 4.5 GB.": "Las voces más naturales, además de Qwen3-TTS 0.6B. Para tarjetas gráficas NVIDIA con 10 GB de memoria o más. Unos 4,5 GB."
 }
