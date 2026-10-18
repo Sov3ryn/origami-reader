@@ -2799,5 +2799,13 @@
   "Download now": "Télécharger maintenant",
   "Download now ({size})": "Télécharger maintenant ({size})",
   "Later": "Plus tard",
-  "Origami {version} is available": "Origami {version} est disponible"
+  "Origami {version} is available": "Origami {version} est disponible",
+  "4 voices to start, {count} in the app's library": "4 voix pour commencer, {count} dans la bibliothèque de l'app",
+  "Download ({size})": "Télécharger ({size})",
+  "Downloading": "Téléchargement",
+  "Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.": "Survolez une voix pour l'écouter ou la télécharger. Chaque voix est un petit téléchargement, vérifié avant d'être utilisé.",
+  "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini, Kitten Micro et Kokoro se téléchargent ensemble.",
+  "More voices to download": "Autres voix à télécharger",
+  "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "Les recommandations sont des points de départ, pas des exigences. Vous pouvez utiliser n'importe quel modèle installé ou en télécharger un autre ici. Chaque fichier vient de l'éditeur du modèle et est vérifié avant d'être utilisé.",
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "Ces voix sont lues par Qwen3-TTS. Téléchargez-le dans Paramètres, Modèles."
 }

@@ -16,6 +16,8 @@ mod studio_verify;
 mod studio_asr;
 mod studio_models;
 mod studio_archive;
+mod voice_store;
+mod model_download;
 mod update;
 mod vault;
 mod voice_studio;
@@ -1014,6 +1016,33 @@ fn studio_clear_bed(app: tauri::AppHandle, id: String) -> Result<()> {
     Ok(())
 }
 
+// --- The voice library: voices not installed yet ------------------------------------
+#[tauri::command]
+async fn voice_store_list(app: tauri::AppHandle) -> Result<Vec<Value>> {
+    tauri::async_runtime::spawn_blocking(move || voice_store::list(&app)).await.map_err(|e| e.to_string())?
+}
+#[tauri::command]
+async fn voice_store_preview(app: tauri::AppHandle, id: String) -> Result<String> {
+    tauri::async_runtime::spawn_blocking(move || voice_store::preview(&app, &id).map(|d| STANDARD.encode(d)))
+        .await
+        .map_err(|e| e.to_string())?
+}
+#[tauri::command]
+async fn voice_store_install(app: tauri::AppHandle, id: String) -> Result<()> {
+    tauri::async_runtime::spawn_blocking(move || voice_store::install(&app, &id)).await.map_err(|e| e.to_string())?
+}
+// --- Models added after setup, from Settings -----------------------------------------
+#[tauri::command]
+async fn model_download(app: tauri::AppHandle, model: String, accept_terms: bool, language: String) -> Result<Value> {
+    tauri::async_runtime::spawn_blocking(move || model_download::download(&app, &model, accept_terms, &language))
+        .await
+        .map_err(|e| e.to_string())?
+}
+#[tauri::command]
+fn model_download_cancel() -> Result<()> {
+    model_download::cancel()
+}
+
 /// Pages of the print book as images, for the export dialog's preview.
 #[tauri::command]
 async fn studio_preview_print(manuscript: Value, print: Value, first: usize, count: usize) -> Result<Value> {
@@ -1784,7 +1813,8 @@ pub fn run() {
             studio_analysis_status, studio_analysis_chat, studio_analysis_stop, studio_replace_units,
             studio_verify_file, studio_check_takes, studio_cancel_check,
             studio_asr_ready, studio_pick_recordings, studio_transcribe, studio_cancel_transcribe, studio_preview_print,
-            studio_save_portable, studio_open_portable, studio_recording_clip, studio_choose_bed, studio_clear_bed, studio_recording_readalong,
+            studio_save_portable, studio_open_portable, studio_recording_clip, studio_choose_bed, studio_clear_bed,
+            voice_store_list, voice_store_preview, voice_store_install, model_download, model_download_cancel, studio_recording_readalong,
             studio_setup_status, studio_setup_download, studio_setup_cancel,
             starter_library_installed,
             install_starter_library,

@@ -2777,5 +2777,13 @@
   "Read by the Studio cast. Choose to go back to the live voice.": "Do dàn vai Studio đọc. Chọn để quay lại giọng đọc trực tiếp.",
   "Read this book with its Studio production: the cast and the takes made in Studio.": "Đọc sách này với dự án Studio của nó: dàn vai và các bản thu làm trong Studio.",
   "Stories": "Truyện",
-  "Studio cast": "Dàn vai Studio"
+  "Studio cast": "Dàn vai Studio",
+  "4 voices to start, {count} in the app's library": "4 giọng để bắt đầu, {count} giọng trong thư viện của ứng dụng",
+  "Download ({size})": "Tải xuống ({size})",
+  "Downloading": "Đang tải xuống",
+  "Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.": "Di chuột lên một giọng để nghe thử hoặc tải xuống. Mỗi giọng là một tệp nhỏ và được kiểm tra trước khi dùng.",
+  "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini, Kitten Micro và Kokoro được tải xuống cùng nhau.",
+  "More voices to download": "Thêm giọng để tải xuống",
+  "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "Gợi ý chỉ là điểm khởi đầu, không phải yêu cầu. Bạn có thể dùng bất kỳ mô hình đã cài nào hoặc tải xuống mô hình khác tại đây. Mỗi tệp đến từ nhà phát hành mô hình và được kiểm tra trước khi dùng.",
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "Các giọng này do Qwen3-TTS đọc. Hãy tải xuống trong Cài đặt, Mô hình."
 }

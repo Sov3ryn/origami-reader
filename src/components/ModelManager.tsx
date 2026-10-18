@@ -1,13 +1,25 @@
 import { useEffect, useState } from "react";
-import { Check, Download, HardDrive, RefreshCw, Trash2 } from "lucide-react";
+import { listen } from "@tauri-apps/api/event";
+import { Check, Download, HardDrive, RefreshCw, Trash2, X } from "lucide-react";
 import {
   modelCatalog,
   recommendations,
+  type ModelEntry,
   type ModelInstallation,
 } from "../modelCatalog";
 import { hardwareSummary, type SystemProfile } from "../hardware";
 import * as store from "../storage";
-import { t } from "../i18n";
+import { currentLanguage, formatNumber, t } from "../i18n";
+import openRailLicense from "../../docs/licenses/DreamShaper-OpenRAIL-M.txt?raw";
+import stabilityLicense from "../../docs/licenses/SD-Turbo-LICENSE.txt?raw";
+
+type DownloadProgress = { model: string; percent: number; message: string; file?: string };
+
+function gigabytes(bytes: number) {
+  return bytes >= 1e9
+    ? formatNumber(Math.round(bytes / 1e8) / 10) + " GB"
+    : formatNumber(Math.max(1, Math.round(bytes / 1e6))) + " MB";
+}
 
 export function ModelManager({
   reader,
@@ -27,6 +39,35 @@ export function ModelManager({
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
   const [remove, setRemove] = useState<ModelInstallation | null>(null);
+  // A download in progress, and the image model whose license is open.
+  const [progress, setProgress] = useState<DownloadProgress | null>(null);
+  const [terms, setTerms] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  useEffect(() => {
+    const off = listen<DownloadProgress & { event: string }>("model-download", (e) => {
+      if (e.payload.event === "progress") setProgress(e.payload);
+    });
+    return () => void off.then((stop) => stop());
+  }, []);
+  async function download(model: ModelEntry) {
+    setBusy(model.id);
+    setMessage("");
+    setProgress({ model: model.id, percent: 0, message: "Preparing" });
+    try {
+      await beforeChange();
+      setItems(
+        await store.downloadModel(model.id, !!model.terms && agreed, currentLanguage()),
+      );
+      await onChanged();
+      setTerms("");
+      setMessage(t("{name} is ready.", { name: model.name }));
+    } catch (e) {
+      setMessage(String(e));
+    } finally {
+      setBusy("");
+      setProgress(null);
+    }
+  }
   async function refresh() {
     setItems(await store.modelInventory());
     setHardware(await store.systemProfile());
@@ -34,7 +75,7 @@ export function ModelManager({
   useEffect(() => {
     void refresh().catch((e) => setMessage(String(e)));
   }, []);
-  const recommended = recommendations(hardware);
+  const recommended = recommendations(hardware, currentLanguage());
   async function select(kind: "reader" | "image", id: string) {
     setBusy(id);
     setMessage("");
@@ -89,7 +130,7 @@ export function ModelManager({
       </div>
       <p className="hint">
         {t(
-          "Recommendations are starting points, not requirements. You can choose any installed model. Download links will be added later.",
+          "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.",
         )}
       </p>
       <p role="status">{message}</p>
@@ -154,11 +195,13 @@ export function ModelManager({
                     <details>
                       <summary>{t("License")}</summary>
                       <p className="hint">{model.license}</p>
-                      <p className="hint">
-                        {t(
-                          "Full model terms and notices must be accepted when downloads become available.",
-                        )}
-                      </p>
+                      {!model.download && (
+                        <p className="hint">
+                          {t(
+                            "Full model terms and notices must be accepted when downloads become available.",
+                          )}
+                        </p>
+                      )}
                     </details>
                     <div className="model-actions">
                       {item.installed ? (
@@ -195,6 +238,34 @@ export function ModelManager({
                         >
                           {t("Reconnect local model")}
                         </button>
+                      ) : model.download ? (
+                        model.terms && terms === model.id ? null : progress?.model === model.id ? (
+                          <div className="model-progress" role="status">
+                            <progress max={100} value={progress.percent} />
+                            <small>
+                              {t(progress.message)}
+                              {progress.file ? " · " + progress.file : ""}
+                            </small>
+                            <button onClick={() => void store.cancelModelDownload()}>
+                              <X size={15} />
+                              {t("Cancel")}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className="primary"
+                            disabled={!!busy}
+                            onClick={() => {
+                              if (model.terms && terms !== model.id) {
+                                setTerms(model.id);
+                                setAgreed(false);
+                              } else void download(model);
+                            }}
+                          >
+                            <Download size={15} />
+                            {t("Download ({size})", { size: gigabytes(model.download.bytes) })}
+                          </button>
+                        )
                       ) : (
                         <button
                           disabled
@@ -205,6 +276,47 @@ export function ModelManager({
                         </button>
                       )}
                     </div>
+                    {model.download?.together && !item.installed && (
+                      <p className="hint">
+                        {t("Kitten Mini, Kitten Micro and Kokoro download together.")}
+                      </p>
+                    )}
+                    {model.terms && terms === model.id && !item.installed && (
+                      <div className="model-removal model-terms" role="group" aria-label={t("Image model license")}>
+                        <p>
+                          {t(
+                            model.terms === "stability"
+                              ? "SD-Turbo is provided under the Stability AI Community License. Powered by Stability AI."
+                              : "DreamShaper is provided under CreativeML OpenRAIL-M. Its use restrictions apply to generated content and redistribution.",
+                          )}
+                        </p>
+                        <details>
+                          <summary>{t("Read the image model license")}</summary>
+                          <pre className="license-text">
+                            {model.terms === "stability" ? stabilityLicense : openRailLicense}
+                          </pre>
+                        </details>
+                        <label className="check">
+                          <input
+                            type="checkbox"
+                            checked={agreed}
+                            onChange={(e) => setAgreed(e.target.checked)}
+                          />
+                          {t("I agree to the image model license and its use restrictions.")}
+                        </label>
+                        <button
+                          className="primary"
+                          disabled={!agreed || !!busy}
+                          onClick={() => void download(model)}
+                        >
+                          <Download size={15} />
+                          {t("Download ({size})", { size: gigabytes(model.download!.bytes) })}
+                        </button>
+                        <button disabled={!!busy} onClick={() => setTerms("")}>
+                          {t("Cancel")}
+                        </button>
+                      </div>
+                    )}
                     {remove?.id === model.id && (
                       <div
                         className="model-removal"

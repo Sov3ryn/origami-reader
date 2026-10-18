@@ -2777,5 +2777,13 @@
   "Read by the Studio cast. Choose to go back to the live voice.": "Читають голоси ролей зі Studio. Виберіть, щоб повернутися до голосу в реальному часі.",
   "Read this book with its Studio production: the cast and the takes made in Studio.": "Читати цю книжку з її постановкою в Studio: ролями й дублями, створеними в Studio.",
   "Stories": "Історії",
-  "Studio cast": "Ролі зі Studio"
+  "Studio cast": "Ролі зі Studio",
+  "4 voices to start, {count} in the app's library": "4 голоси для початку, {count} у бібліотеці застосунку",
+  "Download ({size})": "Завантажити ({size})",
+  "Downloading": "Завантаження",
+  "Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.": "Наведіть вказівник на голос, щоб прослухати або завантажити його. Кожен голос займає небагато місця й перевіряється перед використанням.",
+  "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini, Kitten Micro і Kokoro завантажуються разом.",
+  "More voices to download": "Інші голоси для завантаження",
+  "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "Рекомендації є відправною точкою, а не вимогою. Можна використовувати будь-яку встановлену модель або завантажити іншу тут. Кожен файл надходить від видавця моделі й перевіряється перед використанням.",
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "Ці голоси читає Qwen3-TTS. Завантажте його в розділі Налаштування, Моделі."
 }

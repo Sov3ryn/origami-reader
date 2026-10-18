@@ -291,6 +291,11 @@ export type Voice = {
   otherModel?: boolean;
   // Made in the voice designer rather than installed with Origami.
   created?: boolean;
+  // In the voice library, not on this computer yet (with its download size).
+  store?: boolean;
+  size?: number;
+  // Library voices read by Qwen3-TTS, which is not on this computer yet.
+  needsQwen?: boolean;
 };
 export type LibraryFilters = {
   author: string;

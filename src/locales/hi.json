@@ -2777,5 +2777,13 @@
   "Read by the Studio cast. Choose to go back to the live voice.": "Studio के पात्रों द्वारा पढ़ा जा रहा है। लाइव आवाज़ पर लौटने के लिए चुनें।",
   "Read this book with its Studio production: the cast and the takes made in Studio.": "इस किताब को उसके Studio प्रोडक्शन के साथ पढ़ें: Studio में बने पात्र और टेक।",
   "Stories": "कहानियाँ",
-  "Studio cast": "Studio पात्र"
+  "Studio cast": "Studio पात्र",
+  "4 voices to start, {count} in the app's library": "शुरुआत में 4 आवाज़ें, ऐप की लाइब्रेरी में {count}",
+  "Download ({size})": "डाउनलोड करें ({size})",
+  "Downloading": "डाउनलोड हो रहा है",
+  "Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.": "किसी आवाज़ को सुनने या डाउनलोड करने के लिए उस पर पॉइंटर रखें। हर आवाज़ छोटा डाउनलोड है, जिसे इस्तेमाल से पहले जाँचा जाता है।",
+  "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini, Kitten Micro और Kokoro एक साथ डाउनलोड होते हैं।",
+  "More voices to download": "डाउनलोड के लिए और आवाज़ें",
+  "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "सुझाव शुरुआती बिंदु हैं, ज़रूरतें नहीं। आप कोई भी इंस्टॉल किया गया मॉडल इस्तेमाल कर सकते हैं या यहाँ दूसरा डाउनलोड कर सकते हैं। हर फ़ाइल मॉडल के प्रकाशक से आती है और इस्तेमाल से पहले जाँची जाती है।",
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "ये आवाज़ें Qwen3-TTS पढ़ता है। इसे सेटिंग्स, मॉडल में डाउनलोड करें।"
 }

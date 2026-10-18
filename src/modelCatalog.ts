@@ -8,6 +8,11 @@ export type ModelEntry = {
   license: string;
   voices?: "built-in" | "custom";
   downloadUrl: null;
+  // Downloadable from Settings (workers/add_components.py), with its size.
+  // "together": the three light readers come as one download.
+  download?: { bytes: number; together?: boolean };
+  // The license text to accept before downloading (image models).
+  terms?: "openrail" | "stability";
 };
 export const modelCatalog: ModelEntry[] = [
   {
@@ -29,6 +34,7 @@ export const modelCatalog: ModelEntry[] = [
     hardware: "CPU; start here on modest computers.",
     license: "Apache 2.0",
     voices: "built-in",
+    download: { bytes: 455_527_848, together: true },
     downloadUrl: null,
   },
   {
@@ -40,6 +46,7 @@ export const modelCatalog: ModelEntry[] = [
     hardware: "CPU; smallest reader option.",
     license: "Apache 2.0",
     voices: "built-in",
+    download: { bytes: 455_527_848, together: true },
     downloadUrl: null,
   },
   {
@@ -50,6 +57,7 @@ export const modelCatalog: ModelEntry[] = [
     hardware: "CPU; suitable for everyday laptops and desktops.",
     license: "Apache 2.0",
     voices: "built-in",
+    download: { bytes: 455_527_848, together: true },
     downloadUrl: null,
   },
   {
@@ -62,6 +70,7 @@ export const modelCatalog: ModelEntry[] = [
       "NVIDIA GPU preferred; strong CPU or Apple silicon may be slower.",
     license: "Apache 2.0",
     voices: "custom",
+    download: { bytes: 2_516_104_532 },
     downloadUrl: null,
   },
   {
@@ -92,6 +101,19 @@ export const modelCatalog: ModelEntry[] = [
     hardware: "Compatible Vulkan GPU; CPU fallback.",
     license: "CreativeML OpenRAIL-M and author permissions",
     downloadUrl: null,
+    download: { bytes: 2_163_944_109 },
+    terms: "openrail",
+  },
+  {
+    id: "sd-turbo",
+    name: "SD-Turbo",
+    kind: "image",
+    description: "Fast covers and portraits in a single step. Powered by Stability AI.",
+    hardware: "Compatible Vulkan GPU; CPU fallback.",
+    license: "Stability AI Community License",
+    downloadUrl: null,
+    download: { bytes: 5_244_700_445 },
+    terms: "stability",
   },
   {
     id: "sdxl-lightning",
@@ -118,31 +140,34 @@ export type ModelInstallation = {
   availableLocally: boolean;
   managed: boolean;
 };
-export function recommendations(p: SystemProfile | null): {
+// Starting points among the models Origami can download. The light readers
+// speak English only, so another reading language starts with Qwen.
+export function recommendations(
+  p: SystemProfile | null,
+  language = "en",
+): {
   reader: string;
   image: string;
 } {
-  if (!p || !p.memoryMb) return { reader: "kitten-mini", image: "sd15-lcm" };
+  const english = language.slice(0, 2) === "en";
+  if (!p || !p.memoryMb)
+    return {
+      reader: english ? "kitten-mini" : "qwen3-tts-0.6b",
+      image: "dreamshaper-8-lcm",
+    };
   const nvidia = Math.max(
     0,
     ...p.gpus.filter((g) => g.vendor === "nvidia").map((g) => g.vramMb),
   );
   return {
     reader:
-      nvidia >= 10000
-        ? "qwen3-tts-1.7b"
-        : nvidia >= 5500
-          ? "qwen3-tts-0.6b"
-          : p.memoryMb >= 8000 && p.threads >= 4
-            ? "kokoro"
-            : p.memoryMb < 4000
-              ? "kitten-micro"
-              : "kitten-mini",
-    image:
-      nvidia >= 15000 && p.memoryMb >= 30000
-        ? "z-image-turbo"
-        : nvidia >= 7000
-          ? "sdxl-lightning"
-          : "sd15-lcm",
+      nvidia >= 5500 || !english
+        ? "qwen3-tts-0.6b"
+        : p.memoryMb >= 8000 && p.threads >= 4
+          ? "kokoro"
+          : p.memoryMb < 4000
+            ? "kitten-micro"
+            : "kitten-mini",
+    image: "dreamshaper-8-lcm",
   };
 }

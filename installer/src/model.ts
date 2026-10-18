@@ -108,7 +108,7 @@ export function initialOptions(): SetupOptions {
     coverModel: false,
     portraitModel: false,
     lightVoices: true,
-    turboModel: true,
+    turboModel: false,
     shortcuts: true,
     updates: true,
     startOnLogin: false,

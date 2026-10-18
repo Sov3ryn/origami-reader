@@ -2777,5 +2777,13 @@
   "Read by the Studio cast. Choose to go back to the live voice.": "Dibacakan oleh pemeran Studio. Pilih untuk kembali ke suara langsung.",
   "Read this book with its Studio production: the cast and the takes made in Studio.": "Baca buku ini dengan produksi Studio-nya: pemeran dan take yang dibuat di Studio.",
   "Stories": "Cerita",
-  "Studio cast": "Pemeran Studio"
+  "Studio cast": "Pemeran Studio",
+  "4 voices to start, {count} in the app's library": "4 suara untuk memulai, {count} di pustaka aplikasi",
+  "Download ({size})": "Unduh ({size})",
+  "Downloading": "Mengunduh",
+  "Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.": "Arahkan kursor ke suara untuk mendengarnya atau mengunduhnya. Setiap suara adalah unduhan kecil yang diperiksa sebelum digunakan.",
+  "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini, Kitten Micro, dan Kokoro diunduh bersama.",
+  "More voices to download": "Suara lain untuk diunduh",
+  "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "Rekomendasi adalah titik awal, bukan persyaratan. Anda dapat memakai model terpasang mana pun atau mengunduh yang lain di sini. Setiap file berasal dari penerbit model dan diperiksa sebelum digunakan.",
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "Suara ini dibacakan oleh Qwen3-TTS. Unduh di Pengaturan, Model."
 }

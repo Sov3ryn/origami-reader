@@ -20,6 +20,7 @@ import { t } from "../i18n";
 import { VoicePortrait } from "./VoicePortrait";
 import type { Voice } from "../types";
 import type { ModelVersion } from "../storage";
+import * as store from "../storage";
 import { emptyVoiceFilters, filterVoices, type VoiceFilters } from "../voiceCatalog";
 import "./voiceLibrary.css";
 
@@ -62,6 +63,8 @@ type Props = {
   onLanguage: (language: string) => void;
   onPortrait: (voice: Voice) => void;
   onRefresh: () => void;
+  // A voice from the library was installed: reload the voice list.
+  onInstalled?: () => Promise<void> | void;
   onDownloads?: () => void;
   onCreate: () => void;
   onDelete: (ids: string[]) => Promise<void>;
@@ -92,6 +95,54 @@ export function VoiceLibrary(props: Props) {
   // The preview still wanted when its audio arrives.
   const wanted = useRef("");
   useEffect(() => () => audio.current?.pause(), []);
+  // Voices in the library that are not installed: listed after the others,
+  // with Preview and Download (their own recordings, checked before use).
+  const [library, setLibrary] = useState<Voice[]>([]);
+  const [fetching, setFetching] = useState("");
+  useEffect(() => {
+    void store.voiceStoreList().then(setLibrary).catch(() => setLibrary([]));
+  }, [voices.length]);
+  const shownLibrary = useMemo(
+    () => (createdOnly ? [] : filterVoices(library, { ...filters, model: "all" }, favorites)),
+    [library, filters, favorites, createdOnly],
+  );
+  async function previewLibrary(v: Voice) {
+    audio.current?.pause();
+    if (previewing === v.id) {
+      setPreviewing("");
+      return;
+    }
+    setProblem("");
+    setLoadingPreview(v.id);
+    wanted.current = v.id;
+    try {
+      const data = await store.voiceStorePreview(v.id);
+      if (wanted.current !== v.id) return;
+      const a = new Audio("data:audio/wav;base64," + data);
+      audio.current = a;
+      a.onended = () => setPreviewing("");
+      setPreviewing(v.id);
+      await a.play();
+    } catch (e) {
+      setProblem(String(e));
+      setPreviewing("");
+    } finally {
+      setLoadingPreview("");
+    }
+  }
+  async function download(v: Voice) {
+    setProblem("");
+    setFetching(v.id);
+    try {
+      await store.voiceStoreInstall(v.id);
+      setLibrary((list) => list.filter((x) => x.id !== v.id));
+      await props.onInstalled?.();
+    } catch (e) {
+      setProblem(String(e));
+    } finally {
+      setFetching("");
+    }
+  }
 
   const languages = useMemo(
     () => [...new Set(voices.flatMap((v) => v.languages))].sort(),
@@ -575,6 +626,56 @@ export function VoiceLibrary(props: Props) {
           );
         })}
       </div>
+      {shownLibrary.length > 0 && !manage && (
+        <>
+          <h3 className="vl-library-title">{t("More voices to download")}</h3>
+          <p className="hint">{t("Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.")}</p>
+          {shownLibrary.some((v) => v.needsQwen) && (
+            <p className="hint">{t("These voices are read by Qwen3-TTS. Download it in Settings, Models.")}</p>
+          )}
+          <div className="vl-grid">
+            {shownLibrary.map((v) => (
+              <article key={v.id} className="vl-card store" tabIndex={0}>
+                <div className="vl-card-top">
+                  <div className="vl-card-portrait">
+                    <VoicePortrait voice={v} />
+                  </div>
+                  <div className="vl-card-name">
+                    <strong>{v.name}</strong>
+                    <small>
+                      {v.languages.join(" · ")}
+                      {v.accent ? " · " + v.accent : ""}
+                    </small>
+                  </div>
+                </div>
+                {v.description && <p className="vl-card-desc">{v.description}</p>}
+                <div className="vl-tags">
+                  <span className="vl-tag model">{t("Not installed")}</span>
+                  {v.styles.map((s) => (
+                    <span className="vl-tag" key={s}>
+                      {s}
+                    </span>
+                  ))}
+                </div>
+                <div className="vl-card-actions vl-store-actions">
+                  <button onClick={() => void previewLibrary(v)} disabled={loadingPreview === v.id}>
+                    {loadingPreview === v.id ? <LoaderCircle className="spin" size={15} /> : previewing === v.id ? <Square size={14} /> : <Play size={14} />}
+                    {previewing === v.id ? t("Stop") : t("Preview")}
+                  </button>
+                  <button className="vl-use" onClick={() => void download(v)} disabled={fetching !== ""}>
+                    {fetching === v.id ? <LoaderCircle className="spin" size={15} /> : <Download size={15} />}
+                    {fetching === v.id
+                      ? t("Downloading")
+                      : v.size
+                        ? t("Download ({size})", { size: Math.max(1, Math.round(v.size / 1e6)) + " MB" })
+                        : t("Download")}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </>
+      )}
       {!visible.length && (
         <div className="vl-empty">
           <AudioLines size={36} />

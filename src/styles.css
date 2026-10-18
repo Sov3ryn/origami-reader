@@ -7207,3 +7207,42 @@ html[data-hidden="true"] .garden-effects * {
   transition: width 200ms;
 }
 
+
+/* Model downloads in Settings */
+.model-progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 10px;
+  align-items: center;
+  width: 100%;
+}
+.model-progress progress {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.model-progress small {
+  grid-column: 1;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.model-progress button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.model-terms .license-text {
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-size: 12px;
+}
+.model-terms label.check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 10px 0;
+}
+.model-terms label.check input {
+  width: auto;
+  flex: none;
+  margin: 3px 0 0;
+}

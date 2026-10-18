@@ -20,6 +20,7 @@ pub const READERS: &[&str] = &[
 pub const IMAGES: &[&str] = &[
     "sd15-lcm",
     "dreamshaper-8-lcm",
+    "sd-turbo",
     "sdxl-lightning",
     "z-image-turbo",
 ];

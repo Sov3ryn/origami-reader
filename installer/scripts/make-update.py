@@ -38,6 +38,9 @@ def sources(component, voices_dir):
         for f in sorted(root.rglob("*")):
             if f.is_file() and "__pycache__" not in f.parts and f.suffix != ".pyc":
                 yield f, f"workers/{f.relative_to(root).as_posix()}"
+        # Setup's downloader and catalog, for models added later from Settings.
+        yield REPO / "installer/scripts/install.py", "workers/setup_install.py"
+        yield REPO / "installer/downloads.json", "workers/setup_downloads.json"
     elif component == "voices":
         if not voices_dir or not voices_dir.is_dir():
             raise SystemExit("voices needs --voices-dir (only voices made in Origami's voice designer).")

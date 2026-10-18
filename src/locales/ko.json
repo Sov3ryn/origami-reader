@@ -2777,5 +2777,13 @@
   "Read by the Studio cast. Choose to go back to the live voice.": "Studio 배역이 읽고 있습니다. 선택하면 실시간 음성으로 돌아갑니다.",
   "Read this book with its Studio production: the cast and the takes made in Studio.": "이 책을 Studio 프로덕션으로 읽습니다. Studio에서 만든 배역과 테이크를 사용합니다.",
   "Stories": "이야기",
-  "Studio cast": "Studio 배역"
+  "Studio cast": "Studio 배역",
+  "4 voices to start, {count} in the app's library": "시작 음성 4개, 앱 라이브러리에 {count}개",
+  "Download ({size})": "다운로드 ({size})",
+  "Downloading": "다운로드 중",
+  "Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.": "음성에 포인터를 올리면 들어 보거나 다운로드할 수 있습니다. 각 음성은 작은 다운로드이며 사용 전에 확인됩니다.",
+  "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini, Kitten Micro, Kokoro는 함께 다운로드됩니다.",
+  "More voices to download": "다운로드할 수 있는 다른 음성",
+  "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "추천은 출발점일 뿐 필수 조건이 아닙니다. 설치된 모델을 무엇이든 사용하거나 여기에서 다른 모델을 다운로드할 수 있습니다. 각 파일은 모델 게시자에게서 받아 사용 전에 확인됩니다.",
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "이 음성들은 Qwen3-TTS가 읽습니다. 설정, 모델에서 다운로드하세요."
 }

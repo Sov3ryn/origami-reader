@@ -420,3 +420,28 @@ export async function setParentalPin(current: string, pin: string | null) {
 export async function deleteVoices(ids: string[]): Promise<string[]> {
   return invoke("delete_voices", { ids });
 }
+
+// The voice library: voices not on this computer yet (src-tauri/src/voice_store.rs).
+export async function voiceStoreList(): Promise<Voice[]> {
+  return desktop ? invoke("voice_store_list") : [];
+}
+export async function voiceStorePreview(id: string): Promise<string> {
+  return invoke("voice_store_preview", { id });
+}
+export async function voiceStoreInstall(id: string): Promise<void> {
+  return invoke("voice_store_install", { id });
+}
+
+// Models added after setup (src-tauri/src/model_download.rs). Progress
+// arrives as "model-download" events.
+export async function downloadModel(
+  model: string,
+  acceptTerms: boolean,
+  language: string,
+): Promise<import("./modelCatalog").ModelInstallation[]> {
+  return invoke("model_download", { model, acceptTerms, language });
+}
+export async function cancelModelDownload(): Promise<void> {
+  return invoke("model_download_cancel");
+}
+

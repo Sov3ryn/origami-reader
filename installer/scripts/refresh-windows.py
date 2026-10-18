@@ -55,6 +55,10 @@ def main():
         parts = source.relative_to(REPO / "workers").parts
         if source.is_file() and "__pycache__" not in parts and source.suffix != ".pyc":
             add(source, "workers/" + source.relative_to(REPO / "workers").as_posix())
+    # Setup's downloader and catalog, for models added later from Settings
+    # (workers/add_components.py).
+    add(REPO / "installer/scripts/install.py", "workers/setup_install.py")
+    add(REPO / "installer/downloads.json", "workers/setup_downloads.json")
     # ONNX Runtime for Related notes, from the kit's own Python packages.
     for source, name in package_windows.runtime_files(payload / "python/Lib/site-packages"):
         add(source, "runtime/" + name)

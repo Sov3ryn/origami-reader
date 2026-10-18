@@ -225,6 +225,29 @@ export default function App() {
       setLanguageVersion((v) => v + 1),
     );
   }, []);
+  // What this computer needs, chosen once (the choices stay editable): the
+  // natural voices (Qwen) with a graphics card for speech or a voice pack in
+  // the interface language, otherwise the light English voices. No picture
+  // models: the app downloads models later, from Settings.
+  const tuned = useRef(false);
+  useEffect(() => {
+    if (tuned.current || !system || !packageReady || !availableLanguages.length) return;
+    tuned.current = true;
+    const strong = system.speech !== "cpu";
+    const ui = (options.uiLanguage || detectLanguage()).slice(0, 2);
+    const pack = availableLanguages.some((l) => l.id === ui) ? ui : "en";
+    const natural = strong || pack !== "en" || !hasLight;
+    setOptions((prev) => ({
+      ...prev,
+      speech: natural,
+      languages: natural ? [pack] : [],
+      lightVoices: hasLight && !natural,
+      turboModel: false,
+      coverModel: false,
+      portraitModel: false,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [system, packageReady, availableLanguages, hasLight]);
   function changeLanguage(code: string) {
     setOptions((prev) => ({ ...prev, uiLanguage: code }));
     void loadLanguage(code || detectLanguage()).then(() =>
@@ -1113,7 +1136,7 @@ export default function App() {
                               <strong>{t(item.name)}</strong>
                               <small>
                                 {item.native} ·{" "}
-                                {t("{count} voice profiles", {
+                                {t("4 voices to start, {count} in the app's library", {
                                   count: item.count,
                                 })}
                                 {item.id === "hi"

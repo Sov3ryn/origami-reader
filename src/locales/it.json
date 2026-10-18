@@ -2777,5 +2777,13 @@
   "Read by the Studio cast. Choose to go back to the live voice.": "Letto dagli interpreti di Studio. Seleziona per tornare alla voce dal vivo.",
   "Read this book with its Studio production: the cast and the takes made in Studio.": "Leggi questo libro con la sua produzione di Studio: gli interpreti e le riprese realizzate in Studio.",
   "Stories": "Storie",
-  "Studio cast": "Interpreti di Studio"
+  "Studio cast": "Interpreti di Studio",
+  "4 voices to start, {count} in the app's library": "4 voci per iniziare, {count} nella libreria dell'app",
+  "Download ({size})": "Scarica ({size})",
+  "Downloading": "Download in corso",
+  "Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.": "Passa il puntatore su una voce per ascoltarla o scaricarla. Ogni voce è un download leggero, verificato prima dell'uso.",
+  "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini, Kitten Micro e Kokoro si scaricano insieme.",
+  "More voices to download": "Altre voci da scaricare",
+  "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "I consigli sono punti di partenza, non requisiti. Puoi usare qualsiasi modello installato o scaricarne un altro qui. Ogni file proviene dall'editore del modello ed è verificato prima dell'uso.",
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "Queste voci sono lette da Qwen3-TTS. Scaricalo in Impostazioni, Modelli."
 }

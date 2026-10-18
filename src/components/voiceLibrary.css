@@ -469,3 +469,32 @@
     justify-items: start;
   }
 }
+
+/* The voice library: voices not installed yet. Their actions show on hover
+   (and on keyboard focus), so the list stays calm. */
+.vl-library-title {
+  margin: 28px 0 4px;
+  font-size: var(--fs-section, 18px);
+}
+.vl-card.store {
+  opacity: 0.86;
+  cursor: default;
+}
+.vl-card.store:hover,
+.vl-card.store:focus-within {
+  opacity: 1;
+}
+.vl-card.store .vl-store-actions {
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+.vl-card.store:hover .vl-store-actions,
+.vl-card.store:focus-within .vl-store-actions,
+.vl-card.store:focus .vl-store-actions {
+  opacity: 1;
+}
+@media (hover: none) {
+  .vl-card.store .vl-store-actions {
+    opacity: 1;
+  }
+}

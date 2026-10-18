@@ -2777,5 +2777,13 @@
   "Read by the Studio cast. Choose to go back to the live voice.": "由 Studio 角色表中的语音朗读。选择即可切回实时语音。",
   "Read this book with its Studio production: the cast and the takes made in Studio.": "使用此书的 Studio 制作项目阅读：在 Studio 中完成的角色表和版本。",
   "Stories": "故事",
-  "Studio cast": "Studio 角色表"
+  "Studio cast": "Studio 角色表",
+  "4 voices to start, {count} in the app's library": "初始 4 个语音，应用的语音库中共有 {count} 个",
+  "Download ({size})": "下载（{size}）",
+  "Downloading": "正在下载",
+  "Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.": "将指针悬停在语音上即可试听或下载。每个语音都是小文件，使用前会经过校验。",
+  "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini、Kitten Micro 和 Kokoro 会一起下载。",
+  "More voices to download": "更多可下载的语音",
+  "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "推荐只是起点，并非要求。你可以使用任何已安装的模型，或在此下载其他模型。每个文件都来自模型发布者，并在使用前经过校验。",
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "这些语音由 Qwen3-TTS 朗读。请在设置的模型中下载。"
 }

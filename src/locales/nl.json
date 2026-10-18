@@ -2777,5 +2777,13 @@
   "Read by the Studio cast. Choose to go back to the live voice.": "Voorgelezen door de Studio-rolverdeling. Kies om terug te gaan naar de livestem.",
   "Read this book with its Studio production: the cast and the takes made in Studio.": "Dit boek lezen met de Studio-productie: de rolverdeling en de takes uit Studio.",
   "Stories": "Verhalen",
-  "Studio cast": "Studio-rolverdeling"
+  "Studio cast": "Studio-rolverdeling",
+  "4 voices to start, {count} in the app's library": "4 stemmen om mee te beginnen, {count} in de bibliotheek van de app",
+  "Download ({size})": "Downloaden ({size})",
+  "Downloading": "Bezig met downloaden",
+  "Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.": "Wijs een stem aan om hem te beluisteren of te downloaden. Elke stem is een kleine download die wordt gecontroleerd voordat hij wordt gebruikt.",
+  "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini, Kitten Micro en Kokoro worden samen gedownload.",
+  "More voices to download": "Meer stemmen om te downloaden",
+  "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "Aanbevelingen zijn een vertrekpunt, geen vereiste. Je kunt elk geïnstalleerd model gebruiken of hier een ander downloaden. Elk bestand komt van de uitgever van het model en wordt gecontroleerd voordat het wordt gebruikt.",
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "Deze stemmen worden gelezen door Qwen3-TTS. Download het via Instellingen, Modellen."
 }

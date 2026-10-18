@@ -2777,5 +2777,13 @@
   "Read by the Studio cast. Choose to go back to the live voice.": "تُقرأ بأصوات طاقم Studio. اختر هذا للعودة إلى الصوت المباشر.",
   "Read this book with its Studio production: the cast and the takes made in Studio.": "اقرأ هذا الكتاب بإنتاجه في Studio: طاقم الأصوات واللقطات التي أُعدّت في Studio.",
   "Stories": "القصص",
-  "Studio cast": "طاقم أصوات Studio"
+  "Studio cast": "طاقم أصوات Studio",
+  "4 voices to start, {count} in the app's library": "4 أصوات للبدء، و{count} في مكتبة التطبيق",
+  "Download ({size})": "تنزيل ({size})",
+  "Downloading": "جارٍ التنزيل",
+  "Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.": "مرّر المؤشر فوق صوت لسماعه أو تنزيله. كل صوت تنزيل صغير يُتحقق منه قبل استخدامه.",
+  "Kitten Mini, Kitten Micro and Kokoro download together.": "يتم تنزيل Kitten Mini وKitten Micro وKokoro معًا.",
+  "More voices to download": "أصوات أخرى للتنزيل",
+  "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "التوصيات نقاط بداية وليست متطلبات. يمكنك استخدام أي نموذج مثبت أو تنزيل نموذج آخر هنا. يأتي كل ملف من ناشر النموذج ويُتحقق منه قبل استخدامه.",
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "يقرأ Qwen3-TTS هذه الأصوات. نزّله من الإعدادات، النماذج."
 }

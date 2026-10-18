@@ -3357,6 +3357,7 @@ export default function App() {
         onRefresh={() => {
           void refreshVoices(true).catch(error);
         }}
+        onInstalled={() => refreshVoices().catch(error)}
         onDownloads={() => setVoiceDownloads(true)}
         onCreate={() => setVoiceSection("create")}
         onDelete={deleteVoices}

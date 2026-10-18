@@ -2777,5 +2777,13 @@
   "Read by the Studio cast. Choose to go back to the live voice.": "อ่านโดยนักพากย์ของ Studio เลือกเพื่อกลับไปใช้เสียงสด",
   "Read this book with its Studio production: the cast and the takes made in Studio.": "อ่านหนังสือเล่มนี้ด้วยงานผลิตใน Studio: นักพากย์และเทคที่สร้างใน Studio",
   "Stories": "เรื่องเล่า",
-  "Studio cast": "นักพากย์ของ Studio"
+  "Studio cast": "นักพากย์ของ Studio",
+  "4 voices to start, {count} in the app's library": "เสียงเริ่มต้น 4 เสียง และอีก {count} เสียงในคลังของแอป",
+  "Download ({size})": "ดาวน์โหลด ({size})",
+  "Downloading": "กำลังดาวน์โหลด",
+  "Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.": "วางเมาส์บนเสียงเพื่อฟังหรือดาวน์โหลด แต่ละเสียงเป็นไฟล์ขนาดเล็กและได้รับการตรวจสอบก่อนใช้งาน",
+  "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini, Kitten Micro และ Kokoro จะดาวน์โหลดพร้อมกัน",
+  "More voices to download": "เสียงอื่นที่ดาวน์โหลดได้",
+  "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "คำแนะนำเป็นเพียงจุดเริ่มต้น ไม่ใช่ข้อกำหนด คุณใช้โมเดลที่ติดตั้งไว้ใดก็ได้ หรือดาวน์โหลดโมเดลอื่นที่นี่ แต่ละไฟล์มาจากผู้เผยแพร่โมเดลและได้รับการตรวจสอบก่อนใช้งาน",
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "เสียงเหล่านี้อ่านโดย Qwen3-TTS ดาวน์โหลดได้ที่ การตั้งค่า, โมเดล"
 }

@@ -2777,5 +2777,13 @@
   "Read by the Studio cast. Choose to go back to the live voice.": "Studio kadrosu tarafından okunuyor. Canlı sese dönmek için seçin.",
   "Read this book with its Studio production: the cast and the takes made in Studio.": "Bu kitabı Studio yapımıyla okuyun: Studio'da hazırlanan kadro ve çekimler.",
   "Stories": "Hikayeler",
-  "Studio cast": "Studio kadrosu"
+  "Studio cast": "Studio kadrosu",
+  "4 voices to start, {count} in the app's library": "Başlangıç için 4 ses, uygulamanın kitaplığında {count} ses",
+  "Download ({size})": "İndir ({size})",
+  "Downloading": "İndiriliyor",
+  "Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.": "Bir sesi dinlemek veya indirmek için üzerine gelin. Her ses küçük bir indirmedir ve kullanılmadan önce denetlenir.",
+  "Kitten Mini, Kitten Micro and Kokoro download together.": "Kitten Mini, Kitten Micro ve Kokoro birlikte indirilir.",
+  "More voices to download": "İndirilebilecek diğer sesler",
+  "Recommendations are starting points, not requirements. You can use any installed model or download another one here. Each file comes from the model's publisher and is checked before it is used.": "Öneriler birer başlangıç noktasıdır, zorunluluk değildir. Yüklü herhangi bir modeli kullanabilir veya burada başka birini indirebilirsiniz. Her dosya modelin yayıncısından gelir ve kullanılmadan önce denetlenir.",
+  "These voices are read by Qwen3-TTS. Download it in Settings, Models.": "Bu sesleri Qwen3-TTS okur. Ayarlar, Modeller bölümünden indirin."
 }

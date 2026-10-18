@@ -552,6 +552,11 @@ def write_light_venv(dest, py):
 
 
 CONFIG_FILES = ("worker.json", "cover-engine.json", "installation.json")
+# The voices a new installation starts with (two women's, two men's per language).
+STARTER_VOICES = {
+    "origami-en-f-01", "origami-en-f-03", "origami-en-m-01", "origami-en-m-05",
+    "origami-fr-f-01", "origami-fr-f-06", "origami-fr-m-01", "origami-fr-m-06",
+}
 
 
 def earlier_install(config, platform):
@@ -688,11 +693,22 @@ def install(base, options):
             catalog = {}
             for part in sorted(dest.glob("voice-catalog*.json")):
                 catalog.update(json.loads(part.read_text(encoding="utf-8")))
+            # A light start: two women's and two men's voices per language. The
+            # others stay in the app's voice library, to hear and download there.
+            keep = set()
+            for lang in options.get("languages", []):
+                listed = sorted((vid for vid, v in catalog.items() if v["pack"] == lang), key=lambda vid: (vid not in STARTER_VOICES, vid))
+                for gender in ("female", "male"):
+                    keep.update([vid for vid in listed if catalog[vid].get("gender") == gender][:2])
             for voice_id, voice in catalog.items():
                 if voice["pack"] in options.get("languages", []):
+                    reference = contained(dest, voice["reference"])
+                    if voice_id not in keep:
+                        long_path(reference).unlink(missing_ok=True)
+                        continue
                     voice = dict(voice)
                     voice.pop("pack")
-                    voice["reference"] = str(contained(dest, voice["reference"]))
+                    voice["reference"] = str(reference)
                     voices[voice_id] = voice
             # Named model versions let the reader switch between, for example,
             # a fuller model and a lighter one for laptops. "model" keeps older
