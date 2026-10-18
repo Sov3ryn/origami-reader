@@ -1,4 +1,4 @@
-ORIGAMI READER 0.1.0 BETA 7, WINDOWS
+ORIGAMI READER 0.1.0 BETA 8, WINDOWS
 
 This is a private beta for invited friends. Please do not share or re-upload it.
 
@@ -11,7 +11,8 @@ INSTALL
    (this beta is not signed), choose More info, then Run anyway. Do not turn
    off Windows security. Setup offers the included Microsoft installers for
    WebView2 and Visual C++ if they are missing.
-3. Choose a new installation folder, your languages, appearance and models.
+3. Choose a new installation folder, your languages, the language of your
+   starter books, appearance and models.
    The review page shows how much setup will download. Only what you choose
    is downloaded, each part from its publisher, checked before use.
 4. Accept the app license (and the image model licenses for pictures).
