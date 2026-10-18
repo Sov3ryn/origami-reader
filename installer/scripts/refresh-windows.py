@@ -59,6 +59,9 @@ def main():
     # (workers/add_components.py).
     add(REPO / "installer/scripts/install.py", "workers/setup_install.py")
     add(REPO / "installer/downloads.json", "workers/setup_downloads.json")
+    # The locked package lists, here so updates of the workers refresh them.
+    for lock in sorted((REPO / "installer/locks").glob("*.txt")):
+        add(lock, "workers/setup_locks/" + lock.name)
     # ONNX Runtime for Related notes, from the kit's own Python packages.
     for source, name in package_windows.runtime_files(payload / "python/Lib/site-packages"):
         add(source, "runtime/" + name)

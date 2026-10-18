@@ -12,6 +12,7 @@ import importlib.util
 import json
 import os
 import shutil
+import subprocess
 import sys
 import threading
 from pathlib import Path
@@ -46,15 +47,103 @@ def write_json(path, value):
     pending.replace(path)
 
 
+# The CUDA build of PyTorch setup installs (cu128) runs on compute capability
+# 7.0 and newer, as in setup (installer/src-tauri/src/main.rs). Older cards,
+# and drivers too old to report it, get the processor build.
+CUDA_MIN_CAPABILITY = 7.0
+
+
 def nvidia():
     windows = Path(os.environ.get("SystemRoot", "C:/Windows"))
-    return bool(shutil.which("nvidia-smi")) or (windows / "System32/nvidia-smi.exe").is_file()
+    tool = shutil.which("nvidia-smi") or (windows / "System32/nvidia-smi.exe")
+    if not Path(tool).is_file():
+        return False
+    try:
+        result = subprocess.run([str(tool), "--query-gpu=compute_cap", "--format=csv,noheader"],
+                                capture_output=True, text=True, timeout=30, stdin=subprocess.DEVNULL,
+                                **({"creationflags": 0x08000000} if sys.platform == "win32" else {}))
+    except (OSError, subprocess.SubprocessError):
+        return False
+    if result.returncode:
+        return False
+    for line in result.stdout.splitlines():
+        try:
+            if float(line.strip()) >= CUDA_MIN_CAPABILITY:
+                return True
+        except ValueError:
+            pass
+    return False
+
+
+APACHE_SOURCES = ("models/embeddings/standard/LICENSE-Apache-2.0.txt",
+                  "models/Qwen3-TTS-12Hz-0.6B-Base/Qwen-Apache-2.0.txt")
+LIGHT_FOLDERS = (("kitten-tts-mini-0.8", "https://huggingface.co/KittenML/kitten-tts-mini-0.8"),
+                 ("kitten-tts-micro-0.8", "https://huggingface.co/KittenML/kitten-tts-micro-0.8"),
+                 ("Kokoro-82M", "https://huggingface.co/hexgrad/Kokoro-82M"))
+# The same texts as in a kit (installer/scripts/add-models-windows.py and package-windows.py).
+STABILITY_NOTICE = ("This Stability AI Model is licensed under the Stability AI Community License, "
+                    "Copyright \u00a9 Stability AI Ltd. All Rights Reserved\n\n"
+                    "Powered by Stability AI.\n\n"
+                    "SD-Turbo by Stability AI: https://huggingface.co/stabilityai/sd-turbo\n"
+                    "Modified by Origami: the original weights were converted to one GGUF file in 16-bit floating\n"
+                    "point (sd-turbo-f16.gguf) so stable-diffusion.cpp can load them. They were not retrained.\n")
+DREAMSHAPER_SHA256 = "A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3"
+DREAMSHAPER_NOTICE = ("DreamShaper 8 LCM by Lykon. Unmodified checkpoint, Civitai version 252914.\n"
+                      "https://huggingface.co/Lykon/dreamshaper-8-lcm\n"
+                      "https://civitai.com/models/4384?modelVersionId=252914\nSHA-256: " + DREAMSHAPER_SHA256 + "\n"
+                      "Weights retain CreativeML OpenRAIL-M. This is a free private beta bundle.\n")
+
+
+def add_notices(dest, model):
+    """The license and notice files a kit carries beside these weights."""
+    def copy(sources, target):
+        target = dest / target
+        if target.exists():
+            return
+        source = next((dest / s for s in sources if (dest / s).is_file()), None)
+        if source:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+
+    def text(target, content):
+        target = dest / target
+        if not target.exists() and target.parent.is_dir():
+            target.write_text(content, encoding="utf-8")
+
+    if model in LIGHT:
+        for folder, upstream in LIGHT_FOLDERS:
+            if (dest / "models" / folder).is_dir():
+                copy(APACHE_SOURCES, f"models/{folder}/LICENSE-Apache-2.0.txt")
+                text(f"models/{folder}/MODEL-NOTICE.txt", f"{folder}: unmodified weights under the Apache License 2.0.\n{upstream}\n")
+    elif model in READERS or model == "qwen-voice-design":
+        folder = {"qwen3-tts-0.6b": "Qwen3-TTS-12Hz-0.6B-Base", "qwen3-tts-1.7b": "Qwen3-TTS-12Hz-1.7B-Base",
+                  "qwen-voice-design": "Qwen3-TTS-12Hz-1.7B-VoiceDesign"}[model]
+        if (dest / "models" / folder).is_dir():
+            copy(APACHE_SOURCES, f"models/{folder}/Qwen-Apache-2.0.txt")
+    elif model == "sd-turbo":
+        copy(("licenses/SD-Turbo-LICENSE.txt",), "models/sd-turbo/LICENSE.txt")
+        text("models/sd-turbo/NOTICE.txt", STABILITY_NOTICE)
+    elif model == "dreamshaper-8-lcm":
+        copy(("licenses/DreamShaper-OpenRAIL-M.txt",), "models/CreativeML-OpenRAIL-M.txt")
+        text("models/MODEL-NOTICE.txt", DREAMSHAPER_NOTICE)
+
+
+def files_in(root):
+    """Every file in the folder, as receipt paths (forward slashes)."""
+    found = set()
+    for folder, _, names in os.walk(root):
+        inside = Path(folder).relative_to(root).as_posix()
+        found.update(name if inside == "." else inside + "/" + name for name in names)
+    return found
 
 
 def main():
     dest, worker_path, cover_path, model = Path(sys.argv[1]).resolve(), Path(sys.argv[2]), Path(sys.argv[3]), sys.argv[4]
     accepted = "--accept-terms" in sys.argv[5:]
     s = load_setup()
+    # Settings words its messages for a download, not for setup.
+    s.AGAIN = "try again"
+    s.CANCELLED = "Download cancelled."
     threading.Thread(target=s.controls, daemon=True).start()
     if model not in MODELS:
         raise ValueError("This model cannot be downloaded from Origami yet.")
@@ -86,11 +175,13 @@ def main():
     # A graphics card for speech gets the CUDA packages, like setup.
     device = "cuda" if model not in LIGHT and nvidia() else "cpu"
     steps, weight, device = s.online_plan(downloads, groups, {"speechDevice": device})
-    extra = downloads["groups"]["images-turbo"]["bytes"] if "images-turbo" in groups else 0
-    if shutil.disk_usage(dest).free < weight + extra + 512 * 1024**2:
-        raise ValueError("There is not enough free space for this model.")
+    cache_bytes, folder_bytes, shared = s.space_plan(steps, device)
+    s.check_space(dest, cache_bytes, folder_bytes, shared, "There is not enough free space for this model.")
+    root = s.long_path(dest)
+    before = files_in(root)
     progress = s.Progress(weight)
     s.run_online(dest, dest, py, steps, device, progress, downloads)
+    add_notices(dest, model)
     s.send(event="progress", percent=96, message="Applying")
 
     if model == "qwen-voice-design":
@@ -122,12 +213,14 @@ def main():
                 ("kitten-micro", "kitten-tts-micro-0.8", "Kitten Micro", "The lightest reader, for older or smaller computers."),
                 ("kokoro", "Kokoro-82M", "Kokoro", "Clear British narrators. Runs on the processor."),
             ):
+                # The light readers come together; one the reader turned off stays off.
+                off = key != model and isinstance(models.get(key), dict) and models[key].get("disabled") is True
                 models[key] = {"engine": "kokoro" if key == "kokoro" else "kitten", "path": str(dest / "models" / folder),
-                               "python": str(light_python), "name": name, "description": description, "tier": "light"}
+                               "python": str(light_python), "name": name, "description": description, "tier": "light",
+                               **({"disabled": True} if off else {})}
             for vid, voice in s.light_voices().items():
                 voices.setdefault(vid, voice)
-        for key in (model, *LIGHT):
-            models.get(key, {}).pop("disabled", None)
+        models.get(model, {}).pop("disabled", None)
         if worker.get("defaultModel") not in models:
             worker["defaultModel"] = model
             worker["model"] = models[model]["path"]
@@ -147,16 +240,20 @@ def main():
             cover.update({"defaultModel": model, "model": profile["model"], "cover": profile, "portrait": profile})
         write_json(cover_path, cover)
 
-    # The receipt lists every file, so uninstalling removes the downloads too.
+    # The receipt gains the files this download added, so uninstalling
+    # removes them too. Files that were already there and not in the receipt
+    # (saved there by the reader, say) are never added.
     receipt_path = dest / "installation.json"
     receipt = read_json(receipt_path)
     if receipt:
-        root = s.long_path(dest)
-        receipt["files"] = sorted(p.relative_to(root).as_posix() for p in root.rglob("*")
-                                  if p.is_file() and p.relative_to(root).as_posix() != "installation.json")
+        added = files_in(root) - before - {"installation.json"}
+        receipt["files"] = sorted(set(receipt.get("files", [])) | added)
         if model in IMAGES:
             receipt["imageModelTermsAccepted"] = True
-        (dest / "installation.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
+        # ASCII only: Windows PowerShell 5.1 runs the uninstaller.
+        pending = receipt_path.with_suffix(".json.pending")
+        pending.write_text(json.dumps(receipt, ensure_ascii=True, indent=2), encoding="utf-8")
+        pending.replace(receipt_path)
     shutil.rmtree(s.long_path(s.CACHE), ignore_errors=True)
     s.send(event="complete", percent=100)
 

@@ -371,6 +371,9 @@ export default function App() {
     options.languages.includes(item.id),
   );
   const voices = selected.reduce((sum, language) => sum + language.count, 0);
+  // Setup installs two women's and two men's voices per language; the others
+  // stay in the voice library, to hear and download from the app.
+  const starterVoices = selected.reduce((sum, language) => sum + Math.min(language.count, 4), 0);
   const packagedVoices = availableLanguages.reduce(
     (sum, language) => sum + language.count,
     0,
@@ -1295,9 +1298,15 @@ export default function App() {
                 {hasTurbo && (
                   <Toggle
                     label={t("Install fast picture model")}
-                    detail={t(
-                      "SD-Turbo makes covers and portraits in seconds on modest computers. Powered by Stability AI. About 2.5 GB once installed.",
-                    )}
+                    detail={
+                      downloads
+                        ? t(
+                            "SD-Turbo makes covers and portraits in seconds on modest computers. Powered by Stability AI. A 5.2 GB download, about 2.5 GB once installed.",
+                          )
+                        : t(
+                            "SD-Turbo makes covers and portraits in seconds on modest computers. Powered by Stability AI. About 2.5 GB once installed.",
+                          )
+                    }
                     checked={options.turboModel}
                     onChange={(value) => update("turboModel", value)}
                   />
@@ -1431,11 +1440,11 @@ export default function App() {
                     {summaryRow(
                       "Language packs",
                       selected.length
-                        ? t("{languages} ({voices} voices)", {
+                        ? t("{languages} ({voices} voices to start)", {
                             languages: selected
                               .map((item) => t(item.name))
                               .join(", "),
-                            voices,
+                            voices: starterVoices,
                           })
                         : "None selected",
                       2,
@@ -1563,7 +1572,7 @@ export default function App() {
                   <span>
                     {t("{packs} language packs · {voices} voice profiles", {
                       packs: selected.length,
-                      voices,
+                      voices: starterVoices,
                     })}
                   </span>
                   <span>
@@ -1621,7 +1630,7 @@ export default function App() {
                   </div>
                   <div>
                     <AudioLines />
-                    <strong>{voices}</strong>
+                    <strong>{starterVoices}</strong>
                     <small>{t("Voice profiles")}</small>
                   </div>
                   <div>

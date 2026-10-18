@@ -81,6 +81,9 @@ def main():
     # Setup's downloader and catalog, for models added later from Settings.
     add(REPO / "installer/scripts/install.py", "workers/setup_install.py", "core")
     add(REPO / "installer/downloads.json", "workers/setup_downloads.json", "core")
+    # The locked package lists, here so updates of the workers refresh them.
+    for lock in sorted((REPO / "installer/locks").glob("*.txt")):
+        add(lock, "workers/setup_locks/" + lock.name, "core")
     # ONNX Runtime for Work Mode's Connections models, loaded by the app only
     # when needed (see src-tauri/src/embed.rs). The Visual C++ runtime files go
     # beside it (app-local deployment), so it works where they are not installed.

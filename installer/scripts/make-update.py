@@ -41,6 +41,9 @@ def sources(component, voices_dir):
         # Setup's downloader and catalog, for models added later from Settings.
         yield REPO / "installer/scripts/install.py", "workers/setup_install.py"
         yield REPO / "installer/downloads.json", "workers/setup_downloads.json"
+        # The locked package lists setup's downloader installs from.
+        for lock in sorted((REPO / "installer/locks").glob("*.txt")):
+            yield lock, f"workers/setup_locks/{lock.name}"
     elif component == "voices":
         if not voices_dir or not voices_dir.is_dir():
             raise SystemExit("voices needs --voices-dir (only voices made in Origami's voice designer).")

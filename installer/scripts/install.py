@@ -14,6 +14,15 @@ import time
 
 cancelled = threading.Event()
 paused = threading.Event()
+# Wording that depends on who runs these steps: workers/add_components.py
+# (downloads from Settings) sets "try again" and "Download cancelled.".
+AGAIN = "run setup again"
+CANCELLED = "Installation cancelled. Your selections have been kept."
+
+
+def again():
+    """AGAIN at the start of a sentence."""
+    return AGAIN[:1].upper() + AGAIN[1:]
 
 
 def send(**event):
@@ -36,7 +45,7 @@ def checkpoint():
     while paused.is_set() and not cancelled.is_set():
         time.sleep(.1)
     if cancelled.is_set():
-        raise RuntimeError("Installation cancelled. Your selections have been kept.")
+        raise RuntimeError(CANCELLED)
 
 
 def contained(root, relative):
@@ -50,14 +59,16 @@ def contained(root, relative):
 
 def write_json(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
+    # ASCII only (other characters escaped): Windows PowerShell 5.1, which
+    # runs the uninstaller, reads files without a byte order mark as ANSI.
+    path.write_text(json.dumps(value, ensure_ascii=True, indent=2), encoding="utf-8")
 
 
 def write_owned_json(path, value, owned):
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("x", encoding="utf-8") as output:
         owned.append(path)
-        json.dump(value, output, ensure_ascii=False, indent=2)
+        json.dump(value, output, ensure_ascii=True, indent=2)
 
 
 def windows_shortcut(target, destination):
@@ -240,7 +251,7 @@ def fetch(item, progress, message):
     if part.stat().st_size != size or sha256_of(part) != item["sha256"]:
         part.unlink(missing_ok=True)
         (CACHE / (item["sha256"] + ".pieces")).unlink(missing_ok=True)
-        raise ValueError(f"The download of {name} did not match its published fingerprint. Run setup again.")
+        raise ValueError(f"The download of {name} did not match its published fingerprint. {again()}.")
     part.replace(final)
     (CACHE / (item["sha256"] + ".pieces")).unlink(missing_ok=True)
     return final
@@ -307,8 +318,8 @@ def fetch_pieces(item, part, progress, message, name):
                     received[0] -= got
                 progress.add(-got, message, label())
                 if attempt == 7:
-                    raise RuntimeError(f"Could not download {name}. Check the internet connection and run setup "
-                                       f"again; what was already downloaded is kept. ({error})")
+                    raise RuntimeError(f"Could not download {name}. Check the internet connection and {AGAIN}; "
+                                       f"what was already downloaded is kept. ({error})")
                 time.sleep(min(20, 2 ** attempt))
 
     missing = [p for p in pieces if p[0] not in done]
@@ -359,8 +370,8 @@ def fetch_stream(item, part, progress, message, name):
             if cancelled.is_set():
                 raise
             if attempt == 7:
-                raise RuntimeError(f"Could not download {name}. Check the internet connection and run setup "
-                                   f"again; what was already downloaded is kept. ({error})")
+                raise RuntimeError(f"Could not download {name}. Check the internet connection and {AGAIN}; "
+                                   f"what was already downloaded is kept. ({error})")
             time.sleep(min(20, 2 ** attempt))
 
 
@@ -402,7 +413,7 @@ def pip_install(py, args, progress, message, weight, count, waiting=None):
             output.append(line)
             current["message"] = message
             if cancelled.is_set():
-                raise RuntimeError("Installation cancelled. Your selections have been kept.")
+                raise RuntimeError(CANCELLED)
             words = line.split()
             if line.startswith(("Collecting", "Processing")) and seen < count:
                 seen += 1
@@ -414,7 +425,7 @@ def pip_install(py, args, progress, message, weight, count, waiting=None):
             elif line.startswith("Installing collected packages"):
                 current["name"] = "unpacking"
         if process.wait():
-            raise RuntimeError(message + " failed. Check the internet connection and run setup again. "
+            raise RuntimeError(message + f" failed. Check the internet connection and {AGAIN}. "
                                + "".join(output[-6:])[-500:])
     finally:
         if process.poll() is None:
@@ -446,10 +457,76 @@ def online_plan(downloads, groups, options):
     return steps, weight, device
 
 
+# PyTorch's room once unpacked into the Python folder (the CUDA build is about
+# 4.5 GB), used when the catalog does not give it.
+TORCH_UNPACKED = {"cuda": 4_700_000_000, "cpu": 700_000_000}
+SPACE_MARGIN = 512 * 1024**2
+
+
+def space_plan(steps, device):
+    """Room the downloads take: (download cache, installation folder, the
+    part both share). Downloaded files are hard-linked from the cache into
+    the folder, so on one drive they count once."""
+    cache = folder = shared = 0
+    for name, group in steps:
+        estimate = group.get("estimate", 0)
+        estimate = estimate.get(device, 0) if isinstance(estimate, dict) else estimate
+        files = sum(item.get("size", 0) for item in group.get("files", []))
+        # pip keeps what it downloads in the cache too.
+        cache += group.get("bytes", 0) + estimate
+        folder += files + estimate
+        shared += files
+        if "archive" in group:
+            folder += 2 * group["archive"].get("size", 0)
+        if "convert" in group:
+            # The converted 16-bit copy, about half the original.
+            folder += group["convert"].get("size", 0) // 2 + 100_000_000
+        if "torch" in group:
+            unpacked = group.get("unpacked", TORCH_UNPACKED).get(device, 0)
+            cache += group.get("wheelBytes", {}).get(device, 0) or unpacked // 2
+            folder += unpacked
+    if any(name in ("speech", "speech-light") for name, _ in steps):
+        cache += 3_000_000
+    return cache, folder, shared
+
+
+def existing(path):
+    path = Path(path)
+    while not path.exists() and path.parent != path:
+        path = path.parent
+    return path
+
+
+def check_space(folder_path, cache_bytes, folder_bytes, shared, message):
+    """Checks the installation drive and, when the download cache
+    (LOCALAPPDATA) is on another drive, that one too."""
+    target, cache = existing(folder_path), existing(CACHE)
+    try:
+        same = os.stat(target).st_dev == os.stat(cache).st_dev
+    except OSError:
+        same = True
+    if same:
+        if shutil.disk_usage(target).free < cache_bytes + folder_bytes - shared + SPACE_MARGIN:
+            raise ValueError(message)
+        return
+    if shutil.disk_usage(target).free < folder_bytes + SPACE_MARGIN:
+        raise ValueError(message)
+    if cache_bytes and shutil.disk_usage(cache).free < cache_bytes + SPACE_MARGIN:
+        raise ValueError(f"There is not enough free space for the downloads on {cache.anchor or cache} "
+                         f"({CACHE} holds them until they are installed).")
+
+
+def locks_folder(base, dest):
+    """The locked package lists: the workers' copy first (updates refresh
+    it), then the kit's."""
+    for folder in (dest / "workers/setup_locks", base / "payload/files/setup/locks", dest / "setup/locks"):
+        if folder.is_dir():
+            return folder
+    return dest / "setup/locks"
+
+
 def run_online(base, dest, py, steps, device, progress, downloads):
-    locks = base / "payload/files/setup/locks"
-    if not locks.is_dir():
-        locks = dest / "setup/locks"
+    locks = locks_folder(base, dest)
     names = {name for name, _ in steps}
     if names & {"speech", "speech-light"}:
         # pip itself, from PyPI, then the packages from the locked lists.
@@ -493,8 +570,7 @@ def run_online(base, dest, py, steps, device, progress, downloads):
         for item in group.get("files", []):
             place(fetch(item, progress, "Downloading " + label), contained(dest, item["path"]))
         if name == "speech-light":
-            light_python = dest / ("python-light/Scripts/python.exe" if sys.platform == "win32" else "python-light/bin/python3")
-            write_light_venv(dest, py)
+            light_python = ensure_light_env(dest, py)
             pip_install(light_python, ["-r", str(locks / group["pip"])], progress, "Installing light voice packages",
                         group.get("estimate", 0), lock_count(locks / group["pip"]))
         if "archive" in group:
@@ -522,7 +598,7 @@ def run_online(base, dest, py, steps, device, progress, downloads):
             subprocess.run([str(runtime), "-M", "convert", "-m", str(cached), "-o", str(out), "--type", "f16"],
                            check=True, capture_output=True, timeout=3600, cwd=runtime.parent, **HIDDEN)
             if sha256_of(out) != item["outputSha256"]:
-                raise ValueError(f"{label} could not be prepared correctly. Run setup again.")
+                raise ValueError(f"{label} could not be prepared correctly. {again()}.")
             cached.unlink(missing_ok=True)
 
 
@@ -535,7 +611,7 @@ def fetch_pip(pip, progress):
         with urllib.request.urlopen(urllib.request.Request(pip["url"], headers={"User-Agent": "Origami-Setup/1"}), timeout=60) as r:
             data = r.read()
         if hashlib.sha256(data).hexdigest() != pip["sha256"]:
-            raise ValueError("The pip download did not match its published fingerprint. Run setup again.")
+            raise ValueError(f"The pip download did not match its published fingerprint. {again()}.")
         final.write_bytes(data)
     progress.add(final.stat().st_size, "Preparing package installation")
     return final
@@ -549,6 +625,44 @@ def write_light_venv(dest, py):
     (dest / "python-light/pyvenv.cfg").write_text(
         "home = " + str(py.parent) + "\ninclude-system-site-packages = false\nversion = " +
         ".".join(map(str, sys.version_info[:3])) + "\n", encoding="utf-8")
+
+
+def site_packages(python_folder):
+    if sys.platform == "win32":
+        return python_folder / "Lib/site-packages"
+    return python_folder / f"lib/python{sys.version_info[0]}.{sys.version_info[1]}/site-packages"
+
+
+def ensure_light_env(dest, py):
+    """The light readers' small environment, layered over the shared
+    packages. Kits ship it with the light voices; an installation that left
+    them out (light voices added later from Settings) gets one made from its
+    own Python, like the kit's: a launcher, pyvenv.cfg and origami-shared.pth."""
+    light = dest / "python-light"
+    light_python = light / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python3")
+    if not light_python.exists():
+        try:
+            subprocess.run([str(py), "-I", "-m", "venv", "--without-pip", str(light)],
+                           check=True, capture_output=True, timeout=600, **HIDDEN)
+        except (OSError, subprocess.SubprocessError):
+            pass
+        # The Windows launcher venv copies, when venv itself could not run.
+        launcher = py.parent / "Lib/venv/scripts/nt/python.exe"
+        if not light_python.exists() and sys.platform == "win32" and launcher.is_file():
+            light_python.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(launcher, light_python)
+        if not light_python.exists():
+            raise RuntimeError(f"The light voices' Python environment could not be created. {again()}.")
+    site = site_packages(light)
+    site.mkdir(parents=True, exist_ok=True)
+    shared = site / "origami-shared.pth"
+    if not shared.exists():
+        # Shared packages (PyTorch, ONNX Runtime, NumPy...) come after the
+        # light reader's own, so its versions win where they differ.
+        main = site_packages(py.parent if sys.platform == "win32" else py.parent.parent)
+        shared.write_text(os.path.relpath(main, site).replace("\\", "/") + "\n", encoding="utf-8")
+    write_light_venv(dest, py)
+    return light_python
 
 
 CONFIG_FILES = ("worker.json", "cover-engine.json", "voice-design.json", "installation.json")
@@ -570,33 +684,105 @@ def earlier_install(config, platform):
     return root if exe.is_file() and receipt.is_file() else None
 
 
-def remove_earlier(root):
-    """Removes an earlier program folder, after checking its own receipt names it."""
+def check_earlier(root):
+    """The earlier installation's receipt, after checking it names its own folder."""
     receipt = json.loads((root / "installation.json").read_text(encoding="utf-8-sig"))
     if os.path.normcase(os.path.abspath(receipt.get("root", ""))) != os.path.normcase(os.path.abspath(root)):
         raise ValueError("The earlier installation's receipt does not match its folder, so it was left as it is. "
                          "Uninstall it from Windows Settings, Apps, then run setup again.")
     if root == Path(root.anchor) or root == Path.home():
         raise ValueError("The earlier installation is in an unexpected folder, so it was left as it is.")
-    for link in receipt.get("shortcuts", []):
-        if str(link).lower().endswith((".lnk", ".desktop")):
-            Path(link).unlink(missing_ok=True)
+    return receipt
+
+
+def move_aside(root):
+    """Renames the earlier program folder beside itself. Windows refuses while
+    Origami runs from it, so this fails before anything has changed; the
+    folder is renamed back if the installation does not finish."""
+    aside = root.with_name(root.name + ".previous-" + time.strftime("%Y%m%d-%H%M%S"))
     try:
-        shutil.rmtree(long_path(root))
-    except OSError as error:
-        raise ValueError("The earlier version could not be removed. Close Origami Reader and run setup again. "
-                         f"({error})")
+        os.rename(long_path(root), long_path(aside))
+    except OSError:
+        raise ValueError("Close Origami Reader, then run setup again.")
+    return aside
+
+
+# Written beside the program files by Python and by updates.
+GENERATED = (".pyc", ".update-old", ".update-new")
+
+
+def remove_earlier_files(aside, receipt):
+    """Deletes the earlier version's own files (those its receipt lists, and
+    what Python and updates generated beside them), then the folders left
+    empty. Anything else, such as files saved into the program folder, stays.
+    Returns True when something was kept."""
+    wanted = {str(r).replace("\\", "/") for r in receipt.get("files", [])} | {"installation.json"}
+    top = long_path(Path(aside))
+    junction = getattr(os.path, "isjunction", lambda path: False)
+    folders = []
+    for folder, dirs, names in os.walk(top):
+        # Linked folders are never followed: their contents live elsewhere.
+        dirs[:] = [d for d in dirs if not os.path.islink(os.path.join(folder, d)) and not junction(os.path.join(folder, d))]
+        folders.append(folder)
+        here = Path(folder)
+        inside = here.relative_to(top).as_posix()
+        for name in names:
+            relative = name if inside == "." else inside + "/" + name
+            if relative in wanted or here.name == "__pycache__" or name.endswith(GENERATED):
+                try:
+                    os.unlink(os.path.join(folder, name))
+                except OSError:
+                    pass
+    for folder in sorted(folders, key=len, reverse=True):
+        try:
+            os.rmdir(folder)
+        except OSError:
+            pass
+    return os.path.exists(top)
 
 
 def set_aside_configs(config):
-    """Moves leftover settings files into a dated folder instead of deleting them."""
+    """Moves leftover settings files into a dated folder instead of deleting
+    them. Returns (original, moved) pairs, so a failed setup can put them back."""
     found = [config / name for name in CONFIG_FILES if (config / name).exists()]
     if not found:
-        return
+        return []
     backup = config / ("previous-setup-" + time.strftime("%Y%m%d-%H%M%S"))
     backup.mkdir(parents=True, exist_ok=True)
+    moved = []
     for path in found:
         shutil.move(str(path), str(backup / path.name))
+        moved.append((path, backup / path.name))
+    return moved
+
+
+def restore_configs(moved):
+    for original, kept in moved:
+        if kept.exists() and not original.exists():
+            shutil.move(str(kept), str(original))
+    for folder in {kept.parent for _, kept in moved}:
+        try:
+            folder.rmdir()
+        except OSError:
+            pass
+
+
+def kept_voices(previous, voices):
+    """Voices of the earlier speech configuration that still have their
+    recording (voices from the voice library live in the app data folder)
+    and that the new configuration does not have."""
+    kept = {}
+    entries = previous.get("voices") if isinstance(previous, dict) else None
+    for voice_id, voice in (entries if isinstance(entries, dict) else {}).items():
+        reference = voice.get("reference") if isinstance(voice, dict) else None
+        if voice_id in voices or not isinstance(reference, str) or not reference:
+            continue
+        try:
+            if Path(reference).is_file():
+                kept[voice_id] = voice
+        except OSError:
+            pass
+    return kept
 
 
 def install(base, options):
@@ -625,10 +811,15 @@ def install(base, options):
         raise ValueError("Choose a new, empty application folder. Existing installations are kept intact.")
     if dest.is_relative_to(base.resolve()) or base.resolve().is_relative_to(dest):
         raise ValueError("Choose a destination outside the extracted setup package.")
-    if earlier:
-        send(event="progress", percent=0, message="Removing the earlier version")
-        remove_earlier(earlier)
-    set_aside_configs(config)
+    if earlier and not replacing and dest.is_relative_to(earlier.resolve()):
+        raise ValueError("Choose a folder outside the earlier installation.")
+    # Checked now; the earlier folder is only renamed aside once everything
+    # else has been checked, and deleted once the new version is in place.
+    earlier_receipt = check_earlier(earlier) if earlier else None
+    try:
+        previous_worker = json.loads((config / "worker.json").read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
+        previous_worker = {}
     groups = {"core"}
     # "speech" holds the shared Python packages; Qwen and the light readers
     # each add their own models.
@@ -652,17 +843,21 @@ def install(base, options):
     parent.mkdir(parents=True, exist_ok=True)
     downloads = manifest.get("downloads")
     steps, download_bytes, device = online_plan(downloads, groups, options) if downloads else ([], 0, "cpu")
-    # SD-Turbo's original file waits beside its converted copy for a moment.
-    extra = downloads["groups"]["images-turbo"]["bytes"] if downloads and "images-turbo" in groups else 0
-    if shutil.disk_usage(parent).free < total + download_bytes + extra + 512 * 1024**2:
-        raise ValueError("There is not enough free space in the installation location.")
+    # The earlier version stays until the new one is in place, so its room is
+    # not counted as free.
+    cache_bytes, folder_bytes, shared = space_plan(steps, device)
+    check_space(parent, cache_bytes, total + folder_bytes, shared,
+                "There is not enough free space in the installation location.")
     progress = Progress(total + download_bytes)
-    stage = Path(tempfile.mkdtemp(prefix=".origami-install-", dir=parent))
-    owned_configs, links = [], []
+    aside = move_aside(earlier) if earlier else None
+    stage = None
+    owned_configs, links, moved_configs, held_links = [], [], [], []
     committed = False
     preferences_inserted = False
     done, last = 0, 0
     try:
+        moved_configs = set_aside_configs(config)
+        stage = Path(tempfile.mkdtemp(prefix=".origami-install-", dir=parent))
         for item in files:
             checkpoint()
             source = contained(base / "payload/files", item["path"])
@@ -732,9 +927,7 @@ def install(base, options):
             # The light readers run in their own small environment, layered
             # over the shared packages (see python-light/Lib/site-packages).
             light_python = dest / ("python-light/Scripts/python.exe" if platform == "windows" else "python-light/bin/python3")
-            (dest / "python-light/pyvenv.cfg").write_text(
-                "home = " + str(py.parent) + "\ninclude-system-site-packages = false\nversion = " +
-                ".".join(map(str, sys.version_info[:3])) + "\n", encoding="utf-8")
+            write_light_venv(dest, py)
             for key, folder, name, description in (
                 ("kitten-mini", "kitten-tts-mini-0.8", "Kitten Mini", "Light and quick. Built-in English voices on any computer."),
                 ("kitten-micro", "kitten-tts-micro-0.8", "Kitten Micro", "The lightest reader, for older or smaller computers."),
@@ -753,8 +946,9 @@ def install(base, options):
             # The larger reader starts first when it was chosen for a CUDA card.
             if "qwen3-tts-1.7b" in models and options.get("speechDevice") == "cuda":
                 default = "qwen3-tts-1.7b"
+            # Voices added to the earlier version (from the voice library, say) stay.
             worker = {"python": str(py), "model": models[default]["path"], "models": models,
-                      "defaultModel": default, "device": "auto", "voices": voices}
+                      "defaultModel": default, "device": "auto", "voices": {**voices, **kept_voices(previous_worker, voices)}}
             path = config / "worker.json"
             write_owned_json(path, worker, owned_configs)
         if "voice-design" in groups:
@@ -809,6 +1003,18 @@ def install(base, options):
             warning = enable_amd_speech(base, dest, py)
             if warning:
                 warnings.append(warning)
+        # The earlier version's shortcuts make way for the new ones; they are
+        # put back if setup does not finish.
+        for link in (earlier_receipt or {}).get("shortcuts", []):
+            link = Path(link)
+            if str(link).lower().endswith((".lnk", ".desktop")) and link.exists():
+                held = link.with_name(link.name + ".previous")
+                try:
+                    held.unlink(missing_ok=True)
+                    link.rename(held)
+                    held_links.append((link, held))
+                except OSError:
+                    pass
         if platform == "windows":
             import winreg
             shortcut_dir = Path(os.environ["APPDATA"]) / "Microsoft/Windows/Start Menu/Programs"
@@ -894,17 +1100,45 @@ def install(base, options):
         if steps:
             # Downloads are in place (hard links keep the installed copies).
             shutil.rmtree(long_path(CACHE), ignore_errors=True)
+        for _, held in held_links:
+            held.unlink(missing_ok=True)
+        if aside:
+            # Only now is the earlier version removed: its own files, never
+            # anything else that was saved in its folder.
+            send(event="progress", percent=98, message="Removing the earlier version")
+            try:
+                if remove_earlier_files(aside, earlier_receipt):
+                    warnings.append("Files that were not part of Origami were kept in " + str(aside))
+            except Exception:
+                warnings.append("The earlier version could not be removed completely. It is in " + str(aside))
+            aside = None
         send(event="complete", percent=100, executable=str(exe), warnings=warnings)
-    except BaseException:
+    except BaseException as error:
         for path in owned_configs:
             path.unlink(missing_ok=True)
         for link in links: Path(link).unlink(missing_ok=True)
+        for link, held in held_links:
+            if held.exists() and not link.exists():
+                try:
+                    held.rename(link)
+                except OSError:
+                    pass
         if preferences_inserted:
             with sqlite3.connect(data / "origami.sqlite3") as db:
                 db.execute("DELETE FROM settings WHERE id='preferences' AND data=?", (json.dumps(preferences),))
         # Both paths are created exclusively by this transaction, never existing folders.
         cleanup = dest if committed else stage
-        if cleanup.parent == parent and cleanup.exists(): shutil.rmtree(cleanup)
+        if cleanup and cleanup.parent == parent and cleanup.exists():
+            shutil.rmtree(long_path(cleanup), ignore_errors=True)
+        restore_configs(moved_configs)
+        # The earlier version goes back where it was.
+        if aside and not earlier.exists():
+            try:
+                os.rename(long_path(aside), long_path(earlier))
+            except OSError:
+                raise RuntimeError(f"{error} The earlier version is kept in {aside}.") from error
+        elif aside:
+            raise RuntimeError(f"{error} The earlier version is kept in {aside}.") from error
         raise
 
 
