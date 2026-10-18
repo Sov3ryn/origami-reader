@@ -83,6 +83,8 @@ export type StudyCard = {
   created: number;
   updated: number;
   schedule: Schedule;
+  // When the card was first answered (it left the new cards).
+  introduced?: number;
   suspended?: boolean;
   // "note": made from a "question :: answer" line, kept in step with it.
   origin: "manual" | "note";

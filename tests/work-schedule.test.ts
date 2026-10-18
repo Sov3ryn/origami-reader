@@ -23,6 +23,24 @@ describe("schedule", () => {
     expect(noteTasks({ ...n, html: ticked })[0].done).toBe(true);
     expect(noteTasks({ ...n, html: ticked })[1].done).toBe(true);
   });
+  it("reads and ticks the same item when checklists are nested", () => {
+    const nested = (text: string, inner: string) =>
+      `<li data-type="taskItem" data-checked="false"><label><input type="checkbox"><span></span></label><div><p>${text}</p><ul data-type="taskList">${inner}</ul></div></li>`;
+    const n = note(
+      `<ul data-type="taskList">${nested("Essay @2026-10-20", task("Outline @2026-10-19") + task("Sources"))}${task("Revise @2026-10-22")}</ul>`,
+    );
+    const tasks = noteTasks(n);
+    expect(tasks.map((x) => [x.text, x.date, x.index])).toEqual([
+      ["Essay", "2026-10-20", 0],
+      ["Outline", "2026-10-19", 1],
+      ["Revise", "2026-10-22", 3],
+    ]);
+    for (const target of tasks) {
+      const ticked = noteTasks({ ...n, html: setTaskDone(n.html, target.index, true) });
+      expect(ticked.filter((x) => x.done).map((x) => x.text)).toEqual([target.text]);
+    }
+    expect(setTaskDone(n.html, 9, true)).toBe(n.html);
+  });
   it("puts due cards and tasks on their days, overdue on today", () => {
     const now = new Date(2026, 9, 17, 9).getTime();
     const today = dayKey(now);

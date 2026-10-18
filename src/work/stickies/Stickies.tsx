@@ -29,6 +29,15 @@ export const stickyColors: Record<string, { bg: string; edge: string }> = {
   violet: { bg: "#e3d8ff", edge: "#ae98ea" },
 };
 
+const colorNames = (): Record<string, string> => ({
+  yellow: t("Yellow"),
+  pink: t("Pink"),
+  green: t("Green"),
+  blue: t("Blue"),
+  orange: t("Orange"),
+  violet: t("Violet"),
+});
+
 export function newSticky(doc: string, x: number, y: number, color = "yellow"): StickyNote {
   const now = Date.now();
   return { id: crypto.randomUUID(), kind: "sticky", doc, x, y, text: "", color, created: now, updated: now };
@@ -52,11 +61,22 @@ function Sticky({
   const start = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const area = useRef<HTMLTextAreaElement>(null);
+  // Saves go through the latest props, so a late text save cannot bring back
+  // an older colour or position. Typing not saved yet is saved on closing.
+  const latest = useRef(onChange);
+  latest.current = onChange;
+  const unsaved = useRef<string | null>(null);
+  const saveText = () => {
+    window.clearTimeout(timer.current);
+    const v = unsaved.current;
+    unsaved.current = null;
+    if (v !== null) latest.current({ text: v });
+  };
   useEffect(() => setText(note.text), [note.text]);
   useEffect(() => {
     if (focus) area.current?.focus();
   }, [focus]);
-  useEffect(() => () => window.clearTimeout(timer.current), []);
+  useEffect(() => () => saveText(), []);
   const color = stickyColors[note.color] || stickyColors.yellow;
   const pos = drag || { x: note.x, y: note.y };
 
@@ -95,7 +115,7 @@ function Sticky({
               key={name}
               className={"sticky-color" + (note.color === name ? " active" : "")}
               style={{ background: c.bg, borderColor: c.edge }}
-              aria-label={name}
+              aria-label={colorNames()[name] || name}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => onChange({ color: name })}
             />
@@ -108,7 +128,17 @@ function Sticky({
         >
           {note.collapsed ? <ChevronsUpDown size={13} /> : <ChevronsDownUp size={13} />}
         </button>
-        <button className="sticky-tool" data-tip={t("Remove sticky note")} onPointerDown={(e) => e.stopPropagation()} onClick={onDelete}>
+        <button
+          className="sticky-tool"
+          data-tip={t("Remove sticky note")}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => {
+            if (text.trim() && !window.confirm(t("Remove this sticky note and its text?"))) return;
+            window.clearTimeout(timer.current);
+            unsaved.current = null;
+            onDelete();
+          }}
+        >
           <Trash2 size={13} />
         </button>
       </header>
@@ -121,13 +151,11 @@ function Sticky({
           onChange={(e) => {
             const v = e.target.value.slice(0, 4000);
             setText(v);
+            unsaved.current = v;
             window.clearTimeout(timer.current);
-            timer.current = window.setTimeout(() => onChange({ text: v }), 500);
+            timer.current = window.setTimeout(saveText, 500);
           }}
-          onBlur={() => {
-            window.clearTimeout(timer.current);
-            if (text !== note.text) onChange({ text });
-          }}
+          onBlur={saveText}
           onKeyDown={(e) => e.stopPropagation()}
         />
       )}

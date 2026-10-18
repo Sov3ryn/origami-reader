@@ -44,7 +44,9 @@ const grades: Record<Answer, Grade> = {
 };
 export function answer(card: StudyCard, a: Answer, now = Date.now()): StudyCard {
   const next = scheduler.next(toCard(card.schedule), new Date(now), grades[a]);
-  return { ...card, schedule: toSchedule(next.card), updated: now };
+  // The first answer to a new card is when it joins the reviews.
+  const introduced = card.introduced ?? (isNew(card) ? now : undefined);
+  return { ...card, schedule: toSchedule(next.card), updated: now, ...(introduced ? { introduced } : {}) };
 }
 // When each answer would bring the card back, for the buttons' hints.
 export function preview(card: StudyCard, now = Date.now()): Record<Answer, number> {
@@ -67,14 +69,19 @@ export function dueCards(cards: StudyCard[], now = Date.now()) {
       return n || a.schedule.due - b.schedule.due;
     });
 }
+// When a card was first studied. Cards answered before this was recorded
+// count from their making, or from their only review.
+function introducedAt(c: StudyCard) {
+  if (c.introduced) return c.introduced;
+  if (!c.schedule.reps) return 0;
+  return c.schedule.reps === 1 ? Math.max(c.created, c.schedule.last_review || 0) : c.created;
+}
 // A gentle day: at most `newPerDay` new cards join the reviews.
 export function todaysQueue(cards: StudyCard[], newPerDay = 20, now = Date.now()) {
   const due = dueCards(cards, now);
   const start = new Date(now);
   start.setHours(0, 0, 0, 0);
-  const introducedToday = cards.filter(
-    (c) => c.schedule.reps > 0 && c.created >= start.getTime(),
-  ).length;
+  const introducedToday = cards.filter((c) => introducedAt(c) >= start.getTime()).length;
   let room = Math.max(0, newPerDay - introducedToday);
   return due.filter((c) => !isNew(c) || room-- > 0);
 }

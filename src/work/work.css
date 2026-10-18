@@ -2125,3 +2125,8 @@ body.resizing-panel {
   flex: none;
   margin-left: 2px;
 }
+.note-crumbs small.note-unsaved {
+  color: #d56f6f;
+  font-weight: 600;
+  white-space: normal;
+}

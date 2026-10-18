@@ -51,7 +51,7 @@ import { LinkForMe, type LinkScope, type Proposal } from "./LinkForMe";
 import { NoteEditor, type DraggedPassage } from "./NoteEditor";
 import { SourcePane } from "./SourcePane";
 import { StudySession } from "./StudySession";
-import { deleteWork, exportFolder, loadWork, pruneVersions, saveWork } from "./store";
+import { deleteWork, exportFolder, loadWork, pruneVersions, saveWork, tooLarge } from "./store";
 import {
   addRelated,
   escapeHtml,
@@ -126,7 +126,7 @@ import { VoiceContext, type VoiceWorld } from "./voice/VoiceBlock";
 import { listRecordings, loadRecording } from "./voice/voice";
 import { linesToHtml, readPhoto } from "./ink/ink";
 import { newPlan, planText, type PlanDoc } from "./plans/model";
-import { exportWorkspace, importWorkspace, inWorkspace, mainWorkspace, MAIN, rememberWorkspace, savedWorkspace, stamp, workspaceColors, workspaceOf, type WorkspaceDoc } from "./workspaces";
+import { belongsTo, exportWorkspace, importWorkspace, inWorkspace, mainWorkspace, MAIN, rememberWorkspace, savedWorkspace, stamp, workspaceColors, workspaceOf, type WorkspaceDoc } from "./workspaces";
 import type { Vault } from "../storage";
 import { noteVersions } from "./store";
 import { PluginHost, type PluginCalls, type PluginCommand, type PluginHostApi } from "./plugins/PluginHost";
@@ -434,20 +434,32 @@ export function WorkMode({
   }, [open, data]);
 
   // --- Saving ----------------------------------------------------------------------
+  // `into` is the workspace new items join (the open one unless given).
   const put = useCallback(
-    async (given: WorkItem[], remove: string[] = []) => {
-      const id = wsRef.current;
-      const items = stamp(given, dataRef.current?.workspaces.find((w) => w.id === id), id);
-      setData((d) => {
-        if (!d) return d;
+    async (given: WorkItem[], remove: string[] = [], into?: string) => {
+      const open = wsRef.current;
+      const id = into ?? open;
+      const before = dataRef.current;
+      const known = (d: WorkData, i: WorkItem) => (d[LIST_OF[i.kind]] as WorkItem[]).some((x) => x.id === i.id);
+      // Items already here keep their workspace: a save that lands after a
+      // switch must not move them into the new one.
+      const ws = before?.workspaces.find((w) => w.id === id);
+      const items = given.map((i) => (before && known(before, i) ? i : stamp([i], ws, id)[0]));
+      const apply = (d: WorkData) => {
         const next: WorkData = { ...d };
+        const shown = items.filter((i) => known(d, i) || belongsTo(i, open));
         const drop = new Set([...remove, ...items.map((i) => i.id)]);
         for (const key of Object.keys(d) as (keyof WorkData)[])
           (next as Record<string, WorkItem[]>)[key] = (d[key] as WorkItem[]).filter((x) => !drop.has(x.id));
-        for (const i of items) (next as Record<string, WorkItem[]>)[LIST_OF[i.kind]].push(i);
+        for (const i of shown) (next as Record<string, WorkItem[]>)[LIST_OF[i.kind]].push(i);
         next.subjects.sort((a, b) => a.order - b.order);
         return next;
-      });
+      };
+      // The ref follows at once, so whatever runs before the next render
+      // (an editor saving as it closes, then the tidy-up of empty items)
+      // sees this save.
+      if (before) dataRef.current = apply(before);
+      setData((d) => (d ? apply(d) : d));
       try {
         await saveWork(items);
         await deleteWork(remove);
@@ -531,6 +543,10 @@ export function WorkMode({
     const note = d?.notes.find((n) => n.id === id);
     if (!d || !note) return;
     const next = { ...note, ...patch, updated: Date.now() };
+    // Over the store's limit: nothing is saved, and the note says so once
+    // (instead of an error on every pause in typing).
+    if (tooLarge(next)) return setUnsaved(id);
+    setUnsaved((u) => (u === id ? null : u));
     if (
       next.html === note.html &&
       next.title === note.title &&
@@ -542,14 +558,28 @@ export function WorkMode({
       (next.tags || []).join() === (note.tags || []).join()
     )
       return;
+    // New cards join the note's workspace, even when the save lands just
+    // after a switch.
     const sync = syncNoteCards(next, d.cards);
-    void put([next, ...sync.save], sync.remove);
+    void put([next, ...sync.save], sync.remove, workspaceOf(note as { workspace?: string }));
     // History: the text as it was before each stretch of editing, at most
     // one version every ten minutes.
     if (next.html !== note.html && noteText(note.html).trim() && Date.now() - (snapshots.current.get(id) || 0) > 10 * 60_000) {
       snapshots.current.set(id, Date.now());
       void keepVersion(note);
     }
+  }
+  const [unsaved, setUnsaved] = useState<string | null>(null);
+  // A note as it stands, with the typing its open editor has not saved yet
+  // (saves wait for a pause), so a change made from outside builds on it.
+  function noteNow(id: string) {
+    const e = noteEditor.current;
+    const n = dataRef.current?.notes.find((x) => x.id === id);
+    if (n && e && !e.isDestroyed && lastNote.current === id) {
+      const html = e.getHTML();
+      if (html !== n.html) changeNote(id, { html });
+    }
+    return dataRef.current?.notes.find((x) => x.id === id);
   }
   const snapshots = useRef(new Map<string, number>());
   async function keepVersion(note: Note) {
@@ -588,15 +618,14 @@ export function WorkMode({
       return note.id;
     },
     appendNote: (id, html) => {
-      const n = dataRef.current?.notes.find((x) => x.id === id && !x.vault);
-      if (!n) throw new Error("No such note");
+      if (!dataRef.current?.notes.some((x) => x.id === id && !x.vault)) throw new Error("No such note");
+      const n = noteNow(id)!;
       changeNote(id, { html: n.html + pluginHtml(html) });
       bump(id);
     },
     replaceNote: (id, html) => {
-      const n = dataRef.current?.notes.find((x) => x.id === id && !x.vault);
-      if (!n) throw new Error("No such note");
-      void keepVersion(n);
+      if (!dataRef.current?.notes.some((x) => x.id === id && !x.vault)) throw new Error("No such note");
+      void keepVersion(noteNow(id)!);
       changeNote(id, { html: pluginHtml(html) });
       bump(id);
     },
@@ -685,6 +714,10 @@ export function WorkMode({
       const all = await loadWork();
       const ids: string[] = [w.id];
       for (const list of Object.values(all) as WorkItem[][]) for (const i of list) if (workspaceOf(i as { workspace?: string }) === w.id) ids.push(i.id);
+      const gone = new Set(ids);
+      // Voice recordings are not loaded with the rest: they go with their
+      // workspace, or with their note.
+      for (const r of await listRecordings()) if (workspaceOf(r) === w.id || (r.note && gone.has(r.note))) ids.push(r.id);
       for (const n of all.notes.filter((n) => workspaceOf(n as { workspace?: string }) === w.id)) void pruneVersions(n.id, 0).catch(() => undefined);
       await deleteWork(ids);
       switchWorkspace(MAIN);
@@ -730,7 +763,8 @@ export function WorkMode({
     }
   }
   // One document, with its cards, charts, sticky notes and history.
-  async function vaultDoc(doc: Note | SheetDoc | BoardDoc | PlanDoc, vault: string | null) {
+  async function vaultDoc(given: Note | SheetDoc | BoardDoc | PlanDoc, vault: string | null) {
+    const doc = given.kind === "note" ? noteNow(given.id) || given : given;
     const d = dataRef.current;
     if (!d) return;
     const related: WorkItem[] = [
@@ -761,9 +795,14 @@ export function WorkMode({
     setNewStickyId(s.id);
     void put([s]);
   }
-  const changeSticky = (s: StickyNote, patch: Partial<StickyNote>) => void put([{ ...s, ...patch, updated: Date.now() }]);
+  // From the sticky as it is now (a late save must not undo a newer change,
+  // or bring back one just removed).
+  function changeSticky(s: StickyNote, patch: Partial<StickyNote>) {
+    const now = dataRef.current?.stickies.find((x) => x.id === s.id);
+    if (now) void put([{ ...now, ...patch, updated: Date.now() }]);
+  }
   async function restoreVersion(note: Note, v: NoteVersion) {
-    await keepVersion({ ...note, updated: Date.now() });
+    await keepVersion({ ...(noteNow(note.id) || note), updated: Date.now() });
     snapshots.current.set(note.id, Date.now());
     changeNote(note.id, { html: v.html });
     bump(note.id);
@@ -885,6 +924,8 @@ export function WorkMode({
   async function importFolder(list: File[]) {
     const files = list.filter((f) => /\.(md|markdown|txt|html?)$/i.test(f.name) && !/(^|\/)\./.test(f.webkitRelativePath));
     if (!files.length) return notify(t("No notes found in this folder (Markdown, text or HTML)."));
+    // Reading the files takes a while: the notes go where the import began.
+    const into = wsRef.current;
     // Folders become subjects (two levels), files become notes.
     const made: WorkItem[] = [];
     const bySubject = new Map<string, string>();
@@ -911,7 +952,7 @@ export function WorkMode({
       made.push({ id: crypto.randomUUID(), kind: "note", title: n.title, html: n.html, created: now, updated: now, subjectId: subjectFor(path) } as Note);
       notesMade++;
     }
-    await put(made);
+    await put(made, [], into);
     notify(t("{count} notes imported from the folder.", { count: notesMade }));
   }
   const [planPick, setPlanPick] = useState(false);
@@ -945,7 +986,7 @@ export function WorkMode({
     if (!old) return;
     const next = { ...old, ...patch, updated: Date.now() };
     const { save, remove } = syncPictureCards(next, dataRef.current?.cards || []);
-    void put([next, ...save], remove);
+    void put([next, ...save], remove, workspaceOf(old as { workspace?: string }));
   }
   async function deletePicture(set: PictureSet) {
     await put([], [set.id, ...cards.filter((c) => c.picture?.set === set.id).map((c) => c.id)]);
@@ -1053,7 +1094,7 @@ export function WorkMode({
     if (current?.id === insertInto && noteEditor.current)
       noteEditor.current.chain().focus().insertContent({ type: "chartBlock", attrs: { id: spec.id } }).run();
     else {
-      const n = dataRef.current?.notes.find((x) => x.id === insertInto);
+      const n = noteNow(insertInto);
       if (n) {
         changeNote(n.id, { html: n.html + `<div data-chart="${spec.id}" class="chart-block"></div>` });
         bump(n.id);
@@ -1215,7 +1256,12 @@ export function WorkMode({
     return m;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.vectors, activeModel, sources]);
-  // Index quietly in small batches, a moment after typing stops.
+  // Index quietly in small batches, a moment after typing stops. One batch
+  // at a time; a change during a batch is picked up when it ends.
+  const sourcesNow = useRef(sources);
+  sourcesNow.current = sources;
+  const embedding = useRef({ busy: false, again: false });
+  const [indexAgain, setIndexAgain] = useState(0);
   useEffect(() => {
     if (!open || !activeModel || !data) return;
     const stored = new Map(data.vectors.filter((v) => v.model === activeModel).map((v) => [v.doc, v.hash]));
@@ -1225,27 +1271,39 @@ export function WorkMode({
     setIndexing(stale.length);
     if (!stale.length && !gone.length) return;
     const timer = window.setTimeout(async () => {
+      const run = embedding.current;
+      if (run.busy) {
+        run.again = true;
+        return;
+      }
+      run.busy = true;
       try {
         const batch = stale.slice(0, 12);
         const rows = batch.length ? await embedTexts(activeModel, batch.map(([, s]) => s.text)) : [];
-        const items: VectorItem[] = batch.map(([id, s], i) => ({
-          id: vectorId(id),
-          kind: "vector",
-          doc: id,
-          model: activeModel,
-          hash: s.hash,
-          v: encodeVector(rows[i]),
-          vault: s.vault,
-        }));
+        // A note may have changed or moved into (or out of) a vault while
+        // the model worked: its vector waits for the next batch.
+        const items: VectorItem[] = [];
+        batch.forEach(([id, s], i) => {
+          const now = sourcesNow.current.get(id);
+          if (now && now.hash === s.hash && now.vault === s.vault)
+            items.push({ id: vectorId(id), kind: "vector", doc: id, model: activeModel, hash: s.hash, v: encodeVector(rows[i]), vault: s.vault });
+        });
         await put(items, gone);
+        if (items.length < batch.length) run.again = true;
       } catch (e) {
         setIndexing(0);
         fail(e);
+      } finally {
+        run.busy = false;
+        if (run.again) {
+          run.again = false;
+          setIndexAgain((n) => n + 1);
+        }
       }
     }, 1200);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, activeModel, sources, data?.vectors]);
+  }, [open, activeModel, sources, data?.vectors, indexAgain]);
   const modelName = activeModel
     ? status?.models.find((m) => m.id === activeModel)?.name || ""
     : t("Shared words (no model installed)");
@@ -1301,20 +1359,22 @@ export function WorkMode({
 
   const relatedHeading = t("Related");
   function linkDoc(doc: DocInfo) {
-    if (!current) return;
+    const now = current && noteNow(current.id);
+    if (!now) return;
     if (doc.kind === "note") {
       const target = notes.find((n) => n.id === doc.id);
       if (!target) return;
-      changeNote(current.id, { html: addRelated(current.html, [target.title || t("Untitled")], relatedHeading) });
+      changeNote(now.id, { html: addRelated(now.html, [target.title || t("Untitled")], relatedHeading) });
     } else {
       const a = highlights.find((h) => h.id === doc.id);
       if (!a) return;
-      quoteInto(current, { bookId: a.bookId, paragraphId: a.paragraphId, quote: a.quote, label: bookById.get(a.bookId)?.title || "" });
+      quoteInto(now, { bookId: a.bookId, paragraphId: a.paragraphId, quote: a.quote, label: bookById.get(a.bookId)?.title || "" });
       return;
     }
-    bump(current.id);
+    bump(now.id);
   }
-  function quoteInto(note: Note, p: DraggedPassage) {
+  function quoteInto(given: Note, p: DraggedPassage) {
+    const note = noteNow(given.id) || given;
     const html =
       note.html +
       `<blockquote><p>${escapeHtml(p.quote)}</p></blockquote><p><a data-book="${escapeHtml(p.bookId)}" data-paragraph="${escapeHtml(p.paragraphId)}" class="passage-link">${escapeHtml(p.label)}</a></p>`;
@@ -1376,7 +1436,7 @@ export function WorkMode({
     for (const p of accepted) byNote.set(p.from.id, [...(byNote.get(p.from.id) || []), p.to.title]);
     const changed: Note[] = [];
     for (const [id, titles] of byNote) {
-      const n = d.notes.find((x) => x.id === id);
+      const n = noteNow(id);
       if (n) changed.push({ ...n, html: addRelated(n.html, titles, relatedHeading), updated: Date.now() });
     }
     const batch: LinkBatch = {
@@ -1402,7 +1462,7 @@ export function WorkMode({
     if (!d || !lastBatch) return;
     const changed: Note[] = [];
     for (const l of lastBatch.links) {
-      const n = d.notes.find((x) => x.id === l.noteId);
+      const n = noteNow(l.noteId);
       if (n) changed.push({ ...n, html: removeRelated(n.html, l.targets, relatedHeading), updated: Date.now() });
     }
     await put([...changed, { ...lastBatch, undone: true }]);
@@ -1584,6 +1644,8 @@ export function WorkMode({
         if (e.shiftKey) setConnectionsOpen((v) => !v);
         else setSidebarOpen((v) => !v);
       } else if (ctrl && !e.shiftKey && e.key.toLowerCase() === "k") {
+        // The spreadsheet keeps Ctrl+K for its links.
+        if ((e.target as Element | null)?.closest?.(".sheet-host")) return;
         e.preventDefault();
         setPalette(true);
       } else if (ctrl && e.shiftKey && !e.altKey && e.key.toLowerCase() === "n") {
@@ -1634,13 +1696,11 @@ export function WorkMode({
     const inside = notes.filter((n) => n.subjectId === s.id);
     if (!window.confirm(t('Delete the subject "{name}"? Its {count} notes stay, without a subject.', { name: s.name, count: inside.length })))
       return;
-    await put(
-      [
-        ...inside.map((n) => ({ ...n, subjectId: undefined })),
-        ...cards.filter((c) => c.subjectId === s.id).map((c) => ({ ...c, subjectId: undefined })),
-      ],
-      [s.id],
-    );
+    // Everything filed under it stays, without a subject.
+    const d = dataRef.current;
+    if (!d) return;
+    const loose = <T extends WorkItem & { subjectId?: string }>(list: T[]) => list.filter((x) => x.subjectId === s.id).map((x) => ({ ...x, subjectId: undefined }));
+    await put([...loose(d.notes), ...loose(d.cards), ...loose(d.sheets), ...loose(d.boards), ...loose(d.plans), ...loose(d.pictures)], [s.id]);
     setView({ kind: "today" });
   }
 
@@ -2162,7 +2222,7 @@ export function WorkMode({
             onStudy={() => study(queue, t("Today's cards"))}
             onOpen={(id) => setView({ kind: "note", id })}
             onToggle={(task) => {
-              const n = notes.find((x) => x.id === task.noteId);
+              const n = noteNow(task.noteId);
               if (!n) return;
               changeNote(n.id, { html: setTaskDone(n.html, task.index, !task.done) });
               bump(n.id);
@@ -2250,7 +2310,13 @@ export function WorkMode({
                       </option>
                     ))}
                   </select>
-                  <small>{t("Saved {time}", { time: new Date(current.updated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })}</small>
+                  {unsaved === current.id ? (
+                    <small className="note-unsaved" role="status">
+                      {t("Not saved: this note is over 4 MB. Move some of it to another note.")}
+                    </small>
+                  ) : (
+                    <small>{t("Saved {time}", { time: new Date(current.updated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })}</small>
+                  )}
                 </div>
                 <div className="note-head-actions">
                   <button className="icon-only" data-tip={t("Sticky note")} data-keys={shortcuts.sticky} onClick={() => addSticky(current)}>
@@ -2483,7 +2549,8 @@ export function WorkMode({
           onLink={linkDoc}
           onHide={hide}
           onLinkMentions={(title) => {
-            changeNote(current.id, { html: linkMentions(current.html, title) });
+            const n = noteNow(current.id);
+            if (n) changeNote(n.id, { html: linkMentions(n.html, title) });
             bump(current.id);
           }}
           onLinkForMe={() => setLinkForMe(true)}
@@ -2585,7 +2652,7 @@ export function WorkMode({
                     onClick={() => {
                       const id = planTarget;
                       setPlanTarget(null);
-                      changeNote(n.id, { html: n.html + `<div data-plan="${id}" class="plan-block"></div><p></p>` });
+                      changeNote(n.id, { html: (noteNow(n.id) || n).html + `<div data-plan="${id}" class="plan-block"></div><p></p>` });
                       bump(n.id);
                       setView({ kind: "note", id: n.id });
                     }}

@@ -61,6 +61,15 @@ export async function saveWork(items: (WorkItem | NoteVersion)[]) {
   await t.done;
 }
 
+// The desktop store refuses a note over 4 MB (store.rs). Work mode checks
+// first, so it can say so once instead of failing on every save.
+const NOTE_LIMIT = 4 * 1024 * 1024;
+export function tooLarge(item: WorkItem) {
+  if (!desktop || item.kind !== "note") return false;
+  const text = JSON.stringify(item);
+  return text.length * 3 > NOTE_LIMIT && new TextEncoder().encode(text).length > NOTE_LIMIT;
+}
+
 // Note history: the newest first, at most `keep` kept per note.
 export const VERSIONS_KEPT = 50;
 export async function noteVersions(note: string): Promise<NoteVersion[]> {

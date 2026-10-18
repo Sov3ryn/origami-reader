@@ -97,6 +97,8 @@ export function PicturePage({
       const pic = await loadPicture(file);
       // A new picture keeps the boxes only when it has the same shape.
       const same = draft.width && Math.abs(pic.width / pic.height - draft.width / draft.height) < 0.01;
+      if (!same && draft.masks.length && !window.confirm(t("The new picture has another shape, so its {count} boxes and their cards will be removed. Replace the picture?", { count: draft.masks.length })))
+        return;
       edit({ ...pic, masks: same ? draft.masks : [] }, true);
     } catch (e) {
       fail(e);
@@ -104,9 +106,19 @@ export function PicturePage({
       setBusy(false);
     }
   }
+  // Pasting a picture works on this page only (or with nothing focused),
+  // not while typing or working elsewhere.
+  const page = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!set.image && (!document.activeElement || document.activeElement === document.body || !document.activeElement.closest("input,textarea,select,[contenteditable]")))
+      page.current?.focus({ preventScroll: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     function paste(e: ClipboardEvent) {
-      if ((e.target as HTMLElement).closest("input,textarea")) return;
+      const target = e.target as HTMLElement;
+      if (target !== document.body && !page.current?.contains(target)) return;
+      if (target.closest("input,textarea")) return;
       const file = [...(e.clipboardData?.files || [])].find((f) => f.type.startsWith("image/"));
       if (file) {
         e.preventDefault();
@@ -179,7 +191,7 @@ export function PicturePage({
   const preview = drag?.kind === "new" ? maskFrom(drag.from, drag.to, "new") : null;
   const unlabelled = draft.masks.filter((m) => !m.label.trim()).length;
   return (
-    <section className="work-page picture-page" onKeyDown={key} tabIndex={-1}>
+    <section className="work-page picture-page" ref={page} onKeyDown={key} tabIndex={-1}>
       <header className="work-page-head">
         <div className="picture-title">
           <button className="text-button" onClick={onBack}>

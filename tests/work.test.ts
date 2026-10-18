@@ -118,6 +118,21 @@ describe("study cards", () => {
     const fresh = Array.from({ length: 30 }, (_, i) => makeCard({ type: "qa", front: "Q" + i, back: "A" }, now - 1000));
     expect(todaysQueue(fresh, 10, now)).toHaveLength(10);
   });
+  it("counts older cards first studied today against the daily limit", () => {
+    const now = new Date(2026, 9, 18, 15).getTime();
+    const lastWeek = now - 7 * 86_400_000;
+    const old = Array.from({ length: 30 }, (_, i) => makeCard({ type: "qa", front: "Q" + i, back: "A" }, lastWeek));
+    // Six of last week's cards are studied for the first time this morning.
+    const studied = old.slice(0, 6).map((c) => answer(c, "good", now - 3_600_000));
+    expect(studied.every((c) => c.introduced === now - 3_600_000)).toBe(true);
+    const cards = [...studied, ...old.slice(6)];
+    expect(todaysQueue(cards, 10, now).filter((c) => c.schedule.reps === 0)).toHaveLength(4);
+    // A second answer keeps the first day.
+    expect(answer(studied[0], "good", now).introduced).toBe(now - 3_600_000);
+    // Cards studied before the field existed count from their only review.
+    const legacy = studied.map(({ introduced: _i, ...c }) => c);
+    expect(todaysQueue([...legacy, ...old.slice(6)], 10, now).filter((c) => c.schedule.reps === 0)).toHaveLength(4);
+  });
   it("keeps cards written as question :: answer lines in step with the note", () => {
     const n = note("n1", "Cells", "<p>Mitochondria :: power plant</p><p>Not a card</p><ul><li><p>DNA :: the genome</p></li></ul>");
     expect(noteCardLines(n.html)).toEqual([

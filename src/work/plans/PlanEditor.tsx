@@ -108,11 +108,19 @@ export function PlanEditor({ plan, onChange }: { plan: PlanDoc; onChange: (shape
     }
     setShapes(next);
     window.clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(() => latest.current.onChange(next), 400);
+    pending.current = next;
+    saveTimer.current = window.setTimeout(() => {
+      pending.current = null;
+      latest.current.onChange(next);
+    }, 400);
   };
+  // What is drawn is saved when the editor closes.
+  const pending = useRef<Shape[] | null>(null);
   useEffect(
     () => () => {
       window.clearTimeout(saveTimer.current);
+      if (pending.current) latest.current.onChange(pending.current);
+      pending.current = null;
     },
     [],
   );

@@ -30,11 +30,13 @@ const SCOPED = new Set(["subject", "note", "card", "sheet", "chart", "board", "s
 export const workspaceOf = (item: { workspace?: string }) => item.workspace || MAIN;
 type Scoped = { kind: string; workspace?: string; vault?: string };
 
+export const belongsTo = (item: { kind: string; workspace?: string }, ws: string) => !SCOPED.has(item.kind) || workspaceOf(item) === ws;
+
 // Only what belongs to `ws` (the rest of the data is left as is).
 export function inWorkspace(data: WorkData, ws: string): WorkData {
   const out = { ...data } as Record<string, WorkItem[]>;
   for (const [key, list] of Object.entries(data) as [string, WorkItem[]][])
-    out[key] = list.filter((i) => !SCOPED.has(i.kind) || workspaceOf(i as Scoped) === ws);
+    out[key] = list.filter((i) => belongsTo(i as Scoped, ws));
   return out as unknown as WorkData;
 }
 

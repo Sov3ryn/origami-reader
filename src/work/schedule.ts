@@ -21,13 +21,23 @@ export const addDays = (key: string, n: number) => {
   return dayKey(new Date(y, m - 1, d + n));
 };
 
-const taskItem = /<li\b[^>]*data-type="taskItem"[^>]*>([\s\S]*?)<\/li>/g;
+// Checklist items in document order, nested ones included. Both reading and
+// ticking walk the same list, so the nth item is always the same one. The
+// parsed document is inert: no script runs and nothing is fetched.
+function taskItems(html: string) {
+  if (!/data-type="taskItem"/.test(html)) return null;
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return { doc, items: [...doc.body.querySelectorAll('li[data-type="taskItem"]')] };
+}
 export function noteTasks(note: Note): DatedTask[] {
   const out: DatedTask[] = [];
-  let index = 0;
-  for (const m of note.html.matchAll(taskItem)) {
-    const open = m[0].slice(0, m[0].indexOf(">"));
-    const text = noteText(m[1]).replace(/\s+/g, " ").trim();
+  const found = taskItems(note.html);
+  if (!found) return out;
+  found.items.forEach((li, index) => {
+    // The item's own text, without the items nested under it.
+    const own = li.cloneNode(true) as Element;
+    own.querySelectorAll("ul, ol").forEach((l) => l.remove());
+    const text = noteText(own.innerHTML).replace(/\s+/g, " ").trim();
     const date = /@(\d{4}-\d{2}-\d{2})\b/.exec(text)?.[1];
     if (date)
       out.push({
@@ -36,22 +46,18 @@ export function noteTasks(note: Note): DatedTask[] {
         index,
         text: text.replace(/\s*@\d{4}-\d{2}-\d{2}\b\s*/, " ").trim(),
         date,
-        done: /data-checked="true"/.test(open),
+        done: li.getAttribute("data-checked") === "true",
       });
-    index++;
-  }
+  });
   return out;
 }
 // Ticks or unticks the nth checklist item of a note.
 export function setTaskDone(html: string, index: number, done: boolean) {
-  let n = -1;
-  return html.replace(/<li\b[^>]*data-type="taskItem"[^>]*>/g, (tag) => {
-    n++;
-    if (n !== index) return tag;
-    return /data-checked="/.test(tag)
-      ? tag.replace(/data-checked="(true|false)"/, `data-checked="${done}"`)
-      : tag.replace("<li", `<li data-checked="${done}"`);
-  });
+  const found = taskItems(html);
+  const li = found?.items[index];
+  if (!found || !li) return html;
+  li.setAttribute("data-checked", String(done));
+  return found.doc.body.innerHTML;
 }
 
 export type Day = { key: string; cards: number; tasks: DatedTask[] };
