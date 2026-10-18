@@ -228,6 +228,8 @@ type ReadingAnchor = {
 };
 export default function App() {
   const [ready, setReady] = useState(false);
+  // A startup failure stays on the loading screen (notices clear themselves).
+  const [startupError, setStartupError] = useState("");
   const [books, setBooks] = useState<BookMeta[]>([]);
   const [book, setBook] = useState<Book | null>(null);
   const [prefs, setPrefs] = useState<Preferences>(defaultPreferences);
@@ -945,7 +947,7 @@ export default function App() {
           setReady(true);
         }
       } catch (e) {
-        if (active) error(e);
+        if (active) setStartupError(t(e instanceof Error ? e.message : String(e)));
       }
     })();
     return () => {
@@ -5522,13 +5524,13 @@ export default function App() {
           background: "#17161b",
           minHeight: "100vh",
         }}
-        aria-busy={!notice}
+        aria-busy={!startupError}
       >
         <h1>{t("Origami")}</h1>
-        <p role={notice ? "alert" : "status"}>
-          {notice || t("Preparing your library…")}
+        <p role={startupError ? "alert" : "status"}>
+          {startupError || t("Preparing your library…")}
         </p>
-        {notice && (
+        {startupError && (
           <button onClick={() => window.location.reload()}>
             {t("Retry loading library")}
           </button>

@@ -61,11 +61,22 @@ impl Store {
             let manifest: Value =
                 serde_json::from_str(include_str!("../../assets/starter-library/manifest.json"))
                     .map_err(|e| e.to_string())?;
+            // Each edition may also come in a translation chosen in setup.
+            let translations: Value = serde_json::from_str(include_str!(
+                "../../assets/starter-library/translations.json"
+            ))
+            .map_err(|e| e.to_string())?;
+            let known = |edition: &Value, hash: &Value| {
+                edition["sha256"] == *hash
+                    || translations[edition["id"].as_str().unwrap_or("")]
+                        .as_object()
+                        .is_some_and(|t| t.values().any(|v| v["sha256"] == *hash))
+            };
             let mut current = self.list()?;
             for book in books {
                 let meta = &book["meta"];
                 if !manifest["books"].as_array().unwrap().iter().any(|b| {
-                    b["sha256"] == meta["sourceHash"]
+                    known(b, &meta["sourceHash"])
                         && (b["id"] == meta["id"]
                             || current.iter().any(|existing| {
                                 existing["id"] == meta["id"]
@@ -95,7 +106,7 @@ impl Store {
             if manifest["books"].as_array().unwrap().iter().any(|edition| {
                 !current
                     .iter()
-                    .any(|b| b["id"] == edition["id"] || b["sourceHash"] == edition["sha256"])
+                    .any(|b| b["id"] == edition["id"] || known(edition, &b["sourceHash"]))
             }) {
                 return Err("Incomplete starter library".into());
             }
@@ -950,6 +961,29 @@ mod tests {
             "meta":{"id":b["id"],"sourceHash":b["sha256"],"title":b["title"],"coverImage":"bundled-art","deleted":false},
             "paragraphs":[{"id":"p-0","text":"Fixture text"}]
         })).collect()
+    }
+    #[test]
+    fn translated_starter_editions_install_and_unknown_ones_do_not() {
+        let translations: Value = serde_json::from_str(include_str!(
+            "../../assets/starter-library/translations.json"
+        ))
+        .unwrap();
+        let d = tempfile::tempdir().unwrap();
+        let s = Store::open(&d.path().join("starter.db")).unwrap();
+        let mut forged = starter_fixtures();
+        forged[0]["meta"]["sourceHash"] = serde_json::json!("not-a-starter-edition");
+        assert!(s.install_starters(forged).is_err());
+        assert!(!s.starter_installed().unwrap());
+        let mut books = starter_fixtures();
+        for book in books.iter_mut() {
+            let id = book["meta"]["id"].as_str().unwrap().to_string();
+            if let Some(fr) = translations[id.as_str()].get("fr") {
+                book["meta"]["sourceHash"] = fr["sha256"].clone();
+            }
+        }
+        s.install_starters(books).unwrap();
+        assert!(s.starter_installed().unwrap());
+        assert_eq!(s.list().unwrap().len(), 6);
     }
     #[test]
     fn starter_migration_is_atomic_preserves_user_data_and_does_not_repeat() {
