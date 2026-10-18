@@ -233,7 +233,7 @@ The real pipeline has no cast list. Ministral 3 8B lists the characters in each 
   - MP3: a small LGPL ffmpeg containing only the MP3 encoder, for 192 kbps files.
   - Watermark: a blind headphone test with a few friends before the app calls it inaudible.
   - Pocket TTS cloning weights: not hosted for now; qwentts.cpp is the laptop path, Pocket TTS stays an optional fallback.
-- Batched rendering: no voice-match difference between alone (0.979), a batch without padding (0.981) and a mixed batch (0.978); a blind A/B test is with the owner (`.local/studio-phase0/batch-blind-test.html`).
+- Batched rendering: no voice-match difference between alone (0.979), a batch without padding (0.981) and a mixed batch (0.978); in the owner's blind A/B test the batched take was preferred 5 times and the one-at-a-time take 7 times out of 12, which is chance level: batching does not lower quality, and the differences heard are take-to-take variation. Batched rendering stays the Phase 1 default; Studio's multiple takes per line cover the variation.
 
 ## Housekeeping
 
