@@ -640,3 +640,8 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - Schedule: overdue tasks show a small "Late" label instead of a bare orange dot that read as a stray separator.
 - Subject pages: sheet tiles preview their first filled cells as a small grid instead of run-together cell text; note tiles (and the Today page's recent notes) show the body text without headings run into it; the exam date field sits in line with its icon (the app-wide label rule had stacked them).
 - Scripts and plays (Studio, cast): a book written as a script, where lines start with the speaker's name and a colon ("ELIZABETH (softly): Not now."), is cast from its labels without the analysis model: each name becomes a character (capitals become "Mrs. Bennet"), "Narrator" lines go to the narrator, and the labels and stage directions in parentheses are not read. A book counts as a script with at least four labelled lines, two names used twice or more and labels on a third of its paragraphs; none of the seven library books is taken for one.
+
+## Translations, 18 October 2026
+
+- All 2,749 interface strings are now in all 20 languages: the 1,410 that were English-only outside French (853 from Work mode, 297 from Studio, 92 from the voice designer and the rest from the app) were machine-translated into the other 18 languages, each following its locale file's existing terminology, and checked by script (every string present, the same placeholders, no em dashes). Store profiles (names, credited narrator, notes) are now collected for translation, and Studio's inspector heading is "Script line" (in German, "Line" already meant a drawn line). Like the earlier batches, these need review by native speakers.
+
