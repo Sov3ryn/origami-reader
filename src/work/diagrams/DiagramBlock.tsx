@@ -31,7 +31,9 @@ let counter = 0;
 export async function renderDiagram(code: string, dark = false): Promise<string> {
   const mermaid = await loadMermaid(dark);
   const { svg } = await mermaid.render(`origami-diagram-${++counter}`, code);
-  return svg;
+  // Without HTML labels, Mermaid leaves a mind map's root label anchored at its start,
+  // so it spills out of the circle; centre it like the other nodes.
+  return svg.includes("section-root") ? svg.replace("</style>", ".section-root text{text-anchor:middle}</style>") : svg;
 }
 export async function diagramError(code: string): Promise<string> {
   const mermaid = await loadMermaid(false);
