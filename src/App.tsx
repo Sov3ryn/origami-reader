@@ -97,6 +97,7 @@ import {
 } from "react";
 import {
   BookOpen,
+  BookHeart,
   Bookmark,
   AudioLines,
   Settings2,
@@ -2723,6 +2724,8 @@ export default function App() {
   // Vault books show only inside their open vault, never on other shelves.
   const shelf: Shelf = prefs.libraryShelf || "stories";
   const shelfName = (s: Shelf) => (s === "documents" ? t("Documents") : t("Stories"));
+  // Each library's own icon, wherever it is named (navigation, switch, heading).
+  const shelfIcon = (s: Shelf, size: number) => (s === "documents" ? <FileText size={size} /> : <BookHeart size={size} />);
   const filteredBooks = books.filter(
     (b) => !b.vault && shelfOf(b) === shelf && matchesLibraryFilters(b, libraryFilters),
   );
@@ -6085,7 +6088,7 @@ export default function App() {
                         setSelected(new Set());
                       }}
                     >
-                      {s === "stories" ? <BookOpen size={20} /> : <FileText size={20} />}
+                      {shelfIcon(s, 20)}
                       {shelfName(s)}
                       <span className="count">{books.filter((b) => !b.vault && !b.deleted && shelfOf(b) === s).length}</span>
                     </button>
@@ -6647,7 +6650,8 @@ export default function App() {
                   <>
                     <div className="page-heading">
                       <div>
-                        <span className="eyebrow">
+                        <span className="eyebrow shelf-eyebrow">
+                          {shelfIcon(shelf, 14)}
                           {shelf === "stories"
                             ? visible.length === 1
                               ? t("1 story")
@@ -6886,6 +6890,7 @@ export default function App() {
                               setSelected(new Set());
                             }}
                           >
+                            {shelfIcon(s, 15)}
                             {shelfName(s)}
                           </button>
                         ))}

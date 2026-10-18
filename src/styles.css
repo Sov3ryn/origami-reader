@@ -974,6 +974,16 @@ p {
   border-radius: 6px;
   font-size: var(--fs-small);
 }
+.chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.shelf-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
 .chips .active {
   background: color-mix(in srgb, var(--accent) 17%, var(--panel));
   color: var(--ink);
