@@ -8,6 +8,7 @@ mod plugins;
 mod models;
 mod speech;
 mod store;
+mod studio;
 mod update;
 mod vault;
 mod voice_studio;
@@ -302,6 +303,31 @@ fn note_versions(db: State<Database>, note: String) -> Result<Vec<Value>> {
 #[tauri::command]
 fn prune_note_versions(db: State<Database>, note: String, keep: usize) -> Result<usize> {
     db.0.lock().map_err(|_| "Database busy")?.prune_versions(&note, keep)
+}
+// --- Studio productions -------------------------------------------------------------
+#[tauri::command]
+fn list_productions(app: tauri::AppHandle) -> Result<Vec<Value>> {
+    studio::list(&data_root(&app)?)
+}
+#[tauri::command]
+fn create_production(app: tauri::AppHandle, info: Value, units: Vec<Value>) -> Result<Value> {
+    studio::create(&data_root(&app)?, info, units)
+}
+#[tauri::command]
+fn read_production(app: tauri::AppHandle, id: String) -> Result<Value> {
+    studio::read(&data_root(&app)?, &id)
+}
+#[tauri::command]
+fn save_production_info(app: tauri::AppHandle, info: Value) -> Result<()> {
+    studio::save_info(&data_root(&app)?, info)
+}
+#[tauri::command]
+fn save_production_units(app: tauri::AppHandle, id: String, units: Vec<Value>) -> Result<()> {
+    studio::save_units(&data_root(&app)?, &id, units)
+}
+#[tauri::command]
+fn delete_production(app: tauri::AppHandle, id: String) -> Result<()> {
+    studio::delete(&data_root(&app)?, &id)
 }
 #[tauri::command]
 fn delete_work(db: State<Database>, ids: Vec<String>) -> Result<()> {
@@ -805,6 +831,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             voice_studio_state, design_voice, cancel_voice_design, voice_preview_audio, update_voice_preview, delete_voice_preview, save_designed_voice, export_voice_preview,
             list_books,
+            list_productions, create_production, read_production, save_production_info, save_production_units, delete_production,
             starter_library_installed,
             install_starter_library,
             read_book,

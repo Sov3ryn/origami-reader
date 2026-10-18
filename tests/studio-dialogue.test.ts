@@ -88,3 +88,26 @@ describe("attributing speech", () => {
     expect(result.map((a) => a.speaker)).toEqual(["L'inconnu", "d'Artagnan", "L'inconnu"]);
   });
 });
+
+describe("productions", () => {
+  it("cuts a book into stable render units by chapter", async () => {
+    const { productionUnits, newProduction } = await import("../src/studio/production");
+    const { defaultPreferences: defaults } = await import("../src/types");
+    const book = {
+      meta: { id: "b1", title: "Test", author: "A", language: "en", sourceHash: "h" },
+      paragraphs: [
+        { id: "a", text: "Chapter One", kind: "heading", chapter: 0 },
+        { id: "b", text: "It was a dark night. The rain fell. Nobody came to the door, and nobody called.", kind: "paragraph", chapter: 0 },
+        { id: "c", text: "Morning came at last.", kind: "paragraph", chapter: 1 },
+      ],
+    } as never;
+    const units = productionUnits(book, defaults);
+    expect(units.length).toBeGreaterThanOrEqual(2);
+    expect(units.every((u) => u.status === "pending")).toBe(true);
+    expect(units.at(-1)).toMatchObject({ chapter: 1, paragraphId: "c", id: "p2-u0" });
+    expect(new Set(units.map((u) => u.id)).size).toBe(units.length);
+    const p = newProduction(book, defaults, "voice-1", 1000);
+    expect(p.info).toMatchObject({ title: "Test", bookId: "b1", voice: "voice-1", created: 1000 });
+    expect(p.info.id).toMatch(/^prod-[a-z0-9]+-[a-z0-9]+$/);
+  });
+});

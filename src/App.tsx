@@ -210,7 +210,8 @@ import {
 } from "./readingPages";
 import { droppedFiles } from "./dropFiles";
 import { WorkMode, type Handoff } from "./work/WorkMode";
-import { ModeSwitch } from "./work/ModeSwitch";
+import { ModeSwitch, nextMode, type AppMode } from "./work/ModeSwitch";
+import { StudioMode } from "./studio/StudioMode";
 import { HoverTips } from "./work/HoverTips";
 import "./work/tips.css";
 import { CardComposer } from "./work/CardComposer";
@@ -843,7 +844,7 @@ export default function App() {
   useEffect(() => {
     const left = Boolean(lastVaultView.current) && !vaultView;
     lastVaultView.current = vaultView;
-    if (prefs.workMode || !left) return;
+    if (otherMode || !left) return;
     if (page === "library" && vaults.some((v) => v.unlocked))
       void lockVaults().catch(error);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1907,8 +1908,11 @@ export default function App() {
     patchPrefs({ rightOpen: true, inspector: tab });
   }
   // --- Work Mode ---------------------------------------------------------------
-  function switchMode(work: boolean) {
-    if (work === prefs.workMode) return;
+  const appMode: AppMode = prefs.studioMode ? "studio" : prefs.workMode ? "work" : "read";
+  const otherMode = appMode !== "read";
+  function switchMode(mode: AppMode) {
+    if (mode === appMode) return;
+    const work = mode === "work";
     if (work && page === "reader" && book) {
       const at = rememberReadingLocation();
       setWorkHandoff({
@@ -1920,11 +1924,11 @@ export default function App() {
     window.getSelection()?.removeAllRanges();
     setSelection(null);
     setFocusMode(false);
-    patchPrefs({ workMode: work });
+    patchPrefs({ workMode: work, studioMode: mode === "studio" });
   }
   // "Show in book" from a note or a study card.
   async function openPassageFromWork(bookId: string, paragraphId?: string) {
-    patchPrefs({ workMode: false });
+    patchPrefs({ workMode: false, studioMode: false });
     try {
       const b = await store.readBook(bookId);
       const pos = Math.max(0, b.paragraphs.findIndex((p) => p.id === paragraphId));
@@ -5405,11 +5409,11 @@ export default function App() {
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     if (ctrl && e.shiftKey && key === "w") {
       e.preventDefault();
-      switchMode(!prefs.workMode);
+      switchMode(nextMode(appMode));
       return;
     }
     // Work Mode has its own keys; only day and night carry over.
-    if (prefs.workMode) {
+    if (otherMode) {
       if (ctrl && e.shiftKey && key === "l") {
         e.preventDefault();
         toggleDayNight();
@@ -5536,7 +5540,7 @@ export default function App() {
       <SectionState value={sectionState}>
         <div
           ref={appRoot}
-          className={"app" + (prefs.workMode ? " work-active" : "")}
+          className={"app" + (otherMode ? " work-active" : "")}
           data-ui-scale={uiScale}
           style={variables}
           onDragOver={(e) => {
@@ -5576,6 +5580,13 @@ export default function App() {
           ) : (
             <BackgroundScene prefs={prefs} artVersion={artVersion} />
           )}
+          <StudioMode
+            open={Boolean(prefs.studioMode)}
+            books={books.filter((b) => !b.deleted && !b.vault)}
+            voices={voices}
+            prefs={prefs}
+            modeSwitch={<ModeSwitch mode="studio" onChange={switchMode} />}
+          />
           <WorkMode
             open={prefs.workMode}
             books={books.filter((b) => !b.deleted)}
@@ -5587,7 +5598,7 @@ export default function App() {
             connectionsModel={prefs.connectionsModel}
             language={prefs.uiLanguage}
             dataVersion={workVersion}
-            modeSwitch={<ModeSwitch work onChange={switchMode} />}
+            modeSwitch={<ModeSwitch mode="work" onChange={switchMode} />}
             onOpenPassage={(bookId, paragraphId) => {
               void openPassageFromWork(bookId, paragraphId);
             }}
@@ -5614,7 +5625,7 @@ export default function App() {
             pluginsOff={prefs.pluginsOff}
             onEmbedsChoice={(onlineEmbeds) => patchPrefs({ onlineEmbeds })}
             onSettings={() => {
-              switchMode(false);
+              switchMode("read");
               setPage("settings");
               patchPrefs({ settingsCategory: "work", openSections: { ...prefs.openSections, "settings-work-connections": true } });
             }}
@@ -5643,8 +5654,8 @@ export default function App() {
           />
           <aside
             className={"sidebar " + (!navigationOpen ? "collapsed" : "")}
-            aria-hidden={!navigationOpen || prefs.workMode}
-            inert={!navigationOpen || prefs.workMode}
+            aria-hidden={!navigationOpen || otherMode}
+            inert={!navigationOpen || otherMode}
           >
             {!(page === "reader" && book) && (
               <button
@@ -5663,7 +5674,7 @@ export default function App() {
                 {t("Private beta")}
               </span>
             )}
-            <ModeSwitch work={false} onChange={switchMode} />
+            <ModeSwitch mode="read" onChange={switchMode} />
             {page === "reader" && book ? (
               <>
                 <button
@@ -6281,7 +6292,7 @@ export default function App() {
             />
           )}
           <div
-            inert={prefs.workMode}
+            inert={otherMode}
             className={
               "center" +
               (ready && page === "library" && roomTheme
@@ -7465,8 +7476,8 @@ export default function App() {
           {inspectorAvailable && (
             <aside
               className={"inspector " + (!inspectorOpen ? "collapsed" : "")}
-              aria-hidden={!inspectorOpen || prefs.workMode}
-              inert={!inspectorOpen || prefs.workMode}
+              aria-hidden={!inspectorOpen || otherMode}
+              inert={!inspectorOpen || otherMode}
             >
               <div className="inspector-header">
                 <div
@@ -7553,7 +7564,7 @@ export default function App() {
               </div>
             </aside>
           )}
-          <footer className="player" inert={prefs.workMode}>
+          <footer className="player" inert={otherMode}>
             <div className="now-playing">
               {page === "reader" && book ? (
                 <button

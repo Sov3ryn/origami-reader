@@ -2429,5 +2429,19 @@
   "Your study days will appear here. No streaks, no pressure.": "Vos jours d’étude apparaîtront ici. Pas de séries, pas de pression.",
   "Your study rhythm": "Votre rythme d’étude",
   "Your work is saved. Open another page and come back, or restart Origami.": "Votre travail est enregistré. Ouvrez une autre page puis revenez, ou redémarrez Origami.",
-  "Zoom slider": "Curseur de zoom"
+  "Zoom slider": "Curseur de zoom",
+  "{done} of {total} lines rendered": "{done} lignes sur {total} enregistrées",
+  "A production turns a book from your library into an audiobook, chapter by chapter, with takes you can review.": "Une production transforme un livre de votre bibliothèque en livre audio, chapitre par chapitre, avec des prises que vous pouvez écouter et choisir.",
+  "All productions": "Toutes les productions",
+  "Chapter {n}": "Chapitre {n}",
+  "Chapters": "Chapitres",
+  "Create production": "Créer la production",
+  "Delete production": "Supprimer la production",
+  "Delete this production and its takes? Exported files are kept.": "Supprimer cette production et ses prises ? Les fichiers exportés sont conservés.",
+  "Narrator": "Narrateur",
+  "New production": "Nouvelle production",
+  "No productions yet": "Aucune production pour l’instant",
+  "Preparing": "Préparation",
+  "Studio": "Studio",
+  "Studio: audiobooks and books": "Studio : livres audio et livres"
 }

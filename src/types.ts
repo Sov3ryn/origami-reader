@@ -206,6 +206,8 @@ export type Preferences = {
   vaultIdleMinutes: number;
   // Work Mode (src/work): open instead of the reader, and study settings.
   workMode: boolean;
+  // Studio mode (productions); exclusive with Work mode.
+  studioMode?: boolean;
   studyFourButtons: boolean;
   studyNewPerDay: number;
   // "standard" (Granite 97M) or "precise" (Granite 311M) for Related notes.
