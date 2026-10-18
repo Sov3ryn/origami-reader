@@ -45,6 +45,8 @@ const dataFiles = {
   "components/TextMenu.tsx": [/\bname: "([^"]+)"/g],
   "studio/StudioSetup.tsx": [/\bname: "([^"]+)"/g, /\bdoes: "([^"]+)"/g],
   // Mood labels: ["id", "Label", "prompt for the voice designer"].
+  // Store profiles: name, credited narrator and note, and the stores that refuse.
+  "studio/production.ts": [/\bname: "((?:[^"\\]|\\.)*)"/g, /\bnarrator: "((?:[^"\\]|\\.)*)"/g, /\bnote: "((?:[^"\\]|\\.)*)"/g, /refusingStores = "((?:[^"\\]|\\.)*)"/g],
   "studio/cast.ts": [/\["[a-z]+", "([A-Z][a-z]+)", "[A-Z][^"]{20,}"\]/g],
 };
 // Single-quoted messages, used when the text itself contains double quotes.
@@ -76,7 +78,7 @@ for (const file of files) {
     for (const m of block.matchAll(/: "([^"]+)"/g)) strings.add(unescape(m[1]));
   }
   for (const pattern of dataFiles[rel] || [])
-    for (const m of text.matchAll(pattern)) strings.add(unescape(m[1]));
+    for (const m of text.matchAll(pattern)) strings.add(unescape(m[1]).replace(/\\(["\\])/g, "$1"));
 }
 // Values used as both data and display text.
 for (const s of [

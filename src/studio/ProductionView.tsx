@@ -783,7 +783,7 @@ function LineInspector({
   return (
     <div className="studio-panel">
       <div className="studio-panel-head">
-        <span>{unit.heading ? t("Heading") : t("Line")}</span>
+        <span>{unit.heading ? t("Heading") : t("Script line")}</span>
         <span className={`studio-state ${unit.status}`}>
           {unit.status === "approved"
             ? t("Approved")
