@@ -146,3 +146,24 @@ export const annotationColors = [
   { id: "olive", label: "Olive", value: "#6c761a" },
   { id: "slate", label: "Slate", value: "#607080" },
 ];
+
+// Work mode's "Reading room" over a light colour theme (the day scenes use
+// some): the reader's accent on a dark base, so Work is never a bright sheet
+// unless Professional light is chosen. High contrast themes are kept as they are.
+export function darkReadingRoom(theme: (typeof themes)[number]): Record<string, string> | null {
+  const hex = /^#([0-9a-f]{6})$/i.exec(theme.bg)?.[1];
+  if (!hex || theme.id.startsWith("contrast")) return null;
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  if (0.2126 * r + 0.7152 * g + 0.0722 * b < 140) return null;
+  const accent = `color-mix(in srgb, ${theme.accent} 45%, #ffffff)`;
+  return {
+    "--bg": `color-mix(in srgb, ${theme.accent} 10%, #151418)`,
+    "--panel": `color-mix(in srgb, ${theme.accent} 12%, #211f26)`,
+    "--ink": "#eeebf2",
+    "--muted": "#bdb7c6",
+    "--line": `color-mix(in srgb, ${theme.accent} 25%, #46414c)`,
+    "--accent": accent,
+    "--accent-ink": "#18161c",
+  };
+}
+

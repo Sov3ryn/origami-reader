@@ -232,6 +232,7 @@ export function WorkMode({
   sourcesFilter,
   onSourcesFilter,
   theme,
+  readingLook,
   onTheme,
   onMarkSource,
   tipsOn,
@@ -266,6 +267,8 @@ export function WorkMode({
   onSourcesFilter: (value: string) => void;
   // "reading", "light" or "dark".
   theme: string;
+  // Colours for "Reading room" when the reader's theme is light (themes.ts darkReadingRoom).
+  readingLook?: Record<string, string> | null;
   onTheme: (value: string) => void;
   onMarkSource: (book: BookMeta) => void;
   tipsOn: boolean;
@@ -1731,7 +1734,13 @@ export function WorkMode({
       role="region"
       aria-label={t("Work mode")}
       ref={workRoot}
-      style={{ "--work-left": `${leftShown || leftWidth}px`, "--work-right": `${rightShown || rightWidth}px` } as React.CSSProperties}
+      style={
+        {
+          ...(theme === "reading" && readingLook ? readingLook : {}),
+          "--work-left": `${leftShown || leftWidth}px`,
+          "--work-right": `${rightShown || rightWidth}px`,
+        } as React.CSSProperties
+      }
     >
       {sidebarOpen && (
         <PanelResizer side="left" width={leftShown} min={200} max={Math.max(200, Math.min(440, room - rightShown))} fallback={252} inset={{ edge: 12, gap: 6 }} label={t("Resize the sidebar")} onChange={setLeftWidth} />

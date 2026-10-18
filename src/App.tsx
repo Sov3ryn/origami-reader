@@ -182,7 +182,7 @@ import type {
   PronunciationRule,
 } from "./types";
 import { defaultPreferences } from "./types";
-import { themes, annotationColors } from "./themes";
+import { themes, annotationColors, darkReadingRoom } from "./themes";
 import {
   cleanSpokenText,
   createBook,
@@ -5771,6 +5771,7 @@ export default function App() {
             sourcesFilter={prefs.workSources}
             onSourcesFilter={(workSources) => patchPrefs({ workSources })}
             theme={prefs.workTheme}
+            readingLook={darkReadingRoom(theme)}
             onTheme={(workTheme) => patchPrefs({ workTheme })}
             onMarkSource={(b) => {
               void updateMeta({ ...b, work: true }).catch(error);
