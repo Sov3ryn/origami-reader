@@ -64,6 +64,7 @@ import {
 import { usePlayback } from "./usePlayback";
 import { ExportDialog } from "./ExportDialog";
 import { PanelResizer, rememberWidth, rememberedWidth } from "../work/PanelResizer";
+import { useMedia } from "../useMedia";
 
 type Filter = "all" | "review" | "pending" | "speaker";
 const uncertainSpeaker = (u: ProductionUnit) => Boolean(u.speech) && (u.confidence ?? 1) < 0.7;
@@ -126,6 +127,13 @@ export function ProductionView({
   const [analysisNote, setAnalysisNote] = useState("");
   const stopRequested = useRef(false);
   const [right, setRight] = useState(true);
+  // Narrow windows: the panels slide over the script, one at a time, closed to start with.
+  const narrow = useMedia("(max-width: 860px)");
+  useEffect(() => {
+    // Closed when the window gets narrow, back beside the script when it widens.
+    setLeft(!narrow);
+    setRight(!narrow);
+  }, [narrow]);
   const [leftWidth, setLeftWidth] = useState(() => rememberedWidth("origami.studioLeftWidth", 250));
   const [rightWidth, setRightWidth] = useState(() => rememberedWidth("origami.studioRightWidth", 330));
   useEffect(() => rememberWidth("origami.studioLeftWidth", leftWidth), [leftWidth]);
@@ -463,7 +471,7 @@ export function ProductionView({
 
   return (
     <div
-      className={`studio-mode studio-editor${left ? "" : " no-left"}${right ? "" : " no-right"}`}
+      className={`studio-mode studio-editor${left ? "" : " no-left"}${right ? "" : " no-right"}${narrow ? " narrow" : ""}`}
       style={{ "--studio-left": `${leftWidth}px`, "--studio-right": `${rightWidth}px` } as React.CSSProperties}
     >
       {left && (
