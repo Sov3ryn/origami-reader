@@ -111,3 +111,15 @@ describe("productions", () => {
     expect(p.info.id).toMatch(/^prod-[a-z0-9]+-[a-z0-9]+$/);
   });
 });
+
+describe("render units", () => {
+  it("never ends a unit on a title such as Mr.", async () => {
+    const { productionUnits } = await import("../src/studio/production");
+    const { defaultPreferences } = await import("../src/types");
+    const book = { meta: { id: "b", title: "T", author: "", sourceHash: "" }, paragraphs: [
+      { id: "a", text: "\u201cMy dear Mr. Bennet,\u201d said his lady to him one day, \u201chave you heard that Netherfield Park is let at last?\u201d", kind: "paragraph", chapter: 0 },
+    ] } as never;
+    const units = productionUnits(book, defaultPreferences);
+    expect(units.some((u) => /\bMr\.$/.test(u.text))).toBe(false);
+  });
+});

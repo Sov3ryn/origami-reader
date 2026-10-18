@@ -275,6 +275,52 @@ def main():
         audio = np.concatenate(chunks) if chunks else np.empty(0, dtype=np.float32)
         return audio[:int(max_tokens / frame_rate * rate)], rate
 
+    batched = None
+
+    def write_wav(path, audio, rate):
+        tmp = path.with_suffix(".tmp")
+        with wave.open(str(tmp), "wb") as output:
+            output.setnchannels(1)
+            output.setsampwidth(2)
+            output.setframerate(rate)
+            output.writeframes((np.clip(audio, -1, 1) * 32767).astype("<i2").tobytes())
+        os.replace(tmp, path)
+
+    def render_batch(request):
+        nonlocal batched
+        items = request["items"]
+        out_dir = Path(request["out_dir"])
+        out_dir.mkdir(parents=True, exist_ok=True)
+        voice, prompt, voice_language = voice_prompt(request.get("voice") or first_voice)
+        try:
+            temp = min(1.2, max(0.3, float(request.get("temperature", temperature))))
+        except (TypeError, ValueError):
+            temp = temperature
+        texts = [prepared_text(i["text"]) for i in items]
+        budgets = [speech_budget(t, frame_rate) for t in texts]
+        language = text_language(" ".join(texts), voice_language)
+        results = []
+        torch.manual_seed(int(items[0].get("seed", 0)))
+        if fast:
+            if batched is None:
+                sys.path.insert(0, str(Path(__file__).parent))
+                from qwen_batch import BatchedFastQwen
+                batched = BatchedFastQwen(model)
+            with torch.inference_mode():
+                codes, ended, ref_codes, _ = batched.generate(texts, language, prompt, voice["reference_text"], budgets, temperature=temp)
+                audio, rate = batched.decode_audio(codes, ref_codes)
+            outputs = [(a if a is not None else np.zeros(int(rate * 0.3), dtype=np.float32), e) for a, e in zip(audio, ended)]
+        else:
+            outputs = []
+            for t, b in zip(texts, budgets):
+                a, rate = generate(request, t, temp, b)
+                outputs.append((a, bool(a.size) and not overran(a.size / rate, b, frame_rate)))
+        for item, (a, ended) in zip(items, outputs):
+            path = out_dir / f"{item['take']}.wav"
+            write_wav(path, np.asarray(a, dtype=np.float32).reshape(-1), rate)
+            results.append({"id": item["id"], "take": item["take"], "file": path.name, "duration": len(a) / rate, "ended": bool(ended)})
+        return {"event": "rendered", "items": results, "batched": bool(fast)}
+
     for line in sys.stdin:
         request = json.loads(line)
         if cancelled(request):
@@ -287,6 +333,13 @@ def main():
                 send({"event": "error", "message": "This voice's reference recording could not be loaded."})
                 continue
             send({"event": "ready", "voice": request.get("voice") or first_voice})
+            continue
+        if request.get("version") == 1 and request.get("action") == "render":
+            # Studio: several lines of one voice, written to files as takes.
+            try:
+                send(render_batch(request))
+            except (KeyError, OSError, ValueError) as e:
+                send({"event": "error", "message": f"Rendering failed: {e}"})
             continue
         text = request.get("text", "")
         if request.get("version") != 1 or not 0 < len(text) <= 1200:

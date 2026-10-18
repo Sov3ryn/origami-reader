@@ -305,6 +305,14 @@ impl Speech {
             "ready",
         )
     }
+    /// Studio: renders several lines of one voice into WAV files in `out_dir`.
+    pub fn render(&self, app: AppHandle, voice: String, items: Value, out_dir: &std::path::Path, temperature: Option<f64>) -> Result<Value> {
+        let mut request = json!({"version":1,"action":"render","items":items,"out_dir":out_dir});
+        if let Some(t) = temperature.filter(|t| t.is_finite()) {
+            request["temperature"] = json!(t.clamp(0.3, 1.2));
+        }
+        self.request(app, voice, None, request, "rendered")
+    }
     pub fn synthesize(
         &self,
         app: AppHandle,

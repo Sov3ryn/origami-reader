@@ -2443,5 +2443,13 @@
   "No productions yet": "Aucune production pour l’instant",
   "Preparing": "Préparation",
   "Studio": "Studio",
-  "Studio: audiobooks and books": "Studio : livres audio et livres"
+  "Studio: audiobooks and books": "Studio : livres audio et livres",
+  "Play this line": "Écouter cette ligne",
+  "Render the book": "Enregistrer le livre",
+  "Render this chapter": "Enregistrer ce chapitre",
+  "Rendering failed": "L’enregistrement a échoué",
+  "Rendering finished": "Enregistrement terminé",
+  "Rendering stopped": "Enregistrement arrêté",
+  "Stop rendering": "Arrêter l’enregistrement",
+  "Not rendered": "Pas encore enregistrée"
 }

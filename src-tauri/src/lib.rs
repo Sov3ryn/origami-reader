@@ -329,6 +329,91 @@ fn save_production_units(app: tauri::AppHandle, id: String, units: Vec<Value>) -
 fn delete_production(app: tauri::AppHandle, id: String) -> Result<()> {
     studio::delete(&data_root(&app)?, &id)
 }
+// Studio rendering: one job at a time, in batches of lines of one voice. Each
+// finished batch is saved at once, so closing or a crash loses at most one batch.
+#[derive(Default)]
+struct StudioJob {
+    running: std::sync::atomic::AtomicBool,
+    cancel: std::sync::atomic::AtomicBool,
+}
+const STUDIO_BATCH: usize = 8;
+#[tauri::command]
+fn studio_render(app: tauri::AppHandle, job: State<StudioJob>, id: String, chapter: Option<i64>) -> Result<()> {
+    use std::sync::atomic::Ordering;
+    use tauri::Emitter;
+    if job.running.swap(true, Ordering::SeqCst) {
+        return Err("A production is already rendering.".into());
+    }
+    job.cancel.store(false, Ordering::SeqCst);
+    let data = data_root(&app)?;
+    std::thread::spawn(move || {
+        let job = app.state::<StudioJob>();
+        let outcome = (|| -> Result<()> {
+            loop {
+                if job.cancel.load(Ordering::SeqCst) {
+                    return Err("cancelled".into());
+                }
+                let p = studio::read(&data, &id)?;
+                let voice = p["info"]["voice"].as_str().unwrap_or_default().to_string();
+                let units = p["units"].as_array().cloned().unwrap_or_default();
+                let total = units.len();
+                let pending = |u: &&Value| u["status"] == "pending";
+                let mut batch: Vec<&Value> = units.iter().filter(pending).filter(|u| chapter.map_or(true, |c| u["chapter"].as_i64() == Some(c))).take(STUDIO_BATCH).collect();
+                if batch.is_empty() && chapter.is_some() {
+                    return Ok(());
+                }
+                if batch.is_empty() {
+                    batch = units.iter().filter(pending).take(STUDIO_BATCH).collect();
+                }
+                if batch.is_empty() {
+                    return Ok(());
+                }
+                let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
+                let items: Vec<Value> = batch
+                    .iter()
+                    .enumerate()
+                    .map(|(i, u)| serde_json::json!({"id": u["id"], "text": u["text"], "seed": (now as u64 + i as u64) % 2147483647, "take": format!("{}-{}", u["id"].as_str().unwrap_or("u"), now)}))
+                    .collect();
+                let out = studio::takes_dir(&data, &id)?;
+                let speech = app.state::<speech::Speech>();
+                let result = speech.render(app.clone(), voice.clone(), Value::Array(items.clone()), &out, None)?;
+                let takes: Vec<Value> = result["items"]
+                    .as_array()
+                    .cloned()
+                    .unwrap_or_default()
+                    .into_iter()
+                    .zip(items.iter())
+                    .map(|(r, item)| serde_json::json!({
+                        "id": r["take"], "unit": r["id"], "file": r["file"], "duration": r["duration"], "ended": r["ended"],
+                        "seed": item["seed"], "voice": voice, "text": item["text"], "created": now as f64, "model": ""
+                    }))
+                    .collect();
+                studio::add_takes(&data, &id, &takes)?;
+                let done = total - units.iter().filter(pending).count() + takes.len();
+                let _ = app.emit("studio-progress", serde_json::json!({"id": id, "done": done, "total": total}));
+            }
+        })();
+        job.running.store(false, Ordering::SeqCst);
+        let _ = app.emit("studio-render-done", match outcome {
+            Ok(()) => serde_json::json!({"id": id, "ok": true}),
+            Err(e) if e == "cancelled" => serde_json::json!({"id": id, "ok": true, "cancelled": true}),
+            Err(e) => serde_json::json!({"id": id, "ok": false, "message": e}),
+        });
+    });
+    Ok(())
+}
+#[tauri::command]
+fn studio_cancel_render(job: State<StudioJob>) {
+    job.cancel.store(true, std::sync::atomic::Ordering::SeqCst);
+}
+#[tauri::command]
+fn studio_render_running(job: State<StudioJob>) -> bool {
+    job.running.load(std::sync::atomic::Ordering::SeqCst)
+}
+#[tauri::command]
+fn studio_take_audio(app: tauri::AppHandle, id: String, file: String) -> Result<String> {
+    Ok(STANDARD.encode(studio::take_audio(&data_root(&app)?, &id, &file)?))
+}
 #[tauri::command]
 fn delete_work(db: State<Database>, ids: Vec<String>) -> Result<()> {
     db.0.lock()
@@ -819,6 +904,7 @@ pub fn run() {
             let db = Store::open(&path.join("origami.sqlite3")).map_err(std::io::Error::other)?;
             app.manage(Database(Mutex::new(db)));
             app.manage(speech::Speech::default());
+            app.manage(StudioJob::default());
             app.manage(covers::Covers::default());
             app.manage(voice_studio::Studio::default());
             app.manage(embed::Embedder::default());
@@ -831,7 +917,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             voice_studio_state, design_voice, cancel_voice_design, voice_preview_audio, update_voice_preview, delete_voice_preview, save_designed_voice, export_voice_preview,
             list_books,
-            list_productions, create_production, read_production, save_production_info, save_production_units, delete_production,
+            list_productions, create_production, read_production, save_production_info, save_production_units, delete_production, studio_render, studio_cancel_render, studio_render_running, studio_take_audio,
             starter_library_installed,
             install_starter_library,
             read_book,

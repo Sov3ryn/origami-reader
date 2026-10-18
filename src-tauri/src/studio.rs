@@ -133,6 +133,39 @@ pub fn save_units(data: &Path, id: &str, units: Vec<Value>) -> Result<()> {
     tx.commit().map_err(|e| e.to_string())
 }
 
+/// The folder for take audio files.
+pub fn takes_dir(data: &Path, id: &str) -> Result<PathBuf> {
+    Ok(folder(data, id)?.join("takes"))
+}
+
+/// Records new takes and marks their units rendered, in one transaction.
+pub fn add_takes(data: &Path, id: &str, takes: &[Value]) -> Result<()> {
+    let mut db = open(&folder(data, id)?)?;
+    let tx = db.transaction().map_err(|e| e.to_string())?;
+    for take in takes {
+        let unit = take["unit"].as_str().unwrap_or_default();
+        tx.execute("INSERT OR REPLACE INTO takes(id, unit, data) VALUES(?1, ?2, ?3)", params![take["id"].as_str().unwrap_or_default(), unit, take.to_string()])
+            .map_err(|e| e.to_string())?;
+        let raw: String = tx.query_row("SELECT data FROM units WHERE id=?1", params![unit], |r| r.get(0)).map_err(|e| e.to_string())?;
+        let mut u: Value = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
+        u["status"] = json!(if take["ended"].as_bool() == Some(false) { "failed" } else { "rendered" });
+        u["take"] = take["id"].clone();
+        tx.execute("UPDATE units SET data=?2 WHERE id=?1", params![unit, u.to_string()]).map_err(|e| e.to_string())?;
+    }
+    let mut info = read_info(&tx)?;
+    info["updated"] = json!(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as f64).unwrap_or(0.0));
+    tx.execute("UPDATE info SET value=?1 WHERE key='production'", params![info.to_string()]).map_err(|e| e.to_string())?;
+    tx.commit().map_err(|e| e.to_string())
+}
+
+/// A take's audio file, read for playback.
+pub fn take_audio(data: &Path, id: &str, file: &str) -> Result<Vec<u8>> {
+    if !file.ends_with(".wav") || file.contains(['/', '\\']) || file.contains("..") {
+        return Err("Unknown take.".into());
+    }
+    std::fs::read(takes_dir(data, id)?.join(file)).map_err(|e| e.to_string())
+}
+
 /// Removes a production folder (its takes included). Exports live elsewhere.
 pub fn delete(data: &Path, id: &str) -> Result<()> {
     let dir = folder(data, id)?;

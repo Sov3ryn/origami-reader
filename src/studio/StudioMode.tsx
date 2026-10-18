@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { ArrowLeft, Clapperboard, Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { listen } from "@tauri-apps/api/event";
+import { ArrowLeft, Clapperboard, Play, Plus, Square, Trash2 } from "lucide-react";
 import { t } from "../i18n";
 import * as store from "../storage";
 import type { Book, BookMeta, Preferences, Voice } from "../types";
@@ -12,6 +13,12 @@ import {
   progress,
   readProduction,
   saveProductionInfo,
+  startRender,
+  cancelRender,
+  renderRunning,
+  takeAudio,
+  type RenderDone,
+  type RenderProgress,
   type Production,
   type ProductionInfo,
 } from "./production";
@@ -246,6 +253,61 @@ function ProductionView({
   const [chapter, setChapter] = useState(chapters[0]?.[0] ?? 0);
   const shown = units.filter((u) => u.chapter === chapter);
   const [confirming, setConfirming] = useState(false);
+  const [rendering, setRendering] = useState(false);
+  const [status, setStatus] = useState("");
+  const [playing, setPlaying] = useState("");
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const done = units.filter((u) => u.status !== "pending").length;
+
+  async function reload() {
+    onChange(await readProduction(info.id));
+  }
+  useEffect(() => {
+    void renderRunning().then(setRendering);
+    const off = [
+      listen<RenderProgress>("studio-progress", (e) => {
+        if (e.payload.id !== info.id) return;
+        setStatus(t("{done} of {total} lines rendered", { done: String(e.payload.done), total: String(e.payload.total) }));
+        void reload();
+      }),
+      listen<RenderDone>("studio-render-done", (e) => {
+        if (e.payload.id !== info.id) return;
+        setRendering(false);
+        setStatus(e.payload.ok ? (e.payload.cancelled ? t("Rendering stopped") : t("Rendering finished")) : e.payload.message || t("Rendering failed"));
+        void reload();
+      }),
+    ];
+    return () => {
+      off.forEach((p) => void p.then((f) => f()));
+      audio.current?.pause();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [info.id]);
+
+  async function render(only?: number) {
+    setStatus("");
+    try {
+      await startRender(info.id, only);
+      setRendering(true);
+    } catch (e) {
+      setStatus(String(e));
+    }
+  }
+  async function play(unitId: string) {
+    const take = production.takes.find((x) => x.id === units.find((u) => u.id === unitId)?.take);
+    if (!take) return;
+    audio.current?.pause();
+    if (playing === unitId) {
+      setPlaying("");
+      return;
+    }
+    const data = await takeAudio(info.id, take.file);
+    const a = new Audio("data:audio/wav;base64," + data);
+    audio.current = a;
+    setPlaying(unitId);
+    a.onended = () => setPlaying("");
+    void a.play();
+  }
   return (
     <div className="studio-mode studio-production">
       <header className="studio-top">
@@ -271,6 +333,20 @@ function ProductionView({
             ))}
           </select>
         </label>
+        {rendering ? (
+          <button onClick={() => void cancelRender()}>
+            <Square size={14} /> {t("Stop rendering")}
+          </button>
+        ) : (
+          <>
+            <button onClick={() => void render(chapter)}>
+              <Play size={14} /> {t("Render this chapter")}
+            </button>
+            <button className="primary" onClick={() => void render()} disabled={done === units.length}>
+              <Play size={14} /> {t("Render the book")}
+            </button>
+          </>
+        )}
         {confirming ? (
           <span className="studio-confirm">
             {t("Delete this production and its takes? Exported files are kept.")}
@@ -285,6 +361,9 @@ function ProductionView({
           </button>
         )}
       </header>
+      <p className="studio-status" role="status">
+        {status || t("{done} of {total} lines rendered", { done: String(done), total: String(units.length) })}
+      </p>
       <nav className="studio-chapters" aria-label={t("Chapters")}>
         {chapters.map(([c, n]) => (
           <button key={c} aria-current={c === chapter} onClick={() => setChapter(c)}>
@@ -298,8 +377,12 @@ function ProductionView({
       <main className="studio-script">
         <ol>
           {shown.map((u) => (
-            <li key={u.id} className={"studio-unit " + u.status + (u.heading ? " heading" : "")}>
-              <span className="studio-dot" aria-label={t(u.status === "pending" ? "Not rendered" : u.status === "approved" ? "Approved" : u.status === "failed" ? "Failed" : "Rendered")} />
+            <li key={u.id} className={"studio-unit " + u.status + (u.heading ? " heading" : "") + (playing === u.id ? " playing" : "")}>
+              {u.take ? (
+                <button className="studio-dot" onClick={() => void play(u.id)} aria-label={playing === u.id ? t("Stop") : t("Play this line")} />
+              ) : (
+                <span className="studio-dot" aria-label={t("Not rendered")} />
+              )}
               <span>{u.text}</span>
             </li>
           ))}

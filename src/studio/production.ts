@@ -51,10 +51,21 @@ export type Take = {
 
 export type Production = { info: ProductionInfo; units: ProductionUnit[]; takes: Take[] };
 
+const TITLE_END = /(?:^|\s)(?:Mr|Mrs|Ms|Dr|St|Sr|Jr|Mme|Mlle|Mgr|M|Messrs|Capt|Col|Gen|Rev|Prof)\.$/;
+
 /** Render units for a whole book, in reading order, with ids that stay stable. */
 export function productionUnits(book: Book, prefs: Preferences): ProductionUnit[] {
   const counts = new Map<number, number>();
-  return bookUnits(book, 0, prefs).map((u) => {
+  // The sentence splitter breaks after titles ("Mr." | "Bennet, said..."); a
+  // unit must never end on one, or the narrator pauses in mid-sentence.
+  const raw = bookUnits(book, 0, prefs);
+  const joined: typeof raw = [];
+  for (const u of raw) {
+    const last = joined.at(-1);
+    if (last && last.paragraph === u.paragraph && TITLE_END.test(last.text)) last.text += " " + u.text;
+    else joined.push({ ...u });
+  }
+  return joined.map((u) => {
     const p = book.paragraphs[u.paragraph];
     const n = counts.get(u.paragraph) ?? 0;
     counts.set(u.paragraph, n + 1);
@@ -110,3 +121,11 @@ export const readProduction = (id: string) => invoke<Production>("read_productio
 export const saveProductionInfo = (info: ProductionInfo) => invoke<void>("save_production_info", { info });
 export const saveProductionUnits = (id: string, units: ProductionUnit[]) => invoke<void>("save_production_units", { id, units });
 export const deleteProduction = (id: string) => invoke<void>("delete_production", { id });
+
+// --- Rendering ---------------------------------------------------------------------------
+export const startRender = (id: string, chapter?: number) => invoke<void>("studio_render", { id, chapter: chapter ?? null });
+export const cancelRender = () => invoke<void>("studio_cancel_render");
+export const renderRunning = (): Promise<boolean> => (desktop ? invoke("studio_render_running") : Promise.resolve(false));
+export const takeAudio = (id: string, file: string) => invoke<string>("studio_take_audio", { id, file });
+export type RenderProgress = { id: string; done: number; total: number };
+export type RenderDone = { id: string; ok: boolean; cancelled?: boolean; message?: string };
