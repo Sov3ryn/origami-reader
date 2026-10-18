@@ -14,6 +14,7 @@ mod studio_book;
 mod studio_llm;
 mod studio_verify;
 mod studio_asr;
+mod studio_models;
 mod update;
 mod vault;
 mod voice_studio;
@@ -806,6 +807,46 @@ async fn studio_recording_readalong(files: Vec<String>, chapters: Vec<Value>, me
     .await
     .map_err(|e| e.to_string())?
 }
+// --- Studio setup: its models, downloaded inside Studio -------------------------------------
+#[tauri::command]
+async fn studio_setup_status(app: tauri::AppHandle) -> Result<Value> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let data = data_root(&app)?;
+        let models = data.join("Models");
+        let ready = |part: &str| match part {
+            "watermark" => watermark_dir(&app).map(|d| d.join("audioseal_generator_5s.onnx").is_file() && d.join("audioseal_detector_5s.onnx").is_file()).unwrap_or(false),
+            "analysis" => analysis_files(&app).is_ok(),
+            "transcription" => studio_asr::installed(&studio_asr::model_dir(&data)),
+            _ => false,
+        };
+        let mut v = studio_models::status(&models, graphics_memory_mb(), &ready);
+        v["runtime"] = serde_json::json!(embed::runtime_available(&app));
+        Ok(v)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+#[tauri::command]
+fn studio_setup_download(app: tauri::AppHandle, parts: Vec<String>) -> Result<()> {
+    use tauri::Emitter;
+    let models = data_root(&app)?.join("Models");
+    std::thread::spawn(move || {
+        let vram = graphics_memory_mb();
+        let result = app.state::<studio_models::Setup>().download(&models, vram, &parts, &|part, received, total| {
+            let _ = app.emit("studio-setup-progress", serde_json::json!({"part": part, "received": received, "total": total}));
+        });
+        let _ = app.emit("studio-setup-done", match result {
+            Ok(()) => serde_json::json!({"ok": true}),
+            Err(e) if e == "cancelled" => serde_json::json!({"ok": false, "cancelled": true}),
+            Err(e) => serde_json::json!({"ok": false, "message": e}),
+        });
+    });
+    Ok(())
+}
+#[tauri::command]
+fn studio_setup_cancel(setup: State<studio_models::Setup>) {
+    setup.cancel();
+}
 /// Pages of the print book as images, for the export dialog's preview.
 #[tauri::command]
 async fn studio_preview_print(manuscript: Value, print: Value, first: usize, count: usize) -> Result<Value> {
@@ -1533,6 +1574,7 @@ pub fn run() {
             app.manage(studio_llm::Analysis::default());
             app.manage(CheckJob::default());
             app.manage(AsrJob::default());
+            app.manage(studio_models::Setup::default());
             app.manage(covers::Covers::default());
             app.manage(voice_studio::Studio::default());
             app.manage(embed::Embedder::default());
@@ -1550,6 +1592,7 @@ pub fn run() {
             studio_analysis_status, studio_analysis_chat, studio_analysis_stop, studio_replace_units,
             studio_verify_file, studio_check_takes, studio_cancel_check,
             studio_asr_ready, studio_pick_recordings, studio_transcribe, studio_cancel_transcribe, studio_preview_print, studio_recording_readalong,
+            studio_setup_status, studio_setup_download, studio_setup_cancel,
             starter_library_installed,
             install_starter_library,
             read_book,

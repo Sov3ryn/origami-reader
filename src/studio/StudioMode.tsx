@@ -6,6 +6,7 @@ import type { Book, BookMeta, Preferences, Voice } from "../types";
 import { createProduction, deleteProduction, listProductions, newProduction, progress, readProduction, verifyFile, type Production, type ProductionInfo, type Verification } from "./production";
 import { ProductionView } from "./ProductionView";
 import { RecordingDialog } from "./RecordingDialog";
+import { StudioSetup } from "./StudioSetup";
 import "./studio.css";
 
 const LANGUAGES: Record<string, string> = { en: "english", fr: "french", de: "german", es: "spanish", it: "italian", pt: "portuguese", ru: "russian", ja: "japanese", ko: "korean", zh: "chinese" };
@@ -124,6 +125,7 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
         </p>
       )}
       <div className="studio-home-body">
+        <StudioSetup />
         {list && !list.length && (
           <section className="studio-welcome">
             <h1>{t("Turn a book into an audiobook")}</h1>

@@ -1303,3 +1303,51 @@
   width: 48%;
   max-width: 280px;
 }
+
+/* Studio setup (its models) */
+.studio-setup {
+  max-width: 880px;
+  margin: 0 auto 22px;
+  padding: 18px 20px;
+  display: grid;
+  gap: 10px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--studio-glass);
+}
+.studio-setup header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.studio-setup h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+.studio-setup ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.studio-setup li {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--studio-soft);
+}
+.studio-setup li strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.studio-setup li > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}

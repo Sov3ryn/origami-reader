@@ -2704,5 +2704,16 @@
   "Page {n} of {total}": "Page {n} sur {total}",
   "Make the read-along EPUB": "Créer l'EPUB à lecture synchronisée",
   "Read-along ebook saved.": "Livre à lecture synchronisée enregistré.",
-  "The recording can also become a read-along EPUB: its own audio, each sentence highlighted as it is heard.": "L'enregistrement peut aussi devenir un EPUB à lecture synchronisée : son propre audio, chaque phrase surlignée pendant qu'on l'entend."
+  "The recording can also become a read-along EPUB: its own audio, each sentence highlighted as it is heard.": "L'enregistrement peut aussi devenir un EPUB à lecture synchronisée : son propre audio, chaque phrase surlignée pendant qu'on l'entend.",
+  "Download {size}": "Télécharger {size}",
+  "Set up Studio": "Configurer le Studio",
+  "Studio works on this computer. These parts are downloaded once and checked before use. Choose the ones you need.": "Le Studio fonctionne sur cet ordinateur. Ces éléments sont téléchargés une seule fois et vérifiés avant usage. Choisissez ceux dont vous avez besoin.",
+  "The download failed.": "Le téléchargement a échoué.",
+  "The ONNX Runtime is missing from this installation; run setup again to add it.": "ONNX Runtime manque dans cette installation ; relancez l’installation pour l’ajouter.",
+  "Watermark": "Filigrane",
+  "Characters and speakers": "Personnages et locuteurs",
+  "Recordings to text": "Enregistrements en texte",
+  "Needed to export audio: the inaudible mark that says the voices are AI-generated, and Verify a file.": "Nécessaire pour exporter l’audio : la marque inaudible qui indique que les voix sont générées par IA, et Vérifier un fichier.",
+  "Finds the characters and who says each line, so each can have a voice (Ministral 3 and llama.cpp).": "Trouve les personnages et qui dit chaque réplique, pour donner une voix à chacun (Ministral 3 et llama.cpp).",
+  "Makes a book from an audiobook or any narrated recording (NVIDIA Parakeet).": "Fait un livre à partir d’un livre audio ou de tout enregistrement narré (NVIDIA Parakeet)."
 }

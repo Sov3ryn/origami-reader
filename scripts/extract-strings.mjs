@@ -43,6 +43,7 @@ const dataFiles = {
   "App.tsx": [/\blabel: "([^"]+)"/g],
   "comfort.ts": [/\bname: "([^"]+)"/g, /\bdescription:\s*"([^"]+)"/g],
   "components/TextMenu.tsx": [/\bname: "([^"]+)"/g],
+  "studio/StudioSetup.tsx": [/\bname: "([^"]+)"/g, /\bdoes: "([^"]+)"/g],
 };
 // Single-quoted messages, used when the text itself contains double quotes.
 const single = String.raw`'((?:[^'\\]|\\.)*)'`;
