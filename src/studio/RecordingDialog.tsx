@@ -5,7 +5,8 @@ import { t } from "../i18n";
 import { importDocument } from "../documents";
 import * as store from "../storage";
 import { clock } from "./production";
-import { asrReady, bookMarkdown, cancelTranscribe, doubtful, pickRecordings, prettyName, structure, transcribe, type AsrDone, type AsrProgress, type HeardFile } from "./recording";
+import { asrReady, bookMarkdown, cancelTranscribe, doubtful, guessLanguage, pickRecordings, prettyName, recordingReadalong, structure, transcribe, type AsrDone, type AsrProgress, type HeardFile } from "./recording";
+import { revealFile } from "./production";
 
 // From a recording: an audiobook or any narrated recording becomes a book in the
 // library, with chapters and paragraphs, transcribed on this computer.
@@ -19,6 +20,7 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
   const [heard, setHeard] = useState<HeardFile[] | null>(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [readalong, setReadalong] = useState("");
   const started = useRef(0);
 
   useEffect(() => {
@@ -110,6 +112,40 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
                 </li>
               ))}
             </ol>
+            {readalong ? (
+              <p className="studio-success">
+                {t("Read-along ebook saved.")}
+                <button onClick={() => void revealFile(readalong)}>
+                  <FolderOpen size={14} /> {t("Show in folder")}
+                </button>
+              </p>
+            ) : (
+              <p className="studio-hint">
+                {t("The recording can also become a read-along EPUB: its own audio, each sentence highlighted as it is heard.")}{" "}
+                <button
+                  disabled={saving || !chapters.length || files.some((f) => !/\.(mp3|m4a|m4b)$/i.test(f))}
+                  onClick={async () => {
+                    setSaving(true);
+                    try {
+                      const language = guessLanguage(chapters.flatMap((c) => c.paragraphs).slice(0, 40).join(" "));
+                      const path = await recordingReadalong(files, chapters, { title: title || t("Untitled recording"), author, language });
+                      if (path) setReadalong(path);
+                    } catch (e) {
+                      setError(String(e));
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                >
+                  <AudioLines size={14} /> {t("Make the read-along EPUB")}
+                </button>
+              </p>
+            )}
+            {error && (
+              <p className="studio-error" role="alert">
+                {error}
+              </p>
+            )}
             <div className="studio-row end">
               <button onClick={() => void save(false)} disabled={saving || !chapters.length}>
                 <BookPlus size={15} /> {t("Add to the library")}

@@ -2701,5 +2701,8 @@
   "Previous pages": "Pages précédentes",
   "Quoted from": "Citée de",
   "Typesetting": "Mise en page",
-  "Page {n} of {total}": "Page {n} sur {total}"
+  "Page {n} of {total}": "Page {n} sur {total}",
+  "Make the read-along EPUB": "Créer l'EPUB à lecture synchronisée",
+  "Read-along ebook saved.": "Livre à lecture synchronisée enregistré.",
+  "The recording can also become a read-along EPUB: its own audio, each sentence highlighted as it is heard.": "L'enregistrement peut aussi devenir un EPUB à lecture synchronisée : son propre audio, chaque phrase surlignée pendant qu'on l'entend."
 }

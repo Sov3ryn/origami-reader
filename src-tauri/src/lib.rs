@@ -753,6 +753,59 @@ fn studio_transcribe(app: tauri::AppHandle, job: State<AsrJob>, files: Vec<Strin
     });
     Ok(())
 }
+/// A read-along EPUB from a recording made into a book: the original audio, with each
+/// sentence highlighted as it is heard. Saved where the reader chooses.
+#[tauri::command]
+async fn studio_recording_readalong(files: Vec<String>, chapters: Vec<Value>, meta: Value, folder: Option<String>) -> Result<Option<String>> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let folder = match folder {
+            Some(f) => std::path::PathBuf::from(f),
+            None => match rfd::FileDialog::new().set_title("Choose where to save the read-along ebook").pick_folder() {
+                Some(f) => f,
+                None => return Ok(None),
+            },
+        };
+        let text = |v: &Value| v.as_str().unwrap_or_default().to_string();
+        let mut out = Vec::new();
+        for (ci, c) in chapters.iter().enumerate() {
+            let timed = c["timed"].as_array().cloned().unwrap_or_default();
+            let mut paragraphs = Vec::new();
+            let mut file: Option<usize> = None;
+            let mut seconds = 0.0;
+            for (pi, para) in timed.iter().enumerate() {
+                let mut lines = Vec::new();
+                for (si, line) in para.as_array().cloned().unwrap_or_default().iter().enumerate() {
+                    let (start, end) = (line["start"].as_f64().unwrap_or(0.0), line["end"].as_f64().unwrap_or(0.0));
+                    file.get_or_insert(line["file"].as_u64().unwrap_or(0) as usize);
+                    seconds += (end - start).max(0.0);
+                    lines.push(studio_book::ReadLine { id: format!("s{ci}-{pi}-{si}"), text: text(&line["text"]), start, end });
+                }
+                paragraphs.push(lines);
+            }
+            let Some(path) = file.and_then(|f| files.get(f)) else { continue };
+            let title = c["title"].as_str().map(str::to_string).unwrap_or_else(|| format!("{}", ci + 1));
+            out.push(studio_book::ReadChapter { title, paragraphs, audio: std::path::PathBuf::from(path), seconds });
+        }
+        if out.is_empty() {
+            return Err("The recording has no chapters to read along.".into());
+        }
+        let title = text(&meta["title"]);
+        let read = studio_book::ReadMeta {
+            title: title.clone(),
+            author: text(&meta["author"]),
+            lang: text(&meta["language"]),
+            narrator: String::new(),
+            ai: "Text transcribed from the recording with Origami Studio.".into(),
+            rights: Vec::new(),
+        };
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
+        let path = studio_audio::free_path(&folder, &format!("{} (read-along)", studio_audio::safe_name(&title)), "epub");
+        studio_book::readalong_epub(&read, &out, None, &format!("REC-{now:x}"), &path)?;
+        Ok(Some(path.to_string_lossy().into_owned()))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
 /// Pages of the print book as images, for the export dialog's preview.
 #[tauri::command]
 async fn studio_preview_print(manuscript: Value, print: Value, first: usize, count: usize) -> Result<Value> {
@@ -1496,7 +1549,7 @@ pub fn run() {
             studio_choose_folder, studio_reveal, studio_watermark_ready, studio_cancel_export, studio_export,
             studio_analysis_status, studio_analysis_chat, studio_analysis_stop, studio_replace_units,
             studio_verify_file, studio_check_takes, studio_cancel_check,
-            studio_asr_ready, studio_pick_recordings, studio_transcribe, studio_cancel_transcribe, studio_preview_print,
+            studio_asr_ready, studio_pick_recordings, studio_transcribe, studio_cancel_transcribe, studio_preview_print, studio_recording_readalong,
             starter_library_installed,
             install_starter_library,
             read_book,

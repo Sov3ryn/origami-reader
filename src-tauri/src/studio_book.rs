@@ -793,11 +793,26 @@ pub fn readalong_epub(meta: &ReadMeta, chapters: &[ReadChapter], cover_jpeg: Opt
     spine.push("nav".into());
     let mut toc = Vec::new();
     let mut total = 0.0;
+    // Each audio file goes in once, even when several chapters play from one long recording.
+    let mut audio_names: Vec<(std::path::PathBuf, String)> = Vec::new();
+    for c in chapters {
+        if audio_names.iter().any(|(p, _)| p == &c.audio) {
+            continue;
+        }
+        let ext = c.audio.extension().and_then(|e| e.to_str()).unwrap_or("mp3").to_lowercase();
+        let (ext, media) = match ext.as_str() {
+            "m4a" | "m4b" | "mp4" | "aac" => ("m4a", "audio/mp4"),
+            _ => ("mp3", "audio/mpeg"),
+        };
+        let name = format!("audio/{:03}.{ext}", audio_names.len() + 1);
+        put(&mut zip, &format!("OEBPS/{name}"), &std::fs::read(&c.audio).map_err(|e| e.to_string())?, stored)?;
+        manifest.push(format!(r#"<item id="a{}" href="{name}" media-type="{media}"/>"#, audio_names.len() + 1));
+        audio_names.push((c.audio.clone(), name));
+    }
     for (i, c) in chapters.iter().enumerate() {
         let n = i + 1;
         let href = format!("chapter-{n:03}.xhtml");
-        let audio = format!("audio/{n:03}.mp3");
-        put(&mut zip, &format!("OEBPS/{audio}"), &std::fs::read(&c.audio).map_err(|e| e.to_string())?, stored)?;
+        let audio = audio_names.iter().find(|(p, _)| p == &c.audio).map(|(_, n)| n.clone()).unwrap_or_default();
         // When the chapter opens with its own heading line, that line is the title.
         let heading_first = c.paragraphs.first().is_some_and(|p| p.len() == 1 && p[0].text.trim() == c.title.trim());
         let mut body = if heading_first {
@@ -831,7 +846,6 @@ pub fn readalong_epub(meta: &ReadMeta, chapters: &[ReadChapter], cover_jpeg: Opt
         put(&mut zip, &format!("OEBPS/chapter-{n:03}.smil"), smil.as_bytes(), deflated)?;
         manifest.push(format!(r#"<item id="c{n}" href="{href}" media-type="application/xhtml+xml" media-overlay="mo{n}"/>"#));
         manifest.push(format!(r#"<item id="mo{n}" href="chapter-{n:03}.smil" media-type="application/smil+xml"/>"#));
-        manifest.push(format!(r#"<item id="a{n}" href="{audio}" media-type="audio/mpeg"/>"#));
         spine.push(format!("c{n}"));
         durations.push(format!("<meta property=\"media:duration\" refines=\"#mo{n}\">{}</meta>", clock_value(c.seconds)));
         total += c.seconds;
@@ -846,7 +860,7 @@ pub fn readalong_epub(meta: &ReadMeta, chapters: &[ReadChapter], cover_jpeg: Opt
     let (y, mo, d, h, mi, s) = civil_now();
     let cover_meta = if cover_jpeg.is_some() { "<meta name=\"cover\" content=\"cover-image\"/>" } else { "" };
     let opf = format!(
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"uid\" xml:lang=\"{lang}\" prefix=\"origami: https://origami.app/ns#\">\n<metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n<dc:identifier id=\"uid\">urn:origami:{id}-readalong</dc:identifier>\n<dc:title>{title}</dc:title>\n<dc:creator>{author}</dc:creator>\n<dc:language>{lang}</dc:language>\n<dc:contributor id=\"producer\">Origami Studio</dc:contributor>\n<meta refines=\"#producer\" property=\"role\" scheme=\"marc:relators\">bkp</meta>\n<meta property=\"dcterms:modified\">{y:04}-{mo:02}-{d:02}T{h:02}:{mi:02}:{s:02}Z</meta>\n<meta name=\"generator\" content=\"Origami Studio\"/>\n<meta property=\"origami:export-id\">{id}</meta>\n<meta property=\"origami:ai-disclosure\">{ai}</meta>\n<meta property=\"media:duration\">{total}</meta>\n{durations}\n<meta property=\"media:narrator\">{narrator}</meta>\n<meta property=\"media:active-class\">-epub-media-overlay-active</meta>\n{cover_meta}\n</metadata>\n<manifest>\n{manifest}\n</manifest>\n<spine>\n{spine}\n</spine>\n</package>\n",
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"uid\" xml:lang=\"{lang}\" prefix=\"origami: https://origami.app/ns#\">\n<metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n<dc:identifier id=\"uid\">urn:origami:{id}-readalong</dc:identifier>\n<dc:title>{title}</dc:title>\n<dc:creator>{author}</dc:creator>\n<dc:language>{lang}</dc:language>\n<dc:contributor id=\"producer\">Origami Studio</dc:contributor>\n<meta refines=\"#producer\" property=\"role\" scheme=\"marc:relators\">bkp</meta>\n<meta property=\"dcterms:modified\">{y:04}-{mo:02}-{d:02}T{h:02}:{mi:02}:{s:02}Z</meta>\n<meta name=\"generator\" content=\"Origami Studio\"/>\n<meta property=\"origami:export-id\">{id}</meta>\n<meta property=\"origami:ai-disclosure\">{ai}</meta>\n<meta property=\"media:duration\">{total}</meta>\n{durations}\n{narrator}<meta property=\"media:active-class\">-epub-media-overlay-active</meta>\n{cover_meta}\n</metadata>\n<manifest>\n{manifest}\n</manifest>\n<spine>\n{spine}\n</spine>\n</package>\n",
         lang = xml(&lang),
         id = xml(export_id),
         title = xml(&meta.title),
@@ -854,7 +868,7 @@ pub fn readalong_epub(meta: &ReadMeta, chapters: &[ReadChapter], cover_jpeg: Opt
         ai = xml(&meta.ai),
         total = clock_value(total),
         durations = durations.join("\n"),
-        narrator = xml(&meta.narrator),
+        narrator = if meta.narrator.is_empty() { String::new() } else { format!("<meta property=\"media:narrator\">{}</meta>\n", xml(&meta.narrator)) },
         manifest = manifest.join("\n"),
         spine = spine.iter().map(|s| format!("<itemref idref=\"{s}\"/>")).collect::<Vec<_>>().join("\n"),
     );

@@ -54,7 +54,7 @@ describe("recording to book", () => {
     expect(prettyName("03-pride-and-prejudice")).toBe("Pride and prejudice");
   });
   it("writes Markdown for the importer", () => {
-    const md = bookMarkdown("Book", "Ann", [{ title: "One", paragraphs: ["A.", "B."], start: 0 }]);
+    const md = bookMarkdown("Book", "Ann", [{ title: "One", paragraphs: ["A.", "B."], start: 0, timed: [] }]);
     expect(md).toBe("# Book\n\nAnn\n\n## One\n\nA.\n\nB.\n");
   });
 });
