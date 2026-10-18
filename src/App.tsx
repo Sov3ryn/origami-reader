@@ -37,7 +37,7 @@ import { LanguageFlag } from "./components/LanguageFlag";
 import { VoiceDownloads } from "./components/VoiceDownloads";
 import { ReaderMenu, type ReaderMenuAction } from "./components/ReaderMenu";
 import { BookView, type BookNav } from "./components/BookView";
-import { BOOK_MIN_WIDTH } from "./bookLayout";
+import { BOOK_MIN_HEIGHT, BOOK_MIN_WIDTH } from "./bookLayout";
 import { BUILD_DATE, PRIVATE_BETA, STUDIO_ENABLED, VERSION } from "./release";
 import type { AuthorNote } from "./authors";
 import { fillBookDetails, isUnknownAuthor, loadPack } from "./authorPack";
@@ -319,6 +319,10 @@ export default function App() {
   const [quickText, setQuickText] = useState("");
   const [quickTitle, setQuickTitle] = useState("Untitled text");
   const [undo, setUndo] = useState<BookMeta[] | null>(null);
+  // A note or bookmark just deleted, for the notice's Undo.
+  const [undoNote, setUndoNote] = useState<Annotation | null>(null);
+  // A shorter Trash retention waiting for the reader to confirm it.
+  const [trashConfirm, setTrashConfirm] = useState<number | null>(null);
   const [readerPage, setReaderPage] = useState(0);
   const coverPageHeight = useRef(0);
   const [bookQuery, setBookQuery] = useState("");
@@ -336,6 +340,7 @@ export default function App() {
   // Book mode needs room for two pages side by side.
   const bookNav = useRef<BookNav | null>(null);
   const [readerWidth, setReaderWidth] = useState(0);
+  const [readerHeight, setReaderHeight] = useState(0);
   const readerSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bookPages = useMemo(
     () => readingPages(book?.paragraphs || []),
@@ -370,11 +375,15 @@ export default function App() {
   const bookActive =
     page === "reader" &&
     prefs.readingMode === "book" &&
-    readerWidth >= BOOK_MIN_WIDTH;
+    readerWidth >= BOOK_MIN_WIDTH &&
+    readerHeight >= BOOK_MIN_HEIGHT;
   useLayoutEffect(() => {
     const el = readingScroll.current;
     if (!el) return;
-    const update = () => setReaderWidth(el.clientWidth);
+    const update = () => {
+      setReaderWidth(el.clientWidth);
+      setReaderHeight(el.clientHeight);
+    };
     update();
     const observer = new ResizeObserver(update);
     observer.observe(el);
@@ -540,6 +549,9 @@ export default function App() {
   const actions = useRef({
     keydown: (_e: KeyboardEvent) => {},
     togglePlayback: () => {},
+    // Media keys: "play" never pauses and "pause" never starts.
+    play: () => {},
+    pause: () => {},
     skipSentence: async (_direction: number) => {},
   });
   const [lexiconDraft, setLexiconDraft] = useState({
@@ -1325,6 +1337,8 @@ export default function App() {
     return () => document.removeEventListener("visibilitychange", visibility);
   }, []);
   useEffect(() => {
+    // The note Undo belongs to its own notice only.
+    if (notice !== t("Annotation deleted.")) setUndoNote(null);
     if (notice) {
       const timer = setTimeout(() => setNotice(""), 9000);
       return () => clearTimeout(timer);
@@ -1418,8 +1432,8 @@ export default function App() {
     const session = navigator.mediaSession;
     if (!session) return;
     const handlers: [MediaSessionAction, () => void][] = [
-      ["play", () => actions.current.togglePlayback()],
-      ["pause", () => actions.current.togglePlayback()],
+      ["play", () => actions.current.play()],
+      ["pause", () => actions.current.pause()],
       ["stop", () => void player.stop()],
       ["nexttrack", () => void actions.current.skipSentence(1)],
       ["previoustrack", () => void actions.current.skipSentence(-1)],
@@ -1943,6 +1957,7 @@ export default function App() {
       setPage("library");
     }
     setUndo(affected);
+    setUndoNote(null);
     setSelected(new Set());
     await refresh();
     notify(
@@ -2204,8 +2219,11 @@ export default function App() {
         end: 0,
         text: currentParagraph?.text || "",
       };
+    // Only a note uses the draft and the note being edited: a bookmark or an
+    // underline is always new and leaves the draft as it is.
+    const isNote = kind === "note";
     const a: Annotation = {
-      id: editing || crypto.randomUUID(),
+      id: (isNote && editing) || crypto.randomUUID(),
       bookId: book.meta.id,
       paragraphId: p.paragraphId,
       start: p.start,
@@ -2213,18 +2231,20 @@ export default function App() {
       quote: p.text,
       kind,
       color,
-      text: draft,
-      group: noteGroup.trim(),
+      text: isNote ? draft : "",
+      group: isNote ? noteGroup.trim() : "",
       created: Date.now(),
     };
-    const previous = annotations.find((n) => n.id === editing);
+    const previous = isNote ? annotations.find((n) => n.id === editing) : undefined;
     const item = previous
       ? { ...previous, text: draft, color, group: noteGroup.trim() }
       : a;
     await store.saveAnnotation(item);
     setAnnotations((old) => [item, ...old.filter((n) => n.id !== item.id)]);
-    setDraft("");
-    setEditing(null);
+    if (isNote) {
+      setDraft("");
+      setEditing(null);
+    }
     notify(
       kind === "underline"
         ? "Underline saved."
@@ -2323,6 +2343,8 @@ export default function App() {
   async function removeAnnotation(a: Annotation) {
     await store.deleteAnnotation(a.id);
     setAnnotations((old) => old.filter((n) => n.id !== a.id));
+    setUndo(null);
+    setUndoNote(a);
     notify(t("Annotation deleted."));
   }
   const [flashAnnotation, setFlashAnnotation] = useState("");
@@ -2360,7 +2382,10 @@ export default function App() {
         );
         return;
       }
-      if (!(await openBook(a.bookId, pos))) return;
+      // In the book already open, go to the passage without reopening it
+      // (reopening stopped reading aloud and read the book again).
+      if (page === "reader" && bookRef.current?.meta.id === a.bookId) revealPassage(pos);
+      else if (!(await openBook(a.bookId, pos))) return;
       if (!returnRef.current && origin) {
         returnRef.current = origin;
         setReturnAnchor(origin);
@@ -3399,18 +3424,21 @@ export default function App() {
     const patch: Partial<Preferences> = {
       voiceFavorites: prefRef.current.voiceFavorites.filter((v) => !gone.has(v)),
     };
-    if (gone.has(prefRef.current.voice)) {
-      const next = available.find((v) => v.available);
-      if (next) {
-        patch.voice = next.id;
-        patch.lastVoice = next.id;
-      }
+    const next = available.find((v) => v.available);
+    if (gone.has(prefRef.current.voice) && next) {
+      patch.voice = next.id;
+      patch.lastVoice = next.id;
     }
     patchPrefs(patch);
+    // Books with their own voice that was deleted go back to the shared one.
+    for (const b of books.filter((m) => m.uniqueVoice && m.voice && gone.has(m.voice)))
+      await updateMeta({ ...b, uniqueVoice: false, voice: "" }).catch(error);
     notify(
-      ids.length === 1
-        ? t("Voice deleted.")
-        : t("{count} voices deleted.", { count: ids.length }),
+      !next
+        ? t("No voices are left on this computer. Add one in Voices to read aloud.")
+        : ids.length === 1
+          ? t("Voice deleted.")
+          : t("{count} voices deleted.", { count: ids.length }),
     );
   }
   function voicePanel(wide = false) {
@@ -4879,6 +4907,21 @@ export default function App() {
                       ? null
                       : Number(trashDaysDraft),
                   );
+                  // A shorter time purges books right away: say how many first.
+                  const expired =
+                    days === null
+                      ? 0
+                      : books.filter((b) => b.deleted && (b.deletedAt ?? 0) < Date.now() - days * 86400000).length;
+                  if (expired && trashConfirm !== days) {
+                    setTrashConfirm(days);
+                    notify(
+                      t("{count} items in Trash will be permanently deleted. Choose Save again to confirm.", {
+                        count: expired,
+                      }),
+                    );
+                    return;
+                  }
+                  setTrashConfirm(null);
                   patchPrefs({ trashRetentionDays: days });
                   notify(t("Trash retention saved."));
                 } catch (e) {
@@ -5594,6 +5637,9 @@ export default function App() {
       switchMode(nextMode(appMode));
       return;
     }
+    // A key the page already handled (the book turns its page on Space) does
+    // not also run a shortcut here.
+    if (e.defaultPrevented) return;
     // Work Mode has its own keys; only day and night carry over.
     if (otherMode) {
       if (ctrl && e.shiftKey && key === "l") {
@@ -5673,7 +5719,17 @@ export default function App() {
     if (key === "<") return run(() => stepSpeed(-1));
     if (key === "?") return run(() => setShowShortcuts(true));
   }
-  actions.current = { keydown: handleKey, togglePlayback, skipSentence };
+  actions.current = {
+    keydown: handleKey,
+    togglePlayback,
+    play: () => {
+      if (player.status === "idle" || player.status === "paused") togglePlayback();
+    },
+    pause: () => {
+      if (player.status === "playing" || player.status === "generating") player.toggle();
+    },
+    skipSentence,
+  };
   pageHandlers.current = {
     openAnnotation: (a) => {
       chooseTab("notes");
@@ -6598,7 +6654,7 @@ export default function App() {
                     onMore={() => chooseTab("appearance")}
                     book={page === "reader" ? book?.meta : undefined}
                     onBookComfort={setBookComfort}
-                    bookFits={readerWidth >= BOOK_MIN_WIDTH}
+                    bookFits={readerWidth >= BOOK_MIN_WIDTH && readerHeight >= BOOK_MIN_HEIGHT}
                   />
                 )}
                 <IconButton
@@ -7300,6 +7356,8 @@ export default function App() {
                             ? shelf === "stories"
                               ? t("No matching stories")
                               : t("No matching documents")
+                            : filtersActive && collection !== "Trash"
+                              ? t("No books match the filters")
                             : collection === "Trash"
                               ? t("Trash is empty")
                               : shelf === "stories"
@@ -7309,13 +7367,25 @@ export default function App() {
                         <p>
                           {query
                             ? t("Try another title or author.")
+                            : filtersActive && collection !== "Trash"
+                              ? t("Some books are hidden by the filters in the navigation.")
                             : collection !== "All books"
                               ? t("Import a file or add text with Quick Read.")
                               : shelf === "stories"
                                 ? t("Novels, tales and plays: EPUB, Kindle and FB2 books, or any file you import here.")
                                 : t("PDFs, Word files, web pages, notes and course material. They stay apart from your stories, and Work mode can use them.")}
                         </p>
-                        {!query && collection === "All books" && (
+                        {!query && filtersActive && collection !== "Trash" && (
+                          <button
+                            onClick={() =>
+                              patchPrefs({ libraryFilters: { author: "all", type: "all", status: "all", genre: "all" } })
+                            }
+                          >
+                            <X size={16} />
+                            {t("Clear filters")}
+                          </button>
+                        )}
+                        {!query && !filtersActive && collection === "All books" && (
                           <button className="primary" onClick={() => fileInput.current?.click()} disabled={busy}>
                             <Upload size={17} />
                             {shelf === "stories" ? t("Import stories") : t("Import documents")}
@@ -8137,6 +8207,21 @@ export default function App() {
                 <button
                   onClick={() => {
                     void restore(undo).catch(error);
+                  }}
+                >
+                  {t("Undo")}
+                </button>
+              )}
+              {!undo && undoNote && (
+                <button
+                  onClick={() => {
+                    const a = undoNote;
+                    setUndoNote(null);
+                    setNotice("");
+                    void store
+                      .saveAnnotation(a)
+                      .then(() => setAnnotations((old) => [a, ...old.filter((n) => n.id !== a.id)]))
+                      .catch(error);
                   }}
                 >
                   {t("Undo")}

@@ -22,7 +22,14 @@ fn folder(app: &AppHandle, name: &str) -> Result<PathBuf> {
 }
 
 fn get(url: &str, limit: u64) -> Result<Vec<u8>> {
-    let response = ureq::get(url).call().map_err(|e| format!("The voice library could not be reached ({e})."))?;
+    // A stalled connection gives up instead of leaving the card spinning.
+    let response = ureq::get(url)
+        .config()
+        .timeout_connect(Some(std::time::Duration::from_secs(15)))
+        .timeout_global(Some(std::time::Duration::from_secs(120)))
+        .build()
+        .call()
+        .map_err(|e| format!("The voice library could not be reached ({e})."))?;
     let mut data = Vec::new();
     response.into_body().into_reader().take(limit + 1).read_to_end(&mut data).map_err(|e| e.to_string())?;
     if data.len() as u64 > limit {

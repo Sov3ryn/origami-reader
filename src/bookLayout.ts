@@ -6,6 +6,9 @@ import type { Paragraph } from "./types";
 
 // The narrowest reading area that fits two book pages side by side.
 export const BOOK_MIN_WIDTH = 900;
+// And the shortest: below it a page would be under 360 px tall (BookView), so
+// the book could never be set; the reader falls back to pages.
+export const BOOK_MIN_HEIGHT = 480;
 
 export type BookSection = {
   start: number;

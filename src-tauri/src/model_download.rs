@@ -91,8 +91,10 @@ pub fn download(app: &AppHandle, model: &str, accept_terms: bool, language: &str
         let has_voice = crate::speech::voices(app).iter().any(|v| v["engine"].as_str().unwrap_or("qwen") == "qwen");
         if !has_voice {
             let ids = STARTERS.iter().find(|(code, _)| *code == language).unwrap_or(&STARTERS[0]).1;
-            for id in ids {
-                let _ = crate::voice_store::install(app, id);
+            let failed = ids.iter().filter(|id| crate::voice_store::install(app, id).is_err()).count();
+            if failed > 0 {
+                let _ = app.emit("model-download", json!({"event": "warning", "model": model,
+                    "message": "The reader is installed, but some starter voices could not be downloaded. Add voices in Voices, under More voices to download."}));
             }
         }
     }

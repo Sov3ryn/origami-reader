@@ -112,7 +112,7 @@ export function TextMenu({
           {!bookFits && (
             <p className="hint">
               {t(
-                "Book mode shows two pages side by side. Widen the window or close a side panel to see it; until then the text scrolls as usual.",
+                "Book mode shows two pages side by side. Make the window wider or taller, or close a side panel, to see it; until then the text scrolls as usual.",
               )}
             </p>
           )}

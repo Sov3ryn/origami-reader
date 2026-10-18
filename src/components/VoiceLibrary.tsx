@@ -99,8 +99,19 @@ export function VoiceLibrary(props: Props) {
   // with Preview and Download (their own recordings, checked before use).
   const [library, setLibrary] = useState<Voice[]>([]);
   const [fetching, setFetching] = useState("");
+  // The library could not be reached (offline): said once, under the list.
+  const [libraryOffline, setLibraryOffline] = useState(false);
   useEffect(() => {
-    void store.voiceStoreList().then(setLibrary).catch(() => setLibrary([]));
+    void store
+      .voiceStoreList()
+      .then((list) => {
+        setLibrary(list);
+        setLibraryOffline(false);
+      })
+      .catch(() => {
+        setLibrary([]);
+        setLibraryOffline(true);
+      });
   }, [voices.length]);
   const shownLibrary = useMemo(
     () => (createdOnly ? [] : filterVoices(library, { ...filters, model: "all" }, favorites)),
@@ -108,8 +119,11 @@ export function VoiceLibrary(props: Props) {
   );
   async function previewLibrary(v: Voice) {
     audio.current?.pause();
-    if (previewing === v.id) {
+    // A second click while it loads (or plays) cancels it.
+    if (previewing === v.id || loadingPreview === v.id) {
       setPreviewing("");
+      setLoadingPreview("");
+      wanted.current = "";
       return;
     }
     setProblem("");
@@ -626,6 +640,9 @@ export function VoiceLibrary(props: Props) {
           );
         })}
       </div>
+      {libraryOffline && !manage && !createdOnly && (
+        <p className="hint vl-library-offline">{t("More voices can be downloaded when Origami is online.")}</p>
+      )}
       {shownLibrary.length > 0 && !manage && (
         <>
           <h3 className="vl-library-title">{t("More voices to download")}</h3>
@@ -658,7 +675,7 @@ export function VoiceLibrary(props: Props) {
                   ))}
                 </div>
                 <div className="vl-card-actions vl-store-actions">
-                  <button onClick={() => void previewLibrary(v)} disabled={loadingPreview === v.id}>
+                  <button onClick={() => void previewLibrary(v)}>
                     {loadingPreview === v.id ? <LoaderCircle className="spin" size={15} /> : previewing === v.id ? <Square size={14} /> : <Play size={14} />}
                     {previewing === v.id ? t("Stop") : t("Preview")}
                   </button>

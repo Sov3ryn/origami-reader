@@ -205,7 +205,10 @@ export function usePlayer(
     activePrefs.current = prefs;
     const cast =
       selection === undefined && narration.current && narration.current.bookId === book.meta.id
-        ? await narration.current.load().catch(() => null)
+        ? await narration.current.load().catch(() => {
+            report("The Studio cast could not be loaded. Reading with the book's voice.");
+            return null;
+          })
         : null;
     if (generation.current !== token) return;
     const rules = rulesKey(prefs, book.meta.id) + (cast ? "|" + cast.info.id : "");
@@ -351,6 +354,9 @@ export function usePlayer(
       // this model cannot keep up on this computer.
       const stalls: number[] = [];
       let slowSaid = false;
+      // One sentence the voice fails on is marked and skipped like an
+      // unvoiced passage; three in a row stop the reading with the error.
+      let failures = 0;
       for (let i = 0; i < units.length; i++) {
         ensure(i + AHEAD);
         const waitStart = performance.now();
@@ -364,7 +370,21 @@ export function usePlayer(
           }
         }
         if (generation.current !== token) return;
-        if (!response.result) throw response.error;
+        if (!response.result) {
+          // The first sentence failing usually means the voice or model is missing.
+          if (i === 0 || ++failures >= 3 || units[i].take) throw response.error;
+          const paragraph = units[i].paragraph;
+          setUnvoiced((old) => ({
+            bookId: book.meta.id,
+            paragraphs:
+              old.bookId === book.meta.id
+                ? [...new Set([...old.paragraphs, paragraph])]
+                : [paragraph],
+          }));
+          report("A passage could not be voiced and was skipped. It is marked in the margin.");
+          continue;
+        }
+        failures = 0;
         const result = response.result;
         if (i === 0) onVoiceUsed(voice);
         session.current!.index = i;
@@ -458,7 +478,9 @@ export function usePlayer(
           .play()
           .then(() => setStatus("playing"))
           .catch((e) => report(String(e)));
-      } else setStatus("playing");
+      } else setStatus("generating");
+      // With nothing to resume (paused while the next sentence was still being
+      // made), the loop sets "playing" itself once that sentence starts.
       wake();
     } else {
       paused.current = true;

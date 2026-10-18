@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { Check, Download, HardDrive, RefreshCw, Trash2, X } from "lucide-react";
 import {
@@ -43,9 +43,25 @@ export function ModelManager({
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
   const [terms, setTerms] = useState("");
   const [agreed, setAgreed] = useState(false);
+  // A warning from the download (starter voices missing) stays on screen.
+  const warning = useRef("");
   useEffect(() => {
+    // Also after leaving and coming back during a download: the panel picks
+    // its progress up again and refreshes when it ends.
     const off = listen<DownloadProgress & { event: string }>("model-download", (e) => {
       if (e.payload.event === "progress") setProgress(e.payload);
+      if (e.payload.event === "warning") {
+        warning.current = t(
+          "The reader is installed, but some starter voices could not be downloaded. Add voices in Voices, under More voices to download.",
+        );
+        setMessage(warning.current);
+      }
+      if (e.payload.event === "complete" || e.payload.event === "error") {
+        setProgress(null);
+        if (e.payload.event === "error") setMessage(String((e.payload as { message?: string }).message || ""));
+        void refresh().catch(() => {});
+        void onChanged().catch(() => {});
+      }
     });
     return () => void off.then((stop) => stop());
   }, []);
@@ -53,6 +69,7 @@ export function ModelManager({
     setBusy(model.id);
     setMessage("");
     setProgress({ model: model.id, percent: 0, message: "Preparing" });
+    warning.current = "";
     try {
       await beforeChange();
       setItems(
@@ -60,7 +77,7 @@ export function ModelManager({
       );
       await onChanged();
       setTerms("");
-      setMessage(t("{name} is ready.", { name: model.name }));
+      setMessage(warning.current || t("{name} is ready.", { name: model.name }));
     } catch (e) {
       setMessage(String(e));
     } finally {
