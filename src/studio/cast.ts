@@ -118,6 +118,44 @@ export type Analysis = {
   speakers: Map<string, Attributed>;
 };
 
+// A script or a play: lines start with the speaker's name and a colon, sometimes
+// with a direction in parentheses. "ELIZABETH (softly): Not now."
+const LABEL = /^\s*(\p{Lu}[\p{L}\p{M}.'\u2019 -]{0,28}?)\s*(?:\(([^)]{1,60})\))?\s*:\s+(?=\S)/u;
+const NARRATION = /^(?:narrator|narration|narrateur|narratrice|erz\u00e4hler|narrador|narratore)$/i;
+const tidyName = (s: string) => {
+  const name = s.trim().replace(/\s+/g, " ");
+  // "MRS. BENNET" reads as "Mrs. Bennet".
+  return name === name.toUpperCase() ? name.toLowerCase().replace(/(^|[\s.'\u2019-])(\p{L})/gu, (_m, a: string, b: string) => a + b.toUpperCase()) : name;
+};
+
+/** The cast and speakers of a script, from its labels, or null when the book is not one:
+ * at least four labelled lines, two names used twice or more, and labels on a third of
+ * the paragraphs. No model is needed. */
+export function scriptAnalysis(paragraphs: string[]): Analysis | null {
+  const found = paragraphs.map((text) => {
+    const m = LABEL.exec(text);
+    return m && m[0].length < text.length ? { name: tidyName(m[1]), end: m[0].length } : null;
+  });
+  const labelled = found.filter(Boolean).length;
+  const uses = new Map<string, number>();
+  for (const f of found) if (f) uses.set(f.name, (uses.get(f.name) || 0) + 1);
+  const repeated = [...uses.values()].filter((n) => n >= 2).length;
+  const prose = paragraphs.filter((p) => p.trim().split(/\s+/).length > 3).length;
+  if (labelled < 4 || repeated < 2 || labelled < prose / 3) return null;
+  const speech: Speech[] = [];
+  const speakers = new Map<string, Attributed>();
+  found.forEach((f, paragraph) => {
+    if (!f) return;
+    const id = `script-${paragraph}`;
+    speech.push({ id, paragraph, spans: [{ start: f.end, end: paragraphs[paragraph].length }], continued: false, mark: "quote", before: null, label: f.end });
+    speakers.set(id, { speaker: NARRATION.test(f.name) ? null : f.name, confidence: 1, source: "rules" });
+  });
+  const cast = [...uses.keys()]
+    .filter((name) => !NARRATION.test(name))
+    .map((name) => ({ id: name, name, aliases: [], gender: "?" as Character["gender"], speaks: true }));
+  return { cast, speech, speakers };
+}
+
 /** The whole analysis of a book. `progress` gets a step and a share from 0 to 1. */
 export async function analyse(
   paragraphs: string[],
@@ -350,7 +388,8 @@ export function castUnits(
       .sort((a, b) => a.span.start - b.span.start);
     if (p.kind === "heading" || !spans.length) segments.push({ text: p.text });
     else {
-      let at = 0;
+      // A script's speaker label is not read.
+      let at = Math.max(0, ...(bySpeech.get(i) || []).map((s) => s.label || 0));
       for (const { span, s } of spans) {
         if (span.start > at) segments.push({ text: p.text.slice(at, span.start) });
         segments.push({ text: p.text.slice(span.start, span.end), speech: s });

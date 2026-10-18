@@ -2375,6 +2375,7 @@
   "This block needs the plugin “{name}”, which is off or not installed. Its saved data is kept.",
   "This book",
   "This book has its own voice. Turn this off from the book's menu in the Library.",
+  "This book is a script: the speakers come from its labels, and the labels are not read.",
   "This book only",
   "This book uses {name}. Choose its voice in the Voice tab. Switching to or from this book may take a moment longer to start.",
   "This book uses the shared voice, {name}. A unique voice may add loading time when you switch books.",

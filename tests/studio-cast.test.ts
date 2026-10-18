@@ -112,3 +112,26 @@ describe("mood versions", () => {
     expect(moodDraft({ ...c, gender: "?" }, undefined, "angry", "No.", "en", "angry").prompt).toBe("Speaking angrily, loud and sharp, with tension in the voice.");
   });
 });
+
+describe("scripts", () => {
+  it("cast a play from its labels and leave the labels unread", async () => {
+    const { scriptAnalysis } = await import("../src/studio/cast");
+    const paragraphs = [
+      "Act One",
+      "ELIZABETH: Is he married or single?",
+      "MRS. BENNET (eagerly): Oh! Single, my dear, to be sure!",
+      "Narrator: The room fell silent.",
+      "ELIZABETH: What a fine thing for our girls.",
+      "MRS. BENNET: You must visit him.",
+    ];
+    const a = scriptAnalysis(paragraphs)!;
+    expect(a.cast.map((c) => c.name)).toEqual(["Elizabeth", "Mrs. Bennet"]);
+    expect(a.speech).toHaveLength(5);
+    expect(a.speakers.get(a.speech[2].id)?.speaker).toBeNull();
+    const b = { meta: { id: "b" }, paragraphs: paragraphs.map((text, i) => ({ id: "p" + i, text, chapter: 0, kind: i === 0 ? "heading" : "paragraph" })) } as unknown as Book;
+    const units = castUnits(b, defaultPreferences, a.speech, a.speakers, [], []);
+    expect(units.map((u) => u.text)).toEqual(["Act One", "Is he married or single?", "Oh! Single, my dear, to be sure!", "The room fell silent.", "What a fine thing for our girls.", "You must visit him."]);
+    expect(units[2].speaker).toBe("Mrs. Bennet");
+    expect(scriptAnalysis(["It was a dark night.", "Note: this is prose.", "She ran."])).toBeNull();
+  });
+});

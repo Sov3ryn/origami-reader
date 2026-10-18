@@ -2772,5 +2772,6 @@
   "Quiet": "Discret",
   "Your own file, looped under every chapter and lowered while anyone speaks; it is mixed at export and is its own stem. Audiobook stores ask for narration without background sound.": "Votre propre fichier, en boucle sous chaque chapitre et baissé dès que quelqu’un parle ; il est mixé à l’export et forme sa propre piste. Les boutiques de livres audio demandent une narration sans son de fond.",
   "Late": "En retard",
-  "Empty sheet": "Feuille vide"
+  "Empty sheet": "Feuille vide",
+  "This book is a script: the speakers come from its labels, and the labels are not read.": "Ce livre est un script : les locuteurs viennent de ses étiquettes, qui ne sont pas lues."
 }

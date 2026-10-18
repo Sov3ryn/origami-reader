@@ -19,7 +19,9 @@ export function CastPanel({
   onMerge,
   onDesign,
   onMood,
+  script,
 }: {
+  script?: boolean;
   onDesign: (character: CastMember) => void;
   onMood: (character: CastMember, mood: string) => void;
   production: Production;
@@ -83,10 +85,11 @@ export function CastPanel({
         ) : (
           <p className="studio-hint">{t("Find the characters and who says each line, so every character can have a voice.")}</p>
         )}
-        <button className={info.analysis ? "" : "primary"} onClick={onAnalyse} disabled={busy || !status?.ready}>
+        {script && <p className="studio-hint">{t("This book is a script: the speakers come from its labels, and the labels are not read.")}</p>}
+        <button className={info.analysis ? "" : "primary"} onClick={onAnalyse} disabled={busy || (!status?.ready && !script)}>
           <Sparkles size={14} /> {busy ? progress || t("Analysing") : info.analysis ? t("Analyse again") : t("Find the characters")}
         </button>
-        {status && !status.ready && <p className="studio-warn">{t("The analysis model is not installed on this computer.")}</p>}
+        {status && !status.ready && !script && <p className="studio-warn">{t("The analysis model is not installed on this computer.")}</p>}
         {status?.ready && !busy && <p className="studio-hint small">{t("Runs on this computer ({model}). A novel takes a few minutes with a graphics card.", { model: status.model || "" })}</p>}
       </div>
       <ul className="studio-cast-list">

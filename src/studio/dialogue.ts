@@ -25,6 +25,8 @@ export type Speech = {
   tag?: Tag;
   // Narration in the same paragraph before the speech, for action beats.
   before: Span | null;
+  // In a script, the speaker's label ("ELIZABETH (softly): ") that comes first and is not read.
+  label?: number;
 };
 export type Style = { open: string; close: string; dash: boolean };
 

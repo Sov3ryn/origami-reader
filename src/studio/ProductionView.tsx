@@ -28,7 +28,7 @@ import type { Book, Preferences, Voice } from "../types";
 import { CastPanel } from "./CastPanel";
 import { WordsPanel } from "./WordsPanel";
 import { applyPronunciation, type Pronunciation } from "./pronounce";
-import { analyse, castColor, castUnits, conversations, designDraft, lineCounts, MOODS, moodDraft, stopAnalysis, suggestVoices, type CastMember } from "./cast";
+import { analyse, castColor, castUnits, conversations, designDraft, lineCounts, MOODS, moodDraft, scriptAnalysis, stopAnalysis, suggestVoices, type CastMember } from "./cast";
 import {
   cancelRender,
   chapterTitles,
@@ -244,6 +244,8 @@ export function ProductionView({
     window.setTimeout(() => script.current?.querySelector(`[data-unit="${found.id}"]`)?.scrollIntoView({ block: "center" }), 30);
   }
 
+  // A script or play (speaker labels) is cast from its labels, without the model.
+  const isScript = useMemo(() => (book ? scriptAnalysis(book.paragraphs.map((p) => p.text)) !== null : false), [book]);
   // Phase 2: find the characters and who says each line, then cut the script so
   // each character reads their own speech. Takes whose text did not change stay.
   async function runAnalysis() {
@@ -253,7 +255,8 @@ export function ProductionView({
     setStatus("");
     try {
       const paragraphs = book.paragraphs.map((p) => p.text);
-      const result = await analyse(paragraphs, info.language || "en", (step, value) => setAnalysisNote(`${t(step)} ${Math.round(value * 100)}%`), () => stopRequested.current);
+      // A script names its speakers itself; anything else goes to the analysis model.
+      const result = scriptAnalysis(paragraphs) || (await analyse(paragraphs, info.language || "en", (step, value) => setAnalysisNote(`${t(step)} ${Math.round(value * 100)}%`), () => stopRequested.current));
       const known = new Map((info.cast || []).map((c) => [c.id, c]));
       const draft = castUnits(book, prefs, result.speech, result.speakers, [], units);
       const counts = lineCounts(draft);
@@ -544,6 +547,7 @@ export function ProductionView({
             <WordsPanel production={production} onApply={(p) => void pronounce(p)} onJump={jumpTo} />
           ) : leftTab === "cast" ? (
             <CastPanel
+              script={isScript}
               production={production}
               voices={voices}
               busy={analysing}
