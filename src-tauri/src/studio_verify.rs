@@ -165,6 +165,49 @@ pub fn labels(path: &Path) -> Value {
                 out.insert("encoder".into(), json!(e));
             }
         }
+    } else if ext == "wav" {
+        for (id, value) in wav_info(path) {
+            match id.as_str() {
+                "ICMT" => out.insert("AI_DISCLOSURE".into(), json!(value)),
+                "ISFT" => out.insert("encoder".into(), json!(value)),
+                _ => None,
+            };
+        }
     }
     Value::Object(out)
+}
+
+/// The text fields of a WAV file's LIST INFO chunk, found by walking the chunk headers.
+fn wav_info(path: &Path) -> Vec<(String, String)> {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut out = Vec::new();
+    let Ok(mut f) = std::fs::File::open(path) else { return out };
+    let mut head = [0u8; 12];
+    if f.read_exact(&mut head).is_err() || &head[0..4] != b"RIFF" || &head[8..12] != b"WAVE" {
+        return out;
+    }
+    let mut chunk = [0u8; 8];
+    while f.read_exact(&mut chunk).is_ok() {
+        let size = u32::from_le_bytes(chunk[4..8].try_into().unwrap()) as u64;
+        if &chunk[0..4] == b"LIST" && size < 1 << 20 {
+            let mut body = vec![0u8; size as usize];
+            if f.read_exact(&mut body).is_err() || &body[0..4.min(body.len())] != b"INFO" {
+                break;
+            }
+            let mut i = 4;
+            while i + 8 <= body.len() {
+                let id = String::from_utf8_lossy(&body[i..i + 4]).to_string();
+                let n = u32::from_le_bytes(body[i + 4..i + 8].try_into().unwrap()) as usize;
+                let end = (i + 8 + n).min(body.len());
+                let text = String::from_utf8_lossy(&body[i + 8..end]).trim_end_matches('\0').to_string();
+                out.push((id, text));
+                i = end + (n % 2);
+            }
+            break;
+        }
+        if f.seek(SeekFrom::Current((size + size % 2) as i64)).is_err() {
+            break;
+        }
+    }
+    out
 }

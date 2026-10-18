@@ -48,6 +48,7 @@ export function ExportDialog({
   const [epub, setEpub] = useState(false);
   const [pdf, setPdf] = useState(false);
   const [readalong, setReadalong] = useState(false);
+  const [stems, setStems] = useState(false);
   const [trim, setTrim] = useState(1);
   const [font, setFont] = useState("EB Garamond");
   const [large, setLarge] = useState(false);
@@ -70,7 +71,7 @@ export function ExportDialog({
 
   const missing = units.filter((u) => !u.take).length;
   const unapproved = units.filter((u) => u.take && u.status !== "approved").length;
-  const audio = m4b || mp3 || readalong;
+  const audio = m4b || mp3 || readalong || stems;
   useEffect(() => {
     void watermarkReady().then(setWmReady);
     const off = [
@@ -132,6 +133,8 @@ export function ExportDialog({
         epub,
         pdf,
         readalong,
+        stems,
+        speakers: { "": t("Narrator"), ...Object.fromEntries((info.cast || []).map((c) => [c.id, c.name])) },
         aiLine: aiLine(info.language),
         shown: readalong ? shownText(production, book) : {},
         credit: audio ? creditLine(info) : "",
@@ -148,7 +151,7 @@ export function ExportDialog({
     }
   }
 
-  const nothing = !m4b && !mp3 && !epub && !pdf && !readalong;
+  const nothing = !m4b && !mp3 && !epub && !pdf && !readalong && !stems;
   return (
     <div className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && !running && onClose()}>
       <section className="studio-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-export-title">
@@ -262,6 +265,13 @@ export function ExportDialog({
                   <span>
                     {t("MP3, one file per chapter")}
                     <small>{t("128 kbps with Windows' own encoder.")}</small>
+                  </span>
+                </label>
+                <label className="studio-check">
+                  <input type="checkbox" checked={stems} onChange={(e) => setStems(e.target.checked)} disabled={wmReady === false} />
+                  <span>
+                    {t("Stems, one WAV per speaker")}
+                    <small>{t("For a sound editor: every chapter as one track per speaker, lined up, unlimited 32-bit WAV.")}</small>
                   </span>
                 </label>
                 {wmReady === false && <p className="studio-warn">{t("The watermark model is not installed, so audio cannot be exported yet.")}</p>}

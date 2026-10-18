@@ -652,6 +652,8 @@ pub struct TakeRef {
     pub path: PathBuf,
     pub gap: f64,
     pub unit: String,
+    // Who reads it, for the per-speaker stems.
+    pub speaker: String,
 }
 
 /// One chapter to export: its title and its takes in order.
@@ -677,6 +679,10 @@ pub struct AudioJob<'a> {
     pub mp3: bool,
     // A folder for the read-along ebook's chapter audio (64 kbps MP3), or none.
     pub readalong: Option<PathBuf>,
+    // A folder for one WAV per speaker and chapter (for a sound editor), or none.
+    pub stems: Option<PathBuf>,
+    // The AI disclosure and credit written into each stem's tags.
+    pub comment: String,
     pub watermark: Option<Watermark>,
     pub message: u16,
     pub progress: &'a dyn Fn(String, f64),
@@ -699,6 +705,15 @@ pub fn free_path(dir: &Path, stem: &str, ext: &str) -> PathBuf {
         return first;
     }
     (2..).map(|n| dir.join(format!("{stem} ({n}).{ext}"))).find(|p| !p.exists()).unwrap()
+}
+
+/// A folder name that does not exist yet: "name", then "name (2)"...
+pub fn free_dir(dir: &Path, stem: &str) -> PathBuf {
+    let first = dir.join(stem);
+    if !first.exists() {
+        return first;
+    }
+    (2..).map(|n| dir.join(format!("{stem} ({n})"))).find(|p| !p.exists()).unwrap()
 }
 
 /// Masters one chapter: joins its takes with their pauses, masters, adds the watermark
@@ -733,6 +748,95 @@ fn master_chapter(ch: &ChapterPlan, seed: u64, watermark: Option<&mut Watermark>
     Ok((hi, lines))
 }
 
+/// Adds a RIFF LIST INFO chunk (title, artist, comment, software, date) to a WAV file.
+fn tag_wav(path: &Path, fields: &[(&[u8; 4], &str)]) -> Result<()> {
+    use std::io::{Seek, SeekFrom, Write};
+    let mut info = b"INFO".to_vec();
+    for (id, value) in fields.iter().filter(|(_, v)| !v.is_empty()) {
+        let mut data = value.as_bytes().to_vec();
+        data.push(0);
+        info.extend_from_slice(*id);
+        info.extend_from_slice(&(data.len() as u32).to_le_bytes());
+        info.extend_from_slice(&data);
+        if data.len() % 2 == 1 {
+            info.push(0);
+        }
+    }
+    let mut f = std::fs::OpenOptions::new().read(true).write(true).open(path).map_err(|e| e.to_string())?;
+    let end = f.seek(SeekFrom::End(0)).map_err(|e| e.to_string())?;
+    let mut chunk = b"LIST".to_vec();
+    chunk.extend_from_slice(&(info.len() as u32).to_le_bytes());
+    chunk.extend_from_slice(&info);
+    f.write_all(&chunk).map_err(|e| e.to_string())?;
+    f.seek(SeekFrom::Start(4)).map_err(|e| e.to_string())?;
+    f.write_all(&((end + chunk.len() as u64 - 8) as u32).to_le_bytes()).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// One chapter as one 32-bit float WAV per speaker, all the same length and lined up
+/// with the mastered chapter (the same second of lead-in), for a sound editor. The
+/// stems share one gain, so their balance is the mix's; nothing is limited or added,
+/// apart from the watermark in each stem.
+fn write_stems(ch: &ChapterPlan, number: u32, dir: &Path, watermark: Option<&mut Watermark>, message: u16, meta: &Meta, comment: &str) -> Result<Vec<PathBuf>> {
+    let mut joined: Vec<f32> = Vec::new();
+    let mut rate = 0u32;
+    let mut spans: Vec<(String, usize, usize)> = Vec::new();
+    for t in &ch.takes {
+        let (x, r) = decode(&t.path)?;
+        if rate == 0 {
+            rate = r;
+        }
+        let x = if r == rate { x } else { resample(&x, r, rate)? };
+        let start = joined.len();
+        joined.extend_from_slice(&x);
+        spans.push((t.speaker.clone(), start, joined.len()));
+        joined.extend(std::iter::repeat_n(0.0, (t.gap * rate as f64) as usize));
+    }
+    if joined.is_empty() {
+        return Ok(Vec::new());
+    }
+    let (head, tail) = (rate as usize, 2 * rate as usize);
+    let dilution = 10.0 * (((joined.len() + head + tail) as f64) / joined.len() as f64).log10();
+    let mut gain_db = TARGET_RMS_DB + dilution - rms_db(&joined);
+    gain_db = gain_db.min(-1.0 - peak_db(&joined));
+    let g = 10f64.powf(gain_db / 20.0) as f32;
+    let mut speakers: Vec<String> = Vec::new();
+    for (s, _, _) in &spans {
+        if !speakers.contains(s) {
+            speakers.push(s.clone());
+        }
+    }
+    let folder = dir.join(format!("{:02} {}", number, safe_name(&ch.title)));
+    std::fs::create_dir_all(&folder).map_err(|e| e.to_string())?;
+    let mut watermark = watermark;
+    let mut written = Vec::new();
+    for speaker in &speakers {
+        let mut stem = vec![0.0f32; head + joined.len() + tail];
+        for (_, a, b) in spans.iter().filter(|(s, _, _)| s == speaker) {
+            for i in *a..*b {
+                stem[head + i] = joined[i] * g;
+            }
+        }
+        if let Some(w) = watermark.as_deref_mut() {
+            w.apply(&mut stem, rate, message)?;
+        }
+        let hi = resample(&stem, rate, MASTER_RATE)?;
+        drop(stem);
+        let path = free_path(&folder, &safe_name(speaker), "wav");
+        let spec = hound::WavSpec { channels: 1, sample_rate: MASTER_RATE, bits_per_sample: 32, sample_format: hound::SampleFormat::Float };
+        let mut out = hound::WavWriter::create(&path, spec).map_err(|e| e.to_string())?;
+        for v in &hi {
+            out.write_sample(*v).map_err(|e| e.to_string())?;
+        }
+        out.finalize().map_err(|e| e.to_string())?;
+        let name = format!("{} - {} - {}", meta.title, ch.title, speaker);
+        let note = format!("{comment} Export {}.", meta.export_id);
+        tag_wav(&path, &[(b"INAM", &name), (b"IART", &meta.author), (b"ICMT", note.trim()), (b"ISFT", "Origami Studio"), (b"ICRD", &meta.year)])?;
+        written.push(path);
+    }
+    Ok(written)
+}
+
 /// Masters every chapter, one at a time, and writes the chosen formats. Returns the
 /// written files, a level report per chapter, and the timings for a read-along ebook.
 pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTiming>)> {
@@ -762,17 +866,29 @@ pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTim
         let mut marks = Vec::new();
         let n = job.chapters.iter().filter(|c| !c.takes.is_empty()).count() as u32;
         let mut track = 0u32;
+        let mut stems_written = false;
         let chapters = std::mem::take(&mut job.chapters);
         for (i, ch) in chapters.iter().enumerate() {
             if (job.cancelled)() {
                 return Err("cancelled".into());
+            }
+            if ch.takes.is_empty() {
+                continue;
+            }
+            track += 1;
+            if let Some(dir) = &job.stems {
+                (job.progress)(format!("Writing the stems of {}", ch.title), i as f64 / total);
+                write_stems(ch, track, dir, job.watermark.as_mut(), job.message, &job.meta, &job.comment)?;
+                stems_written = true;
+            }
+            if m4b.is_none() && !job.mp3 && job.readalong.is_none() {
+                continue;
             }
             (job.progress)(format!("Mastering {}", ch.title), i as f64 / total);
             let (audio, lines) = master_chapter(ch, 0x5eed + i as u64, job.watermark.as_mut(), job.message)?;
             if audio.is_empty() {
                 continue;
             }
-            track += 1;
             let mut level = levels(&audio, MASTER_RATE);
             level["title"] = json!(ch.title);
             report.push(level);
@@ -793,8 +909,11 @@ pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTim
                 timings.push(ChapterTiming { title: ch.title.clone(), audio: path, seconds: audio.len() as f64 / MASTER_RATE as f64, lines });
             }
         }
-        if report.is_empty() {
+        if report.is_empty() && !stems_written {
             return Err("No chapter has audio yet.".into());
+        }
+        if let (true, Some(dir)) = (stems_written, &job.stems) {
+            files.push(dir.clone());
         }
         if let (Some(enc), Some(path)) = (m4b, m4b_path) {
             (job.progress)("Finishing the audiobook".into(), 0.97);
@@ -832,6 +951,46 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         std::fs::write(dir.join("Book.m4b"), b"x").unwrap();
         assert_eq!(free_path(&dir, "Book", "m4b").file_name().unwrap(), "Book (2).m4b");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn stems_line_up_and_carry_tags() {
+        let dir = std::env::temp_dir().join(format!("origami-stems-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let sr = 24_000u32;
+        let take = |name: &str, f: f32, secs: f32| {
+            let path = dir.join(name);
+            let spec = hound::WavSpec { channels: 1, sample_rate: sr, bits_per_sample: 16, sample_format: hound::SampleFormat::Int };
+            let mut w = hound::WavWriter::create(&path, spec).unwrap();
+            for i in 0..(secs * sr as f32) as usize {
+                w.write_sample(((i as f32 * f * 2.0 * std::f32::consts::PI / sr as f32).sin() * 8000.0) as i16).unwrap();
+            }
+            w.finalize().unwrap();
+            path
+        };
+        let ch = ChapterPlan {
+            title: "One: a start".into(),
+            takes: vec![
+                TakeRef { path: take("a.wav", 220.0, 1.0), gap: 0.5, unit: "a".into(), speaker: "Narrator".into() },
+                TakeRef { path: take("b.wav", 440.0, 0.5), gap: 0.0, unit: "b".into(), speaker: "Mrs. Bennet".into() },
+            ],
+        };
+        let meta = Meta { title: "Book".into(), author: "Author".into(), narrator: String::new(), year: "2026".into(), export_id: "OS-0001".into() };
+        let out = write_stems(&ch, 1, &dir.join("stems"), None, 0, &meta, "AI-generated voices.").unwrap();
+        assert_eq!(out.len(), 2);
+        let lens: Vec<u32> = out.iter().map(|p| hound::WavReader::open(p).unwrap().duration()).collect();
+        assert_eq!(lens[0], lens[1]);
+        // One second of lead-in, the narrator's take, then the speaker after the pause.
+        assert!((lens[0] as f64 / MASTER_RATE as f64 - 5.0).abs() < 0.01, "{lens:?}");
+        let s: Vec<f32> = hound::WavReader::open(&out[1]).unwrap().samples::<f32>().map(|v| v.unwrap()).collect();
+        let at = |t: f64| s[(t * MASTER_RATE as f64) as usize].abs();
+        assert!(at(1.2) < 1e-3 && s[(2.5 * MASTER_RATE as f64) as usize..(2.9 * MASTER_RATE as f64) as usize].iter().any(|v| v.abs() > 0.05));
+        let bytes = std::fs::read(&out[0]).unwrap();
+        assert!(bytes.windows(14).any(|w| w == b"Origami Studio"));
+        assert_eq!(u32::from_le_bytes(bytes[4..8].try_into().unwrap()) as usize, bytes.len() - 8);
+        assert!(out[0].parent().unwrap().ends_with("01 One a start"));
+        assert!(crate::studio_verify::labels(&out[0])["AI_DISCLOSURE"].as_str().unwrap().starts_with("AI-generated voices."));
         let _ = std::fs::remove_dir_all(&dir);
     }
 

@@ -250,6 +250,10 @@ export type ExportOptions = {
   epub: boolean;
   pdf: boolean;
   readalong: boolean;
+  // One WAV per speaker and chapter, for a sound editor.
+  stems: boolean;
+  // Display names of the speakers by cast id ("" is the narrator), for the stems.
+  speakers: Record<string, string>;
   aiLine: string;
   // The book's own text for lines that are a whole paragraph (headings show "I", not "One").
   shown: Record<string, string>;

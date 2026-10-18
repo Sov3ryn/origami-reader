@@ -911,7 +911,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
             let cover_raw = options["cover"].as_str().and_then(|c| STANDARD.decode(c).ok());
             let mut files: Vec<std::path::PathBuf> = Vec::new();
             let mut report = Vec::new();
-            if flag("m4b") || flag("mp3") || flag("readalong") {
+            if flag("m4b") || flag("mp3") || flag("readalong") || flag("stems") {
                 let wm_dir = watermark_dir(&app)?;
                 if !wm_dir.join("audioseal_generator_5s.onnx").is_file() {
                     return Err("The watermark model is missing, so audio cannot be exported yet.".into());
@@ -954,7 +954,9 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                         (true, Some("long")) => f64::max(1.2, base * 2.5),
                         _ => base,
                     };
-                    plans.last_mut().unwrap().takes.push(studio_audio::TakeRef { path, gap, unit: u["id"].as_str().unwrap_or_default().to_string() });
+                    let narrator = options["speakers"][""].as_str().unwrap_or("Narrator");
+                    let speaker = u["speaker"].as_str().and_then(|s| options["speakers"][s].as_str()).unwrap_or(narrator).to_string();
+                    plans.last_mut().unwrap().takes.push(studio_audio::TakeRef { path, gap, unit: u["id"].as_str().unwrap_or_default().to_string(), speaker });
                 }
                 plans.retain(|c| !c.takes.is_empty());
                 // Opening credits, spoken by the narrator: title, author, the AI disclosure and the credit.
@@ -965,7 +967,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                     let speech = app.state::<speech::Speech>();
                     let result = speech.render(app.clone(), voice, item, &takes_dir, None)?;
                     let file = result["items"][0]["file"].as_str().ok_or("The opening credits could not be recorded.")?;
-                    plans.insert(0, studio_audio::ChapterPlan { title: text(&options["creditTitle"]), takes: vec![studio_audio::TakeRef { path: takes_dir.join(file), gap: 0.0, unit: "credit".into() }] });
+                    plans.insert(0, studio_audio::ChapterPlan { title: text(&options["creditTitle"]), takes: vec![studio_audio::TakeRef { path: takes_dir.join(file), gap: 0.0, unit: "credit".into(), speaker: options["speakers"][""].as_str().unwrap_or("Narrator").to_string() }] });
                 }
                 let cover = match &cover_raw {
                     Some(raw) => studio_audio::square_cover(raw).ok(),
@@ -990,6 +992,8 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                     m4b: flag("m4b"),
                     mp3: flag("mp3"),
                     readalong: readalong_dir.clone(),
+                    stems: flag("stems").then(|| studio_audio::free_dir(&folder, &format!("{} (stems)", studio_audio::safe_name(&title)))),
+                    comment: format!("{} {}", text(&options["aiLine"]), text(&options["credit"])).trim().to_string(),
                     watermark: Some(watermark),
                     message,
                     progress: &|s, v| progress(s, v * 0.85),
