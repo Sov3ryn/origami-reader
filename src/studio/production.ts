@@ -249,6 +249,10 @@ export type ExportOptions = {
   mp3: boolean;
   epub: boolean;
   pdf: boolean;
+  readalong: boolean;
+  aiLine: string;
+  // The book's own text for lines that are a whole paragraph (headings show "I", not "One").
+  shown: Record<string, string>;
   credit: string;
   creditTitle: string;
   titles: Record<string, string>;
@@ -344,6 +348,16 @@ export function creditLine(info: Pick<ProductionInfo, "title" | "author" | "lang
 }
 export const creditTitle = (language: string) => CREDIT_TITLES[lang2(language)] || CREDIT_TITLES.en;
 export const aiLine = (language: string) => AI_LINES[lang2(language)] || AI_LINES.en;
+
+/** The book's text for every unit that is alone in its paragraph. */
+export function shownText(p: Production, book: Book | null) {
+  const out: Record<string, string> = {};
+  if (!book) return out;
+  const count = new Map<number, number>();
+  for (const u of p.units) count.set(u.paragraph, (count.get(u.paragraph) || 0) + 1);
+  for (const u of p.units) if (count.get(u.paragraph) === 1 && book.paragraphs[u.paragraph]) out[u.id] = book.paragraphs[u.paragraph].text;
+  return out;
+}
 
 /** The manuscript for the ebook and print exports: the book's own text by chapter
  * (never the edited spoken text), with the first heading of each chapter as its title. */

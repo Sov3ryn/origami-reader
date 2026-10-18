@@ -88,6 +88,10 @@ describe("script cut into narration and speech", () => {
       ["Jane", "bea"],
     ]);
     expect(p1[1].text).toContain("asked Jane");
+    // Speech keeps its quotation marks; the narration between them has none.
+    expect(p1[0].text.startsWith("“")).toBe(true);
+    expect(p1[0].text.endsWith("”")).toBe(true);
+    expect(p1[1].text).toBe("asked Jane.");
     expect(lineCounts(units).get("Jane")).toBe(2);
   });
   it("keeps takes and approval where the text did not change", () => {

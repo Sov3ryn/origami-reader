@@ -12,6 +12,7 @@ import {
   exportProduction,
   manuscript,
   revealFile,
+  shownText,
   watermarkReady,
   refusingStores,
   storeProfiles,
@@ -45,6 +46,7 @@ export function ExportDialog({
   const [mp3, setMp3] = useState(false);
   const [epub, setEpub] = useState(false);
   const [pdf, setPdf] = useState(false);
+  const [readalong, setReadalong] = useState(false);
   const [trim, setTrim] = useState(1);
   const [font, setFont] = useState("EB Garamond");
   const [large, setLarge] = useState(false);
@@ -62,7 +64,7 @@ export function ExportDialog({
 
   const missing = units.filter((u) => !u.take).length;
   const unapproved = units.filter((u) => u.take && u.status !== "approved").length;
-  const audio = m4b || mp3;
+  const audio = m4b || mp3 || readalong;
   useEffect(() => {
     void watermarkReady().then(setWmReady);
     const off = [
@@ -105,12 +107,15 @@ export function ExportDialog({
         mp3,
         epub,
         pdf,
+        readalong,
+        aiLine: aiLine(info.language),
+        shown: readalong ? shownText(production, book) : {},
         credit: audio ? creditLine(info) : "",
         creditTitle: creditTitle(info.language),
         titles: chapterTitles,
         meta: { title: info.title, author: info.author, narrator, year },
         cover,
-        manuscript: epub || pdf ? manuscript(production, book, { rights: rightsLines, ai: production.takes.length ? aiLine(info.language) : "" }) : null,
+        manuscript: epub || pdf || readalong ? manuscript(production, book, { rights: rightsLines, ai: production.takes.length ? aiLine(info.language) : "" }) : null,
         print: { trim: TRIMS[trim][1], font, bleed: false, large },
       });
     } catch (e) {
@@ -119,7 +124,7 @@ export function ExportDialog({
     }
   }
 
-  const nothing = !m4b && !mp3 && !epub && !pdf;
+  const nothing = !m4b && !mp3 && !epub && !pdf && !readalong;
   return (
     <div className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && !running && onClose()}>
       <section className="studio-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-export-title">
@@ -257,6 +262,13 @@ export function ExportDialog({
                   <span>
                     {t("EPUB ebook")}
                     <small>{t("The book's text, with its cover and contents.")}</small>
+                  </span>
+                </label>
+                <label className="studio-check">
+                  <input type="checkbox" checked={readalong} onChange={(e) => setReadalong(e.target.checked)} disabled={wmReady === false} />
+                  <span>
+                    {t("Read-along EPUB")}
+                    <small>{t("The ebook with the narration: each line lights up as it is read, in readers that support it.")}</small>
                   </span>
                 </label>
                 <label className="studio-check">

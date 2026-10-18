@@ -526,17 +526,29 @@ pub mod mf {
         Mp3,
     }
 
-    /// Encodes 16-bit mono PCM with the encoders that ship with Windows:
-    /// AAC-LC in MPEG-4 (.m4b) or MP3.
-    pub fn encode(pcm: &[i16], sr: u32, out: &Path, codec: Codec, kbps: u32) -> Result<(), String> {
-        let err = |e: windows::core::Error| e.to_string();
-        if out.exists() {
-            std::fs::remove_file(out).map_err(|e| e.to_string())?;
-        }
-        unsafe {
-            let _ = CoInitializeEx(None, COINIT_MULTITHREADED);
-            MFStartup(MF_VERSION, MFSTARTUP_FULL).map_err(err)?;
-            let result = (|| -> Result<(), String> {
+    /// An open file being written with the encoders that ship with Windows: AAC-LC
+    /// in MPEG-4 (.m4b) or MP3. Audio can be added chapter by chapter, so a whole
+    /// book never has to sit in memory.
+    pub struct Encoder {
+        writer: IMFSinkWriter,
+        idx: u32,
+        rate: u32,
+        done: u64,
+        started: bool,
+    }
+
+    fn err(e: windows::core::Error) -> String {
+        e.to_string()
+    }
+
+    impl Encoder {
+        pub fn create(out: &Path, rate: u32, codec: Codec, kbps: u32) -> Result<Self, String> {
+            if out.exists() {
+                std::fs::remove_file(out).map_err(|e| e.to_string())?;
+            }
+            unsafe {
+                let _ = CoInitializeEx(None, COINIT_MULTITHREADED);
+                MFStartup(MF_VERSION, MFSTARTUP_FULL).map_err(err)?;
                 let mut attrs: Option<IMFAttributes> = None;
                 MFCreateAttributes(&mut attrs, 3).map_err(err)?;
                 let attrs = attrs.ok_or("Media Foundation is unavailable.")?;
@@ -558,7 +570,7 @@ pub mod mf {
                     }
                     Codec::Mp3 => ot.SetGUID(&MF_MT_SUBTYPE, &MFAudioFormat_MP3).map_err(err)?,
                 }
-                ot.SetUINT32(&MF_MT_AUDIO_SAMPLES_PER_SECOND, sr).map_err(err)?;
+                ot.SetUINT32(&MF_MT_AUDIO_SAMPLES_PER_SECOND, rate).map_err(err)?;
                 ot.SetUINT32(&MF_MT_AUDIO_NUM_CHANNELS, 1).map_err(err)?;
                 ot.SetUINT32(&MF_MT_AUDIO_AVG_BYTES_PER_SECOND, kbps * 1000 / 8).map_err(err)?;
                 let idx = writer.AddStream(&ot).map_err(err)?;
@@ -566,14 +578,19 @@ pub mod mf {
                 it.SetGUID(&MF_MT_MAJOR_TYPE, &MFMediaType_Audio).map_err(err)?;
                 it.SetGUID(&MF_MT_SUBTYPE, &MFAudioFormat_PCM).map_err(err)?;
                 it.SetUINT32(&MF_MT_AUDIO_BITS_PER_SAMPLE, 16).map_err(err)?;
-                it.SetUINT32(&MF_MT_AUDIO_SAMPLES_PER_SECOND, sr).map_err(err)?;
+                it.SetUINT32(&MF_MT_AUDIO_SAMPLES_PER_SECOND, rate).map_err(err)?;
                 it.SetUINT32(&MF_MT_AUDIO_NUM_CHANNELS, 1).map_err(err)?;
                 it.SetUINT32(&MF_MT_AUDIO_BLOCK_ALIGNMENT, 2).map_err(err)?;
-                it.SetUINT32(&MF_MT_AUDIO_AVG_BYTES_PER_SECOND, 2 * sr).map_err(err)?;
+                it.SetUINT32(&MF_MT_AUDIO_AVG_BYTES_PER_SECOND, 2 * rate).map_err(err)?;
                 it.SetUINT32(&MF_MT_ALL_SAMPLES_INDEPENDENT, 1).map_err(err)?;
                 writer.SetInputMediaType(idx, &it, None).map_err(err)?;
                 writer.BeginWriting().map_err(err)?;
-                let mut done: u64 = 0;
+                Ok(Self { writer, idx, rate, done: 0, started: true })
+            }
+        }
+
+        pub fn write(&mut self, pcm: &[i16]) -> Result<(), String> {
+            unsafe {
                 for c in pcm.chunks(4096) {
                     let bytes = c.len() * 2;
                     let buf = MFCreateMemoryBuffer(bytes as u32).map_err(err)?;
@@ -584,27 +601,71 @@ pub mod mf {
                     buf.SetCurrentLength(bytes as u32).map_err(err)?;
                     let s = MFCreateSample().map_err(err)?;
                     s.AddBuffer(&buf).map_err(err)?;
-                    let t = (done as u128 * 10_000_000 / sr as u128) as i64;
-                    let t_end = ((done + c.len() as u64) as u128 * 10_000_000 / sr as u128) as i64;
+                    let t = (self.done as u128 * 10_000_000 / self.rate as u128) as i64;
+                    let t_end = ((self.done + c.len() as u64) as u128 * 10_000_000 / self.rate as u128) as i64;
                     s.SetSampleTime(t).map_err(err)?;
                     s.SetSampleDuration(t_end - t).map_err(err)?;
-                    writer.WriteSample(idx, &s).map_err(err)?;
-                    done += c.len() as u64;
+                    self.writer.WriteSample(self.idx, &s).map_err(err)?;
+                    self.done += c.len() as u64;
                 }
-                writer.Finalize().map_err(err)
-            })();
-            let _ = MFShutdown();
-            result
+            }
+            Ok(())
         }
+
+        /// Samples written so far.
+        pub fn position(&self) -> u64 {
+            self.done
+        }
+
+        pub fn finish(mut self) -> Result<(), String> {
+            self.started = false;
+            unsafe {
+                let r = self.writer.Finalize().map_err(err);
+                let _ = MFShutdown();
+                r
+            }
+        }
+    }
+
+    impl Drop for Encoder {
+        fn drop(&mut self) {
+            if self.started {
+                unsafe {
+                    let _ = MFShutdown();
+                }
+            }
+        }
+    }
+
+    /// A whole clip in one go.
+    pub fn encode(pcm: &[i16], rate: u32, out: &Path, codec: Codec, kbps: u32) -> Result<(), String> {
+        let mut e = Encoder::create(out, rate, codec, kbps)?;
+        e.write(pcm)?;
+        e.finish()
     }
 }
 
 // --- The export ---------------------------------------------------------------------------------
 
-/// One chapter to export: its title and its takes in order, each with the pause after it.
+/// One take in a chapter: its file, the pause after it, and the line it reads.
+pub struct TakeRef {
+    pub path: PathBuf,
+    pub gap: f64,
+    pub unit: String,
+}
+
+/// One chapter to export: its title and its takes in order.
 pub struct ChapterPlan {
     pub title: String,
-    pub takes: Vec<(PathBuf, f64)>,
+    pub takes: Vec<TakeRef>,
+}
+
+/// Where each line sits in a finished chapter, in seconds (for the read-along ebook).
+pub struct ChapterTiming {
+    pub title: String,
+    pub audio: PathBuf,
+    pub seconds: f64,
+    pub lines: Vec<(String, f64, f64)>,
 }
 
 pub struct AudioJob<'a> {
@@ -614,6 +675,8 @@ pub struct AudioJob<'a> {
     pub folder: PathBuf,
     pub m4b: bool,
     pub mp3: bool,
+    // A folder for the read-along ebook's chapter audio (64 kbps MP3), or none.
+    pub readalong: Option<PathBuf>,
     pub watermark: Option<Watermark>,
     pub message: u16,
     pub progress: &'a dyn Fn(String, f64),
@@ -638,89 +701,109 @@ pub fn free_path(dir: &Path, stem: &str, ext: &str) -> PathBuf {
     (2..).map(|n| dir.join(format!("{stem} ({n}).{ext}"))).find(|p| !p.exists()).unwrap()
 }
 
-/// Masters every chapter and writes the chosen formats. Returns the written files
-/// and a level report per chapter.
-pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>)> {
+/// Masters one chapter: joins its takes with their pauses, masters, adds the watermark
+/// and resamples to 44.1 kHz. Returns the audio and each line's start and end.
+fn master_chapter(ch: &ChapterPlan, seed: u64, watermark: Option<&mut Watermark>, message: u16) -> Result<(Vec<f32>, Vec<(String, f64, f64)>)> {
+    let mut joined: Vec<f32> = Vec::new();
+    let mut rate = 0u32;
+    let mut spans = Vec::new();
+    for t in &ch.takes {
+        let (x, r) = decode(&t.path)?;
+        if rate == 0 {
+            rate = r;
+        }
+        let x = if r == rate { x } else { resample(&x, r, rate)? };
+        let start = joined.len();
+        joined.extend_from_slice(&x);
+        spans.push((t.unit.clone(), start, joined.len()));
+        joined.extend(std::iter::repeat_n(0.0, (t.gap * rate as f64) as usize));
+    }
+    if joined.is_empty() {
+        return Ok((Vec::new(), Vec::new()));
+    }
+    let mut m = master(&joined, rate, seed);
+    if let Some(w) = watermark {
+        w.apply(&mut m, rate, message)?;
+    }
+    let mut hi = resample(&m, rate, MASTER_RATE)?;
+    limit(&mut hi, MASTER_RATE, CEILING_DB);
+    // master() puts one second of room tone first.
+    let head = 1.0;
+    let lines = spans.into_iter().map(|(u, s, e)| (u, head + s as f64 / rate as f64, head + e as f64 / rate as f64)).collect();
+    Ok((hi, lines))
+}
+
+/// Masters every chapter, one at a time, and writes the chosen formats. Returns the
+/// written files, a level report per chapter, and the timings for a read-along ebook.
+pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTiming>)> {
     let mut job = job;
     let total = job.chapters.len().max(1) as f64;
-    let mut mastered: Vec<(String, Vec<f32>)> = Vec::new();
     let mut report = Vec::new();
-    for (i, ch) in job.chapters.iter().enumerate() {
-        if (job.cancelled)() {
-            return Err("cancelled".into());
-        }
-        (job.progress)(format!("Mastering {}", ch.title), i as f64 / total * 0.8);
-        let mut joined: Vec<f32> = Vec::new();
-        let mut rate = 0u32;
-        for (path, gap) in &ch.takes {
-            let (x, r) = decode(path)?;
-            if rate == 0 {
-                rate = r;
-            }
-            let x = if r == rate { x } else { resample(&x, r, rate)? };
-            joined.extend_from_slice(&x);
-            joined.extend(std::iter::repeat_n(0.0, (gap * rate as f64) as usize));
-        }
-        if joined.is_empty() {
-            continue;
-        }
-        let mut m = master(&joined, rate, 0x5eed + i as u64);
-        if let Some(w) = job.watermark.as_mut() {
-            w.apply(&mut m, rate, job.message)?;
-        }
-        let mut hi = resample(&m, rate, MASTER_RATE)?;
-        limit(&mut hi, MASTER_RATE, CEILING_DB);
-        let mut level = levels(&hi, MASTER_RATE);
-        level["title"] = json!(ch.title);
-        report.push(level);
-        mastered.push((ch.title.clone(), hi));
-    }
-    if mastered.is_empty() {
-        return Err("No chapter has audio yet.".into());
-    }
-    std::fs::create_dir_all(&job.folder).map_err(|e| e.to_string())?;
+    let mut timings = Vec::new();
     let mut files = Vec::new();
+    std::fs::create_dir_all(&job.folder).map_err(|e| e.to_string())?;
     let stem = safe_name(&job.meta.title);
-    #[cfg(windows)]
-    {
-        if job.m4b {
-            (job.progress)("Encoding the audiobook".into(), 0.82);
-            let mut pcm: Vec<i16> = Vec::new();
-            let mut marks = Vec::new();
-            for (title, audio) in &mastered {
-                let start = pcm.len() as u64 * 1000 / MASTER_RATE as u64;
-                pcm.extend(to_i16(audio, pcm.len() as u64 + 7));
-                marks.push(ChapterMark { title: title.clone(), start_ms: start });
-            }
-            let path = free_path(&job.folder, &stem, "m4b");
-            mf::encode(&pcm, MASTER_RATE, &path, mf::Codec::Aac, 96)?;
-            tag_m4b(&path, &job.meta, &marks, job.cover.as_deref())?;
-            files.push(path);
-        }
-        if job.mp3 {
-            let dir = job.folder.join(format!("{stem} (MP3)"));
-            std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-            let n = mastered.len() as u32;
-            for (i, (title, audio)) in mastered.iter().enumerate() {
-                if (job.cancelled)() {
-                    return Err("cancelled".into());
-                }
-                (job.progress)(format!("Encoding {title}"), 0.9 + 0.1 * i as f64 / n as f64);
-                let path = free_path(&dir, &format!("{:02} {}", i + 1, safe_name(title)), "mp3");
-                mf::encode(&to_i16(audio, i as u64 + 11), MASTER_RATE, &path, mf::Codec::Mp3, 128)?;
-                tag_mp3(&path, &job.meta, title, i as u32 + 1, n, job.cover.as_deref())?;
-                files.push(path);
-            }
-        }
-    }
     #[cfg(not(windows))]
     {
-        let _ = (&stem, &mastered);
-        if job.m4b || job.mp3 {
-            return Err("Audiobook export needs Windows for now.".into());
+        let _ = (&stem, total);
+        return Err("Audiobook export needs Windows for now.".into());
+    }
+    #[cfg(windows)]
+    {
+        let m4b_path = job.m4b.then(|| free_path(&job.folder, &stem, "m4b"));
+        let mut m4b = match &m4b_path {
+            Some(p) => Some(mf::Encoder::create(p, MASTER_RATE, mf::Codec::Aac, 96)?),
+            None => None,
+        };
+        let mp3_dir = job.folder.join(format!("{stem} (MP3)"));
+        if job.mp3 {
+            std::fs::create_dir_all(&mp3_dir).map_err(|e| e.to_string())?;
+        }
+        let mut marks = Vec::new();
+        let n = job.chapters.iter().filter(|c| !c.takes.is_empty()).count() as u32;
+        let mut track = 0u32;
+        let chapters = std::mem::take(&mut job.chapters);
+        for (i, ch) in chapters.iter().enumerate() {
+            if (job.cancelled)() {
+                return Err("cancelled".into());
+            }
+            (job.progress)(format!("Mastering {}", ch.title), i as f64 / total);
+            let (audio, lines) = master_chapter(ch, 0x5eed + i as u64, job.watermark.as_mut(), job.message)?;
+            if audio.is_empty() {
+                continue;
+            }
+            track += 1;
+            let mut level = levels(&audio, MASTER_RATE);
+            level["title"] = json!(ch.title);
+            report.push(level);
+            let pcm = to_i16(&audio, i as u64 + 7);
+            if let Some(enc) = m4b.as_mut() {
+                marks.push(ChapterMark { title: ch.title.clone(), start_ms: enc.position() * 1000 / MASTER_RATE as u64 });
+                enc.write(&pcm)?;
+            }
+            if job.mp3 {
+                let path = free_path(&mp3_dir, &format!("{:02} {}", track, safe_name(&ch.title)), "mp3");
+                mf::encode(&pcm, MASTER_RATE, &path, mf::Codec::Mp3, 128)?;
+                tag_mp3(&path, &job.meta, &ch.title, track, n, job.cover.as_deref())?;
+                files.push(path);
+            }
+            if let Some(dir) = &job.readalong {
+                let path = dir.join(format!("{:03}.mp3", track));
+                mf::encode(&pcm, MASTER_RATE, &path, mf::Codec::Mp3, 64)?;
+                timings.push(ChapterTiming { title: ch.title.clone(), audio: path, seconds: audio.len() as f64 / MASTER_RATE as f64, lines });
+            }
+        }
+        if report.is_empty() {
+            return Err("No chapter has audio yet.".into());
+        }
+        if let (Some(enc), Some(path)) = (m4b, m4b_path) {
+            (job.progress)("Finishing the audiobook".into(), 0.97);
+            enc.finish()?;
+            tag_m4b(&path, &job.meta, &marks, job.cover.as_deref())?;
+            files.insert(0, path);
         }
     }
-    Ok((files, report))
+    Ok((files, report, timings))
 }
 
 #[cfg(test)]

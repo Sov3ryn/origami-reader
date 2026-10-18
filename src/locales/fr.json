@@ -2685,5 +2685,7 @@
   "The recording could not be transcribed.": "L'enregistrement n'a pas pu être transcrit.",
   "The transcription model is not installed on this computer.": "Le modèle de transcription n'est pas installé sur cet ordinateur.",
   "Turn an audiobook or any narrated recording into a book: Origami listens on this computer, writes the text, and lays it out in chapters and paragraphs. Readers' credits are left out.": "Transformez un livre audio ou tout enregistrement lu en livre : Origami écoute sur cet ordinateur, écrit le texte et le met en chapitres et paragraphes. Les crédits des lecteurs sont retirés.",
-  "Untitled recording": "Enregistrement sans titre"
+  "Untitled recording": "Enregistrement sans titre",
+  "Read-along EPUB": "EPUB à lecture synchronisée",
+  "The ebook with the narration: each line lights up as it is read, in readers that support it.": "Le livre numérique avec la narration : chaque ligne s'éclaire pendant sa lecture, dans les liseuses qui le permettent."
 }

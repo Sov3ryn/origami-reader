@@ -311,6 +311,8 @@ export function conversations(speech: Speech[], speakers: Map<string, Attributed
 
 // --- The script, cut into narration and speech ---------------------------------------------
 const TITLE_END = /(?:^|\s)(?:Mr|Mrs|Ms|Dr|St|Sr|Jr|Mme|Mlle|Mgr|M|Messrs|Capt|Col|Gen|Rev|Prof)\.$/;
+const OPENERS = ["\u201c", "\u00ab", "\u201e", "\u2018", '"'];
+const CLOSERS = ["\u201d", "\u00bb", "\u201c", "\u2019", '"'];
 const hasWords = (s: string) => /[\p{L}\p{N}]/u.test(s);
 
 /** New units for the whole book: narration for the narrator, speech for its speaker.
@@ -331,7 +333,21 @@ export function castUnits(
   const out: ProductionUnit[] = [];
   book.paragraphs.forEach((p, i) => {
     const segments: { text: string; speech?: Speech }[] = [];
-    const spans = (bySpeech.get(i) || []).flatMap((s) => s.spans.map((span) => ({ span, s }))).sort((a, b) => a.span.start - b.span.start);
+    // A piece of speech keeps its own quotation marks (and the spaces inside guillemets).
+    const widen = (span: { start: number; end: number }) => {
+      let start = span.start;
+      let end = span.end;
+      let a = start;
+      while (a > 0 && p.text[a - 1] === " ") a--;
+      if (a > 0 && OPENERS.includes(p.text[a - 1])) start = a - 1;
+      let b = end;
+      while (b < p.text.length && p.text[b] === " ") b++;
+      if (b < p.text.length && CLOSERS.includes(p.text[b])) end = b + 1;
+      return { start, end };
+    };
+    const spans = (bySpeech.get(i) || [])
+      .flatMap((s) => s.spans.map((span) => ({ span: widen(span), s })))
+      .sort((a, b) => a.span.start - b.span.start);
     if (p.kind === "heading" || !spans.length) segments.push({ text: p.text });
     else {
       let at = 0;

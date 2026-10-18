@@ -593,6 +593,167 @@ pub fn epub(m: &Manuscript, cover_jpeg: Option<&[u8]>, export_id: &str, out: &Pa
     Ok(())
 }
 
+// --- Read-along EPUB (EPUB 3 Media Overlays) -----------------------------------------------------
+
+/// One line of a read-along chapter: its id (the production unit) and the book's text.
+pub struct ReadLine {
+    pub id: String,
+    pub text: String,
+    pub start: f64,
+    pub end: f64,
+}
+
+/// A chapter of the read-along ebook: its paragraphs of timed lines and its audio file.
+pub struct ReadChapter {
+    pub title: String,
+    pub paragraphs: Vec<Vec<ReadLine>>,
+    pub audio: std::path::PathBuf,
+    pub seconds: f64,
+}
+
+pub struct ReadMeta {
+    pub title: String,
+    pub author: String,
+    pub lang: String,
+    pub narrator: String,
+    pub ai: String,
+    pub rights: Vec<String>,
+}
+
+/// A media clock value, "h:mm:ss.fff".
+fn clock_value(s: f64) -> String {
+    let ms = (s.max(0.0) * 1000.0).round() as u64;
+    format!("{}:{:02}:{:02}.{:03}", ms / 3_600_000, (ms / 60_000) % 60, (ms / 1000) % 60, ms % 1000)
+}
+
+/// An ebook that plays Origami's narration and highlights each line as it is read
+/// (EPUB 3 Media Overlays: one SMIL file and one MP3 per chapter).
+pub fn readalong_epub(meta: &ReadMeta, chapters: &[ReadChapter], cover_jpeg: Option<&[u8]>, export_id: &str, out: &Path) -> Result<()> {
+    use zip::write::SimpleFileOptions;
+    let lang = if meta.lang.is_empty() { "en".to_string() } else { meta.lang.clone() };
+    let fr = lang.to_lowercase().starts_with("fr");
+    let l = labels(&lang);
+    let fix = |t: &str| {
+        let t = t.split_whitespace().collect::<Vec<_>>().join(" ");
+        if fr { french(&t, false) } else { t }
+    };
+    let file = std::fs::File::create(out).map_err(|e| e.to_string())?;
+    let mut zip = zip::ZipWriter::new(file);
+    let stored = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
+    let deflated = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+    let put = |zip: &mut zip::ZipWriter<std::fs::File>, name: &str, data: &[u8], opt: SimpleFileOptions| -> Result<()> {
+        zip.start_file(name, opt).map_err(|e| e.to_string())?;
+        zip.write_all(data).map_err(|e| e.to_string())
+    };
+    put(&mut zip, "mimetype", b"application/epub+zip", stored)?;
+    put(
+        &mut zip,
+        "META-INF/container.xml",
+        b"<?xml version=\"1.0\"?>\n<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\"><rootfiles><rootfile full-path=\"OEBPS/content.opf\" media-type=\"application/oebps-package+xml\"/></rootfiles></container>\n",
+        deflated,
+    )?;
+    let css = format!("{EPUB_CSS}.-epub-media-overlay-active {{ background: rgba(255, 214, 102, 0.45); border-radius: 3px; }}\n");
+    put(&mut zip, "OEBPS/style.css", css.as_bytes(), deflated)?;
+    put(&mut zip, "OEBPS/crane.png", CRANE_PNG, stored)?;
+    let mut manifest = vec![
+        r#"<item id="css" href="style.css" media-type="text/css"/>"#.to_string(),
+        r#"<item id="crane" href="crane.png" media-type="image/png"/>"#.to_string(),
+        r#"<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>"#.to_string(),
+    ];
+    let mut spine = Vec::new();
+    let mut durations = Vec::new();
+    if let Some(c) = cover_jpeg {
+        put(&mut zip, "OEBPS/cover.jpg", c, stored)?;
+        put(&mut zip, "OEBPS/cover.xhtml", page(&lang, &meta.title, "<div style=\"text-align:center\"><img src=\"cover.jpg\" alt=\"\" style=\"max-width:100%;max-height:100%\"/></div>").as_bytes(), deflated)?;
+        manifest.push(r#"<item id="cover-image" href="cover.jpg" media-type="image/jpeg" properties="cover-image"/>"#.into());
+        manifest.push(r#"<item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>"#.into());
+        spine.push("cover".to_string());
+    }
+    let title_page = format!("<section class=\"title\" epub:type=\"titlepage\"><h1>{}</h1><p class=\"author\">{}</p></section>", xml(&meta.title), xml(&meta.author));
+    put(&mut zip, "OEBPS/title.xhtml", page(&lang, &meta.title, &title_page).as_bytes(), deflated)?;
+    manifest.push(r#"<item id="title" href="title.xhtml" media-type="application/xhtml+xml"/>"#.into());
+    spine.push("title".into());
+    let mut rights = format!("<p>{}<br/>{}</p>", xml(&meta.title), xml(&meta.author));
+    for r in &meta.rights {
+        rights.push_str(&format!("<p>{}</p>", xml(r)));
+    }
+    rights.push_str(&format!("<p>{}</p><p>{}</p>", xml(&meta.ai), xml(l.typeset)));
+    put(&mut zip, "OEBPS/copyright.xhtml", page(&lang, "Copyright", &format!("<section class=\"copyright\" epub:type=\"copyright-page\">{rights}{}</section>", mark(&l))).as_bytes(), deflated)?;
+    manifest.push(r#"<item id="copyright" href="copyright.xhtml" media-type="application/xhtml+xml"/>"#.into());
+    spine.push("copyright".into());
+    spine.push("nav".into());
+    let mut toc = Vec::new();
+    let mut total = 0.0;
+    for (i, c) in chapters.iter().enumerate() {
+        let n = i + 1;
+        let href = format!("chapter-{n:03}.xhtml");
+        let audio = format!("audio/{n:03}.mp3");
+        put(&mut zip, &format!("OEBPS/{audio}"), &std::fs::read(&c.audio).map_err(|e| e.to_string())?, stored)?;
+        // When the chapter opens with its own heading line, that line is the title.
+        let heading_first = c.paragraphs.first().is_some_and(|p| p.len() == 1 && p[0].text.trim() == c.title.trim());
+        let mut body = if heading_first {
+            "<section epub:type=\"chapter\">\n".to_string()
+        } else {
+            format!("<section epub:type=\"chapter\"><h1>{}</h1>\n", xml(&fix(&c.title)))
+        };
+        let mut pars = String::new();
+        for (pi, para) in c.paragraphs.iter().enumerate() {
+            let tag = if pi == 0 && heading_first { "h1" } else { "p" };
+            body.push_str(&format!("<{tag}>"));
+            for (k, line) in para.iter().enumerate() {
+                let id = format!("l{}", xml(&line.id));
+                if k > 0 {
+                    body.push(' ');
+                }
+                body.push_str(&format!("<span id=\"{id}\">{}</span>", xml(&fix(&line.text))));
+                pars.push_str(&format!(
+                    "<par id=\"p-{id}\"><text src=\"{href}#{id}\"/><audio src=\"{audio}\" clipBegin=\"{}\" clipEnd=\"{}\"/></par>\n",
+                    clock_value(line.start),
+                    clock_value(line.end)
+                ));
+            }
+            body.push_str(&format!("</{tag}>\n"));
+        }
+        body.push_str("</section>");
+        put(&mut zip, &format!("OEBPS/{href}"), page(&lang, &c.title, &body).as_bytes(), deflated)?;
+        let smil = format!(
+            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<smil xmlns=\"http://www.w3.org/ns/SMIL\" xmlns:epub=\"http://www.idpf.org/2007/ops\" version=\"3.0\">\n<body>\n<seq id=\"seq{n}\" epub:textref=\"{href}\" epub:type=\"chapter\">\n{pars}</seq>\n</body>\n</smil>\n"
+        );
+        put(&mut zip, &format!("OEBPS/chapter-{n:03}.smil"), smil.as_bytes(), deflated)?;
+        manifest.push(format!(r#"<item id="c{n}" href="{href}" media-type="application/xhtml+xml" media-overlay="mo{n}"/>"#));
+        manifest.push(format!(r#"<item id="mo{n}" href="chapter-{n:03}.smil" media-type="application/smil+xml"/>"#));
+        manifest.push(format!(r#"<item id="a{n}" href="{audio}" media-type="audio/mpeg"/>"#));
+        spine.push(format!("c{n}"));
+        durations.push(format!("<meta property=\"media:duration\" refines=\"#mo{n}\">{}</meta>", clock_value(c.seconds)));
+        total += c.seconds;
+        toc.push((c.title.clone(), href));
+    }
+    let colophon = format!("<section class=\"colophon\" epub:type=\"colophon\"><p>{}</p><p>{}</p>{}</section>", xml(&meta.ai), xml(l.typeset), mark(&l));
+    put(&mut zip, "OEBPS/colophon.xhtml", page(&lang, "Colophon", &colophon).as_bytes(), deflated)?;
+    manifest.push(r#"<item id="colophon" href="colophon.xhtml" media-type="application/xhtml+xml"/>"#.into());
+    spine.push("colophon".into());
+    let items: String = toc.iter().map(|(n, h)| format!("<li><a href=\"{h}\">{}</a></li>", xml(n))).collect();
+    put(&mut zip, "OEBPS/nav.xhtml", page(&lang, l.contents, &format!("<nav epub:type=\"toc\" id=\"toc\"><h1>{}</h1><ol>{items}</ol></nav>", xml(l.contents))).as_bytes(), deflated)?;
+    let (y, mo, d, h, mi, s) = civil_now();
+    let cover_meta = if cover_jpeg.is_some() { "<meta name=\"cover\" content=\"cover-image\"/>" } else { "" };
+    let opf = format!(
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"uid\" xml:lang=\"{lang}\" prefix=\"origami: https://origami.app/ns#\">\n<metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n<dc:identifier id=\"uid\">urn:origami:{id}-readalong</dc:identifier>\n<dc:title>{title}</dc:title>\n<dc:creator>{author}</dc:creator>\n<dc:language>{lang}</dc:language>\n<dc:contributor id=\"producer\">Origami Studio</dc:contributor>\n<meta refines=\"#producer\" property=\"role\" scheme=\"marc:relators\">bkp</meta>\n<meta property=\"dcterms:modified\">{y:04}-{mo:02}-{d:02}T{h:02}:{mi:02}:{s:02}Z</meta>\n<meta name=\"generator\" content=\"Origami Studio\"/>\n<meta property=\"origami:export-id\">{id}</meta>\n<meta property=\"origami:ai-disclosure\">{ai}</meta>\n<meta property=\"media:duration\">{total}</meta>\n{durations}\n<meta property=\"media:narrator\">{narrator}</meta>\n<meta property=\"media:active-class\">-epub-media-overlay-active</meta>\n{cover_meta}\n</metadata>\n<manifest>\n{manifest}\n</manifest>\n<spine>\n{spine}\n</spine>\n</package>\n",
+        lang = xml(&lang),
+        id = xml(export_id),
+        title = xml(&meta.title),
+        author = xml(&meta.author),
+        ai = xml(&meta.ai),
+        total = clock_value(total),
+        durations = durations.join("\n"),
+        narrator = xml(&meta.narrator),
+        manifest = manifest.join("\n"),
+        spine = spine.iter().map(|s| format!("<itemref idref=\"{s}\"/>")).collect::<Vec<_>>().join("\n"),
+    );
+    put(&mut zip, "OEBPS/content.opf", opf.as_bytes(), deflated)?;
+    zip.finish().map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -640,6 +801,34 @@ mod tests {
         let mut c = String::new();
         std::io::Read::read_to_string(&mut z.by_name("OEBPS/copyright.xhtml").unwrap(), &mut c).unwrap();
         assert!(c.contains("Made with Origami Studio") && c.contains("crane.png"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn readalong_epub_has_overlays() {
+        let dir = std::env::temp_dir().join(format!("origami-ra-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let audio = dir.join("001.mp3");
+        std::fs::write(&audio, b"ID3").unwrap();
+        let chapters = vec![ReadChapter {
+            title: "One".into(),
+            audio,
+            seconds: 4.0,
+            paragraphs: vec![vec![ReadLine { id: "p1-u0".into(), text: "Hello & bye.".into(), start: 1.0, end: 2.5 }]],
+        }];
+        let meta = ReadMeta { title: "T".into(), author: "A".into(), lang: "en".into(), narrator: "Digital voices".into(), ai: "Narrated by AI voices.".into(), rights: vec![] };
+        let out = dir.join("r.epub");
+        readalong_epub(&meta, &chapters, None, "OS-1", &out).unwrap();
+        let mut z = zip::ZipArchive::new(std::fs::File::open(&out).unwrap()).unwrap();
+        let mut smil = String::new();
+        std::io::Read::read_to_string(&mut z.by_name("OEBPS/chapter-001.smil").unwrap(), &mut smil).unwrap();
+        assert!(smil.contains("clipBegin=\"0:00:01.000\"") && smil.contains("#lp1-u0"));
+        let mut opf = String::new();
+        std::io::Read::read_to_string(&mut z.by_name("OEBPS/content.opf").unwrap(), &mut opf).unwrap();
+        assert!(opf.contains("media-overlay=\"mo1\"") && opf.contains("media:active-class"));
+        let mut x = String::new();
+        std::io::Read::read_to_string(&mut z.by_name("OEBPS/chapter-001.xhtml").unwrap(), &mut x).unwrap();
+        assert!(x.contains("<span id=\"lp1-u0\">Hello &amp; bye.</span>"));
         let _ = std::fs::remove_dir_all(&dir);
     }
 

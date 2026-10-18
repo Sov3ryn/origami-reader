@@ -805,7 +805,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
             let cover_raw = options["cover"].as_str().and_then(|c| STANDARD.decode(c).ok());
             let mut files: Vec<std::path::PathBuf> = Vec::new();
             let mut report = Vec::new();
-            if flag("m4b") || flag("mp3") {
+            if flag("m4b") || flag("mp3") || flag("readalong") {
                 let wm_dir = watermark_dir(&app)?;
                 if !wm_dir.join("audioseal_generator_5s.onnx").is_file() {
                     return Err("The watermark model is missing, so audio cannot be exported yet.".into());
@@ -813,6 +813,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                 let watermark = studio_audio::Watermark::open(&wm_dir, embed::runtime_env(&app)?)?;
                 // The chosen take of every unit, chapter by chapter, with the review player's pauses.
                 let units = p["units"].as_array().cloned().unwrap_or_default();
+                let credit = text(&options["credit"]);
                 let takes: std::collections::HashMap<String, Value> = p["takes"]
                     .as_array()
                     .cloned()
@@ -847,11 +848,10 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                         (true, Some("long")) => f64::max(1.2, base * 2.5),
                         _ => base,
                     };
-                    plans.last_mut().unwrap().takes.push((path, gap));
+                    plans.last_mut().unwrap().takes.push(studio_audio::TakeRef { path, gap, unit: u["id"].as_str().unwrap_or_default().to_string() });
                 }
                 plans.retain(|c| !c.takes.is_empty());
                 // Opening credits, spoken by the narrator: title, author, the AI disclosure and the credit.
-                let credit = text(&options["credit"]);
                 if !credit.is_empty() {
                     progress("Recording the opening credits".into(), 0.01);
                     let voice = p["info"]["voice"].as_str().unwrap_or_default().to_string();
@@ -859,13 +859,18 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                     let speech = app.state::<speech::Speech>();
                     let result = speech.render(app.clone(), voice, item, &takes_dir, None)?;
                     let file = result["items"][0]["file"].as_str().ok_or("The opening credits could not be recorded.")?;
-                    plans.insert(0, studio_audio::ChapterPlan { title: text(&options["creditTitle"]), takes: vec![(takes_dir.join(file), 0.0)] });
+                    plans.insert(0, studio_audio::ChapterPlan { title: text(&options["creditTitle"]), takes: vec![studio_audio::TakeRef { path: takes_dir.join(file), gap: 0.0, unit: "credit".into() }] });
                 }
                 let cover = match &cover_raw {
                     Some(raw) => studio_audio::square_cover(raw).ok(),
                     None => None,
                 };
-                let (written, levels) = studio_audio::export(studio_audio::AudioJob {
+                // The read-along ebook's chapter audio goes to a temporary folder first.
+                let readalong_dir = flag("readalong").then(|| std::env::temp_dir().join(format!("origami-readalong-{now:x}")));
+                if let Some(d) = &readalong_dir {
+                    std::fs::create_dir_all(d).map_err(|e| e.to_string())?;
+                }
+                let (written, levels, timings) = studio_audio::export(studio_audio::AudioJob {
                     chapters: plans,
                     meta: studio_audio::Meta {
                         title: title.clone(),
@@ -878,6 +883,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                     folder: folder.clone(),
                     m4b: flag("m4b"),
                     mp3: flag("mp3"),
+                    readalong: readalong_dir.clone(),
                     watermark: Some(watermark),
                     message,
                     progress: &|s, v| progress(s, v * 0.85),
@@ -885,6 +891,47 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                 })?;
                 files.extend(written);
                 report = levels;
+                if let Some(dir) = readalong_dir {
+                    progress("Writing the read-along ebook".into(), 0.86);
+                    let by_id: std::collections::HashMap<&str, &Value> = units.iter().map(|u| (u["id"].as_str().unwrap_or_default(), u)).collect();
+                    let chapters: Vec<studio_book::ReadChapter> = timings
+                        .into_iter()
+                        .map(|t| {
+                            // Lines of one paragraph share a paragraph; the book's own text is shown.
+                            let mut paragraphs: Vec<Vec<studio_book::ReadLine>> = Vec::new();
+                            let mut last: Option<i64> = None;
+                            for (id, start, end) in t.lines {
+                                let (para, shown) = match by_id.get(id.as_str()) {
+                                    Some(u) => (
+                                        u["paragraph"].as_i64(),
+                                        options["shown"][id.as_str()].as_str().or(u["original"].as_str()).or(u["text"].as_str()).unwrap_or_default().to_string(),
+                                    ),
+                                    None => (None, credit.clone()),
+                                };
+                                if para.is_none() || para != last || paragraphs.is_empty() {
+                                    paragraphs.push(Vec::new());
+                                }
+                                last = para;
+                                paragraphs.last_mut().unwrap().push(studio_book::ReadLine { id, text: shown, start, end });
+                            }
+                            studio_book::ReadChapter { title: t.title, paragraphs, audio: t.audio, seconds: t.seconds }
+                        })
+                        .collect();
+                    let meta = studio_book::ReadMeta {
+                        title: title.clone(),
+                        author: text(&meta_in["author"]),
+                        lang: p["info"]["language"].as_str().unwrap_or("en").to_string(),
+                        narrator: text(&meta_in["narrator"]),
+                        ai: text(&options["aiLine"]),
+                        rights: options["manuscript"]["rights"].as_array().map(|r| r.iter().filter_map(|x| x.as_str().map(str::to_string)).collect()).unwrap_or_default(),
+                    };
+                    let cover = cover_raw.as_deref().and_then(|c| studio_audio::jpeg(c).ok());
+                    let path = studio_audio::free_path(&folder, &format!("{} (read-along)", studio_audio::safe_name(&title)), "epub");
+                    let made = studio_book::readalong_epub(&meta, &chapters, cover.as_deref(), &export_id, &path);
+                    let _ = std::fs::remove_dir_all(&dir);
+                    made?;
+                    files.push(path);
+                }
             }
             if flag("epub") || flag("pdf") {
                 let manuscript: studio_book::Manuscript = serde_json::from_value(options["manuscript"].clone()).map_err(|e| format!("The book could not be read: {e}"))?;
