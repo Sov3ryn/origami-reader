@@ -223,6 +223,18 @@ The real pipeline has no cast list. Ministral 3 8B lists the characters in each 
 - Laptop voices: Qwen on the GPU, then qwentts.cpp, then Pocket TTS.
 - Batched rendering: one at a time 4 of 4 good; 8 at once only 2 of 4 the same or near the same. The batched path needs a closer quality check (sampling differences, padding) before phase 1 relies on it.
 
+## Decisions after phase 0 (17 October 2026)
+
+- Analysis model: Ministral 3 8B on computers with 8 GB or more of graphics memory, Ministral 3 3B elsewhere (owner).
+- Print: KDP first; IngramSpark and PDF/X later (owner).
+- Left to Claude's judgement, decided as follows:
+  - Short print pages: allow single orphan lines by default (halves short pages); a facing-page balancing pass is phase 5 work.
+  - Crane mark: stays bottom right of the copyright page as the owner asked, inside the safe text area.
+  - MP3: a small LGPL ffmpeg containing only the MP3 encoder, for 192 kbps files.
+  - Watermark: a blind headphone test with a few friends before the app calls it inaudible.
+  - Pocket TTS cloning weights: not hosted for now; qwentts.cpp is the laptop path, Pocket TTS stays an optional fallback.
+- Batched rendering: no voice-match difference between alone (0.979), a batch without padding (0.981) and a mixed batch (0.978); a blind A/B test is with the owner (`.local/studio-phase0/batch-blind-test.html`).
+
 ## Housekeeping
 
 A disk cleanup run by another assistant during the session removed `node_modules` and `src-tauri/target` (about 80 GB). `node_modules` was reinstalled from the lockfile and all tests pass; `target` rebuilds on the next Rust build. Update keys, app data, the hub copy, models and the beta 7 setup were checked and are intact.

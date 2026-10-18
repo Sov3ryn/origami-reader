@@ -287,7 +287,7 @@
 <tr><td>Speakers in recordings</td><td>sherpa-onnx: pyannote segmentation 3.0 + 3D-Speaker</td><td class="ok">MIT, Apache-2.0</td><td>about 40 MB</td><td>pyannote community-1 only as an optional download with the user's own account.</td></tr>
 <tr><td>Alignment (later)</td><td>omniASR-CTC 300M</td><td class="ok">Apache-2.0</td><td>about 1.2 GB</td><td>Replaces the non-commercial MMS weights other tools use.</td></tr>
 <tr><td>Language model runtime</td><td>llama.cpp llama-server sidecar</td><td class="ok">MIT</td><td>about 30 MB (Vulkan, CPU)</td><td>Same pattern as the stable-diffusion.cpp sidecar. CUDA build optional. Local address with a random port and key.</td></tr>
-<tr><td>Language model</td><td>Qwen3.5 4B (default), Qwen3.5 9B (8 GB+ graphics), compare Ministral 3 8B and Gemma 4 E4B for French</td><td class="ok">Apache-2.0</td><td>2.7 GB / 5.7 GB</td><td>Non-thinking mode, answers constrained to a schema and validated. Avoid Llama (naming and attribution terms) and LFM2 (revenue cap).</td></tr>
+<tr><td>Language model</td><td>Ministral 3 8B (8 GB+ graphics), Ministral 3 3B (other computers); chosen in phase 0 over Qwen3.5 and Gemma 4</td><td class="ok">Apache-2.0</td><td>5.2 GB / 2.1 GB</td><td>Non-thinking mode, answers constrained to a schema and validated. Avoid Llama (naming and attribution terms) and LFM2 (revenue cap).</td></tr>
 <tr><td>Watermark</td><td>AudioSeal</td><td class="ok">MIT</td><td>small</td><td>16-bit export ID; exported to ONNX for the Rust side.</td></tr>
 <tr><td>Noise reduction</td><td>DeepFilterNet</td><td class="ok">MIT / Apache-2.0</td><td>small</td><td>ONNX.</td></tr>
 <tr><td>Typesetting</td><td>Typst library, hypher hyphenation</td><td class="ok">Apache-2.0, MIT</td><td>in the app</td><td>PDF/A and PDF/UA; PDF/X via a post-processor (lopdf, MIT).</td></tr>
@@ -376,7 +376,7 @@ Exports go where the user chooses and are never deleted by Studio.</div>
 
 <section id="decisions">
 <h2>14. Decisions</h2>
-<div class="callout"><strong>Decided 17 October 2026:</strong> all eight recommendations below were approved as written, and phase 0 has started.</div>
+<div class="callout"><strong>Decided 17 October 2026:</strong> all eight recommendations below were approved, and phase 0 is done. <strong>Changed after phase 0:</strong> the analysis model is Ministral 3 (8B on 8 GB+ graphics cards, 3B otherwise) instead of Qwen3.5; print starts with KDP, IngramSpark later.</div>
 <div class="table-wrap"><table><thead><tr><th>#</th><th>Question</th><th>Recommendation</th></tr></thead><tbody>
 <tr><td>1</td><td>Where does the document mark go?</td><td>Bottom right of the copyright page (and a closing colophon in EPUB), not on every page. Same visibility to anyone who looks, accepted by stores.</td></tr>
 <tr><td>2</td><td>Spoken credit wording, and on which audio?</td><td>"Narrated by digital voices. Made with Origami Studio." on every AI-narrated audiobook. For the user's own recordings in recording-to-book, only the written mark and metadata, since the voice is a real person.</td></tr>
