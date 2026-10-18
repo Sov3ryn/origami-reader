@@ -370,6 +370,8 @@
   "Checked just now: {summary}.",
   "Checked locally from the graphics card and memory. Nothing is sent anywhere.",
   "Checking only downloads a small signed list of versions. Nothing is installed without you, and updates signed by anyone else are refused.",
+  "Checking PyTorch",
+  "Checking PyTorch (this can take a few minutes)",
   "Checking...",
   "Checking…",
   "Checklist",

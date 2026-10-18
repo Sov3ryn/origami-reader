@@ -369,31 +369,34 @@ def place(cached, target):
         shutil.copy2(cached, target)
 
 
-def pip_install(py, args, progress, message, weight, count):
+def pip_install(py, args, progress, message, weight, count, waiting=None):
     """Runs pip with hash checking. The screen names the package being
     installed and a running time, so a long unpack (PyTorch is about 4.5 GB
-    once unpacked) never looks frozen."""
+    once unpacked) never looks frozen. Until pip says anything, `waiting`
+    is shown instead: Windows security may scan a large new file for minutes
+    before pip can open it."""
     command = [str(py), "-m", "pip", "install", "--no-deps", "--require-hashes", "--disable-pip-version-check",
                "--no-warn-script-location", "--progress-bar", "off", "--cache-dir", str(CACHE / "pip"), *args]
     # Unbuffered, so pip's lines arrive as they happen.
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                                encoding="utf-8", errors="replace", env={**os.environ, "PYTHONUNBUFFERED": "1"}, **HIDDEN)
     step, seen, output = weight / max(count, 1), 0, []
-    current = {"name": "", "since": time.monotonic()}
+    current = {"name": "", "since": time.monotonic(), "message": waiting or message}
     started = time.monotonic()
-    progress.add(0, message, "")
+    progress.add(0, current["message"], "")
 
     def heartbeat():
         while process.poll() is None:
             minutes, seconds = divmod(int(time.monotonic() - started), 60)
             label = (current["name"] + " · " if current["name"] else "") + f"{minutes}:{seconds:02d}"
-            progress.add(0, message, label)
+            progress.add(0, current["message"], label)
             time.sleep(1)
 
     threading.Thread(target=heartbeat, daemon=True).start()
     try:
         for line in process.stdout:
             output.append(line)
+            current["message"] = message
             if cancelled.is_set():
                 raise RuntimeError("Installation cancelled. Your selections have been kept.")
             words = line.split()
@@ -472,7 +475,7 @@ def run_online(base, dest, py, steps, device, progress, downloads):
                     if not target.exists():
                         place(fetch({**wheel, "path": wheel["file"]}, progress, "Downloading PyTorch"), target)
                 pip_install(py, ["-r", str(torch), "--no-index", "--find-links", str(wheels)], progress,
-                            "Installing speech packages", 0, lock_count(torch))
+                            "Installing speech packages", 0, lock_count(torch), waiting="Checking PyTorch")
             else:
                 index = "https://download.pytorch.org/whl/" + ("cu128" if device == "cuda" else "cpu")
                 pip_install(py, ["-r", str(torch), "--index-url", index], progress, "Installing speech packages",

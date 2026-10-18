@@ -124,6 +124,7 @@ function Toggle({
 function progressText(message: string) {
   const fixed: Record<string, string> = {
     "Installing speech packages": t("Installing speech packages"),
+    "Checking PyTorch": t("Checking PyTorch (this can take a few minutes)"),
     "Installing light voice packages": t("Installing light voice packages"),
     "Preparing package installation": t("Preparing package installation"),
     "Removing the earlier version": t("Removing the earlier version"),

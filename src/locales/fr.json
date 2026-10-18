@@ -2460,5 +2460,7 @@
   "Lake": "Lac",
   "Six complete classics to start your library.": "Six classiques complets pour commencer votre bibliothèque.",
   "Starter books": "Livres de départ",
-  "You can change the style, texture and animations later in Origami.": "Vous pourrez changer le style, la texture et les animations plus tard dans Origami."
+  "You can change the style, texture and animations later in Origami.": "Vous pourrez changer le style, la texture et les animations plus tard dans Origami.",
+  "Checking PyTorch (this can take a few minutes)": "Vérification de PyTorch (cela peut prendre quelques minutes)",
+  "Checking PyTorch": "Vérification de PyTorch"
 }
