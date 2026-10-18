@@ -47,6 +47,7 @@ export function ExportDialog({
   const [mp3, setMp3] = useState(false);
   const [epub, setEpub] = useState(false);
   const [pdf, setPdf] = useState(false);
+  const [docx, setDocx] = useState(false);
   const [readalong, setReadalong] = useState(false);
   const [stems, setStems] = useState(false);
   const [sample, setSample] = useState(false);
@@ -134,6 +135,7 @@ export function ExportDialog({
         mp3,
         epub,
         pdf,
+        docx,
         readalong,
         stems,
         sample,
@@ -145,7 +147,7 @@ export function ExportDialog({
         titles: chapterTitles,
         meta: { title: info.title, author: info.author, narrator, year },
         cover,
-        manuscript: epub || pdf || readalong ? bookData() : null,
+        manuscript: epub || pdf || readalong || docx ? bookData() : null,
         print: { trim: TRIMS[trim][1], font, bleed, large },
       });
     } catch (e) {
@@ -154,7 +156,7 @@ export function ExportDialog({
     }
   }
 
-  const nothing = !m4b && !mp3 && !epub && !pdf && !readalong && !stems && !sample;
+  const nothing = !m4b && !mp3 && !epub && !pdf && !docx && !readalong && !stems && !sample;
   return (
     <div className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && !running && onClose()}>
       <section className="studio-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-export-title">
@@ -348,6 +350,13 @@ export function ExportDialog({
                     </button>
                   </div>
                 )}
+                <label className="studio-check">
+                  <input type="checkbox" checked={docx} onChange={(e) => setDocx(e.target.checked)} />
+                  <span>
+                    {t("Word manuscript")}
+                    <small>{t("The usual submission layout for editors and agents: double spaced, Times New Roman, a page per chapter.")}</small>
+                  </span>
+                </label>
                 {(epub || pdf || readalong) && (
                   <label className="studio-field">
                     <span>{t("Design")}</span>

@@ -249,6 +249,8 @@ export type ExportOptions = {
   mp3: boolean;
   epub: boolean;
   pdf: boolean;
+  // A Word document in the usual manuscript layout, for editors and agents.
+  docx: boolean;
   readalong: boolean;
   // One WAV per speaker and chapter, for a sound editor.
   stems: boolean;

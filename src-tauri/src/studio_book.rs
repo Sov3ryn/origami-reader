@@ -578,6 +578,141 @@ fn mark(l: &Labels) -> String {
 }
 
 /// Writes an EPUB 3 ebook (with an EPUB 2 table of contents for older readers).
+/// The manuscript as a Word document in the usual submission layout: Times New
+/// Roman 12 pt, double spaced, one-inch margins, half-inch indents, the author and
+/// an approximate word count on the first page, each chapter on a new page a third
+/// of the way down, "#" for scene breaks, and a running head "Author / TITLE / page".
+/// The last page carries the rights lines, the AI line and "Made with Origami Studio";
+/// the document properties carry the same labels.
+pub fn docx(m: &Manuscript, export_id: &str, out: &Path) -> Result<()> {
+    use zip::write::SimpleFileOptions;
+    let m = prepare(m, false);
+    let lang = if m.lang.is_empty() { "en".to_string() } else { m.lang.clone() };
+    let l = labels(&lang);
+    let fr = lang.to_lowercase().starts_with("fr");
+    let words: usize = m.chapters.iter().flat_map(|c| c.blocks.iter()).map(|b| b.text.split_whitespace().count()).sum();
+    // Manuscripts round the count: to the nearest thousand, or hundred for short works.
+    let rounded = if words >= 10_000 { (words + 500) / 1000 * 1000 } else { ((words + 50) / 100 * 100).max(100) };
+    let count = {
+        let digits = rounded.to_string();
+        let sep = if fr { '\u{202F}' } else { ',' };
+        let mut out = String::new();
+        for (i, c) in digits.chars().enumerate() {
+            if i > 0 && (digits.len() - i) % 3 == 0 {
+                out.push(sep);
+            }
+            out.push(c);
+        }
+        if fr { format!("environ {out} mots") } else { format!("about {out} words") }
+    };
+    let surname = m.author.split_whitespace().last().unwrap_or("").to_string();
+    let run = |t: &str| format!("<w:r><w:t xml:space=\"preserve\">{}</w:t></w:r>", xml(t));
+    let para = |style: &str, body: &str| format!("<w:p><w:pPr><w:pStyle w:val=\"{style}\"/></w:pPr>{body}</w:p>");
+    let mut body = String::new();
+    // First page: author top left, word count top right, then title and byline.
+    body += &format!(
+        "<w:p><w:pPr><w:pStyle w:val=\"Single\"/><w:tabs><w:tab w:val=\"right\" w:pos=\"9360\"/></w:tabs></w:pPr>{}<w:r><w:tab/></w:r>{}</w:p>",
+        run(&m.author),
+        run(&count)
+    );
+    body += &para("TitleMs", &run(&m.title.to_uppercase()));
+    if !m.author.is_empty() {
+        body += &para("Byline", &run(&format!("{} {}", if fr { "par" } else { "by" }, m.author)));
+    }
+    for (i, c) in m.chapters.iter().enumerate() {
+        let heading = c.title.clone().unwrap_or_else(|| format!("{} {}", l.chapter, i + 1));
+        body += &para("ChapterMs", &run(&heading));
+        let mut after_break = true;
+        for b in &c.blocks {
+            if is_scene_break(&b.text) {
+                body += &para("SceneBreak", &run("#"));
+                after_break = true;
+                continue;
+            }
+            let style = if b.quote {
+                "QuoteMs"
+            } else if b.center {
+                "SceneBreak"
+            } else if after_break {
+                "BodyFirst"
+            } else {
+                "Body"
+            };
+            body += &para(style, &run(&b.text));
+            after_break = false;
+        }
+    }
+    // The closing page: rights, the AI line and the Studio credit.
+    body += &para("ChapterMs", &run(&m.title));
+    for line in &m.rights {
+        body += &para("Single", &run(line));
+    }
+    if !m.ai.is_empty() {
+        body += &para("Single", &run(&m.ai));
+    }
+    body += &para("Single", &run(l.made));
+    body += &para("Single", &run(&format!("Export {export_id}")));
+    let sect = "<w:sectPr><w:headerReference w:type=\"default\" r:id=\"rIdHeader\"/><w:pgSz w:w=\"12240\" w:h=\"15840\"/><w:pgMar w:top=\"1440\" w:right=\"1440\" w:bottom=\"1440\" w:left=\"1440\" w:header=\"720\" w:footer=\"720\" w:gutter=\"0\"/><w:titlePg/></w:sectPr>";
+    let document = format!(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><w:body>{body}{sect}</w:body></w:document>"
+    );
+    let header = format!(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<w:hdr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:p><w:pPr><w:jc w:val=\"right\"/></w:pPr>{}<w:r><w:fldChar w:fldCharType=\"begin\"/></w:r><w:r><w:instrText xml:space=\"preserve\"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType=\"separate\"/></w:r><w:r><w:t>2</w:t></w:r><w:r><w:fldChar w:fldCharType=\"end\"/></w:r></w:p></w:hdr>",
+        run(&format!("{} / {} / ", surname, m.title.to_uppercase()))
+    );
+    let font = "<w:rFonts w:ascii=\"Times New Roman\" w:hAnsi=\"Times New Roman\" w:cs=\"Times New Roman\" w:eastAsia=\"Times New Roman\"/>";
+    let style = |id: &str, ppr: &str, rpr: &str| {
+        format!("<w:style w:type=\"paragraph\" w:customStyle=\"1\" w:styleId=\"{id}\"><w:name w:val=\"{id}\"/><w:basedOn w:val=\"Normal\"/><w:qFormat/><w:pPr>{ppr}</w:pPr><w:rPr>{rpr}</w:rPr></w:style>")
+    };
+    let styles = format!(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<w:styles xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:docDefaults><w:rPrDefault><w:rPr>{font}<w:sz w:val=\"24\"/><w:szCs w:val=\"24\"/><w:lang w:val=\"{lang}\"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after=\"0\" w:line=\"480\" w:lineRule=\"auto\"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type=\"paragraph\" w:default=\"1\" w:styleId=\"Normal\"><w:name w:val=\"Normal\"/><w:qFormat/></w:style>{}{}{}{}{}{}{}{}</w:styles>",
+        style("Body", "<w:ind w:firstLine=\"720\"/>", ""),
+        style("BodyFirst", "<w:ind w:firstLine=\"0\"/>", ""),
+        style("QuoteMs", "<w:ind w:left=\"720\" w:right=\"720\"/>", ""),
+        style("SceneBreak", "<w:jc w:val=\"center\"/>", ""),
+        style("Single", "<w:spacing w:line=\"240\" w:lineRule=\"auto\" w:after=\"120\"/>", ""),
+        style("TitleMs", "<w:spacing w:before=\"4320\" w:after=\"0\"/><w:jc w:val=\"center\"/>", ""),
+        style("Byline", "<w:jc w:val=\"center\"/>", ""),
+        style("ChapterMs", "<w:pageBreakBefore/><w:spacing w:before=\"3600\" w:after=\"480\"/><w:jc w:val=\"center\"/><w:outlineLvl w:val=\"0\"/>", ""),
+        lang = xml(&lang),
+    );
+    let (y, mo, d, h, mi, se) = civil_now();
+    let now = format!("{y:04}-{mo:02}-{d:02}T{h:02}:{mi:02}:{se:02}Z");
+    let core = format!(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><dc:title>{t}</dc:title><dc:creator>{a}</dc:creator><dc:language>{lang}</dc:language><cp:keywords>Made with Origami Studio</cp:keywords><dc:description>{d}</dc:description><dcterms:created xsi:type=\"dcterms:W3CDTF\">{now}</dcterms:created></cp:coreProperties>",
+        t = xml(&m.title),
+        a = xml(&m.author),
+        lang = xml(&lang),
+        d = xml(&format!("{} {}", l.made, m.ai).trim().to_string()),
+    );
+    let custom = format!(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/custom-properties\" xmlns:vt=\"http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes\"><property fmtid=\"{{D5CDD505-2E9C-101B-9397-08002B2CF9AE}}\" pid=\"2\" name=\"ORIGAMI_EXPORT_ID\"><vt:lpwstr>{id}</vt:lpwstr></property><property fmtid=\"{{D5CDD505-2E9C-101B-9397-08002B2CF9AE}}\" pid=\"3\" name=\"MADE_WITH\"><vt:lpwstr>Origami Studio</vt:lpwstr></property>{ai}</Properties>",
+        id = xml(export_id),
+        ai = if m.ai.is_empty() { String::new() } else { format!("<property fmtid=\"{{D5CDD505-2E9C-101B-9397-08002B2CF9AE}}\" pid=\"4\" name=\"AI_DISCLOSURE\"><vt:lpwstr>{}</vt:lpwstr></property>", xml(&m.ai)) },
+    );
+    let types = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/word/document.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml\"/><Override PartName=\"/word/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml\"/><Override PartName=\"/word/header1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml\"/><Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/><Override PartName=\"/docProps/custom.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.custom-properties+xml\"/></Types>";
+    let rels = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"word/document.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties\" Target=\"docProps/core.xml\"/><Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties\" Target=\"docProps/custom.xml\"/></Relationships>";
+    let doc_rels = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rIdStyles\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/><Relationship Id=\"rIdHeader\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/header\" Target=\"header1.xml\"/></Relationships>";
+    let file = std::fs::File::create(out).map_err(|e| e.to_string())?;
+    let mut zip = zip::ZipWriter::new(file);
+    let deflated = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+    for (name, data) in [
+        ("[Content_Types].xml", types.to_string()),
+        ("_rels/.rels", rels.to_string()),
+        ("word/_rels/document.xml.rels", doc_rels.to_string()),
+        ("word/document.xml", document),
+        ("word/styles.xml", styles),
+        ("word/header1.xml", header),
+        ("docProps/core.xml", core),
+        ("docProps/custom.xml", custom),
+    ] {
+        zip.start_file(name, deflated).map_err(|e| e.to_string())?;
+        zip.write_all(data.as_bytes()).map_err(|e| e.to_string())?;
+    }
+    zip.finish().map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 pub fn epub(m: &Manuscript, cover_jpeg: Option<&[u8]>, export_id: &str, out: &Path) -> Result<()> {
     use zip::write::SimpleFileOptions;
     let m = prepare(m, false);
@@ -902,6 +1037,29 @@ pub fn readalong_epub(meta: &ReadMeta, chapters: &[ReadChapter], cover_jpeg: Opt
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_word_manuscript_has_its_parts_and_credit() {
+        let dir = std::env::temp_dir().join(format!("origami-docx-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("m.docx");
+        let mut m = book("en");
+        m.ai = "Narrated by AI voices.".into();
+        docx(&m, "OS-0001", &path).unwrap();
+        let mut z = zip::ZipArchive::new(std::fs::File::open(&path).unwrap()).unwrap();
+        let mut doc = String::new();
+        std::io::Read::read_to_string(&mut z.by_name("word/document.xml").unwrap(), &mut doc).unwrap();
+        assert!(doc.contains("A &lt;TEST&gt; &amp; BOOK"));
+        assert!(doc.contains("Made with Origami Studio") && doc.contains("about 3,200 words"));
+        assert!(doc.contains("w:pStyle w:val=\"ChapterMs\""));
+        let mut custom = String::new();
+        std::io::Read::read_to_string(&mut z.by_name("docProps/custom.xml").unwrap(), &mut custom).unwrap();
+        assert!(custom.contains("OS-0001") && custom.contains("Narrated by AI voices."));
+        for part in ["[Content_Types].xml", "_rels/.rels", "word/styles.xml", "word/header1.xml", "docProps/core.xml"] {
+            assert!(z.by_name(part).is_ok(), "{part}");
+        }
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 
     fn book(lang: &str) -> Manuscript {
         Manuscript {

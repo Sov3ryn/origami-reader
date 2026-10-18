@@ -1158,7 +1158,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                     files.push(path);
                 }
             }
-            if flag("epub") || flag("pdf") {
+            if flag("epub") || flag("pdf") || flag("docx") {
                 let manuscript: studio_book::Manuscript = serde_json::from_value(options["manuscript"].clone()).map_err(|e| format!("The book could not be read: {e}"))?;
                 let stem = studio_audio::safe_name(&title);
                 if flag("epub") {
@@ -1177,6 +1177,12 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                         .unwrap_or(studio_book::PrintOptions { trim: (5.5, 8.5), font: "EB Garamond".into(), bleed: false, large: false });
                     let path = studio_audio::free_path(&folder, &format!("{stem} (print)"), "pdf");
                     studio_book::pdf(&manuscript, &print, &path)?;
+                    files.push(path);
+                }
+                if flag("docx") {
+                    progress("Writing the Word manuscript".into(), 0.97);
+                    let path = studio_audio::free_path(&folder, &format!("{stem} (manuscript)"), "docx");
+                    studio_book::docx(&manuscript, &export_id, &path)?;
                     files.push(path);
                 }
             }
