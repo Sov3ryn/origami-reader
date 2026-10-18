@@ -538,3 +538,24 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - Working documents: the sheet "Reading log" with SUM formulas, a column chart that reads it and a donut chart with its own numbers, the board "Study loop board" (shapes, arrows and text), the plan "Bookshelf" (800 x 1200 mm, with dimensions) shown live in a note, and the picture cards "Parts of a flower" drawn when the tutorial is made.
 - On a first start, the first workspace becomes "Tutorial" ("Tutoriel") and opens on the welcome note; people make their own workspace from the menu. Anyone with notes already gets the tutorial once as a separate workspace (their notes are not moved), and "Add the Work mode tour again" makes a fresh copy.
 - Checked: a fresh data folder (everything renders: chart from the sheet, board, plan, formulas, diagrams, sticky note, embed consent, ink and voice blocks; no errors) and the test library (25 notes kept in My workspace, tutorial added beside them). The test checks every [[link]] resolves in both languages. 242 TypeScript tests pass; French complete.
+
+## Studio plan, 17 October 2026
+
+- Researched and wrote docs/STUDIO-PLAN.html for review: Studio as the third mode (Read, Work, Studio) with two workflows in one production (book to full-cast audiobook, recording to formatted book), the "Made with Origami Studio" mark and AI labels, models and tools with license verdicts, hardware tiers, architecture, six build phases and the decisions left to the owner. Nothing is built yet.
+- Measured on the development PC (RTX 4080 SUPER): Qwen3-TTS 1.7B with the current fast path, real-time factor 0.37 one line at a time; the standard path 2.18 unbatched, 0.65 with 4 lines of one voice and 0.34 with 8; 16 lines overflow 16 GB for both 1.7B and 0.6B. Qwen3-TTS 0.6B on 4 processor threads: 5.45, or 3.36 with 2 lines together.
+
+## Studio phase 0, 17 October 2026
+
+- The owner approved the Studio plan with all recommended decisions (STUDIO-PLAN.html section 14; AGENTS.md updated: Studio is now in scope, cloning and capture stay later).
+- Experiments, with results in docs/STUDIO-PHASE0.md (scratch code and models in work/studio-phase0, outside Git):
+  - Batched fast rendering: CUDA graphs captured for 8 lines of one voice, 10.6x real time with Qwen3-TTS 1.7B (3.0x today), identical audio at batch size one.
+  - Emotion: instructions are ignored by cloned voices; mood references made with the voice designer change delivery and drift slightly.
+  - Second engine (Chatterbox, VoxCPM2): not worth it now.
+  - Laptop voices: Pocket TTS at 3.5x real time on 4 threads in English with the designed cast.
+  - Parakeet in Rust: 1.9% English and 3.7 to 4.6% French word error at 28x real time on 4 threads, with our own int8 file.
+  - Typst: a 398-page novel in 0.8 s, French spacing correct.
+  - Audiobook files: AAC through Windows, M4B and MP3 chapters, ACX values.
+  - AudioSeal watermark survives AAC and MP3.
+  - Speaker attribution: 876-line double-annotated English and French test set; rules plus Ministral 3 8B reach 91 to 95%.
+- New code: src/studio/dialogue.ts (speech and tags in English quotes, French dashes and guillemets) and src/studio/attribution.ts (rules pass), with tests/studio-dialogue.test.ts. 248 TypeScript tests pass.
+- node_modules and src-tauri/target were removed by an outside disk cleanup during the session; node_modules was reinstalled from the lockfile.

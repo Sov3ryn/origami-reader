@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Origami | Studio plan</title>
+<style>
+:root{color-scheme:dark;--bg:#17161b;--panel:#232129;--text:#efeaf3;--muted:#bfb7c9;--accent:#d2baf6;--line:#403947;--gold:#edc294;--good:#9fd8b0;--warn:#f2c48d;--bad:#f0a3a3}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 system-ui,sans-serif}header,main,footer{max-width:1200px;margin:auto;padding:40px 34px}header{padding-top:65px;border-bottom:1px solid var(--line)}.eyebrow{letter-spacing:.16em;color:var(--gold);font-size:12px;text-transform:uppercase}h1{font:64px/1.05 Georgia,serif;margin:22px 0}h2{font:32px/1.25 Georgia,serif;margin:58px 0 20px;scroll-margin-top:24px}h3{font-size:20px;color:var(--accent);margin:28px 0 12px}h4{margin:20px 0 6px;color:var(--gold);font-size:15px;letter-spacing:.02em}p{max-width:104ch}.lead{font-size:22px;color:var(--muted);max-width:950px}.muted,.small{color:var(--muted)}.small{font-size:14px}a{color:var(--accent);text-underline-offset:3px}nav{display:flex;gap:12px 24px;flex-wrap:wrap;margin-top:28px}nav a{font-size:14px}li{margin:6px 0}strong{font-weight:650}.callout,.panel{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:20px 24px;margin:24px 0}.callout{border-left:4px solid var(--gold)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.grid .panel,.grid3 .panel{margin:0}.grid h3,.grid3 h3{margin-top:0}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:22px 0}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;vertical-align:top;padding:12px 15px;border-bottom:1px solid var(--line)}th{background:var(--panel);color:var(--accent)}tr:last-child td{border-bottom:0}td:first-child{min-width:110px}.flow{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap}.flow>div{flex:1;min-width:150px;border:1px solid var(--line);border-radius:10px;padding:16px;background:var(--panel)}.flow b{display:block;color:var(--gold);margin-bottom:5px}.tag{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:1px 10px;margin:2px 4px 2px 0;font-size:12px;color:var(--muted);white-space:nowrap}.ok{color:var(--good)}.cond{color:var(--warn)}.no{color:var(--bad)}code{color:var(--gold);font-size:.94em}footer{border-top:1px solid var(--line);color:var(--muted)}.mock{font:14px/1.5 ui-monospace,Consolas,monospace;background:#1d1b22;border:1px solid var(--line);border-radius:10px;padding:16px 18px;overflow:auto;white-space:pre;color:var(--muted)}.mock b{color:var(--text);font-weight:600}.mock i{color:var(--accent);font-style:normal}.mock u{color:var(--gold);text-decoration:none}
+@media(max-width:760px){header,main,footer{padding:28px 16px}h1{font-size:46px}.grid,.grid3{grid-template-columns:1fr}table{min-width:720px}h2{font-size:28px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{:root{color-scheme:light;--bg:white;--panel:#f4f1f6;--text:#18151b;--muted:#544d5b;--accent:#654782;--line:#d8d0e0;--gold:#805329;--good:#2e6b3f;--warn:#7a4b10;--bad:#8a2a2a}body{font-size:10pt}header,main,footer{padding:18px 0}h1{font-size:38pt}h2{font-size:22pt;break-after:avoid;margin-top:30px}h3{break-after:avoid}nav{display:none}.table-wrap{overflow:visible}table{font-size:9pt;min-width:0}tr,.callout{break-inside:avoid}.mock{white-space:pre-wrap}a{text-decoration:none}}
+</style>
+</head>
+<body>
+<header>
+<div class="eyebrow">Origami · Studio · Plan for review · 17 October 2026</div>
+<h1>Studio plan</h1>
+<p class="lead">The third mode beside Read and Work. Studio turns recordings into well-made books, and books into full-cast audiobooks, entirely on the user's computer.</p>
+<p><strong>Status:</strong> approved 17 October 2026 with the recommended decisions (section 14); phase 0 experiments under way. Nothing here is built yet. It is based on research done on 17 October 2026 (six parallel reviews of products, models, licenses, laws and file formats) and on speed tests run on the development PC (RTX 4080 SUPER 16 GB, Ryzen 9 7950X3D, 64 GB). Legal points are a non-lawyer's reading, not legal advice.</p>
+<nav aria-label="Plan contents"><a href="#overview">What Studio is</a><a href="#findings">What the research found</a><a href="#measured">Measured on this PC</a><a href="#produce">Book to audiobook</a><a href="#transcribe">Recording to book</a><a href="#design">Book design</a><a href="#mark">The Origami Studio mark</a><a href="#features">Premium features</a><a href="#engines">Models and tools</a><a href="#hardware">Hardware tiers</a><a href="#architecture">Architecture</a><a href="#phases">Build phases</a><a href="#checks">Quality checks</a><a href="#decisions">Decisions for you</a><a href="#sources">Sources</a></nav>
+</header>
+<main>
+
+<section id="overview">
+<h2>01. What Studio is</h2>
+<p>Studio is a production desk. Every piece of work is a <strong>production</strong>: one manuscript, its structure, its cast, its audio takes and its exports, kept together in one folder. Two workflows feed the same production, so they reinforce each other: a produced audiobook automatically has a read-along book, and a transcribed lecture can be narrated again or typeset.</p>
+<div class="grid">
+<div class="panel"><h3>Book to audiobook</h3><p>Pick a book or document. Studio finds the chapters, separates narration from dialogue, finds the characters, says who speaks each line, and suggests a voice for each character. The user reviews, casts and renders. Lines can be regenerated one at a time until they sound right. Exports: an audiobook (M4B, MP3 and more), the book (EPUB, PDF, DOCX and more) and a read-along edition where the text highlights as the audio plays.</p></div>
+<div class="panel"><h3>Recording to book</h3><p>Drop an audiobook, lecture, podcast, interview or voice memo. Studio transcribes it with timings, finds chapters and speakers, builds paragraphs, and typesets it like a professional book. Every word stays linked to the moment it was spoken, so the book can be exported as a read-along edition with the original audio.</p></div>
+</div>
+<div class="flow">
+<div><b>1 · Manuscript</b>Structure, cleanup, spoken text, pronunciation.</div>
+<div><b>2 · Cast</b>Narration and dialogue, characters, who says what.</div>
+<div><b>3 · Voices</b>Recommendations, auditions, designed voices.</div>
+<div><b>4 · Render</b>Batched by engine and voice, resumable.</div>
+<div><b>5 · Review</b>Takes, regenerate, approve, automatic checks.</div>
+<div><b>6 · Master</b>Loudness, pauses, room tone, quality report.</div>
+<div><b>7 · Export</b>Audiobook, book, read-along, store profiles.</div>
+</div>
+<p><strong>Where it lives:</strong> the mode switch becomes <em>Read · Work · Studio</em>. Ctrl+Shift+W cycles through the three modes (Ctrl+Shift+S is already strikethrough in notes). Studio uses the same layout rules as the rest of the app: both side panels collapse independently and the inspector tabs are contextual. AGENTS.md lists Studio and speaker attribution as later scope; this plan is that later scope, and AGENTS.md is updated once the plan is approved. Voice cloning and capture stay later.</p>
+<div class="callout"><strong>The one restriction:</strong> every export carries a small "Made with Origami Studio" credit with the crane, and every audiobook says "Made with Origami Studio" in its opening credits. Section 07 shows how to place it so stores accept the files, and how it doubles as the AI disclosure the law now asks for. Everything else stays free and unlocked, as the support dialog already promises.</div>
+<p><strong>Why this can stand out:</strong> the research found no tool that turns an audiobook into a formatted ebook, and no narration tool that exports a read-along EPUB from its own render. ElevenLabs Studio is the benchmark for casting and takes, but it is online, paid by credits and limits regenerations. Origami can do the same work locally, privately, with unlimited takes, in French and English from day one, and produce the book, the audiobook and the read-along edition from one production.</p>
+</section>
+
+<section id="findings">
+<h2>02. What the research found</h2>
+<div class="table-wrap"><table><thead><tr><th>Area</th><th>Finding</th><th>Consequence for the plan</th></tr></thead><tbody>
+<tr><td>Commercial tools</td><td>ElevenLabs Studio (Character Casting since July 2026) finds characters, proposes voices by age, gender, tone and role, previews them on each character's own lines, keeps a take history per paragraph, locks finished paragraphs and runs an automatic check at export that retries bad audio. Google Play's free auto-narration has "Detect characters", merging, and Ctrl+1 to Ctrl+10 to assign speakers. KDP Virtual Voice allows only one voice per chapter.</td><td>Casting by traits, auditions on real lines, take history, locking, automatic checks and keyboard assignment are table stakes. All of them can run locally.</td></tr>
+<tr><td>Open projects</td><td>Alexandria (Qwen3-TTS plus an LLM script), audiobook-creator, abogen, ebook2audiobook, Pandrator and Storyteller. Common complaints: the LLM drops or invents text, one character split under several aliases, a first-person narrator counted twice, no confidence scores, GPU installs that fail, renders that slow down over long runs.</td><td>The language model returns labels and character offsets only and never rewrites text. Alias merging and first-person narrators are core features. Installation stays in Origami's tested online setup.</td></tr>
+<tr><td>Speaker attribution</td><td>Rules alone get explicit quotes ("said Marie") right about 96 to 99% of the time, but only about 45% of pronoun-tagged and untagged quotes. An 8B model with chapter-sized windows reached about 90% overall on the English PDNC benchmark when given the character list. Without a given list, a local 4B to 9B model should land around 80 to 90% in English and a few points lower in French. No French literary benchmark exists.</td><td>Rules first, a local model only for the uncertain quotes, a fast review queue for the rest, and corrections that spread to neighbouring lines. We build our own English and French test set.</td></tr>
+<tr><td>Voices</td><td>Qwen3-TTS (Apache-2.0) remains the strongest permissive choice for French and English: cloning from a reference clip, voice design from a description, instructions on some variants. Chatterbox Multilingual V3 (MIT, 23 languages) adds tags such as [laugh] and [sigh]. VoxCPM2 (Apache-2.0, 30 languages, voice design) is a candidate. Many newer models are non-commercial (F5-TTS, XTTS, Fish, Higgs v3, Voxtral TTS, Breeze, OmniVoice) and cannot be used, because users must be able to sell what they make.</td><td>Keep Qwen3-TTS as the studio engine, evaluate Chatterbox and VoxCPM2 as a second engine for expressive tags, keep light engines for CPU laptops.</td></tr>
+<tr><td>Transcription</td><td>NVIDIA Parakeet TDT 0.6B v3 (CC-BY-4.0, 25 European languages including French) gives punctuation and word timings, handles hours of audio, and runs about 35 times faster than real time on 2 CPU threads in its int8 build. Whisper large-v3-turbo (MIT) covers 99 languages.</td><td>Parakeet becomes the default for long recordings, Whisper turbo the fallback. The current Whisper small and base stay for voice notes.</td></tr>
+<tr><td>Speakers in recordings</td><td>sherpa-onnx diarization with pyannote segmentation (MIT) and 3D-Speaker embeddings (Apache) runs on CPU. pyannote community-1 is more accurate but its download is gated behind a sign-up.</td><td>sherpa-onnx models by default; community-1 only if the user downloads it with their own account.</td></tr>
+<tr><td>Alignment</td><td>Storyteller aligns an existing ebook to an existing audiobook with anchors and CTC alignment, but uses Meta MMS weights, which are non-commercial. omniASR-CTC (Apache-2.0) can replace them. For Origami's own renders, timings come for free from the length of each clip, with zero drift.</td><td>Read-along export from our own renders needs no alignment. Aligning a user's ebook to their audiobook is a later phase.</td></tr>
+<tr><td>Typesetting</td><td>Typst (Apache-2.0) can be embedded as a Rust library: optimized line breaking, French hyphenation, true small caps, mirrored margins, bleed, PDF/A and accessible PDF/UA. It cannot write PDF/X, which IngramSpark wants. Paged.js depends on each webview; Vivliostyle is AGPL.</td><td>Typst for PDF, our own EPUB 3.3 packager, docx-rs for Word. PDF/X through a small post-processor later.</td></tr>
+<tr><td>Audio files</td><td>Symphonia (MPL-2.0) decodes MP3, AAC, M4B, FLAC, Ogg and WAV in Rust. There is no pure-Rust AAC or MP3 encoder. Windows and macOS include AAC encoders; MP3 needs LAME or FFmpeg under the LGPL as a separate program.</td><td>AAC through the operating system, MP3 through an LGPL sidecar, Opus and FLAC in Rust, tags and chapters with mp4ameta, id3 and lofty.</td></tr>
+<tr><td>Stores</td><td>ACX/Audible, Apple Books and Voices by INaudio (formerly Findaway, which also feeds Chirp) do not accept AI narration made with outside tools as of October 2026. Google Play ("Synthesized voice"), Kobo ("Synthesised voice"), Storytel ("(AI voice)"), Libro.fm (tagged) and direct sales do. Spotify accepts digital narration from named providers; whether local tools count must be asked.</td><td>Export profiles for the stores that accept it, with their disclosure wording, and a plain note about the ones that do not. Never promise Audible.</td></tr>
+<tr><td>Law</td><td>The EU AI Act transparency rules (Article 50) apply since 2 August 2026. The final Code of Practice asks for two machine-readable layers on AI audio, such as metadata plus an inaudible watermark, and a free way to check files. Canada's Copyright Act (s.41.1) bans tools that bypass DRM. Quebec's Charter of the French Language requires a French version of the license.</td><td>Metadata, an AudioSeal watermark and a "Verify a file" tool. DRM-protected files are detected and refused. A French APP-LICENSE before Studio ships.</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="measured">
+<h2>03. Measured on this PC</h2>
+<p>The plan's central speed question: can a whole book be narrated with studio voices in reasonable time? These are real runs of Qwen3-TTS on the development PC, using one of the Qwen-designed voices and eight novel-style sentences (about 38 seconds of audio). RTF is seconds of computing per second of audio: 0.5 means twice as fast as real time.</p>
+<div class="table-wrap"><table><thead><tr><th>Run (Qwen3-TTS 1.7B on the RTX 4080 SUPER unless noted)</th><th>Real-time factor</th><th>Graphics memory</th><th>10-hour book</th></tr></thead><tbody>
+<tr><td>Current reader path (faster-qwen3-tts, one line at a time)</td><td>0.37</td><td>4.7 GB</td><td>about 3 h 40 min</td></tr>
+<tr><td>Standard path, one line at a time</td><td>2.18</td><td>4.4 GB</td><td>about 22 h</td></tr>
+<tr><td>Standard path, 4 lines of one voice together</td><td>0.65</td><td>5.8 GB</td><td>about 6 h 30 min</td></tr>
+<tr><td>Standard path, 8 lines of one voice together</td><td>0.34</td><td>7.8 GB</td><td>about 3 h 20 min</td></tr>
+<tr><td>Standard path, 16 lines together (1.7B and 0.6B)</td><td class="no">did not fit</td><td>over 15.5 GB</td><td>spilled into system memory and slowed to a crawl</td></tr>
+<tr><td><strong>Phase 0: fast path with 8 lines of one voice together (new)</strong></td><td><strong>0.094</strong></td><td>6.6 GB</td><td><strong>about 57 min</strong></td></tr>
+<tr><td>Qwen3-TTS 0.6B on 4 processor threads, one line at a time</td><td>5.45</td><td>none</td><td>about 55 h</td></tr>
+<tr><td>Qwen3-TTS 0.6B on 4 processor threads, 2 lines together</td><td>3.36</td><td>none</td><td>about 34 h</td></tr>
+</tbody></table></div>
+<div class="callout"><strong>Your "one character at a time" idea is right.</strong> Qwen3-TTS keeps one model loaded for every voice, so switching voices is already instant. The gains come from two other places. Grouping by engine means a model (Qwen, the voice designer, a second engine, Kokoro) is loaded once instead of swapping back and forth. Grouping by voice is what makes batching possible: lines of one voice share the same prepared reference, and batching scales almost linearly (2.18, then 0.65, then 0.34). The renderer groups by engine, then by voice, across a window of a few chapters, so the chapter you are reviewing finishes first.</div>
+<p><strong>Update after phase 0:</strong> a batched version of the fast path (CUDA graphs captured for 8 lines of one voice) runs at 10.6 times real time with the same word accuracy, and with a batch of one it produces exactly the same audio as today. A 10-hour book now renders in about an hour on this PC. Details in <a href="STUDIO-PHASE0.md">STUDIO-PHASE0.md</a>.</p>
+<p><strong>Laptops without NVIDIA:</strong> Qwen voices run 3.4 to 5.5 times slower than real time on 4 threads of this desktop processor, and a laptop is slower still. A whole book in studio voices would take days. Laptops therefore get light voices for full books (Kokoro and similar engines run faster than real time on a processor), studio voices for auditions and short pieces, and the option to move a production to a stronger computer for the final render.</p>
+<p class="small">Totals assume a 10-hour book is about 90,000 to 100,000 words and exclude retakes and automatic checks, which add roughly 10 to 25%. Long-input quality falls with these models, so render units stay at one to three sentences. Published figures for comparison: faster-qwen3-tts reports 1.8 to 2.3 times faster than real time on an RTX 4060 laptop GPU. Analysis and transcription times in later sections are estimates from published benchmarks, not yet measured here.</p>
+</section>
+
+<section id="produce">
+<h2>04. Book to audiobook, step by step</h2>
+<div class="mock"><b>Studio</b>  ·  The Count of Monte Cristo              Manuscript  <i>Cast</i>  Voices  Render  Review  Master  Export
+<b>Chapters</b>            │ <b>Chapter 12 · Father and Son</b>                               │ <b>Line 12.48</b>
+ ✓ 10 Little Cabinet │                                                            │ Speaker  <i>● Noirtier</i>  (82%)
+ ✓ 11 Corsican Ogre  │ <i>Narrator</i>  The old man looked at his son for a long moment.   │ Evidence  turn after Villefort,
+ ◐ 12 Father and Son │ <u>● Noirtier</u>  « Eh bien, que veux-tu ? »                          │           vocative "mon fils"
+   13 The Hundred... │ <i>● Villefort</i>  « Je viens vous parler de Dantès. »              │ Delivery  calm, slightly dry
+                     │ <u>?</u> <u>● Noirtier</u>  « Ah ! »                    ← check this one     │ Takes     ▶ 1  ▶ 2 ✓  ▶ 3
+ 3 lines to check    │ <i>Narrator</i>  He leaned back, smiling.                          │ [1-9] assign  [N] narrator
+                     │                                                            │ [Enter] confirm  [R] retake
+▶ 12:48  ━━━━━━━━━━━━━━━━━━━━━━━━━━━○──────────────  1.0×   Chapter 12 · 8 of 41 min rendered</div>
+<p class="small">Illustration of the layout only. Speakers always show a name and icon as well as a colour, so the cast never depends on colour alone.</p>
+
+<h3>4.1 Manuscript</h3>
+<ul>
+<li><strong>Start from the library.</strong> Every format Origami already imports works (EPUB, PDF, DOCX, Markdown, TXT, pasted text). A production takes its own versioned copy, so editing the manuscript never changes the reading copy, and a newer source can be merged in later.</li>
+<li><strong>Structure.</strong> Chapters from the EPUB contents or DOCX headings, font-size cues for PDFs. Front and back matter (title page, copyright, dedication, contents, acknowledgements) is detected and can be spoken, skipped or moved to the credits. Scene breaks become pauses and ornaments.</li>
+<li><strong>Spoken text.</strong> The existing skip rules and spoken versions apply: footnote markers, citations, URLs, running heads. Footnotes can be skipped, read at the end of the paragraph or read at the end of the chapter. Numbers, dates, currency, Roman numerals and abbreviations are expanded per language, because local models handle them badly.</li>
+<li><strong>Pronunciation.</strong> The existing dictionary (scopes: this book, this voice, everywhere) gains automatic suggestions: character names, rare words and words in another language are listed with "hear every occurrence" and a respelling field.</li>
+<li><strong>Text fidelity lock.</strong> The manuscript is the only source of truth. Analysis produces labels attached to character offsets. Any model output that would change the words is rejected by a word-level comparison, and the final render is checked so every sentence is spoken exactly once.</li>
+</ul>
+
+<h3>4.2 Cast: who says what</h3>
+<ol>
+<li><strong>Rules pass, instant and offline.</strong> A quote reader for each language: English curly quotes, French guillemets and dialogue dashes, German „ " and » «, Spanish dashes. It separates narration, dialogue, thoughts (italics, verbs such as "pensa-t-il") and letters or documents (indented blocks, salutations, signatures). Speech verbs in both word orders ("said Marie", "dit-il", "répondit Marie") attribute explicit quotes. Turn alternation, names in the vocative (the listener, not the speaker) and action beats ("Marie put down her cup.") handle many of the rest.</li>
+<li><strong>Character list.</strong> Names are found and grouped with their aliases (titles, first name and surname, "Mr. Darcy", "Darcy", "Fitzwilliam"). The local model confirms only the uncertain merges. Each character keeps a stable ID.</li>
+<li><strong>Model pass for uncertain quotes only.</strong> The local model sees about one to four thousand words of context, the characters active in the scene and the already-settled lines as anchors. It must answer in a fixed format: speaker ID, type of cue and confidence. Three votes are taken only when the answer is close.</li>
+<li><strong>Character profiles.</strong> For each character, the passages that describe them are gathered, and the model suggests gender presentation, age range, possible accent or origin, personality and role, each with the evidence shown. Accent and origin are flagged as suggestions, because published tests show they are often wrong.</li>
+<li><strong>Delivery suggestions.</strong> Speech verbs and punctuation give a first guess ("murmured", "hissed", "!", "..."), then the model picks from a fixed list (calm, warm, happy, sad, angry, afraid, whispered, shouted, sarcastic, tender, tired, urgent) with an intensity.</li>
+</ol>
+<h4>Review that is fast</h4>
+<ul>
+<li>A character panel with line counts, first appearance, aliases and traits. Merge, split, rename, delete, and mark as minor (minor characters share a few background voices).</li>
+<li>A queue of uncertain lines. Number keys assign the top characters, N assigns the narrator, Enter confirms. Most books need a few minutes of this, not hours.</li>
+<li>Corrections spread: fixing one line re-solves its dialogue run, merging aliases relabels the whole book, correcting a character's gender re-solves the "she said" lines around them. Manual choices are locked and never overwritten by a new analysis.</li>
+<li>First-person books: "I" is linked to the narrator character, who can keep one voice for narration and dialogue or use a slight variant.</li>
+<li>"Use one narrator" plays or renders everything in the narrator's voice without losing the cast.</li>
+</ul>
+
+<h3>4.3 Voices: casting with recommendations</h3>
+<ul>
+<li><strong>Top three suggestions per character, with reasons:</strong> "older, British, warm; nobody else in chapter 3 uses it". Scores compare each character's profile with the voice catalog's labels (gender, age, accent, styles), weighted by how much the character speaks.</li>
+<li><strong>Distinct voices where it matters.</strong> Characters who talk to each other get voices that sound far apart. Each voice gets a voice fingerprint once, and the casting avoids giving close fingerprints to characters who share scenes.</li>
+<li><strong>Auditions on their own lines.</strong> Each suggestion is previewed on two or three of that character's real lines, including the narrator-to-character transition.</li>
+<li><strong>Design a voice for a character.</strong> The existing voice designer (Qwen3-TTS VoiceDesign) opens with a description written from the character's traits and the book's own words ("an old sea captain, gravelly, unhurried"). Three takes, pick one, and it becomes that character's fixed reference voice. This is fully local and is the most premium part of casting.</li>
+<li><strong>Consistency.</strong> Each character always renders from the same reference clip and transcript. Generated audio is never fed back as the next reference, because that drifts.</li>
+<li><strong>Cloning real people stays later scope.</strong> When it arrives it gets a consent flow: only "my voice" or a person who consented in writing, a live-read consent sentence, and labels in the exported files.</li>
+</ul>
+
+<h3>4.4 Delivery and direction</h3>
+<p>Each line can carry a delivery, an intensity, a pace and pauses before and after. Directions are stored beside the text and are never spoken. What each engine can actually honour is shown, never implied:</p>
+<div class="table-wrap"><table><thead><tr><th>Control</th><th>Qwen3-TTS Base (cloned voices)</th><th>Qwen3-TTS VoiceDesign</th><th>Chatterbox (candidate)</th><th>Kokoro, Kitten</th></tr></thead><tbody>
+<tr><td>Pauses, pace</td><td class="ok">Yes (assembly)</td><td class="ok">Yes</td><td class="ok">Yes</td><td class="ok">Yes</td></tr>
+<tr><td>Emotion</td><td class="cond">Instructions are experimental for cloned voices: to be tested. Mood references (below) as the reliable route.</td><td class="ok">Through the description</td><td class="ok">Exaggeration control (original model)</td><td class="no">No</td></tr>
+<tr><td>Sounds ([laugh], [sigh])</td><td class="no">No</td><td class="no">No</td><td class="ok">Turbo and Nano</td><td class="no">No</td></tr>
+</tbody></table></div>
+<p><strong>Mood references:</strong> for a main character, the designer can also make "the same voice, angry" or "the same voice, whispering" from the same description and seed. A line marked angry then renders from the angry reference. This keeps timbre close while changing delivery, and needs a short test before it is promised.</p>
+
+<h3>4.5 Render</h3>
+<ul>
+<li><strong>Units:</strong> one to three sentences (about 300 characters at most), split at sentence boundaries, never inside a word. Very long sentences split at semicolons, colons or commas.</li>
+<li><strong>Scheduling:</strong> by engine, then by voice in batches sized to free graphics memory, across a window of chapters, with the chapter under review first. Quick auditions use the low-latency streaming path; bulk rendering uses batches.</li>
+<li><strong>Durable:</strong> every finished take is written to disk at once. Closing the app, a crash or a full disk loses at most the batch in progress. Rendering resumes where it stopped and shows a time estimate from measured speed.</li>
+<li><strong>Polite:</strong> reading aloud and artwork pause while rendering, using the existing job leases. "Render overnight" keeps the PC awake; on a laptop, rendering pauses on battery unless allowed.</li>
+<li><strong>Cache identity:</strong> a take is reused only if the spoken text, pronunciations, voice reference, model, settings, delivery and seed all match, as the first-release plan already requires.</li>
+</ul>
+
+<h3>4.6 Review and repair</h3>
+<ul>
+<li>Listen chapter by chapter with the same highlighting as Read mode.</li>
+<li>Every line keeps its takes: play, compare, restore, regenerate, regenerate with a change (delivery, pace, pronunciation, spoken text), approve and lock.</li>
+<li><strong>Automatic checks after every take:</strong> the take is transcribed and compared with its text (missing or extra words, loops, cut endings), timed against the voice's normal pace, checked for long silences and clipping, and compared with the character's voice fingerprint for drift. Failed takes retry automatically with a new seed up to a set limit; the best one is kept and the rest are flagged.</li>
+<li>A chapter waveform to adjust gaps (paragraph, dialogue turn, scene, chapter) and trim the start or end of a take.</li>
+<li>Editing the manuscript compares old and new text: only changed lines become stale, approved takes elsewhere stay.</li>
+<li>One review list: failed checks, uncertain speakers, unapproved lines, notes. "Approve chapter" when it is clean.</li>
+</ul>
+
+<h3>4.7 Master</h3>
+<ul>
+<li>Takes are matched for loudness, then each chapter is levelled to the chosen profile. The default follows ACX-style values, the de facto industry bar: RMS between -23 and -18 dB, peaks at -3 dB or lower, noise floor at -60 dB or lower, room tone at the start and end of each file.</li>
+<li>Gaps are assembled from the pause rules; crossfades only where needed.</li>
+<li>A quality report per chapter shows pass or fail for every value.</li>
+<li>Later: an optional ambience bed from Origami's scene sounds, lowered automatically under speech.</li>
+</ul>
+
+<h3>4.8 Export</h3>
+<div class="grid3">
+<div class="panel"><h3>Audiobook</h3><p>M4B with chapters, cover and metadata. MP3 per chapter in store layout (opening credits, chapters, closing credits, retail sample under 5 minutes). Opus, FLAC, WAV, ZIP. Square cover at 2400 × 2400.</p></div>
+<div class="panel"><h3>Book</h3><p>EPUB 3.3, accessible and validated. Print PDF for KDP and IngramSpark trims, screen PDF, DOCX (book layout or standard manuscript), Markdown, HTML, plain text.</p></div>
+<div class="panel"><h3>Read-along</h3><p>EPUB 3 with Media Overlays: the text highlights as the audio plays (Thorium, BookFusion, Storyteller apps; Apple Books only for fixed layout). Origami's own Read mode plays it too. SRT, WebVTT and LRC from the same timings.</p></div>
+</div>
+<ul>
+<li><strong>Store profiles</strong> set the format, audio values and disclosure wording: Google Play, Kobo, Storytel, Spotify (to be confirmed), Libro.fm, direct sale and personal listening. ACX/Audible, Apple Books and INaudio are listed as not accepting local AI narration, with the date checked.</li>
+<li>Every export is a snapshot of approved content, so edits during a long export never mix two editions. Exports are user-owned files: clearing takes or deleting a production never removes them.</li>
+<li>A production can be packed as one file to continue on another computer, for example to render on a friend's stronger PC.</li>
+</ul>
+</section>
+
+<section id="transcribe">
+<h2>05. Recording to book</h2>
+<ol>
+<li><strong>Import.</strong> MP3, M4A, M4B, AAC, WAV, FLAC, Ogg, Opus, WebM and the audio track of MP4 videos, one file or a folder of chapter files. DRM-protected files (Audible AA, AAX and AAXC, Apple FairPlay, encrypted MP4, library loan files) are detected and refused with a neutral message: "This file is copy-protected and cannot be imported." No removal tools are linked or explained.</li>
+<li><strong>Chapters.</strong> Embedded chapter markers first (M4B chapter lists, MP3 chapter frames), then one file per chapter, then long silences combined with spoken "Chapter N" or "Chapitre N".</li>
+<li><strong>Clean audio (optional).</strong> DeepFilterNet noise reduction for noisy lectures and phone recordings, never applied by default to clean audiobooks.</li>
+<li><strong>Transcription.</strong> Voice activity detection, then Parakeet v3 for its 25 European languages, Whisper large-v3-turbo for others. Every word keeps its time and confidence.</li>
+<li><strong>Speakers.</strong> For interviews, podcasts and plays: speaker separation, then the user names each speaker from short samples ("Speaker 2 is Marie"). Audiobooks skip this.</li>
+<li><strong>Book structure.</strong> Paragraphs from pauses and speaker changes, then an optional tidy-up by the local model that may only add paragraph breaks, punctuation and capitals, verified word by word. Lecture mode can remove fillers ("um", "euh"), again deletions only. Opening and closing credits of commercial audiobooks can be removed from the text.</li>
+<li><strong>Transcript editor.</strong> Click any word to hear it. Low-confidence words are underlined and listed in a review queue. Find and replace, speaker relabelling, headings.</li>
+<li><strong>Typeset and export.</strong> The same book design and exports as section 06. The read-along edition uses the original recording and the transcription timings, so no alignment is needed.</li>
+</ol>
+<p><strong>Later:</strong> "I also have the ebook" aligns the user's own ebook to their own audiobook (anchors plus CTC alignment with omniASR-CTC) to make a read-along edition with the publisher's exact text. And "Narrate this manuscript" sends a transcript into the book-to-audiobook workflow.</p>
+<p class="small">A short reminder appears when importing someone else's audiobook: a transcript for personal use is fine where private copying allows it; publishing it needs the rights holder's permission.</p>
+</section>
+
+<section id="design">
+<h2>06. Book design</h2>
+<ul>
+<li><strong>Themes (six to ten):</strong> Classic, Modern, Literary, Elegant, Large print and more. Each sets fonts, the chapter opener (number as "3", "Chapter Three" or "III", sunk opening, ornament), a drop cap or small-capital lead-in, the scene-break ornament, running heads and page numbers.</li>
+<li><strong>Fonts:</strong> open-licensed book faces with full French support: EB Garamond, Literata, Source Serif 4, Crimson Pro, Alegreya, Cormorant, Libertinus. About 1 to 2 MB each; checked for small capitals and the special spaces French needs before bundling.</li>
+<li><strong>Typography by language, automatic:</strong> English curly quotes and ellipses. French guillemets with narrow no-break spaces, spaces before ; : ! ?, dialogue dashes for each change of speaker, French hyphenation. Widow and orphan control, at most two hyphenated lines in a row, optimized line breaking.</li>
+<li><strong>Print:</strong> 5 × 8, 5.5 × 8.5, 6 × 9, A5 and more. Chapters open on a right-hand page, no folio on openers, roman numerals in the front matter. The inside margin grows with page count as KDP requires; bleed on request. One click makes a large-print edition.</li>
+<li><strong>Front and back matter:</strong> half-title, title page, copyright page (ISBN per format, AI narration line when there is audio), dedication, epigraph, contents, acknowledgements, about the author, also by.</li>
+<li><strong>Live preview</strong> of page spreads rendered by Typst, and of the EPUB in Origami's own reader.</li>
+<li><strong>Covers:</strong> the existing cover generator or an imported cover, plus an automatic square audiobook cover laid out from it.</li>
+<li><strong>Safety:</strong> the book's text is passed to a fixed Typst template as data and is never turned into Typst code, so nothing inside an imported book can run.</li>
+</ul>
+</section>
+
+<section id="mark">
+<h2>07. The "Made with Origami Studio" mark</h2>
+<p>Your requirement: a small "Made with Origami Studio" with a tiny crane at the bottom right of documents, and a spoken "Made with Origami Studio" at the start of audiobooks. The research changes where it should go, not whether.</p>
+<div class="grid">
+<div class="panel"><h3>Documents</h3><ul>
+<li><strong>Recommended:</strong> crane plus "Made with Origami Studio" at the bottom right of the copyright page (or of the last page if there is none). This is where production credits belong; Vellum's optional badge uses the same place and books with it are on every store.</li>
+<li><strong>EPUB:</strong> reflowable ebooks have no fixed page corners, so the mark goes on the copyright page and on a short closing colophon page, right-aligned.</li>
+<li><strong>Every page instead?</strong> Possible in PDF and Word, but Apple's rules forbid advertising inside books, and a logo on every page reads as a watermark or an ad. This is decision 1.</li>
+<li>A small grayscale vector crane is drawn for print (about 4 mm), beside the existing lavender crane for screens. Localized: "Réalisé avec Origami Studio" in French books.</li>
+</ul></div>
+<div class="panel"><h3>Audiobooks</h3><ul>
+<li><strong>Recommended spoken credit:</strong> "[Title], by [Author]. Narrated by digital voices. Made with Origami Studio."</li>
+<li>French: "[Titre], de [Auteur]. Lu par des voix numériques. Réalisé avec Origami Studio."</li>
+<li>It sits inside the opening credits, where stores expect the title, author and narrator, so it reads as a production credit and not as an ad. It also serves as the AI disclosure that Spotify, Storytel and the EU rules ask for.</li>
+<li>No web address, slogan or music sting: those are what stores reject.</li>
+</ul></div>
+</div>
+<h3>Machine-readable labels (the law, not only branding)</h3>
+<ul>
+<li><strong>Metadata</strong> in every file: MP3 and M4B encoder tags and an IPTC "AI-generated" source type, EPUB generator and producer fields, PDF XMP creator tool and source type, Word application name. Each export gets a unique ID.</li>
+<li><strong>Inaudible watermark</strong> with AudioSeal (MIT): a 16-bit export ID that survives MP3 and AAC compression in independent tests. Together with metadata this gives the two layers the EU Code of Practice describes.</li>
+<li><strong>"Verify a file"</strong> in Studio: drop any audio file to see whether it carries an Origami watermark. This is the free detection tool the rules expect.</li>
+<li>Later: signed provenance (C2PA) for MP3, M4A, WAV, FLAC and PDF.</li>
+</ul>
+<h3>License wording</h3>
+<p>APP-LICENSE.md gains a Studio clause, shown once at the first export with an accept button, and a French version (required in Quebec for standard-form contracts). Draft:</p>
+<div class="panel small"><strong>Origami Studio exports.</strong> Origami Studio adds a credit to what you export: in documents, the words "Made with Origami Studio" and the crane logo on the copyright page (or the last page if there is none) at the size the app sets; in audiobooks, a spoken "Made with Origami Studio" in the opening credits; and metadata labels and an inaudible watermark stating that the voices were generated with AI. You may publish, share and sell your exports. You may not remove, cover, crop, shrink, edit out, re-record over or otherwise hide the credit, the labels or the watermark, or have someone else do so, in an export or any copy, edition or format made from it. Any exception must be in writing from Sov3ryn. This applies only to files made with Origami Studio and does not limit rights given by the licenses of included components.</div>
+<p class="small">Realistically this is a contract term: it is enforced by ending the license, as the current terms already do. The mark is added by Origami's own export code, never by the GPL light reader. Apache and MIT model licenses place no limits on outputs, so the clause does not conflict with them.</p>
+</section>
+
+<section id="features">
+<h2>08. Premium features, ranked</h2>
+<p><span class="tag">Core</span> expected from any serious tool. <span class="tag">Edge</span> sets Origami apart. Phase numbers refer to section 12.</p>
+<div class="table-wrap"><table><thead><tr><th>#</th><th>Feature</th><th>Type</th><th>Phase</th></tr></thead><tbody>
+<tr><td>1</td><td>Text fidelity lock: models label, never rewrite; every sentence spoken exactly once</td><td>Edge</td><td>1</td></tr>
+<tr><td>2</td><td>Durable, resumable render queue grouped by engine and voice, with batching and a time estimate</td><td>Edge</td><td>1</td></tr>
+<tr><td>3</td><td>Takes per line: compare, restore, regenerate, approve and lock</td><td>Core</td><td>1</td></tr>
+<tr><td>4</td><td>Chaptered M4B and MP3 exports with credits, cover and metadata</td><td>Core</td><td>1</td></tr>
+<tr><td>5</td><td>EPUB and PDF exports of the manuscript, with the mark and AI labels</td><td>Core</td><td>1</td></tr>
+<tr><td>6</td><td>Character detection with alias merging and first-person narrators</td><td>Core</td><td>2</td></tr>
+<tr><td>7</td><td>Uncertain-line queue with keyboard assignment and corrections that spread</td><td>Core</td><td>2</td></tr>
+<tr><td>8</td><td>Voice suggestions from character traits, kept distinct between characters who talk to each other</td><td>Core</td><td>2</td></tr>
+<tr><td>9</td><td>Auditions on each character's own lines</td><td>Core</td><td>2</td></tr>
+<tr><td>10</td><td>Design a voice for a character from the book's own description</td><td>Edge</td><td>2</td></tr>
+<tr><td>11</td><td>Book-wide pronunciation suggestions with "hear every occurrence"</td><td>Core</td><td>2</td></tr>
+<tr><td>12</td><td>Automatic checks of every take (transcribe and compare, loops, drift, clipping) with automatic retries</td><td>Edge</td><td>3</td></tr>
+<tr><td>13</td><td>Loudness mastering and a pass or fail report against store-style values</td><td>Core</td><td>3</td></tr>
+<tr><td>14</td><td>Delivery per line (emotion, intensity, pace, pauses) with mood references</td><td>Core</td><td>3</td></tr>
+<tr><td>15</td><td>Store profiles with disclosure wording; plain list of stores that refuse local AI narration</td><td>Edge</td><td>3</td></tr>
+<tr><td>16</td><td>Watermark, metadata and "Verify a file"</td><td>Edge</td><td>3</td></tr>
+<tr><td>17</td><td>Recording to transcript with word timings, speakers and confidence</td><td>Core</td><td>4</td></tr>
+<tr><td>18</td><td>Recording to a structured, typeset book (chapters, paragraphs, credits removed)</td><td>Edge</td><td>4</td></tr>
+<tr><td>19</td><td>Click a word to hear it; review queue for doubtful words</td><td>Core</td><td>4</td></tr>
+<tr><td>20</td><td>Read-along EPUB from the original recording</td><td>Edge</td><td>4</td></tr>
+<tr><td>21</td><td>Book themes, chapter openers, drop caps, ornaments, French typography</td><td>Core</td><td>5</td></tr>
+<tr><td>22</td><td>Print PDF to KDP rules (trims, gutter by page count, bleed), large-print edition</td><td>Core</td><td>5</td></tr>
+<tr><td>23</td><td>Front and back matter generator; live spread preview</td><td>Core</td><td>5</td></tr>
+<tr><td>24</td><td>Read-along EPUB from Origami's own render, played in Read mode</td><td>Edge</td><td>5</td></tr>
+<tr><td>25</td><td>Align the user's ebook to their audiobook</td><td>Edge</td><td>6</td></tr>
+<tr><td>26</td><td>Second engine with sounds such as [laugh] and [sigh]</td><td>Edge</td><td>6</td></tr>
+<tr><td>27</td><td>Ambience beds with automatic ducking</td><td>Edge</td><td>6</td></tr>
+<tr><td>28</td><td>Audacity or DAW export with one track per speaker</td><td>Edge</td><td>6</td></tr>
+<tr><td>29</td><td>Continue a production on another computer</td><td>Edge</td><td>6</td></tr>
+<tr><td>30</td><td>PDF/X for IngramSpark; productions from locked vault books</td><td>Core</td><td>6</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="engines">
+<h2>09. Models and tools</h2>
+<p>Everything must allow redistribution inside a source-available app and commercial use of what users make. <span class="ok">OK</span> means usable as is, <span class="cond">conditions</span> means attribution, a separate process or a user-side download.</p>
+<div class="table-wrap"><table><thead><tr><th>Job</th><th>Choice</th><th>License</th><th>Size</th><th>Notes</th></tr></thead><tbody>
+<tr><td>Studio narration</td><td>Qwen3-TTS 12Hz 1.7B and 0.6B Base (installed today)</td><td class="ok">Apache-2.0</td><td>4.5 / 2.5 GB</td><td>10 languages incl. French; batching measured above.</td></tr>
+<tr><td>Voice design</td><td>Qwen3-TTS 1.7B VoiceDesign (installed today)</td><td class="ok">Apache-2.0</td><td>4.5 GB</td><td>Characters' voices from descriptions; mood references.</td></tr>
+<tr><td>Expressive second engine (evaluate)</td><td>Chatterbox Multilingual V3, Turbo; VoxCPM2</td><td class="ok">MIT; Apache-2.0</td><td>about 1 to 4 GB</td><td>Chatterbox applies its own watermark to every output, which suits us. VoxCPM2 wants about 8 GB of graphics memory.</td></tr>
+<tr><td>CPU narration</td><td>Kokoro (installed), Pocket TTS, qwentts.cpp builds of Qwen3-TTS</td><td class="ok">Apache-2.0</td> <td>80 MB to 2 GB</td><td>Pocket TTS is <span class="cond">CC-BY-4.0</span>, French, about 6 times real time on a laptop CPU; its cloning repo is gated. qwentts.cpp could run Qwen voices on CPU or any Vulkan GPU: license and speed to verify.</td></tr>
+<tr><td>Long transcription</td><td>Parakeet TDT 0.6B v3 (int8)</td><td class="cond">CC-BY-4.0</td><td>about 640 MB</td><td>Attribution in notices. Run through our ONNX runtime or sherpa-onnx (Apache).</td></tr>
+<tr><td>Other languages</td><td>Whisper large-v3-turbo</td><td class="ok">MIT</td><td>about 0.8 to 1.6 GB</td><td>Voice-activity splitting and repetition guards against hallucinations.</td></tr>
+<tr><td>Voice activity</td><td>Silero VAD</td><td class="ok">MIT</td><td>2 MB</td><td></td></tr>
+<tr><td>Speakers in recordings</td><td>sherpa-onnx: pyannote segmentation 3.0 + 3D-Speaker</td><td class="ok">MIT, Apache-2.0</td><td>about 40 MB</td><td>pyannote community-1 only as an optional download with the user's own account.</td></tr>
+<tr><td>Alignment (later)</td><td>omniASR-CTC 300M</td><td class="ok">Apache-2.0</td><td>about 1.2 GB</td><td>Replaces the non-commercial MMS weights other tools use.</td></tr>
+<tr><td>Language model runtime</td><td>llama.cpp llama-server sidecar</td><td class="ok">MIT</td><td>about 30 MB (Vulkan, CPU)</td><td>Same pattern as the stable-diffusion.cpp sidecar. CUDA build optional. Local address with a random port and key.</td></tr>
+<tr><td>Language model</td><td>Qwen3.5 4B (default), Qwen3.5 9B (8 GB+ graphics), compare Ministral 3 8B and Gemma 4 E4B for French</td><td class="ok">Apache-2.0</td><td>2.7 GB / 5.7 GB</td><td>Non-thinking mode, answers constrained to a schema and validated. Avoid Llama (naming and attribution terms) and LFM2 (revenue cap).</td></tr>
+<tr><td>Watermark</td><td>AudioSeal</td><td class="ok">MIT</td><td>small</td><td>16-bit export ID; exported to ONNX for the Rust side.</td></tr>
+<tr><td>Noise reduction</td><td>DeepFilterNet</td><td class="ok">MIT / Apache-2.0</td><td>small</td><td>ONNX.</td></tr>
+<tr><td>Typesetting</td><td>Typst library, hypher hyphenation</td><td class="ok">Apache-2.0, MIT</td><td>in the app</td><td>PDF/A and PDF/UA; PDF/X via a post-processor (lopdf, MIT).</td></tr>
+<tr><td>Ebook and Word</td><td>Own EPUB 3.3 packager (zip, quick-xml); docx-rs</td><td class="ok">MIT</td><td>in the app</td><td>Validated with EPUBCheck and DAISY Ace in CI only.</td></tr>
+<tr><td>Audio decode and tags</td><td>Symphonia, rubato, ebur128, mp4ameta, id3, lofty, opus/ogg, flacenc</td><td class="ok">MPL-2.0, MIT, Apache, BSD</td><td>in the app</td><td>Symphonia used unmodified.</td></tr>
+<tr><td>AAC and MP3 encoding</td><td>Windows Media Foundation, macOS AudioToolbox; LGPL FFmpeg sidecar for MP3 and Linux</td><td class="cond">OS / LGPL</td><td>about 30 to 80 MB</td><td>FFmpeg built without GPL or non-free parts, shipped as a separate program with its source offer.</td></tr>
+</tbody></table></div>
+<p><strong>Not usable</strong> (non-commercial or incompatible): F5-TTS and E2, MaskGCT, Spark-TTS, XTTS v2, Fish Speech and OpenAudio, Higgs Audio v3, KittenTTS 2, VibeVoice, Voxtral TTS, Breeze TTS 2, OmniVoice, MMS and MMS_FA, the WhisperX French aligner, DiariZen, aeneas (AGPL), Vivliostyle (AGPL), FDK-AAC, GPL builds of FFmpeg. Kokoro's French voice needs CC-BY credit, and engines that use espeak-ng stay in the separate GPL light reader as today.</p>
+<p>New models arrive through the existing hash-locked download catalog and the in-app model manager, only when the user enables the feature. A full Studio setup adds roughly 4 to 9 GB depending on choices.</p>
+</section>
+
+<section id="hardware">
+<h2>10. What each kind of computer can expect</h2>
+<div class="table-wrap"><table><thead><tr><th>Task (10-hour book or recording)</th><th>Strong NVIDIA, 12 GB+ (this PC)</th><th>Mid NVIDIA, 6 to 8 GB laptop</th><th>CPU only, 8 to 16 GB RAM</th></tr></thead><tbody>
+<tr><td>Find characters and attribute speech (100,000 words)</td><td>about 6 to 18 min (9B model)</td><td>about 20 to 40 min (4B)</td><td>about 1.5 h in the background (4B); rules only in 2 min</td></tr>
+<tr><td>Narrate with studio voices</td><td>about 1 h (measured, batched), plus checks and retakes</td><td>about 5 to 8 h (0.6B or 1.7B)</td><td>days with Qwen voices (measured 3.4 to 5.5 times slower than real time on 4 desktop threads); light voices (Kokoro English, Pocket TTS French) in about 1 to 3 h</td></tr>
+<tr><td>Transcribe a recording</td><td>about 2 to 5 min</td><td>about 5 to 15 min</td><td>about 20 to 60 min</td></tr>
+<tr><td>Typeset and export the book</td><td colspan="3">Seconds to a minute everywhere (Typst compile time to be measured on a 400-page novel).</td></tr>
+</tbody></table></div>
+<p class="small">Only the narration rows on this PC are measured. The rest are estimates from published benchmarks and must be measured before they appear in the app. Studio shows a time estimate from the computer's own measured speed, never a promise. AMD and Intel graphics: the language model runs through Vulkan; studio voices on those cards depend on the qwentts.cpp test.</p>
+</section>
+
+<section id="architecture">
+<h2>11. Architecture</h2>
+<h3>A production on disk</h3>
+<div class="mock"><b>Studio/</b><i>&lt;production id&gt;</i><b>/</b>
+  production.sqlite     manuscript versions, chapters, segments, characters,
+                        assignments, deliveries, takes, checks, notes, history
+  takes/                one FLAC file per take (24 kHz mono, about 0.5 MB a minute)
+  sources/              imported recordings (recording-to-book productions)
+  cache/                voice prompts, fingerprints, previews (safe to delete)
+Exports go where the user chooses and are never deleted by Studio.</div>
+<p>A separate small database per production keeps the main library fast, makes productions portable and lets a 50,000-line book with 100,000 takes stay responsive. A typical full-cast production with retakes uses about 0.5 to 1.5 GB; Studio shows the size and can remove unused takes while keeping approved ones and every export.</p>
+<h3>Core records</h3>
+<ul>
+<li><strong>Segment:</strong> a span of the manuscript (block, start, end), its kind (narration, dialogue, thought, letter, heading, credit), speaker, confidence, where the label came from (rule, model, person) and whether it is locked.</li>
+<li><strong>Character:</strong> stable ID, name, aliases, traits with their evidence, colour and icon, voice, delivery defaults.</li>
+<li><strong>Render unit and take:</strong> the exact spoken text after pronunciation and spoken edits, its cache key, and each take's file, length, seed, model, settings, check results and status.</li>
+<li><strong>Recording side:</strong> source files with hashes and chapters, words with times, confidence and speaker, linked to manuscript blocks.</li>
+<li>Stable IDs such as <code>c03-s042</code> drive EPUB anchors, read-along entries, subtitles and audio chapter marks, so every format stays in sync.</li>
+</ul>
+<h3>Processes</h3>
+<ul>
+<li><strong>Rust core:</strong> owns the production databases, the durable job queue (leases, resume, cancel, one heavy GPU job at a time), audio decoding, mastering, encoding through the OS, tags, Typst, EPUB and Word.</li>
+<li><strong>Speech worker:</strong> the existing persistent Python worker gains batch requests (several lines of one voice per call), explicit seeds and per-take results. The current reading protocol keeps working.</li>
+<li><strong>Language model:</strong> llama-server as a sidecar, started only while analysis runs, answers checked against a schema.</li>
+<li><strong>ONNX in-process:</strong> transcription, voice activity, speaker embeddings, watermark, noise reduction, as Whisper and embeddings already do.</li>
+<li><strong>FFmpeg (LGPL):</strong> a separate program only where the OS has no encoder.</li>
+</ul>
+<h3>Rules carried over</h3>
+<ul>
+<li>Imported content is data: no scripts run, no external resources are fetched, book text never becomes template code.</li>
+<li>Manual exports are user-owned and survive every cleanup.</li>
+<li>Productions made from vault books are not offered in the first Studio phases (a clear message explains why); encrypted takes come later.</li>
+<li>Every new string goes through translation, French first. No em dashes in authored text.</li>
+<li>macOS and Linux are designed for but not claimed until run there.</li>
+</ul>
+</section>
+
+<section id="phases">
+<h2>12. Build phases</h2>
+<p>A dependency order, not a schedule. Each phase ends with something usable and is reviewed with you before the next.</p>
+<div class="table-wrap"><table><thead><tr><th>Phase</th><th>Working result</th><th>Review before moving on</th></tr></thead><tbody>
+<tr><td>0 · Tests first</td><td>Short experiments that decide uncertain choices: a batched version of the fast Qwen path; instructions and mood references on Qwen voices; Chatterbox and VoxCPM2 French quality against Qwen; qwentts.cpp and Pocket TTS on a laptop-like CPU; Parakeet through our ONNX code; Typst on a 400-page novel; AAC and M4B chapters in three players; a first English and French attribution test set (about 1,500 quotes each from public-domain novels).</td><td>Numbers and listening notes for each choice. Anything that fails is replaced before it is built on.</td></tr>
+<tr><td>1 · Single-narrator production</td><td>Studio mode, productions, import from the library, chapters and spoken text, the batched durable render queue, takes on disk, review with regenerate and approve, basic levelling, M4B and MP3 exports, EPUB and PDF of the manuscript, the mark and the metadata.</td><td>Render a full public-domain novel, interrupt and resume it, change a paragraph and re-render only that, play the M4B in external players. This also delivers the "audiobook export" the support dialog mentions.</td></tr>
+<tr><td>2 · The cast</td><td>Rules pass, character list and aliases, language model pass, uncertain-line queue, spreading corrections, traits, voice suggestions, auditions, voice design per character, minor-character pool.</td><td>Measured attribution accuracy on the English and French test sets, before and after a few minutes of review.</td></tr>
+<tr><td>3 · Studio quality</td><td>Automatic take checks with retries, drift detection, mastering profiles and the report, store profiles, credits and retail sample, delivery controls and mood references, watermark and "Verify a file".</td><td>A chapter passes the audio report; the watermark survives MP3 at 128 kbps; listening review of delivery.</td></tr>
+<tr><td>4 · Recording to book</td><td>Audio import with DRM refusal, chapters, Parakeet and Whisper turbo, speakers, transcript editor, structure tidy-up, book export, read-along from the original audio.</td><td>A public-domain audiobook (English and French) becomes a clean EPUB and read-along edition; word accuracy measured.</td></tr>
+<tr><td>5 · Book design</td><td>Themes, fonts, French typography, front and back matter, print trims and bleed, large print, live spreads, Word manuscript layout, read-along from Origami's own render, Read mode playback of read-along books.</td><td>EPUBCheck and Ace clean; KDP previewer accepts the print PDF; side-by-side look at real pages with you.</td></tr>
+<tr><td>6 · Expansions</td><td>Ebook-to-audiobook alignment, second engine with sounds, ambience beds, per-speaker DAW export, portable productions, vault productions, PDF/X, the remaining interface languages.</td><td>Each with its own acceptance check.</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="checks">
+<h2>13. Quality checks</h2>
+<ul>
+<li><strong>Fidelity:</strong> for every render, the concatenated spoken text equals the manuscript's spoken text; an automated test fails on any dropped, doubled or invented sentence.</li>
+<li><strong>Attribution:</strong> accuracy reported separately for explicit, pronoun-tagged and untagged quotes, in English and French, for rules only and each model size. Target before review: at least 95% on explicit quotes and about 85% overall in English with the 9B model.</li>
+<li><strong>Durability:</strong> kill the app mid-render, fill the disk, unplug a laptop: completed takes survive and rendering resumes.</li>
+<li><strong>Exports:</strong> EPUBCheck with zero errors, DAISY Ace for accessibility, veraPDF for PDF/A and PDF/UA (in CI only, never shipped), audio values checked with ebur128, chapters read back from M4B and MP3, read-along tested in Thorium and Origami.</li>
+<li><strong>Marking:</strong> an automated test opens every export type and finds the visible credit, the metadata and, for audio, the watermark after re-encoding.</li>
+<li><strong>Licenses:</strong> cargo-deny and an npm license allowlist in CI; third-party notices updated with every new component.</li>
+<li><strong>Performance:</strong> real-time factor, peak memory and time to first audio published per engine and device, measured, not claimed.</li>
+</ul>
+</section>
+
+<section id="decisions">
+<h2>14. Decisions</h2>
+<div class="callout"><strong>Decided 17 October 2026:</strong> all eight recommendations below were approved as written, and phase 0 has started.</div>
+<div class="table-wrap"><table><thead><tr><th>#</th><th>Question</th><th>Recommendation</th></tr></thead><tbody>
+<tr><td>1</td><td>Where does the document mark go?</td><td>Bottom right of the copyright page (and a closing colophon in EPUB), not on every page. Same visibility to anyone who looks, accepted by stores.</td></tr>
+<tr><td>2</td><td>Spoken credit wording, and on which audio?</td><td>"Narrated by digital voices. Made with Origami Studio." on every AI-narrated audiobook. For the user's own recordings in recording-to-book, only the written mark and metadata, since the voice is a real person.</td></tr>
+<tr><td>3</td><td>Watermark and labels in every export?</td><td>Yes. It is what the EU rules expect and it costs nothing in sound quality.</td></tr>
+<tr><td>4</td><td>Which phase first?</td><td>Phase 1, single narrator. Every later feature needs its render queue, takes and exports, and it ships the long-promised audiobook export. The cast follows directly.</td></tr>
+<tr><td>5</td><td>Language model download</td><td>Qwen3.5 4B (2.7 GB) by default for everyone, 9B (5.7 GB) offered on computers with 8 GB or more of graphics memory, after the French comparison in phase 0.</td></tr>
+<tr><td>6</td><td>Store reality</td><td>Show profiles only for stores that accept local AI narration, plus a dated note naming the ones that refuse it.</td></tr>
+<tr><td>7</td><td>French license and terms</td><td>Prepare a French APP-LICENSE with the Studio clause before Studio reaches friends outside the test group.</td></tr>
+<tr><td>8</td><td>Voice cloning of real people</td><td>Keep it later scope as AGENTS.md says. Studio launches with designed voices only.</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="sources">
+<h2>15. Main sources</h2>
+<p class="small">All checked 17 October 2026. Model and store policies change often; each is checked again before release.</p>
+<ul class="small">
+<li>ElevenLabs Studio and Character Casting: <a href="https://elevenlabs.io/docs/product-guides/products/studio">docs</a>, <a href="https://elevenlabs.io/blog/introducing-character-casting-in-audiobooks">casting announcement</a>. Google Play auto-narration: <a href="https://support.google.com/books/partner/answer/14183080">help</a>. KDP Virtual Voice: <a href="https://kdp.amazon.com/en_US/help/topic/GFAQU3LUEHCRB8KD">help</a>.</li>
+<li>Open projects: <a href="https://github.com/Finrandojin/alexandria-audiobook">Alexandria</a>, <a href="https://github.com/prakharsr/audiobook-creator">audiobook-creator</a>, <a href="https://github.com/denizsafak/abogen">abogen</a>, <a href="https://github.com/DrewThomasson/ebook2audiobook">ebook2audiobook</a>, <a href="https://smoores.dev/post/automating_immersive_reading/">Storyteller alignment</a>.</li>
+<li>Attribution research: <a href="https://arxiv.org/html/2608.02359">Michel et al. 2026</a>, <a href="https://arxiv.org/html/2406.11380">NAACL 2025</a>, <a href="https://github.com/booknlp/booknlp">BookNLP</a>, <a href="https://arxiv.org/html/2603.00958">S-VoCAL character traits</a>.</li>
+<li>Voices: <a href="https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base">Qwen3-TTS</a>, <a href="https://github.com/andimarafioti/faster-qwen3-tts">faster-qwen3-tts</a>, <a href="https://github.com/resemble-ai/chatterbox">Chatterbox</a>, <a href="https://huggingface.co/openbmb/VoxCPM2">VoxCPM2</a>, <a href="https://huggingface.co/kyutai/pocket-tts">Pocket TTS</a>, <a href="https://artificialanalysis.ai/text-to-speech/leaderboard">Artificial Analysis leaderboard</a>, <a href="https://huggingface.co/papers/2609.16989">long-input error study</a>.</li>
+<li>Speech recognition and speakers: <a href="https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3">Parakeet v3</a>, <a href="https://huggingface.co/openai/whisper-large-v3-turbo">Whisper turbo</a>, <a href="https://k2-fsa.github.io/sherpa/onnx/speaker-diarization/models.html">sherpa-onnx diarization</a>, <a href="https://huggingface.co/pyannote/speaker-diarization-community-1">pyannote community-1</a>, <a href="https://huggingface.co/facebook/omniASR-CTC-1B">omniASR-CTC</a>.</li>
+<li>Language models and runtime: <a href="https://huggingface.co/Qwen/Qwen3.5-9B">Qwen3.5</a>, <a href="https://huggingface.co/mistralai/Ministral-3-8B-Instruct-2512">Ministral 3</a>, <a href="https://ai.google.dev/gemma/apache_2">Gemma 4 license</a>, <a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a>.</li>
+<li>Formats: <a href="https://typst.app/docs/reference/pdf/">Typst PDF</a>, <a href="https://www.w3.org/TR/epub-33/">EPUB 3.3</a>, <a href="https://www.w3.org/TR/epub-a11y-11/">EPUB Accessibility 1.1</a>, <a href="https://github.com/w3c/epubcheck/releases">EPUBCheck</a>, <a href="https://kdp.amazon.com/en_US/help/topic/GVBQ3CMEQW3W2VL6">KDP print margins</a>, <a href="https://ffmpeg.org/legal.html">FFmpeg legal</a>.</li>
+<li>Audio and stores: <a href="https://help.acx.com/s/article/acx-audio-submission-requirements">ACX requirements (15 April 2026)</a>, <a href="https://voicessupport.inaudio.com/en/articles/3219456">INaudio</a>, <a href="https://support.google.com/books/partner/answer/9261664">Google Play narrator types</a>, <a href="https://support.spotify.com/us/authors/article/digital-voice-narration/">Spotify digital narration</a>, <a href="https://blog.libro.fm/an-update-on-libro-fms-response-to-ai-narration/">Libro.fm</a>, <a href="https://help.apple.com/itc/applebooksstoreformatting/en.lproj/static.html">Apple Books formatting rules</a>, <a href="https://blog.vellum.pub/2025/05/vellum-3-8-8/">Vellum badge</a>.</li>
+<li>Law: <a href="https://digital-strategy.ec.europa.eu/en/policies/code-practice-ai-generated-content">EU Code of Practice on AI-generated content</a>, <a href="https://artificialintelligenceact.eu/article/2/">AI Act scope</a>, <a href="https://laws-lois.justice.gc.ca/eng/acts/C-42/section-41.1.html">Copyright Act s.41.1</a>, <a href="https://laws-lois.justice.gc.ca/eng/acts/C-42/section-29.22.html">s.29.22 private copying</a>, <a href="https://github.com/facebookresearch/audioseal">AudioSeal</a>, <a href="https://github.com/contentauth/c2pa-rs/blob/main/docs/supported-formats.md">C2PA formats</a>.</li>
+</ul>
+</section>
+</main>
+<footer><p class="small">Origami Studio plan · Sov3ryn · prepared 17 October 2026. Companion to <a href="PRODUCT-PLAN.html">the first-release plan</a>, section 07.</p></footer>
+</body>
+</html>
