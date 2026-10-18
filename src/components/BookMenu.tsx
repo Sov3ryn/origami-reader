@@ -27,6 +27,8 @@ export type BookMenuActions = {
   restore: (book: BookMeta) => void;
   work: (book: BookMeta, on: boolean) => void;
   shelf: (book: BookMeta, shelf: "stories" | "documents") => void;
+  // Open it in Work mode beside its notes (it becomes a Work source).
+  workOpen: (book: BookMeta) => void;
   // Make an audiobook of it in Studio (when Studio is available).
   studio?: (book: BookMeta) => void;
 };
@@ -216,6 +218,10 @@ export function BookMenu({
                 <BriefcaseBusiness size={15} />
                 {t("Use in Work mode")}
                 {book.work && <Check size={15} />}
+              </button>
+              <button role="menuitem" onClick={() => run(() => actions.workOpen(book))}>
+                <BriefcaseBusiness size={15} />
+                {t("Open in Work mode beside a note")}
               </button>
               {actions.studio && (
                 <button role="menuitem" onClick={() => run(() => actions.studio!(book))}>

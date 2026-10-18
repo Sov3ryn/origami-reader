@@ -722,3 +722,30 @@
 .work-mode.sidebar-hidden .work-main {
   padding-left: 52px;
 }
+
+/* A narrow note column (a book open beside it, a small window): the header
+   and the formatting toolbar wrap instead of running out of the column. */
+.note-head {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.note-crumbs {
+  flex: 1 1 auto;
+}
+.note-crumbs select {
+  min-width: 0;
+  max-width: 220px;
+  text-overflow: ellipsis;
+}
+.note-crumbs small {
+  white-space: nowrap;
+}
+.note-head-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+.note-toolbar {
+  flex-wrap: wrap;
+  max-width: 100%;
+}

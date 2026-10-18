@@ -1621,6 +1621,14 @@ export default function App() {
     trash: (b) => void moveToTrash(new Set([b.id])).catch(error),
     restore: (b) => void restore([b]).catch(error),
     startOver: (b) => void startOver(b).catch(error),
+    workOpen: (b) => {
+      void (b.work ? Promise.resolve() : updateMeta({ ...b, work: true }))
+        .then(() => {
+          setWorkHandoff({ bookId: b.id, paragraphId: undefined, at: Date.now() });
+          patchPrefs({ workMode: true, studioMode: false });
+        })
+        .catch(error);
+    },
     shelf: (b, shelf) => {
       void updateMeta({ ...b, shelf })
         .then(() =>
