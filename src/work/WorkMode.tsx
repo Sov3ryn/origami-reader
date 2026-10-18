@@ -330,6 +330,17 @@ export function WorkMode({
   useEffect(() => rememberWidth("origami.workLeftWidth", leftWidth), [leftWidth]);
   useEffect(() => rememberWidth("origami.workRightWidth", rightWidth), [rightWidth]);
   const [connectionsOpen, setConnectionsOpen] = useState(() => remembered("origami.workConnections", true));
+  // Work mode's own width, to keep the note column usable (see NOTE_MIN).
+  // (A callback ref: the loading screen renders another element first.)
+  const [workWidth, setWorkWidth] = useState(0);
+  const workObserver = useRef<ResizeObserver | null>(null);
+  const workRoot = useCallback((el: HTMLDivElement | null) => {
+    workObserver.current?.disconnect();
+    workObserver.current = null;
+    if (!el) return;
+    workObserver.current = new ResizeObserver(() => setWorkWidth(el.getBoundingClientRect().width));
+    workObserver.current.observe(el);
+  }, []);
   useEffect(() => remember("origami.workSidebar", sidebarOpen), [sidebarOpen]);
   useEffect(() => remember("origami.workConnections", connectionsOpen), [connectionsOpen]);
   const [newSubject, setNewSubject] = useState<string | null>(null);
@@ -1706,6 +1717,12 @@ export function WorkMode({
   const titles = notes.map((n) => n.title).filter(Boolean);
   const dueMinutes = Math.max(1, Math.round((queue.length * SECONDS_PER_CARD) / 60));
   const showConnections = view.kind === "note" && connectionsOpen && current && panel;
+  // The note keeps at least NOTE_MIN px: the side panels give way when the window
+  // is too small for the widths chosen (which are kept for wider windows).
+  const NOTE_MIN = 420;
+  const room = workWidth ? workWidth - 24 - (sidebarOpen ? 12 : 0) - (showConnections ? 12 : 0) - NOTE_MIN : Infinity;
+  const rightShown = showConnections ? Math.max(260, Math.min(rightWidth, room - (sidebarOpen ? 200 : 0))) : 0;
+  const leftShown = sidebarOpen ? Math.max(200, Math.min(leftWidth, room - rightShown)) : 0;
 
   return (
     <div
@@ -1713,13 +1730,14 @@ export function WorkMode({
       data-work-theme={theme}
       role="region"
       aria-label={t("Work mode")}
-      style={{ "--work-left": `${leftWidth}px`, "--work-right": `${rightWidth}px` } as React.CSSProperties}
+      ref={workRoot}
+      style={{ "--work-left": `${leftShown || leftWidth}px`, "--work-right": `${rightShown || rightWidth}px` } as React.CSSProperties}
     >
       {sidebarOpen && (
-        <PanelResizer side="left" width={leftWidth} min={200} max={440} fallback={252} inset={{ edge: 12, gap: 6 }} label={t("Resize the sidebar")} onChange={setLeftWidth} />
+        <PanelResizer side="left" width={leftShown} min={200} max={Math.max(200, Math.min(440, room - rightShown))} fallback={252} inset={{ edge: 12, gap: 6 }} label={t("Resize the sidebar")} onChange={setLeftWidth} />
       )}
       {showConnections && (
-        <PanelResizer side="right" width={rightWidth} min={260} max={620} fallback={320} inset={{ edge: 12, gap: 6 }} label={t("Resize the side panel")} onChange={setRightWidth} />
+        <PanelResizer side="right" width={rightShown} min={260} max={Math.max(260, Math.min(620, room - leftShown))} fallback={320} inset={{ edge: 12, gap: 6 }} label={t("Resize the side panel")} onChange={setRightWidth} />
       )}
       <nav className="work-sidebar" aria-label={t("Work navigation")} hidden={!sidebarOpen}>
         <div className="work-brand">
@@ -2462,6 +2480,7 @@ export function WorkMode({
           onLinkForMe={() => setLinkForMe(true)}
           onUndoBatch={() => void undoBatch()}
           onStudy={() => study(cards.filter((c) => c.noteId === current.id && !c.suspended), current.title || t("This note"))}
+          onClose={() => setConnectionsOpen(false)}
           onAddCard={() => setComposer({ text: noteText(current.html).split("\n")[0] || current.title, noteId: current.id })}
         />
       )}

@@ -2119,3 +2119,7 @@ body.resizing-panel {
   flex: 1 1 auto;
   min-width: 0;
 }
+.connections-tabs .connections-close {
+  flex: none;
+  margin-left: 2px;
+}

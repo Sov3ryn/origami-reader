@@ -9,6 +9,7 @@ import {
   Highlighter,
   Link2,
   Network,
+  PanelRightClose,
   Plus,
   ShieldCheck,
   Sparkles,
@@ -58,6 +59,7 @@ export function Connections({
   onUndoBatch,
   onStudy,
   onAddCard,
+  onClose,
 }: {
   note: Note;
   outgoing: LinkedItem[];
@@ -80,6 +82,8 @@ export function Connections({
   onUndoBatch: () => void;
   onStudy: () => void;
   onAddCard: () => void;
+  // Hides the panel (also in the note's header, which a narrow column can push away).
+  onClose?: () => void;
 }) {
   const [tab, setTab] = useState<Tab>("links");
   const [more, setMore] = useState(false);
@@ -101,6 +105,11 @@ export function Connections({
             {id === "cards" && cards.length > 0 && <span className="count">{cards.length}</span>}
           </button>
         ))}
+        {onClose && (
+          <button className="icon-only connections-close" data-tip={t("Hide connections")} aria-label={t("Hide connections")} onClick={onClose}>
+            <PanelRightClose size={16} />
+          </button>
+        )}
       </div>
       <div className="connections-body">
         {tab === "links" && (

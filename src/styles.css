@@ -868,19 +868,27 @@ p {
   padding: 31px 40px 45px;
   scrollbar-gutter: stable;
 }
+/* The library's rows wrap whenever their column runs out of room (the side
+   panels can make it narrow in a wide window), not only in small windows. */
 .page-heading {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 14px 20px;
   margin-bottom: 30px;
+}
+.page-heading > :first-child {
+  min-width: 0;
 }
 .heading-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 }
 .library-controls {
   display: flex;
+  flex-wrap: wrap;
   gap: 13px;
   align-items: center;
   margin-bottom: 17px;
@@ -911,7 +919,7 @@ p {
   outline-offset: 2px;
 }
 .library-search {
-  flex: 1;
+  flex: 1 1 240px;
 }
 .library-controls select {
   font-size: var(--fs-small);
@@ -947,12 +955,15 @@ p {
 }
 .filter-row {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
   justify-content: space-between;
   align-items: center;
   margin: 4px 0 27px;
 }
 .chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 9px;
 }
 .chips button {
