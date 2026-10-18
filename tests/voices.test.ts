@@ -102,3 +102,13 @@ it("shows only voices for the selected model until the model filter asks", () =>
   expect(ids("all").sort()).toEqual(["k", "q"]);
   expect(ids("kokoro")).toEqual(["k"]);
 });
+
+it("shows the voices of another model when the current one reads none in the language", () => {
+  const voice = (id: string, languages: string[], available: boolean, otherModel: boolean) =>
+    ({ id, name: id, description: "", accent: "", styles: [], languages, gender: "female", available, otherModel, engine: otherModel ? "qwen" : "kitten" }) as never;
+  const voices = [voice("bella", ["English"], true, false), voice("amelie", ["French"], false, true)];
+  const french = filterVoices(voices, { ...emptyVoiceFilters, language: "French" }, []);
+  expect(french.map((v) => v.id)).toEqual(["amelie"]);
+  const english = filterVoices(voices, { ...emptyVoiceFilters, language: "English" }, []);
+  expect(english.map((v) => v.id)).toEqual(["bella"]);
+});

@@ -40,6 +40,12 @@ export function filterVoices(
   favorites: string[],
 ): Voice[] {
   const query = filters.query.toLocaleLowerCase().trim();
+  // When the current speech model reads no voice in the chosen language (the
+  // light English readers and a French voice pack), the voices of the other
+  // installed models are shown; choosing one offers to switch models.
+  const readable = voices.some(
+    (v) => v.available && (filters.language === "all" || v.languages.includes(filters.language)),
+  );
   return voices
     .filter((v) =>
       (
@@ -65,7 +71,7 @@ export function filterVoices(
     .filter((v) => !filters.favoritesOnly || favorites.includes(v.id))
     .filter((v) =>
       filters.model === "current"
-        ? !v.otherModel
+        ? !v.otherModel || !readable
         : filters.model === "all" || v.engine === filters.model,
     )
     .sort(

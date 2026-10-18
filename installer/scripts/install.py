@@ -724,7 +724,10 @@ def install(base, options):
         if models:
             # Without a graphics card for speech, a light reader starts first.
             strong = options.get("speechDevice") in ("cuda", "rocm", "mps")
-            default = "qwen3-tts-0.6b" if "qwen3-tts-0.6b" in models and (strong or not light) else "kitten-mini" if light else next(iter(models))
+            # The light readers only speak English: with another language's
+            # voices chosen, Qwen reads first even without a graphics card.
+            other_language = any(code != "en" for code in options.get("languages", []))
+            default = "qwen3-tts-0.6b" if "qwen3-tts-0.6b" in models and (strong or not light or other_language) else "kitten-mini" if light else next(iter(models))
             worker = {"python": str(py), "model": models[default]["path"], "models": models,
                       "defaultModel": default, "device": "auto", "voices": voices}
             path = config / "worker.json"
@@ -747,7 +750,16 @@ def install(base, options):
         if models and models[worker["defaultModel"]].get("engine") == "kitten":
             initial_voice = "kitten-bella"
         else:
-            initial_voice = "alistair-highland-scholar" if "alistair-highland-scholar" in voices else next(iter(voices), "")
+            # The first voice speaks the interface language, or the first other language chosen.
+            names = {"en": "English", "fr": "French", "ko": "Korean", "hi": "Hindi", "es": "Spanish"}
+            chosen = options.get("languages", [])
+            ui = str(options.get("uiLanguage", ""))[:2]
+            code = ui if ui in chosen else next((c for c in chosen if c != "en"), "en")
+            wanted = names.get(code, "English")
+            matching = [vid for vid, v in voices.items() if v.get("language") == wanted or wanted in (v.get("languages") or [])]
+            initial_voice = (matching[0] if matching and code != "en"
+                             else "alistair-highland-scholar" if "alistair-highland-scholar" in voices
+                             else matching[0] if matching else next(iter(voices), ""))
         preferences = {**appearance, "fontSize": 25 if options.get("textSize") == "large" else 21,
                        "autoGenerateCovers": bool(options.get("coverModel")),
                        "autoGenerateVoicePortraits": bool(options.get("portraitModel")),
