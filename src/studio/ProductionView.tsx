@@ -27,7 +27,8 @@ import { t } from "../i18n";
 import type { Book, Preferences, Voice } from "../types";
 import { CastPanel } from "./CastPanel";
 import { WordsPanel } from "./WordsPanel";
-import { applyPronunciation, type Pronunciation } from "./pronounce";
+import { repronounce, type Pronunciation } from "./pronounce";
+import { asrReady } from "./recording";
 import { analyse, castColor, castUnits, conversations, designDraft, lineCounts, MOODS, moodDraft, scriptAnalysis, stopAnalysis, suggestVoices, type CastMember } from "./cast";
 import {
   cancelRender,
@@ -144,6 +145,8 @@ export function ProductionView({
   const [exporting, setExporting] = useState(false);
   const [checking, setChecking] = useState(false);
   const [checkModels, setCheckModels] = useState<string[]>([]);
+  // Studio's own transcription model (for recordings) is not the one that checks takes.
+  const [parakeet, setParakeet] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const started = useRef<{ at: number; done: number } | null>(null);
   const script = useRef<HTMLDivElement>(null);
@@ -160,12 +163,25 @@ export function ProductionView({
     return { rendered, approved: units.filter((u) => u.status === "approved").length, review: issues.size, pending: units.length - rendered };
   }, [units, issues]);
 
+  // Results that arrive after leaving the production are dropped, never shown.
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+      // An analysis belongs to this view: leaving stops it.
+      stopRequested.current = true;
+      void stopAnalysis().catch(() => undefined);
+    };
+  }, []);
   async function reload() {
-    onChange(await readProduction(info.id));
+    const p = await readProduction(info.id);
+    if (alive.current) onChange(p);
   }
   useEffect(() => {
     void renderRunning().then(setRendering);
     void transcriptionModels().then(setCheckModels).catch(() => setCheckModels([]));
+    void asrReady().then(setParakeet).catch(() => setParakeet(false));
     const off = [
       listen<RenderProgress>("studio-progress", (e) => {
         if (e.payload.id !== info.id) return;
@@ -201,7 +217,17 @@ export function ProductionView({
         setRendering(false);
         started.current = null;
         setProgressNote("");
-        setStatus(e.payload.ok ? (e.payload.cancelled ? t("Rendering stopped.") : t("Rendering finished.")) : e.payload.message || t("Rendering failed."));
+        const missing = e.payload.missing || [];
+        const names = missing.map((n) => n || t("Narrator")).join(", ");
+        setStatus(
+          !e.payload.ok
+            ? e.payload.message || t("Rendering failed.")
+            : missing.length
+              ? t("Lines read by {names} were not generated: {problem} Choose another voice for them.", { names, problem: e.payload.problem || "" })
+              : e.payload.cancelled
+                ? t("Rendering stopped.")
+                : t("Rendering finished."),
+        );
         void reload();
       }),
     ];
@@ -224,7 +250,12 @@ export function ProductionView({
   // and compares the words with the text; mismatches join "To review".
   async function checkChapter() {
     const model = checkModels.includes("small") ? "small" : checkModels[0];
-    if (!model) return setStatus(t("Download a transcription model in Settings, Work mode, Voice notes to check takes."));
+    if (!model)
+      return setStatus(
+        parakeet
+          ? t("Checking takes uses a voice notes model, not Studio's Recordings to text. Download one in Settings, Work mode, Voice notes.")
+          : t("Download a transcription model in Settings, Work mode, Voice notes to check takes."),
+      );
     const ids = chapterUnits.filter((u) => u.take && u.status !== "pending").map((u) => u.id);
     if (!ids.length) return;
     try {
@@ -235,10 +266,13 @@ export function ProductionView({
       setStatus(String(e));
     }
   }
-  async function saveUnits(changed: ProductionUnit[]) {
-    await saveProductionUnits(info.id, changed);
+  // Only the changed fields are saved; while a job writes takes, the saved
+  // production is read back so the view shows what both did.
+  async function saveUnits(changed: ProductionUnit[], nextInfo = info) {
+    await saveProductionUnits(info.id, changed, units);
     const byId = new Map(changed.map((u) => [u.id, u]));
-    onChange({ ...production, units: units.map((u) => byId.get(u.id) ?? u) });
+    onChange({ ...production, info: nextInfo, units: units.map((u) => byId.get(u.id) ?? u) });
+    if (rendering || checking) void reload();
   }
   const approve = (u: ProductionUnit) =>
     void saveUnits([{ ...u, status: u.status === "approved" ? "rendered" : "approved" }]);
@@ -258,6 +292,7 @@ export function ProductionView({
   // each character reads their own speech. Takes whose text did not change stay.
   async function runAnalysis() {
     if (!book) return setStatus(t("The book is no longer in the library."));
+    if (rendering) return setStatus(t("Stop rendering before finding the characters."));
     setAnalysing(true);
     stopRequested.current = false;
     setStatus("");
@@ -265,15 +300,18 @@ export function ProductionView({
       const paragraphs = book.paragraphs.map((p) => p.text);
       // A script names its speakers itself; anything else goes to the analysis model.
       const result = scriptAnalysis(paragraphs) || (await analyse(paragraphs, info.language || "en", (step, value) => setAnalysisNote(`${t(step)} ${Math.round(value * 100)}%`), () => stopRequested.current));
-      const known = new Map((info.cast || []).map((c) => [c.id, c]));
-      const draft = castUnits(book, prefs, result.speech, result.speakers, [], units);
+      if (!alive.current || stopRequested.current) throw new Error("cancelled");
+      // The production as saved now: lines edited or approved during the analysis are kept.
+      const fresh = await readProduction(info.id);
+      const known = new Map((fresh.info.cast || []).map((c) => [c.id, c]));
+      const draft = castUnits(book, prefs, result.speech, result.speakers, [], fresh.units);
       const counts = lineCounts(draft);
       const speaking = result.cast.filter((c) => counts.get(c.id));
       const voicesFor = suggestVoices(
         speaking.map((c) => ({ id: c.id, gender: c.gender, lines: counts.get(c.id) })),
         voices,
-        info.voice,
-        info.language,
+        fresh.info.voice,
+        fresh.info.language,
         conversations(result.speech, result.speakers),
       );
       const cast: CastMember[] = speaking.map((c, i) => ({
@@ -281,29 +319,40 @@ export function ProductionView({
         name: c.name,
         aliases: c.aliases,
         gender: c.gender,
-        voice: known.get(c.id)?.voice || voicesFor.get(c.id) || info.voice,
+        voice: known.get(c.id)?.voice || voicesFor.get(c.id) || fresh.info.voice,
         color: known.get(c.id)?.color || castColor(i),
         lines: counts.get(c.id),
       }));
-      const next = castUnits(book, prefs, result.speech, result.speakers, cast, units);
+      const next = castUnits(book, prefs, result.speech, result.speakers, cast, fresh.units);
+      if (!alive.current) return;
       await replaceProductionUnits(info.id, next);
       const nextInfo = {
-        ...info,
+        ...fresh.info,
         cast,
         analysis: { model: "", date: Date.now(), speech: result.speech.length, uncertain: next.filter(uncertainSpeaker).length },
         updated: Date.now(),
       };
       await saveProductionInfo(nextInfo);
-      onChange(await readProduction(info.id));
+      const saved = await readProduction(info.id);
+      if (!alive.current) return;
+      onChange(saved);
       setStatus(t("{n} characters found.", { n: String(cast.length) }));
       setLeftTab("cast");
     } catch (e) {
-      setStatus(String(e).includes("cancelled") ? t("Analysis stopped.") : String(e));
+      if (alive.current) setStatus(String(e).includes("cancelled") ? t("Analysis stopped.") : String(e));
     } finally {
-      setAnalysing(false);
-      setAnalysisNote("");
+      if (alive.current) {
+        setAnalysing(false);
+        setAnalysisNote("");
+      }
       void stopAnalysis().catch(() => undefined);
     }
+  }
+  // Stop: the analysis loop stops at its next step, and the model is shut so the
+  // question it is answering ends too (also for a voice description).
+  function stopAnalysing() {
+    stopRequested.current = true;
+    void stopAnalysis().catch(() => undefined);
   }
   // A voice designed for a character: the analysis model describes the voice from
   // the book's passages, and the voice designer opens with that draft and one of their lines.
@@ -313,7 +362,9 @@ export function ProductionView({
     setAnalysisNote(t("Reading about {name}", { name: c.name }));
     try {
       const line = units.find((u) => u.speaker === c.id && u.text.length > 30)?.text || units.find((u) => u.speaker === c.id)?.text || "";
+      stopRequested.current = false;
       const draft = await designDraft(c, book.paragraphs.map((p) => p.text), line, info.language);
+      if (!alive.current || stopRequested.current) return;
       try {
         localStorage.setItem("origami.voice-design.draft", JSON.stringify(draft));
         localStorage.setItem("origami.voice-design.mode", "write");
@@ -323,10 +374,12 @@ export function ProductionView({
       await stopAnalysis().catch(() => undefined);
       window.dispatchEvent(new CustomEvent("origami:design-voice"));
     } catch (e) {
-      setStatus(String(e));
+      if (alive.current) setStatus(stopRequested.current ? t("Analysis stopped.") : String(e));
     } finally {
-      setAnalysing(false);
-      setAnalysisNote("");
+      if (alive.current) {
+        setAnalysing(false);
+        setAnalysisNote("");
+      }
     }
   }
   // A mood version of a character's voice, made in the voice designer.
@@ -366,9 +419,7 @@ export function ProductionView({
     const changed = units
       .filter((u) => u.speaker === character && (!u.voice || u.voice === before))
       .map((u) => ({ ...u, voice, status: u.take && u.status !== "approved" ? ("pending" as const) : u.status }));
-    await saveProductionUnits(info.id, changed);
-    const byId = new Map(changed.map((u) => [u.id, u]));
-    onChange({ ...production, info: nextInfo, units: units.map((u) => byId.get(u.id) ?? u) });
+    await saveUnits(changed, nextInfo);
   }
   async function mergeCharacters(from: string, into: string) {
     const target = castById.get(into);
@@ -380,22 +431,16 @@ export function ProductionView({
     const changed = units
       .filter((u) => u.speaker === from)
       .map((u) => ({ ...u, speaker: into, voice: target.voice, status: u.take && u.status !== "approved" && u.voice !== target.voice ? ("pending" as const) : u.status }));
-    await saveProductionUnits(info.id, changed);
-    const byId = new Map(changed.map((u) => [u.id, u]));
-    onChange({ ...production, info: nextInfo, units: units.map((u) => byId.get(u.id) ?? u) });
+    await saveUnits(changed, nextInfo);
   }
   // A pronunciation for the whole book: every line with the word, in its spoken text.
   async function pronounce(p: Pronunciation) {
-    const list = [...(info.pronunciations || []).filter((x) => x.word !== p.word), p];
+    // Saying the word as the book writes it removes the choice.
+    const list = [...(info.pronunciations || []).filter((x) => x.word !== p.word), ...(p.sayAs === p.word ? [] : [p])];
     const nextInfo = { ...info, pronunciations: list, updated: Date.now() };
     await saveProductionInfo(nextInfo);
-    const previous = info.pronunciations?.find((x) => x.word === p.word);
-    // Changing an earlier choice starts again from the book's word.
-    const base = previous ? units.map((u) => (u.original && u.text.includes(previous.sayAs) ? { ...u, text: u.text.split(previous.sayAs).join(p.word) } : u)) : units;
-    const changed = applyPronunciation(base, p);
-    await saveProductionUnits(info.id, changed);
-    const byId = new Map(changed.map((u) => [u.id, u]));
-    onChange({ ...production, info: nextInfo, units: units.map((u) => byId.get(u.id) ?? u) });
+    const changed = repronounce(units, info.pronunciations?.find((x) => x.word === p.word), p);
+    await saveUnits(changed, nextInfo);
     setStatus(t("{n} lines will say it the new way.", { n: String(changed.length) }));
   }
   function jumpTo(id: string) {
@@ -431,7 +476,7 @@ export function ProductionView({
           script.current?.querySelector(`[data-unit="${next.id}"]`)?.scrollIntoView({ block: "nearest" });
         }
       } else if (e.key.toLowerCase() === "a" && unit?.take) approve(unit);
-      else if (e.key.toLowerCase() === "r" && unit && !rendering) void render({ units: [unit.id] });
+      else if (e.key.toLowerCase() === "r" && unit && !rendering && !analysing) void render({ units: [unit.id] });
       else if (e.key.toLowerCase() === "n") nextToReview();
       else if (e.key === "Enter" && unit) playback.play(unit.id);
       else if (/^[0-9]$/.test(e.key) && unit?.speech) {
@@ -510,10 +555,10 @@ export function ProductionView({
           </button>
         ) : (
           <div className="studio-split">
-            <button onClick={() => void render({ chapter })} disabled={!chapterUnits.some((u) => u.status === "pending")}>
+            <button onClick={() => void render({ chapter })} disabled={analysing || !chapterUnits.some((u) => u.status === "pending")}>
               <Sparkles size={15} /> {t("Generate chapter")}
             </button>
-            <button className="primary" onClick={() => void render()} disabled={!counts.pending}>
+            <button className="primary" onClick={() => void render()} disabled={analysing || !counts.pending}>
               <Wand2 size={15} /> {t("Generate all")}
             </button>
             <button
@@ -560,7 +605,7 @@ export function ProductionView({
               voices={voices}
               busy={analysing}
               progress={analysisNote}
-              onAnalyse={() => (analysing ? (stopRequested.current = true) : void runAnalysis())}
+              onAnalyse={() => (analysing ? stopAnalysing() : void runAnalysis())}
               onVoice={(c, v) => void setCharacterVoice(c, v)}
               onMerge={(a, b) => void mergeCharacters(a, b)}
               onDesign={(c) => void designVoice(c)}
@@ -643,7 +688,17 @@ export function ProductionView({
               </Tag>
             );
           })}
-          {!paragraphs.length && <p className="muted">{filter === "review" ? t("Nothing to review in this chapter.") : t("Every line in this chapter has audio.")}</p>}
+          {!paragraphs.length && (
+            <p className="muted">
+              {!chapterUnits.length
+                ? t("This production has no lines.")
+                : filter === "review"
+                  ? t("Nothing to review in this chapter.")
+                  : filter === "speaker"
+                    ? t("No unsure speakers in this chapter.")
+                    : t("Every line in this chapter has audio.")}
+            </p>
+          )}
         </article>
       </main>
 
@@ -655,7 +710,7 @@ export function ProductionView({
               production={production}
               unit={unit}
               issues={issues.get(unit.id) || []}
-              rendering={rendering}
+              rendering={rendering || analysing}
               onPlayTake={(take) => playback.play(unit.id, take)}
               onSave={(u) => void saveUnits([u])}
               onApprove={() => approve(unit)}
@@ -680,7 +735,8 @@ export function ProductionView({
               }}
               onReview={() => nextToReview("")}
               onRegenerateFlagged={() => void render({ units: [...issues.keys()].filter((id) => units.find((u) => u.id === id)?.status !== "approved") })}
-              rendering={rendering}
+              rendering={rendering || analysing}
+              busy={rendering || checking || exporting || analysing}
               confirming={confirming}
               setConfirming={setConfirming}
               onDelete={onDelete}
@@ -962,6 +1018,7 @@ function Overview({
   onReview,
   onRegenerateFlagged,
   rendering,
+  busy,
   confirming,
   setConfirming,
   onDelete,
@@ -974,6 +1031,8 @@ function Overview({
   onReview: () => void;
   onRegenerateFlagged: () => void;
   rendering: boolean;
+  // A job runs on the production (render, check, export, analysis): it cannot be deleted now.
+  busy: boolean;
   confirming: boolean;
   setConfirming: (v: boolean) => void;
   onDelete: () => Promise<void>;
@@ -1044,7 +1103,7 @@ function Overview({
       <BackgroundSound production={production} onInfo={onInfo} />
       <PortableCopy id={info.id} />
       <div className="studio-danger">
-        {confirming ? (
+        {confirming && !busy ? (
           <>
             <p>{t("Delete this production and its takes? Exported files are kept.")}</p>
             <div className="studio-row">
@@ -1055,7 +1114,7 @@ function Overview({
             </div>
           </>
         ) : (
-          <button className="danger-text" onClick={() => setConfirming(true)}>
+          <button className="danger-text" onClick={() => setConfirming(true)} disabled={busy} data-tip={busy ? t("Stop rendering, checking or exporting first") : undefined}>
             <Trash2 size={14} /> {t("Delete production")}
           </button>
         )}

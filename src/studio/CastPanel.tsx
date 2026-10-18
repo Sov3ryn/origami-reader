@@ -5,6 +5,7 @@ import * as store from "../storage";
 import type { Voice } from "../types";
 import { analysisStatus, MOODS, type AnalysisStatus, type CastMember } from "./cast";
 import type { Production } from "./production";
+import { StudioSetup } from "./StudioSetup";
 
 // The cast: every character with their colour, lines and voice. Analyse finds
 // the characters and who says each line; voices can be changed, auditioned on
@@ -86,10 +87,26 @@ export function CastPanel({
           <p className="studio-hint">{t("Find the characters and who says each line, so every character can have a voice.")}</p>
         )}
         {script && <p className="studio-hint">{t("This book is a script: the speakers come from its labels, and the labels are not read.")}</p>}
-        <button className={info.analysis ? "" : "primary"} onClick={onAnalyse} disabled={busy || (!status?.ready && !script)}>
-          <Sparkles size={14} /> {busy ? progress || t("Analysing") : info.analysis ? t("Analyse again") : t("Find the characters")}
-        </button>
-        {status && !status.ready && !script && <p className="studio-warn">{t("The analysis model is not installed on this computer.")}</p>}
+        {busy ? (
+          <>
+            <button onClick={onAnalyse} data-tip={t("Stop the analysis")}>
+              <Square size={14} /> {t("Stop")}
+            </button>
+            <p className="studio-hint small" role="status">
+              {progress || t("Analysing")}
+            </p>
+          </>
+        ) : (
+          <button className={info.analysis ? "" : "primary"} onClick={onAnalyse} disabled={!status?.ready && !script}>
+            <Sparkles size={14} /> {info.analysis ? t("Analyse again") : t("Find the characters")}
+          </button>
+        )}
+        {status && !status.ready && !script && (
+          <>
+            <p className="studio-warn">{t("The analysis model is not installed on this computer.")}</p>
+            <StudioSetup only={["analysis"]} onChange={() => void analysisStatus().then(setStatus).catch(() => undefined)} />
+          </>
+        )}
         {status?.ready && !busy && <p className="studio-hint small">{t("Runs on this computer ({model}). A novel takes a few minutes with a graphics card.", { model: status.model || "" })}</p>}
       </div>
       <ul className="studio-cast-list">

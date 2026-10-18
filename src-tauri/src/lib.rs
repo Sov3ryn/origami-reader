@@ -296,10 +296,16 @@ fn list_work(db: State<Database>, kind: Option<String>) -> Result<Vec<Value>> {
 #[tauri::command]
 fn save_work(db: State<Database>, items: Vec<Value>) -> Result<()> {
     let store = db.0.lock().map_err(|_| "Database busy")?;
+    // One transaction: a batch is saved whole or not at all (a link batch,
+    // an import), and a large import pays for one disk sync, not one per item.
+    store.connection.execute_batch("BEGIN IMMEDIATE").map_err(|e| e.to_string())?;
     for item in items {
-        store.save_work(item)?;
+        if let Err(e) = store.save_work(item) {
+            let _ = store.connection.execute_batch("ROLLBACK");
+            return Err(e);
+        }
     }
-    Ok(())
+    store.connection.execute_batch("COMMIT").map_err(|e| e.to_string())
 }
 #[tauri::command]
 fn work_item(db: State<Database>, id: String) -> Result<Option<Value>> {
@@ -354,11 +360,24 @@ fn studio_render(app: tauri::AppHandle, job: State<StudioJob>, id: String, chapt
         return Err("A production is already rendering.".into());
     }
     job.cancel.store(false, Ordering::SeqCst);
-    let data = data_root(&app)?;
+    let data = match data_root(&app) {
+        Ok(d) => d,
+        Err(e) => {
+            job.running.store(false, Ordering::SeqCst);
+            return Err(e);
+        }
+    };
     // Chosen lines (regenerate) are rendered once each, whatever their status.
     let mut chosen: Option<std::collections::VecDeque<String>> = units.map(|u| u.into_iter().collect());
+    let busy = studio::busy(&id);
     std::thread::spawn(move || {
+        let _busy = busy;
         let job = app.state::<StudioJob>();
+        // Voices that cannot read (not installed, say): their lines are left out and
+        // named at the end, and the other voices carry on.
+        let mut skipped: Vec<String> = Vec::new();
+        let mut missing: Vec<String> = Vec::new();
+        let mut problem = String::new();
         let outcome = (|| -> Result<()> {
             loop {
                 if job.cancel.load(Ordering::SeqCst) {
@@ -372,6 +391,7 @@ fn studio_render(app: tauri::AppHandle, job: State<StudioJob>, id: String, chapt
                 // a batch is always one voice, so the worker never switches mid-batch.
                 let voice_of = |u: &Value| u["voice"].as_str().filter(|v| !v.is_empty()).unwrap_or(&narrator).to_string();
                 let pending = |u: &&Value| u["status"] == "pending";
+                let can_read = |u: &&Value| !skipped.contains(&voice_of(u));
                 let one_voice = |candidates: Vec<&Value>| -> Vec<Value> {
                     let Some(first) = candidates.first() else { return Vec::new() };
                     let v = voice_of(first);
@@ -394,13 +414,29 @@ fn studio_render(app: tauri::AppHandle, job: State<StudioJob>, id: String, chapt
                 } else {
                     // Chapter by chapter (the asked one, or the first with work left),
                     // and inside a chapter one voice at a time.
-                    let scope = chapter.or_else(|| units.iter().find(|u| u["status"] == "pending").and_then(|u| u["chapter"].as_i64()));
-                    one_voice(units.iter().filter(pending).filter(|u| scope.is_some_and(|c| u["chapter"].as_i64() == Some(c))).collect())
+                    let scope = chapter.or_else(|| units.iter().filter(pending).find(can_read).and_then(|u| u["chapter"].as_i64()));
+                    one_voice(units.iter().filter(pending).filter(can_read).filter(|u| scope.is_some_and(|c| u["chapter"].as_i64() == Some(c))).collect())
                 };
                 if batch.is_empty() {
                     return Ok(());
                 }
                 let voice = voice_of(&batch[0]);
+                if let Some(why) = speech::Speech::voice_problem(&app, &voice) {
+                    // Who reads with this voice: the characters' names, "" for the narrator.
+                    let cast = p["info"]["cast"].as_array().cloned().unwrap_or_default();
+                    for u in units.iter().filter(|u| voice_of(u) == voice && (u["status"] == "pending" || batch.iter().any(|b| b["id"] == u["id"]))) {
+                        let name = match u["speaker"].as_str() {
+                            Some(s) => cast.iter().find(|c| c["id"].as_str() == Some(s)).and_then(|c| c["name"].as_str()).unwrap_or(s).to_string(),
+                            None => String::new(),
+                        };
+                        if !missing.contains(&name) {
+                            missing.push(name);
+                        }
+                    }
+                    skipped.push(voice);
+                    problem = why;
+                    continue;
+                }
                 let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
                 let items: Vec<Value> = batch
                     .iter()
@@ -429,8 +465,8 @@ fn studio_render(app: tauri::AppHandle, job: State<StudioJob>, id: String, chapt
         })();
         job.running.store(false, Ordering::SeqCst);
         let _ = app.emit("studio-render-done", match outcome {
-            Ok(()) => serde_json::json!({"id": id, "ok": true}),
-            Err(e) if e == "cancelled" => serde_json::json!({"id": id, "ok": true, "cancelled": true}),
+            Ok(()) => serde_json::json!({"id": id, "ok": true, "missing": missing, "problem": problem}),
+            Err(e) if e == "cancelled" => serde_json::json!({"id": id, "ok": true, "cancelled": true, "missing": missing, "problem": problem}),
             Err(e) => serde_json::json!({"id": id, "ok": false, "message": e}),
         });
     });
@@ -625,8 +661,16 @@ fn studio_check_takes(app: tauri::AppHandle, job: State<CheckJob>, id: String, u
         return Err("A check is already running.".into());
     }
     job.cancel.store(false, Ordering::SeqCst);
-    let data = data_root(&app)?;
+    let data = match data_root(&app) {
+        Ok(d) => d,
+        Err(e) => {
+            job.running.store(false, Ordering::SeqCst);
+            return Err(e);
+        }
+    };
+    let busy = studio::busy(&id);
     std::thread::spawn(move || {
+        let _busy = busy;
         let job = app.state::<CheckJob>();
         let outcome = (|| -> Result<usize> {
             let p = studio::read(&data, &id)?;
@@ -826,6 +870,7 @@ async fn studio_setup_status(app: tauri::AppHandle) -> Result<Value> {
         };
         let mut v = studio_models::status(&models, graphics_memory_mb(), &ready);
         v["runtime"] = serde_json::json!(embed::runtime_available(&app));
+        v["download"] = app.state::<studio_models::Setup>().state();
         Ok(v)
     })
     .await
@@ -1081,8 +1126,16 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
         return Err("An export is already running.".into());
     }
     job.cancel.store(false, Ordering::SeqCst);
-    let data = data_root(&app)?;
+    let data = match data_root(&app) {
+        Ok(d) => d,
+        Err(e) => {
+            job.running.store(false, Ordering::SeqCst);
+            return Err(e);
+        }
+    };
+    let busy = studio::busy(&id);
     std::thread::spawn(move || {
+        let _busy = busy;
         let job = app.state::<ExportJob>();
         let progress = |step: String, value: f64| {
             let _ = app.emit("studio-export-progress", serde_json::json!({"id": id, "step": step, "value": value}));
@@ -1105,6 +1158,10 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
             let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
             let export_id = format!("OS-{message:04X}-{now:x}");
             let cover_raw = options["cover"].as_str().and_then(|c| STANDARD.decode(c).ok());
+            // Everything is written in a staging folder and moved beside the reader's
+            // files only when the whole export succeeded; dropping it removes it.
+            let staging = studio_audio::Staging::new(&folder, &export_id)?;
+            let out = staging.dir.clone();
             let mut files: Vec<std::path::PathBuf> = Vec::new();
             let mut report = Vec::new();
             if flag("m4b") || flag("mp3") || flag("readalong") || flag("stems") || flag("sample") {
@@ -1115,7 +1172,13 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                 let watermark = studio_audio::Watermark::open(&wm_dir, embed::runtime_env(&app)?)?;
                 // The chosen take of every unit, chapter by chapter, with the review player's pauses.
                 let units = p["units"].as_array().cloned().unwrap_or_default();
-                let credit = text(&options["credit"]);
+                // The spoken credit is never left out: the default one when none came
+                // or when it does not name Origami Studio.
+                let language = p["info"]["language"].as_str().unwrap_or_default();
+                let credit = Some(text(&options["credit"]))
+                    .filter(|c| c.contains("Origami Studio"))
+                    .unwrap_or_else(|| studio_audio::credit_line(p["info"]["title"].as_str().unwrap_or(&title), p["info"]["author"].as_str().unwrap_or_default(), language));
+                let credit_title = Some(text(&options["creditTitle"])).filter(|c| !c.trim().is_empty()).unwrap_or_else(|| studio_audio::credit_title(language));
                 let takes: std::collections::HashMap<String, Value> = p["takes"]
                     .as_array()
                     .cloned()
@@ -1156,21 +1219,22 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                 }
                 plans.retain(|c| !c.takes.is_empty());
                 // Opening credits, spoken by the narrator: title, author, the AI disclosure and the credit.
-                if !credit.is_empty() {
+                // Recorded in the staging folder, so the take goes when the export ends.
+                {
                     progress("Recording the opening credits".into(), 0.01);
                     let voice = p["info"]["voice"].as_str().unwrap_or_default().to_string();
                     let item = serde_json::json!([{"id": "credit", "text": credit, "seed": 7, "take": format!("credit-{now}")}]);
                     let speech = app.state::<speech::Speech>();
-                    let result = speech.render(app.clone(), voice, item, &takes_dir, None)?;
+                    let result = speech.render(app.clone(), voice, item, &out, None)?;
                     let file = result["items"][0]["file"].as_str().ok_or("The opening credits could not be recorded.")?;
-                    plans.insert(0, studio_audio::ChapterPlan { title: text(&options["creditTitle"]), takes: vec![studio_audio::TakeRef { path: takes_dir.join(file), gap: 0.0, unit: "credit".into(), speaker: options["speakers"][""].as_str().unwrap_or("Narrator").to_string() }] });
+                    plans.insert(0, studio_audio::ChapterPlan { title: credit_title, takes: vec![studio_audio::TakeRef { path: out.join(file), gap: 0.0, unit: "credit".into(), speaker: options["speakers"][""].as_str().unwrap_or("Narrator").to_string() }] });
                 }
                 let cover = match &cover_raw {
                     Some(raw) => studio_audio::square_cover(raw).ok(),
                     None => None,
                 };
-                // The read-along ebook's chapter audio goes to a temporary folder first.
-                let readalong_dir = flag("readalong").then(|| std::env::temp_dir().join(format!("origami-readalong-{now:x}")));
+                // The read-along ebook's chapter audio goes to a folder of its own first.
+                let readalong_dir = flag("readalong").then(|| out.join("read-along audio"));
                 if let Some(d) = &readalong_dir {
                     std::fs::create_dir_all(d).map_err(|e| e.to_string())?;
                 }
@@ -1184,11 +1248,11 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                         export_id: export_id.clone(),
                     },
                     cover,
-                    folder: folder.clone(),
+                    folder: out.clone(),
                     m4b: flag("m4b"),
                     mp3: flag("mp3"),
                     readalong: readalong_dir.clone(),
-                    stems: flag("stems").then(|| studio_audio::free_dir(&folder, &format!("{} (stems)", studio_audio::safe_name(&title)))),
+                    stems: flag("stems").then(|| studio_audio::free_dir(&out, &format!("{} (stems)", studio_audio::safe_name(&title)))),
                     sample: flag("sample"),
                     bed: match p["info"]["bed"]["file"].as_str().filter(|f| f.starts_with("bed.") && !f.contains(['/', '\\'])) {
                         Some(file) => {
@@ -1203,7 +1267,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                         }
                         None => None,
                     },
-                    comment: format!("{} {}", text(&options["aiLine"]), text(&options["credit"])).trim().to_string(),
+                    comment: format!("{} {}", text(&options["aiLine"]), credit).trim().to_string(),
                     watermark: Some(watermark),
                     message,
                     progress: &|s, v| progress(s, v * 0.85),
@@ -1247,7 +1311,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                         theme: text(&options["manuscript"]["theme"]),
                     };
                     let cover = cover_raw.as_deref().and_then(|c| studio_audio::jpeg(c).ok());
-                    let path = studio_audio::free_path(&folder, &format!("{} (read-along)", studio_audio::safe_name(&title)), "epub");
+                    let path = studio_audio::free_path(&out, &format!("{} (read-along)", studio_audio::safe_name(&title)), "epub");
                     let made = studio_book::readalong_epub(&meta, &chapters, cover.as_deref(), &export_id, &path);
                     let _ = std::fs::remove_dir_all(&dir);
                     made?;
@@ -1260,7 +1324,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                 if flag("epub") {
                     progress("Writing the ebook".into(), 0.88);
                     let cover = cover_raw.as_deref().and_then(|c| studio_audio::jpeg(c).ok());
-                    let path = studio_audio::free_path(&folder, &stem, "epub");
+                    let path = studio_audio::free_path(&out, &stem, "epub");
                     studio_book::epub(&manuscript, cover.as_deref(), &export_id, &path)?;
                     files.push(path);
                 }
@@ -1271,23 +1335,23 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                     progress("Typesetting the print book".into(), 0.92);
                     let print: studio_book::PrintOptions = serde_json::from_value(options["print"].clone())
                         .unwrap_or(studio_book::PrintOptions { trim: (5.5, 8.5), font: "EB Garamond".into(), bleed: false, large: false });
-                    let path = studio_audio::free_path(&folder, &format!("{stem} (print)"), "pdf");
+                    let path = studio_audio::free_path(&out, &format!("{stem} (print)"), "pdf");
                     studio_book::pdf(&manuscript, &print, &path)?;
                     files.push(path);
                 }
                 if flag("docx") {
                     progress("Writing the Word manuscript".into(), 0.97);
-                    let path = studio_audio::free_path(&folder, &format!("{stem} (manuscript)"), "docx");
+                    let path = studio_audio::free_path(&out, &format!("{stem} (manuscript)"), "docx");
                     studio_book::docx(&manuscript, &export_id, &path)?;
                     files.push(path);
                 }
             }
+            if cancelled() {
+                return Err("cancelled".into());
+            }
+            let files = staging.finish(&files)?;
             // Kept with the production so "Verify a file" can recognise the watermark later.
-            let mut info = p["info"].clone();
-            let mut exports = info["exports"].as_array().cloned().unwrap_or_default();
-            exports.push(serde_json::json!({"id": export_id, "message": message, "date": now as f64, "files": files.iter().map(|f| f.to_string_lossy()).collect::<Vec<_>>()}));
-            info["exports"] = Value::Array(exports);
-            studio::save_info(&data, info)?;
+            studio::add_export(&data, &id, serde_json::json!({"id": export_id, "message": message, "date": now as f64, "files": files.iter().map(|f| f.to_string_lossy()).collect::<Vec<_>>()}))?;
             Ok(serde_json::json!({"files": files.iter().map(|f| f.to_string_lossy()).collect::<Vec<_>>(), "report": report, "exportId": export_id}))
         })();
         job.running.store(false, Ordering::SeqCst);

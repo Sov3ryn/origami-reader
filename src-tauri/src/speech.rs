@@ -305,6 +305,24 @@ impl Speech {
             "ready",
         )
     }
+    /// Studio: why a voice cannot read now (not installed, unavailable, or made for
+    /// another reader), or None when it can. Problems with the reader itself stop
+    /// every voice, so they are left to `render`.
+    pub fn voice_problem(app: &AppHandle, voice: &str) -> Option<String> {
+        let c = config(app).ok()?;
+        let v = &c["voices"][voice];
+        if v.is_null() {
+            return Some("Voice is not installed.".into());
+        }
+        if v["available"].as_bool() == Some(false) {
+            return Some(v["unavailable_reason"].as_str().unwrap_or("This voice needs a compatible speech engine.").into());
+        }
+        let model = resolve_model(&c, None);
+        if model != "unavailable" && v["engine"].as_str().unwrap_or("qwen") != c["models"][&model]["engine"].as_str().unwrap_or("qwen") {
+            return Some("This voice is incompatible with the selected reader.".into());
+        }
+        None
+    }
     /// Studio: renders several lines of one voice into WAV files in `out_dir`.
     pub fn render(&self, app: AppHandle, voice: String, items: Value, out_dir: &std::path::Path, temperature: Option<f64>) -> Result<Value> {
         let mut request = json!({"version":1,"action":"render","items":items,"out_dir":out_dir});

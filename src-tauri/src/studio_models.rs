@@ -74,7 +74,13 @@ pub struct Setup {
     running: AtomicBool,
     cancel: AtomicBool,
     current: Mutex<Option<String>>,
+    // The last progress (part, received, total), so a reopened Studio shows it.
+    last: Mutex<Option<(String, u64, u64)>>,
 }
+
+// A download that receives nothing for this long has stalled; it stops, and
+// trying again continues where it stopped.
+const STALL: std::time::Duration = std::time::Duration::from_secs(60);
 
 pub fn status(models: &Path, vram_mb: u64, dev_ready: &dyn Fn(&str) -> bool) -> Value {
     let list: Vec<Value> = parts(vram_mb)
@@ -95,12 +101,27 @@ impl Setup {
         self.cancel.store(true, Ordering::SeqCst);
     }
 
+    /// Whether a download is running and how far it is, for the setup panel.
+    pub fn state(&self) -> Value {
+        let last = self.last.lock().ok().and_then(|l| l.clone());
+        json!({
+            "running": self.running.load(Ordering::SeqCst),
+            "progress": last.map(|(part, received, total)| json!({ "part": part, "received": received, "total": total })),
+        })
+    }
+
     /// Downloads the chosen parts. `progress(part, received, total)` reports bytes.
     pub fn download(&self, models: &Path, vram_mb: u64, chosen: &[String], progress: &dyn Fn(&str, u64, u64)) -> Result<()> {
         if self.running.swap(true, Ordering::SeqCst) {
             return Err("Studio's models are already downloading.".into());
         }
         self.cancel.store(false, Ordering::SeqCst);
+        let progress = |part: &str, received: u64, total: u64| {
+            if let Ok(mut l) = self.last.lock() {
+                *l = Some((part.to_string(), received, total));
+            }
+            progress(part, received, total);
+        };
         let result = (|| {
             for (id, files) in parts(vram_mb).into_iter().filter(|(id, _)| chosen.iter().any(|c| c == id)) {
                 if installed(models, id) {
@@ -129,13 +150,21 @@ impl Setup {
         if let Ok(mut c) = self.current.lock() {
             *c = None;
         }
+        if let Ok(mut l) = self.last.lock() {
+            *l = None;
+        }
         self.running.store(false, Ordering::SeqCst);
         result
     }
 
     /// One file, streamed to a .part file, checked, then renamed. A finished file
-    /// with the right size and SHA-256 is kept and not downloaded again.
+    /// with the right size and SHA-256 is kept and not downloaded again. A .part
+    /// left by an interrupted download is continued with an HTTP range request
+    /// (from the start when the server does not support it); it is removed only
+    /// when the download is cancelled or does not match the published file.
     fn fetch(&self, file: &File, to: &Path, progress: &dyn Fn(u64)) -> Result<()> {
+        use std::sync::mpsc::RecvTimeoutError;
+        use std::time::{Duration, Instant};
         if let Some(dir) = to.parent() {
             std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
         }
@@ -144,31 +173,81 @@ impl Setup {
             return Ok(());
         }
         let part = PathBuf::from(format!("{}.part", to.display()));
-        let response = ureq::get(&file.url).call().map_err(|e| format!("Download failed: {e}"))?;
-        let mut body = response.into_body().into_reader();
-        let mut out = std::fs::File::create(&part).map_err(|e| e.to_string())?;
+        let mut have = std::fs::metadata(&part).map(|m| m.len()).unwrap_or(0);
+        if have == file.size && sha256_of(&part)? == file.sha256 {
+            progress(file.size);
+            return std::fs::rename(&part, to).map_err(|e| e.to_string());
+        }
+        if have >= file.size {
+            let _ = std::fs::remove_file(&part);
+            have = 0;
+        }
+        let agent: ureq::Agent = ureq::Agent::config_builder()
+            .timeout_connect(Some(Duration::from_secs(30)))
+            .timeout_recv_response(Some(Duration::from_secs(60)))
+            .build()
+            .into();
+        let mut request = agent.get(&file.url);
+        if have > 0 {
+            request = request.header("Range", &format!("bytes={have}-"));
+        }
+        let response = request.call().map_err(|e| format!("Download failed: {e}"))?;
         let mut hash = Sha256::new();
-        let mut buf = vec![0u8; 1 << 20];
-        let mut got = 0u64;
-        let mut last = std::time::Instant::now();
+        let mut out = if have > 0 && response.status() == 206 {
+            hash_into(&part, &mut hash)?;
+            std::fs::OpenOptions::new().append(true).open(&part).map_err(|e| e.to_string())?
+        } else {
+            have = 0;
+            std::fs::File::create(&part).map_err(|e| e.to_string())?
+        };
+        // The body is read on its own thread, so a connection that goes quiet is
+        // noticed (ureq has no timeout per read) and Cancel answers at once.
+        let mut body = response.into_body().into_reader();
+        let (tx, rx) = std::sync::mpsc::sync_channel::<std::io::Result<Vec<u8>>>(4);
+        std::thread::spawn(move || loop {
+            let mut buf = vec![0u8; 1 << 20];
+            match body.read(&mut buf) {
+                Ok(n) => {
+                    buf.truncate(n);
+                    if tx.send(Ok(buf)).is_err() || n == 0 {
+                        return;
+                    }
+                }
+                Err(e) => {
+                    let _ = tx.send(Err(e));
+                    return;
+                }
+            }
+        });
+        let mut got = have;
+        progress(got);
+        let mut last = Instant::now();
+        let mut heard = Instant::now();
         loop {
             if self.cancel.load(Ordering::SeqCst) {
                 drop(out);
                 let _ = std::fs::remove_file(&part);
                 return Err("cancelled".into());
             }
-            let n = body.read(&mut buf).map_err(|e| format!("Download failed: {e}"))?;
-            if n == 0 {
+            let chunk = match rx.recv_timeout(Duration::from_millis(500)) {
+                Ok(Ok(chunk)) => chunk,
+                Ok(Err(e)) => return Err(format!("Download failed: {e}. Try again to continue where it stopped.")),
+                Err(RecvTimeoutError::Timeout) if heard.elapsed() < STALL => continue,
+                Err(RecvTimeoutError::Timeout) => return Err("The download stopped receiving data. Try again to continue where it stopped.".into()),
+                Err(RecvTimeoutError::Disconnected) => return Err("Download failed. Try again to continue where it stopped.".into()),
+            };
+            heard = Instant::now();
+            if chunk.is_empty() {
                 break;
             }
-            out.write_all(&buf[..n]).map_err(|e| e.to_string())?;
-            hash.update(&buf[..n]);
-            got += n as u64;
+            out.write_all(&chunk).map_err(|e| e.to_string())?;
+            hash.update(&chunk);
+            got += chunk.len() as u64;
             if got > file.size {
                 break;
             }
             if last.elapsed().as_millis() > 300 {
-                last = std::time::Instant::now();
+                last = Instant::now();
                 progress(got);
             }
         }
@@ -184,8 +263,14 @@ impl Setup {
 }
 
 fn sha256_of(path: &Path) -> Result<String> {
-    let mut f = std::fs::File::open(path).map_err(|e| e.to_string())?;
     let mut hash = Sha256::new();
+    hash_into(path, &mut hash)?;
+    Ok(hash.finalize().iter().map(|b| format!("{b:02x}")).collect())
+}
+
+/// Feeds a file to a hash (also the part already there when a download continues).
+fn hash_into(path: &Path, hash: &mut Sha256) -> Result<()> {
+    let mut f = std::fs::File::open(path).map_err(|e| e.to_string())?;
     let mut buf = vec![0u8; 1 << 20];
     loop {
         let n = f.read(&mut buf).map_err(|e| e.to_string())?;
@@ -194,7 +279,7 @@ fn sha256_of(path: &Path) -> Result<String> {
         }
         hash.update(&buf[..n]);
     }
-    Ok(hash.finalize().iter().map(|b| format!("{b:02x}")).collect())
+    Ok(())
 }
 
 /// Unpacks llama.cpp's zip beside it, refusing any path that would leave the folder.

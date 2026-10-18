@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { BookOpen, CheckCircle2, FileAudio, FolderOpen, Headphones, X, XCircle } from "lucide-react";
 import { t } from "../i18n";
 import type { Book } from "../types";
+import { StudioSetup } from "./StudioSetup";
 import {
   aiLine,
   cancelExport,
@@ -286,7 +287,12 @@ export function ExportDialog({
                     <small>{t("For a sound editor: every chapter as one track per speaker, lined up, unlimited 32-bit WAV.")}</small>
                   </span>
                 </label>
-                {wmReady === false && <p className="studio-warn">{t("The watermark model is not installed, so audio cannot be exported yet.")}</p>}
+                {wmReady === false && (
+                  <>
+                    <p className="studio-warn">{t("The watermark model is not installed, so audio cannot be exported yet.")}</p>
+                    <StudioSetup only={["watermark"]} onChange={() => void watermarkReady().then(setWmReady)} />
+                  </>
+                )}
                 {audio && (
                   <p className="studio-hint">
                     <FileAudio size={13} /> {t("Opens with: “{credit}”", { credit: creditLine(info) })}

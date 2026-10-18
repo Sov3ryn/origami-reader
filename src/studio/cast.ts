@@ -111,6 +111,31 @@ const ATTRIBUTION_SYSTEM =
 
 const SURE = 0.9;
 const placeholder = (s: string | null) => !s || s.startsWith("?");
+// A passage the model fails on is skipped; this many failures in a row (or every
+// passage failing) stop the analysis with the model's error.
+const FAILURES = 3;
+function failures(cancelled: () => boolean) {
+  let row = 0;
+  let tried = 0;
+  let failed = 0;
+  return {
+    ok() {
+      row = 0;
+      tried++;
+    },
+    failed(e: unknown) {
+      if (cancelled()) throw new Error("cancelled");
+      if (String(e).includes("not installed")) throw e;
+      row++;
+      tried++;
+      failed++;
+      if (row >= FAILURES) throw e;
+    },
+    check(last: unknown) {
+      if (tried > 0 && failed === tried) throw last;
+    },
+  };
+}
 
 export type Analysis = {
   cast: (Character & { name: string; speaks: boolean })[];
@@ -174,6 +199,8 @@ export async function analyse(
     for (let p = start; p < start + CHUNK && !has; p++) has = withSpeech.has(p);
     if (has) chunks.push(start);
   }
+  const rosterFailures = failures(cancelled);
+  let lastError: unknown = null;
   for (const [i, start] of chunks.entries()) {
     if (cancelled()) throw new Error("cancelled");
     progress("Finding the characters", (i / Math.max(1, chunks.length)) * 0.45);
@@ -182,10 +209,13 @@ export async function analyse(
     try {
       const got = await chat<{ characters: Found[] }>(ROSTER_SYSTEM, user, ROSTER_SCHEMA);
       mergeRoster(roster, got.characters);
+      rosterFailures.ok();
     } catch (e) {
-      if (String(e).includes("not installed")) throw e;
+      lastError = e;
+      rosterFailures.failed(e);
     }
   }
+  rosterFailures.check(lastError);
   const cleaned = cleanRoster(roster);
   const cast = cleaned.map((c) => ({
     id: c.name,
@@ -212,6 +242,7 @@ export async function analyse(
   for (const s of speech) byParagraph.set(s.paragraph, [...(byParagraph.get(s.paragraph) || []), s]);
   const STEP = 40;
   const total = Math.ceil(paragraphs.length / STEP);
+  const answerFailures = failures(cancelled);
   for (let start = 0, n = 0; start < paragraphs.length; start += STEP, n++) {
     if (cancelled()) throw new Error("cancelled");
     const end = Math.min(paragraphs.length, start + STEP);
@@ -267,10 +298,13 @@ export async function analyse(
         const speaker = a.speaker === "NARRATOR" ? NARRATOR_ID : back.get(a.speaker) ?? null;
         speakers.set(s.id, { speaker, confidence: { high: 0.9, medium: 0.7, low: 0.4 }[a.confidence], source: "model" });
       }
+      answerFailures.ok();
     } catch (e) {
-      if (String(e).includes("not installed")) throw e;
+      lastError = e;
+      answerFailures.failed(e);
     }
   }
+  answerFailures.check(lastError);
   // 4. Consistency: carried-on speech and further speech in the same paragraph share a speaker.
   const firstInParagraph = new Map<number, Speech>();
   speech.forEach((s, k) => {
@@ -368,6 +402,8 @@ export function castUnits(
   for (const s of speech) bySpeech.set(s.paragraph, [...(bySpeech.get(s.paragraph) || []), s]);
   const oldByParagraph = new Map<number, ProductionUnit[]>();
   for (const u of old) oldByParagraph.set(u.paragraph, [...(oldByParagraph.get(u.paragraph) || []), u]);
+  // Ids in use: a new unit never takes an old unit's id (nor its takes).
+  const used = new Set(old.map((u) => u.id));
   const out: ProductionUnit[] = [];
   book.paragraphs.forEach((p, i) => {
     const segments: { text: string; speech?: Speech }[] = [];
@@ -404,7 +440,8 @@ export function castUnits(
       else if (!hasWords(seg.text)) continue;
       else merged.push({ ...seg });
     }
-    const previous = oldByParagraph.get(i) || [];
+    // Each old unit is kept once at most: two equal lines of a paragraph get one each.
+    const previous = [...(oldByParagraph.get(i) || [])];
     let n = 0;
     merged.forEach((seg) => {
       const spoken = spokenText({ ...p, text: seg.text.trim(), spokenEdits: segments.length === 1 ? p.spokenEdits : undefined }, prefs, undefined, book.meta.id);
@@ -416,11 +453,15 @@ export function castUnits(
       }
       const who = seg.speech ? speakers.get(seg.speech.id) : undefined;
       for (const text of joined) {
-        const same = previous.find((u) => u.text === text || u.original === text);
+        const at = previous.findIndex((u) => u.text === text || u.original === text);
+        const same = at >= 0 ? previous.splice(at, 1)[0] : undefined;
         const base: ProductionUnit = same
           ? { ...same }
           : { id: `p${i}-v${n}`, chapter: p.chapter, paragraph: i, paragraphId: p.id, heading: p.kind === "heading", text, status: "pending" };
-        if (!same && out.some((u) => u.id === base.id)) base.id = `p${i}-v${n}-${out.length}`;
+        if (!same) {
+          for (let k = out.length; used.has(base.id); k++) base.id = `p${i}-v${n}-${k}`;
+          used.add(base.id);
+        }
         n++;
         const speaker = who?.speaker || undefined;
         const voice = speaker ? voiceOf.get(speaker) : undefined;

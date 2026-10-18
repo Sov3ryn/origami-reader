@@ -461,7 +461,8 @@ fn set_m4b_brand(path: &Path) -> Result<()> {
 
 /// mp4ameta writes the Nero chapter list as version 0; most readers want version 1
 /// (4 reserved bytes before the count). Rewritten only when moov is the last atom,
-/// so no sample offsets move.
+/// so no sample offsets move. The new file is written beside it and then takes its
+/// place, so a failure never leaves half a file.
 fn chpl_to_v1(path: &Path) -> Result<()> {
     let mut data = std::fs::read(path).map_err(|e| e.to_string())?;
     let be32 = |d: &[u8], p: usize| u32::from_be_bytes([d[p], d[p + 1], d[p + 2], d[p + 3]]) as usize;
@@ -508,7 +509,14 @@ fn chpl_to_v1(path: &Path) -> Result<()> {
     data.splice(cpos..cpos + csize, chpl);
     data[upos..upos + 4].copy_from_slice(&((usz + 4) as u32).to_be_bytes());
     data[mpos..mpos + 4].copy_from_slice(&((msize + 4) as u32).to_be_bytes());
-    std::fs::write(path, &data).map_err(|e| e.to_string())
+    let mut temp = path.as_os_str().to_owned();
+    temp.push(".tmp");
+    let temp = PathBuf::from(temp);
+    if let Err(e) = std::fs::write(&temp, &data).and_then(|_| std::fs::rename(&temp, path)) {
+        let _ = std::fs::remove_file(&temp);
+        return Err(e.to_string());
+    }
+    Ok(())
 }
 
 // --- Encoding (Windows Media Foundation) --------------------------------------------------------
@@ -718,6 +726,94 @@ pub fn free_dir(dir: &Path, stem: &str) -> PathBuf {
         return first;
     }
     (2..).map(|n| dir.join(format!("{stem} ({n})"))).find(|p| !p.exists()).unwrap()
+}
+
+/// Where an export is written while it runs: a folder inside the chosen one, so the
+/// finished files are moved there, not copied. Only what this export writes is in
+/// it, and it is removed when the export ends, finished, failed or cancelled, so a
+/// stopped export leaves nothing behind and never touches the reader's own files.
+pub struct Staging {
+    pub dir: PathBuf,
+    target: PathBuf,
+}
+
+impl Staging {
+    pub fn new(target: &Path, export_id: &str) -> Result<Self> {
+        let dir = free_dir(target, &format!("Origami export in progress {export_id}"));
+        std::fs::create_dir(&dir).map_err(|e| e.to_string())?;
+        Ok(Staging { dir, target: target.to_path_buf() })
+    }
+
+    /// Moves the written files and folders into the chosen folder, under names that
+    /// are free there, and returns where each one is now. Paths inside a moved folder
+    /// follow it. If a move fails, the ones already made are undone.
+    pub fn finish(&self, written: &[PathBuf]) -> Result<Vec<PathBuf>> {
+        let mut moved: Vec<(PathBuf, PathBuf)> = Vec::new();
+        let mut out = Vec::new();
+        for path in written {
+            let Ok(rel) = path.strip_prefix(&self.dir) else {
+                out.push(path.clone());
+                continue;
+            };
+            let mut parts = rel.components();
+            let Some(top) = parts.next() else { continue };
+            let rest: PathBuf = parts.collect();
+            let staged = self.dir.join(top);
+            let placed = match moved.iter().find(|(s, _)| *s == staged) {
+                Some((_, to)) => to.clone(),
+                None => {
+                    let name = top.as_os_str().to_string_lossy().into_owned();
+                    let to = match (staged.is_dir(), Path::new(&name).file_stem(), Path::new(&name).extension()) {
+                        (false, Some(stem), Some(ext)) => free_path(&self.target, &stem.to_string_lossy(), &ext.to_string_lossy()),
+                        _ => free_dir(&self.target, &name),
+                    };
+                    if let Err(e) = std::fs::rename(&staged, &to) {
+                        for (s, t) in moved.iter().rev() {
+                            let _ = std::fs::rename(t, s);
+                        }
+                        return Err(format!("The export could not be moved into the folder: {e}"));
+                    }
+                    moved.push((staged, to.clone()));
+                    to
+                }
+            };
+            out.push(if rest.as_os_str().is_empty() { placed } else { placed.join(rest) });
+        }
+        Ok(out)
+    }
+}
+
+impl Drop for Staging {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.dir);
+    }
+}
+
+/// The spoken opening credit, in the book's language (English when there is no
+/// wording for it). The same wording as the export dialog shows.
+pub fn credit_line(title: &str, author: &str, language: &str) -> String {
+    let author = if author.trim().is_empty() { "an unknown author" } else { author };
+    match language.get(..2).unwrap_or("en").to_lowercase().as_str() {
+        "fr" => format!("{title}, de {author}. Lu par des voix numériques. Réalisé avec Origami Studio."),
+        "de" => format!("{title}, von {author}. Gelesen von digitalen Stimmen. Erstellt mit Origami Studio."),
+        "es" => format!("{title}, de {author}. Narrado por voces digitales. Hecho con Origami Studio."),
+        "it" => format!("{title}, di {author}. Letto da voci digitali. Realizzato con Origami Studio."),
+        "pt" => format!("{title}, de {author}. Narrado por vozes digitais. Feito com Origami Studio."),
+        _ => format!("{title}, by {author}. Narrated by digital voices. Made with Origami Studio."),
+    }
+}
+
+/// The opening credits' chapter title, in the book's language.
+pub fn credit_title(language: &str) -> String {
+    match language.get(..2).unwrap_or("en").to_lowercase().as_str() {
+        "fr" => "Générique",
+        "de" => "Vorspann",
+        "es" => "Créditos iniciales",
+        "it" => "Titoli di testa",
+        "pt" => "Créditos iniciais",
+        _ => "Opening credits",
+    }
+    .into()
 }
 
 /// Masters one chapter: joins its takes with their pauses, masters, adds the watermark
@@ -1090,6 +1186,45 @@ mod tests {
         std::fs::write(dir.join("Book.m4b"), b"x").unwrap();
         assert_eq!(free_path(&dir, "Book", "m4b").file_name().unwrap(), "Book (2).m4b");
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn an_export_is_staged_and_never_replaces_the_readers_files() {
+        let dir = std::env::temp_dir().join(format!("origami-staging-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("Book (MP3)")).unwrap();
+        std::fs::write(dir.join("Book.m4b"), b"mine").unwrap();
+        std::fs::write(dir.join("Book (MP3)").join("01 One.mp3"), b"mine").unwrap();
+        // A finished export moves its files under free names.
+        let staging = Staging::new(&dir, "OS-1").unwrap();
+        std::fs::write(staging.dir.join("Book.m4b"), b"new").unwrap();
+        std::fs::create_dir_all(staging.dir.join("Book (MP3)")).unwrap();
+        std::fs::write(staging.dir.join("Book (MP3)").join("01 One.mp3"), b"new").unwrap();
+        std::fs::write(staging.dir.join("credit-1.wav"), b"take").unwrap();
+        let files = staging.finish(&[staging.dir.join("Book.m4b"), staging.dir.join("Book (MP3)").join("01 One.mp3")]).unwrap();
+        let staged = staging.dir.clone();
+        drop(staging);
+        assert_eq!(files[0], dir.join("Book (2).m4b"));
+        assert_eq!(files[1], dir.join("Book (MP3) (2)").join("01 One.mp3"));
+        assert_eq!(std::fs::read(dir.join("Book.m4b")).unwrap(), b"mine");
+        assert_eq!(std::fs::read(dir.join("Book (MP3)").join("01 One.mp3")).unwrap(), b"mine");
+        assert!(!staged.exists());
+        // A failed or cancelled one leaves nothing behind.
+        let staging = Staging::new(&dir, "OS-2").unwrap();
+        std::fs::write(staging.dir.join("Book.epub"), b"half").unwrap();
+        let staged = staging.dir.clone();
+        drop(staging);
+        assert!(!staged.exists() && !dir.join("Book.epub").exists());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn the_spoken_credit_names_origami_studio_in_every_language() {
+        for lang in ["en", "fr-FR", "de", "es", "it", "pt-BR", "ja", ""] {
+            assert!(credit_line("Emma", "", lang).contains("Origami Studio"));
+        }
+        assert_eq!(credit_line("Emma", "Jane Austen", "en"), "Emma, by Jane Austen. Narrated by digital voices. Made with Origami Studio.");
+        assert_eq!(credit_title("fr"), "Générique");
     }
 
     #[test]

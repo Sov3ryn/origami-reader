@@ -1,5 +1,5 @@
 import type { CastMember } from "./cast";
-import type { ProductionUnit } from "./production";
+import { editUnit, type ProductionUnit } from "./production";
 
 // Studio, phase 2: pronunciations for the whole book. Names and other proper
 // nouns are suggested with how often they occur; a "say it as" spelling is
@@ -63,10 +63,30 @@ export function applyPronunciation(units: ProductionUnit[], p: Pronunciation): P
     re.lastIndex = 0;
     if (!re.test(u.text)) continue;
     re.lastIndex = 0;
-    const text = u.text.replace(re, p.sayAs);
+    const text = u.text.replace(re, () => p.sayAs);
     if (text === u.text) continue;
     out.push({ ...u, text, original: u.original ?? u.text, status: u.take || u.status !== "pending" ? "pending" : u.status });
   }
+  return out;
+}
+
+/** Units changed when a word's pronunciation changes from `previous` to `next`: lines
+ * that said it the old way (as a whole word) say it the new way, and saying it as the
+ * book writes it brings the book's word back. Approved lines are left alone. */
+export function repronounce(units: ProductionUnit[], previous: Pronunciation | undefined, next: Pronunciation): ProductionUnit[] {
+  const back = previous && previous.sayAs !== previous.word ? wordPattern(previous.sayAs) : null;
+  const base = units.map((u) => {
+    if (!back || !u.original || u.status === "approved") return u;
+    back.lastIndex = 0;
+    const text = u.text.replace(back, () => next.word);
+    return text === u.text ? u : { ...u, text };
+  });
+  const applied = new Map(applyPronunciation(base, next).map((u) => [u.id, u]));
+  const out: ProductionUnit[] = [];
+  units.forEach((u, i) => {
+    const text = (applied.get(u.id) ?? base[i]).text;
+    if (text !== u.text) out.push(editUnit(u, text));
+  });
   return out;
 }
 

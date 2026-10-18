@@ -141,7 +141,23 @@ export const listProductions = (): Promise<ProductionInfo[]> => (desktop ? invok
 export const createProduction = (p: Production) => invoke<ProductionInfo>("create_production", { info: p.info, units: p.units });
 export const readProduction = (id: string) => invoke<Production>("read_production", { id });
 export const saveProductionInfo = (info: ProductionInfo) => invoke<void>("save_production_info", { info });
-export const saveProductionUnits = (id: string, units: ProductionUnit[]) => invoke<void>("save_production_units", { id, units });
+/** What changed in a unit, with its id: removed fields are null. */
+export function unitPatch(before: ProductionUnit | undefined, after: ProductionUnit) {
+  const patch: Record<string, unknown> = { id: after.id };
+  const was = (before || {}) as Record<string, unknown>;
+  const now = after as Record<string, unknown>;
+  for (const key of new Set([...Object.keys(was), ...Object.keys(now)])) {
+    if (key !== "id" && JSON.stringify(was[key]) !== JSON.stringify(now[key])) patch[key] = now[key] ?? null;
+  }
+  return patch;
+}
+/** Saves only the fields changed from `before`, merged into the units as saved now,
+ * so a take that a render added meanwhile is not undone by an older copy. */
+export function saveProductionUnits(id: string, units: ProductionUnit[], before: ProductionUnit[]) {
+  const old = new Map(before.map((u) => [u.id, u]));
+  const patches = units.map((u) => unitPatch(old.get(u.id), u)).filter((p) => Object.keys(p).length > 1);
+  return patches.length ? invoke<void>("save_production_units", { id, units: patches }) : Promise.resolve();
+}
 export const replaceProductionUnits = (id: string, units: ProductionUnit[]) => invoke<void>("studio_replace_units", { id, units });
 export const deleteProduction = (id: string) => invoke<void>("delete_production", { id });
 
@@ -152,7 +168,8 @@ export const cancelRender = () => invoke<void>("studio_cancel_render");
 export const renderRunning = (): Promise<boolean> => (desktop ? invoke("studio_render_running") : Promise.resolve(false));
 export const takeAudio = (id: string, file: string) => invoke<string>("studio_take_audio", { id, file });
 export type RenderProgress = { id: string; done: number; total: number };
-export type RenderDone = { id: string; ok: boolean; cancelled?: boolean; message?: string };
+// `missing` names who reads with a voice that could not be used ("" is the narrator); their lines were left out.
+export type RenderDone = { id: string; ok: boolean; cancelled?: boolean; message?: string; missing?: string[]; problem?: string };
 
 // --- Review ------------------------------------------------------------------------------
 export type Issue = "cut" | "fast" | "slow" | "clipping" | "quiet" | "pause" | "changed" | "mismatch";
@@ -199,14 +216,27 @@ export const issueText: Record<Issue, string> = {
   mismatch: "What was heard does not match the text",
 };
 
+// Takes by id and by unit, built once for each list of takes (a reload makes a new list).
+const indexes = new WeakMap<Take[], { byId: Map<string, Take>; byUnit: Map<string, Take[]> }>();
+function takeIndex(takes: Take[]) {
+  let index = indexes.get(takes);
+  if (!index) {
+    const byUnit = new Map<string, Take[]>();
+    for (const t of takes) byUnit.set(t.unit, [...(byUnit.get(t.unit) || []), t]);
+    index = { byId: new Map(takes.map((t) => [t.id, t])), byUnit };
+    indexes.set(takes, index);
+  }
+  return index;
+}
+
 /** The take a unit plays: its chosen take. */
 export function chosenTake(p: Production, unit: ProductionUnit) {
-  return unit.take ? p.takes.find((t) => t.id === unit.take) : undefined;
+  return unit.take ? takeIndex(p.takes).byId.get(unit.take) : undefined;
 }
 
 /** Every take of a unit, newest first. */
 export function takesOf(p: Production, unitId: string) {
-  return p.takes.filter((t) => t.unit === unitId).sort((a, b) => b.created - a.created);
+  return [...(takeIndex(p.takes).byUnit.get(unitId) || [])].sort((a, b) => b.created - a.created);
 }
 
 /** Pauses between lines when playing or mastering: longer between paragraphs and around headings. */

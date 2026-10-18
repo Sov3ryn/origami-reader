@@ -394,7 +394,11 @@ function NewProduction({
             <button type="button" onClick={() => void listen()} disabled={!voice || !bookId}>
               {listening ? <Square size={14} /> : <Play size={14} />} {listening ? t("Stop") : t("Listen on this book")}
             </button>
-            <p className="studio-hint">{t("You can change the narrator later; lines generated before keep their voice until you regenerate them.")}</p>
+            {voices.length ? (
+              <p className="studio-hint">{t("You can change the narrator later; lines generated before keep their voice until you regenerate them.")}</p>
+            ) : (
+              <p className="studio-warn">{t("No voice is installed yet, so a production cannot be created. Add one in Settings, Voices and speech.")}</p>
+            )}
           </div>
         </div>
         {error && (

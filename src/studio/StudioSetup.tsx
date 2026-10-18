@@ -8,7 +8,7 @@ import { desktop } from "../storage";
 // Studio's models, set up from inside Studio: only people who use Studio
 // download them. Each part is optional; what a missing part enables is said.
 type Part = { id: "watermark" | "analysis" | "transcription"; bytes: number; installed: boolean };
-type Status = { parts: Part[]; runtime: boolean };
+type Status = { parts: Part[]; runtime: boolean; download?: { running: boolean; progress: { part: string; received: number; total: number } | null } };
 
 const ABOUT: Record<Part["id"], { name: string; does: string; icon: typeof ShieldCheck }> = {
   watermark: { name: "Watermark", does: "Needed to export audio: the inaudible mark that says the voices are AI-generated, and Verify a file.", icon: ShieldCheck },
@@ -17,7 +17,8 @@ const ABOUT: Record<Part["id"], { name: string; does: string; icon: typeof Shiel
 };
 const gb = (b: number) => (b >= 1e9 ? `${(b / 1e9).toFixed(1)} GB` : `${Math.round(b / 1e6)} MB`);
 
-export function StudioSetup({ onChange }: { onChange?: () => void }) {
+// `only` shows just the parts a place needs (the watermark in the export dialog, say).
+export function StudioSetup({ onChange, only }: { onChange?: () => void; only?: Part["id"][] }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [chosen, setChosen] = useState<string[]>([]);
   const [running, setRunning] = useState(false);
@@ -28,8 +29,14 @@ export function StudioSetup({ onChange }: { onChange?: () => void }) {
   async function refresh() {
     if (!desktop) return;
     const s = await invoke<Status>("studio_setup_status");
-    setStatus(s);
-    setChosen((c) => (c.length ? c : s.parts.filter((p) => !p.installed).map((p) => p.id)));
+    const parts = only ? s.parts.filter((p) => only.includes(p.id)) : s.parts;
+    setStatus({ ...s, parts });
+    setChosen((c) => (c.length ? c : parts.filter((p) => !p.installed).map((p) => p.id)));
+    // A download keeps running while Studio is closed: show it again when it reopens.
+    if (s.download) {
+      setRunning(s.download.running);
+      if (s.download.running && s.download.progress) setProgress(s.download.progress);
+    }
   }
   useEffect(() => {
     void refresh().catch(() => undefined);
