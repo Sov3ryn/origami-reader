@@ -62,6 +62,8 @@ export type BookMeta = {
   // A source for Work Mode: imported there, or added from the book menu.
   // Work Mode shows only these by default, so leisure reading stays apart.
   work?: boolean;
+  // Which library it is in; unset, its format and genres decide (libraryShelf.ts).
+  shelf?: "stories" | "documents";
 };
 export type Book = { meta: BookMeta; paragraphs: Paragraph[] };
 export type Annotation = {
@@ -200,6 +202,8 @@ export type Preferences = {
   libraryGenres: boolean;
   libraryAuthors: boolean;
   libraryLargeText: boolean;
+  // The library shown: stories or documents.
+  libraryShelf: "stories" | "documents";
   // How the library page looks: "classic" or a 3D room (src/libraryThemes.ts).
   libraryTheme: string;
   // Selecting text in a book switches the inspector to the Selection tab.
@@ -396,6 +400,7 @@ export const defaultPreferences: Preferences = {
   libraryGenres: true,
   libraryAuthors: true,
   libraryLargeText: false,
+  libraryShelf: "stories",
   libraryTheme: "classic",
   selectionOpensTab: true,
   vaultIdleMinutes: 10,

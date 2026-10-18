@@ -221,6 +221,7 @@ import { followBooks, loadWork, saveWork } from "./work/store";
 import type { Subject as WorkSubject } from "./work/types";
 import { paintWord, playedFraction, rangesFor, wordAt } from "./spokenWord";
 import { useMedia } from "./useMedia";
+import { shelfOf, type Shelf } from "./libraryShelf";
 type ReadingAnchor = {
   bookId: string;
   paragraphId: string;
@@ -251,7 +252,6 @@ export default function App() {
   // Tooltips with shortcuts for the whole app (src/work/HoverTips.tsx).
   const appRoot = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("All");
   const sort = prefs.librarySort;
   const list = prefs.libraryView === "list";
   const setList = (on: boolean) =>
@@ -671,7 +671,19 @@ export default function App() {
   // Settings are full-width pages.
   const inspectorAvailable = page === "reader";
   const focused = page === "reader" && focusMode;
-  const navigationOpen = prefs.leftOpen && !focused;
+  // Narrow windows: the inspector (950 px and less) and then the navigation
+  // (760 px and less) slide over the page instead of taking a column. The
+  // narrow navigation opens and closes on its own, so resizing the window
+  // never changes the saved setting.
+  const overlayInspector = useMedia("(max-width: 950px)");
+  const overlayNavigation = useMedia("(max-width: 760px)");
+  const [compactLeft, setCompactLeft] = useState(false);
+  useEffect(() => setCompactLeft(false), [overlayNavigation]);
+  const navigationOpen = (overlayNavigation ? compactLeft : prefs.leftOpen) && !focused;
+  const setLeftOpen = (open: boolean) => {
+    if (overlayNavigation) setCompactLeft(open);
+    else patchPrefs({ leftOpen: open });
+  };
   const inspectorOpen = inspectorAvailable && prefs.rightOpen && !focused;
   const variables = {
     "--bg": theme.bg,
@@ -1580,6 +1592,25 @@ export default function App() {
     trash: (b) => void moveToTrash(new Set([b.id])).catch(error),
     restore: (b) => void restore([b]).catch(error),
     startOver: (b) => void startOver(b).catch(error),
+    shelf: (b, shelf) => {
+      void updateMeta({ ...b, shelf })
+        .then(() =>
+          notify(
+            shelf === "documents"
+              ? t("{title} is now in Documents.", { title: b.title })
+              : t("{title} is now in Stories.", { title: b.title }),
+          ),
+        )
+        .catch(error);
+    },
+    ...(STUDIO_ENABLED
+      ? {
+          studio: (b: BookMeta) => {
+            patchPrefs({ studioMode: true, workMode: false });
+            window.dispatchEvent(new CustomEvent("origami:studio-book", { detail: { id: b.id } }));
+          },
+        }
+      : {}),
     work: (b, on) => {
       void updateMeta({ ...b, work: on || undefined })
         .then(() =>
@@ -1784,6 +1815,8 @@ export default function App() {
             b.meta.collection = collection;
           if (vaultView) b.meta.vault = vaultView;
           if (forWork) b.meta.work = true;
+          // Imported into the library on screen; from elsewhere, the guess decides.
+          if (page === "library" && !forWork) b.meta.shelf = shelf;
           const existing = known.find(
             (k) => k.sourceHash === b.meta.sourceHash,
           );
@@ -1942,21 +1975,18 @@ export default function App() {
   // --- Work Mode ---------------------------------------------------------------
   const appMode: AppMode = prefs.studioMode && STUDIO_ENABLED ? "studio" : prefs.workMode ? "work" : "read";
   const otherMode = appMode !== "read";
-  // Narrow windows: the inspector (950 px and less) and then the navigation
-  // (760 px and less) slide over the page instead of taking a column. Only one
-  // is open at a time there; a click beside it closes it.
-  const overlayInspector = useMedia("(max-width: 950px)");
-  const overlayNavigation = useMedia("(max-width: 760px)");
+  // On narrow windows only one panel is open at a time, and a click beside it closes it.
   const lastPanel = useRef<"left" | "right">("right");
   useEffect(() => {
-    if (prefs.leftOpen) lastPanel.current = "left";
-  }, [prefs.leftOpen]);
+    if (compactLeft) lastPanel.current = "left";
+  }, [compactLeft]);
   useEffect(() => {
     if (prefs.rightOpen) lastPanel.current = "right";
   }, [prefs.rightOpen]);
   useEffect(() => {
     if (overlayNavigation && navigationOpen && inspectorOpen)
-      patchPrefs(lastPanel.current === "left" ? { rightOpen: false } : { leftOpen: false });
+      if (lastPanel.current === "left") patchPrefs({ rightOpen: false });
+      else setCompactLeft(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlayNavigation, navigationOpen, inspectorOpen]);
   const overlayOpen = !otherMode && ((overlayInspector && inspectorOpen) || (overlayNavigation && navigationOpen));
@@ -2652,8 +2682,10 @@ export default function App() {
   const roomTheme =
     currentLibraryTheme.kind === "room" ? currentLibraryTheme : null;
   // Vault books show only inside their open vault, never on other shelves.
+  const shelf: Shelf = prefs.libraryShelf || "stories";
+  const shelfName = (s: Shelf) => (s === "documents" ? t("Documents") : t("Stories"));
   const filteredBooks = books.filter(
-    (b) => !b.vault && matchesLibraryFilters(b, libraryFilters),
+    (b) => !b.vault && shelfOf(b) === shelf && matchesLibraryFilters(b, libraryFilters),
   );
   const visible = sortLibrary(
     (vaultView
@@ -2674,13 +2706,6 @@ export default function App() {
                 : b.collection === collection),
           )
     )
-      .filter(
-        (b) =>
-          filter === "All" ||
-          (filter === "Books"
-            ? ["EPUB", "Sample"].includes(b.format)
-            : !["EPUB", "Sample"].includes(b.format)),
-      )
       .filter((b) =>
         (
           b.title +
@@ -2696,8 +2721,9 @@ export default function App() {
       ),
     sort,
   );
+  // The last book opened in the library on screen.
   const latest = books
-    .filter((b) => !b.deleted && !b.vault)
+    .filter((b) => !b.deleted && !b.vault && b.opened > 0 && shelfOf(b) === shelf)
     .sort((a, b) => b.opened - a.opened)[0];
   const noteMetadataKey = JSON.stringify(books.map((b) => [b.id, b.title]));
   const noteViews = useMemo(
@@ -3847,7 +3873,13 @@ export default function App() {
         >
           {icon}
           <span className="collection-title">
-            {builtInCollections.includes(c) ? t(c) : c}
+            {c === "All books"
+              ? shelf === "documents"
+                ? t("All documents")
+                : t("All stories")
+              : builtInCollections.includes(c)
+                ? t(c)
+                : c}
           </span>
           <span className="count">{count}</span>
         </button>
@@ -5534,14 +5566,14 @@ export default function App() {
       return run(() => void startReaderCard());
     if (ctrl && key === ",") return run(() => setPage("settings"));
     if (ctrl && key === "\\")
-      return run(() => patchPrefs({ leftOpen: !prefs.leftOpen }));
+      return run(() => setLeftOpen(!navigationOpen));
     if (ctrl && e.shiftKey && key === "f" && page === "reader")
       return run(() => setFocusMode(!focusMode));
     if (ctrl && key === "f")
       return run(() => {
         if (page === "reader") {
           setFocusMode(false);
-          patchPrefs({ leftOpen: true });
+          setLeftOpen(true);
         } else if (page !== "library") setPage("library");
         requestAnimationFrame(() =>
           document
@@ -5767,10 +5799,13 @@ export default function App() {
               <>
                 <button
                   className="back-library"
-                  onClick={() => setPage("library")}
+                  onClick={() => {
+                    patchPrefs({ libraryShelf: shelfOf(book.meta) });
+                    setPage("library");
+                  }}
                 >
                   <ArrowLeft size={16} />
-                  {t("Library")}
+                  {shelfName(shelfOf(book.meta))}
                 </button>
                 <div className="reader-book">
                   <Cover book={book.meta} small />
@@ -5999,13 +6034,24 @@ export default function App() {
             ) : (
               <>
                 <nav className="main-nav" aria-label={t("Workspace pages")}>
+                  {(["stories", "documents"] as const).map((s) => (
+                    <button
+                      key={s}
+                      className={page === "library" && shelf === s ? "active" : ""}
+                      onClick={() => {
+                        patchPrefs({ libraryShelf: s });
+                        setPage("library");
+                        setCollection("All books");
+                        setSelected(new Set());
+                      }}
+                    >
+                      {s === "stories" ? <BookOpen size={20} /> : <FileText size={20} />}
+                      {shelfName(s)}
+                      <span className="count">{books.filter((b) => !b.vault && !b.deleted && shelfOf(b) === s).length}</span>
+                    </button>
+                  ))}
                   {(
                     [
-                      {
-                        id: "library",
-                        label: "Library",
-                        icon: <BookOpen size={20} />,
-                      },
                       {
                         id: "bookmarks",
                         label: "Bookmarks",
@@ -6021,10 +6067,7 @@ export default function App() {
                     <button
                       key={n.id}
                       className={page === n.id ? "active" : ""}
-                      onClick={() => {
-                        setPage(n.id);
-                        if (n.id === "library") setCollection("All books");
-                      }}
+                      onClick={() => setPage(n.id)}
                     >
                       {n.icon}
                       {t(n.label)}
@@ -6224,8 +6267,6 @@ export default function App() {
                           }
                         >
                           <option value="all">{t("All types")}</option>
-                          <option value="Books">{t("Books")}</option>
-                          <option value="Documents">{t("Documents")}</option>
                           {[...new Set(books.map((b) => b.format))]
                             .sort()
                             .map((type) => (
@@ -6314,7 +6355,6 @@ export default function App() {
                             genre: "all",
                           });
                           setSort("recent");
-                          setFilter("All");
                         }}
                       >
                         {t("Reset library filters")}
@@ -6398,7 +6438,7 @@ export default function App() {
                   }
                   onClick={() => {
                     if (focused) setFocusMode(false);
-                    else patchPrefs({ leftOpen: !prefs.leftOpen });
+                    else setLeftOpen(!navigationOpen);
                   }}
                 >
                   {navigationOpen ? (
@@ -6417,14 +6457,19 @@ export default function App() {
                 <span className="breadcrumb">
                   {page === "reader" ? (
                     <>
-                      <button onClick={() => setPage("library")}>
-                        {t("Library")}
+                      <button
+                        onClick={() => {
+                          if (book) patchPrefs({ libraryShelf: shelfOf(book.meta) });
+                          setPage("library");
+                        }}
+                      >
+                        {book ? shelfName(shelfOf(book.meta)) : t("Library")}
                       </button>
                       <ChevronRight size={13} />
                       <span>{book?.meta.title}</span>
                     </>
                   ) : page === "library" ? (
-                    t("Library")
+                    shelfName(shelf)
                   ) : page === "bookmarks" ? (
                     t("Bookmarks")
                   ) : page === "voices" ? (
@@ -6563,13 +6608,17 @@ export default function App() {
                     <div className="page-heading">
                       <div>
                         <span className="eyebrow">
-                          {visible.length === 1
-                            ? t("1 document")
-                            : t("{count} documents", { count: visible.length })}
+                          {shelf === "stories"
+                            ? visible.length === 1
+                              ? t("1 story")
+                              : t("{count} stories", { count: visible.length })
+                            : visible.length === 1
+                              ? t("1 document")
+                              : t("{count} documents", { count: visible.length })}
                         </span>
                         <h1 ref={focusTitle}>
                           {collection === "All books"
-                            ? t("Library")
+                            ? shelfName(shelf)
                             : vaultView
                               ? (vaults.find((v) => v.id === vaultView)
                                   ?.name ?? t("Vault"))
@@ -6788,13 +6837,16 @@ export default function App() {
                     </div>
                     <div className="filter-row">
                       <div className="chips">
-                        {["All", "Books", "Documents"].map((f) => (
+                        {(["stories", "documents"] as const).map((s) => (
                           <button
-                            className={filter === f ? "active" : ""}
-                            key={f}
-                            onClick={() => setFilter(f)}
+                            className={shelf === s ? "active" : ""}
+                            key={s}
+                            onClick={() => {
+                              patchPrefs({ libraryShelf: s });
+                              setSelected(new Set());
+                            }}
                           >
-                            {t(f)}
+                            {shelfName(s)}
                           </button>
                         ))}
                       </div>
@@ -6922,8 +6974,7 @@ export default function App() {
                     {latest &&
                       !query &&
                       !filtersActive &&
-                      collection === "All books" &&
-                      filter === "All" && (
+                      collection === "All books" && (
                         <section className="continue-section">
                           <h2>{t("Continue reading")}</h2>
                           <div className="continue-card">
@@ -7181,16 +7232,30 @@ export default function App() {
                         <FolderOpen size={38} />
                         <h2>
                           {query
-                            ? t("No matching documents")
+                            ? shelf === "stories"
+                              ? t("No matching stories")
+                              : t("No matching documents")
                             : collection === "Trash"
                               ? t("Trash is empty")
-                              : t("No documents here")}
+                              : shelf === "stories"
+                                ? t("No stories here")
+                                : t("No documents here")}
                         </h2>
                         <p>
                           {query
                             ? t("Try another title or author.")
-                            : t("Import a file or add text with Quick Read.")}
+                            : collection !== "All books"
+                              ? t("Import a file or add text with Quick Read.")
+                              : shelf === "stories"
+                                ? t("Novels, tales and plays: EPUB, Kindle and FB2 books, or any file you import here.")
+                                : t("PDFs, Word files, web pages, notes and course material. They stay apart from your stories, and Work mode can use them.")}
                         </p>
+                        {!query && collection === "All books" && (
+                          <button className="primary" onClick={() => fileInput.current?.click()} disabled={busy}>
+                            <Upload size={17} />
+                            {shelf === "stories" ? t("Import stories") : t("Import documents")}
+                          </button>
+                        )}
                       </div>
                     )}
                   </>
@@ -7565,12 +7630,10 @@ export default function App() {
             <div
               className="panel-scrim"
               aria-hidden="true"
-              onClick={() =>
-                patchPrefs({
-                  ...(overlayInspector && inspectorOpen ? { rightOpen: false } : {}),
-                  ...(overlayNavigation && navigationOpen ? { leftOpen: false } : {}),
-                })
-              }
+              onClick={() => {
+                if (overlayInspector && inspectorOpen) patchPrefs({ rightOpen: false });
+                if (overlayNavigation && navigationOpen) setCompactLeft(false);
+              }}
             />
           )}
           {inspectorAvailable && (

@@ -20,14 +20,12 @@ export function matchesLibraryFilters(
     )
   )
     return false;
-  const isBook = ["EPUB", "Sample"].includes(book.format);
+  // "Books" and "Documents" were types before the two libraries; they now mean all.
   if (
     filters.type !== "all" &&
-    (filters.type === "Books"
-      ? !isBook
-      : filters.type === "Documents"
-        ? isBook
-        : book.format !== filters.type)
+    filters.type !== "Books" &&
+    filters.type !== "Documents" &&
+    book.format !== filters.type
   )
     return false;
   const finished = bookFinished(book);

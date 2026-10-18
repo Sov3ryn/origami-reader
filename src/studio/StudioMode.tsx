@@ -26,6 +26,18 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
   const [current, setCurrent] = useState<Production | null>(null);
   const [book, setBook] = useState<Book | null>(null);
   const [creating, setCreating] = useState(false);
+  // "Make an audiobook in Studio" from a book's menu in Read mode.
+  const [startWith, setStartWith] = useState("");
+  useEffect(() => {
+    const start = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      if (!id) return;
+      setStartWith(id);
+      setCreating(true);
+    };
+    window.addEventListener("origami:studio-book", start);
+    return () => window.removeEventListener("origami:studio-book", start);
+  }, []);
   const [verifying, setVerifying] = useState(false);
   const [recording, setRecording] = useState(false);
   const [notice, setNotice] = useState("");
@@ -224,10 +236,14 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
       {recording && <RecordingDialog onClose={() => setRecording(false)} onMade={() => setNotice(t("The book is in your library."))} />}
       {creating && (
         <NewProduction
+          initial={startWith}
           books={books}
           voices={usable}
           defaultVoice={prefs.voice}
-          onCancel={() => setCreating(false)}
+          onCancel={() => {
+            setCreating(false);
+            setStartWith("");
+          }}
           onCreate={async (bookId, voice) => {
             const b = await store.readBook(bookId);
             const p = newProduction(b, prefs, voice);
@@ -248,7 +264,9 @@ function NewProduction({
   defaultVoice,
   onCancel,
   onCreate,
+  initial,
 }: {
+  initial?: string;
   books: BookMeta[];
   voices: Voice[];
   defaultVoice: string;
@@ -257,7 +275,7 @@ function NewProduction({
 }) {
   const sorted = useMemo(() => [...books].filter((b) => !b.deleted).sort((a, b) => a.title.localeCompare(b.title)), [books]);
   const [query, setQuery] = useState("");
-  const [bookId, setBookId] = useState(sorted[0]?.id || "");
+  const [bookId, setBookId] = useState((initial && sorted.some((b) => b.id === initial) ? initial : sorted[0]?.id) || "");
   const [voice, setVoice] = useState(voices.find((v) => v.id === defaultVoice)?.id || voices[0]?.id || "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");

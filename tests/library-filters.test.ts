@@ -55,7 +55,7 @@ it("combines author, type and reading state without changing library data", () =
   expect(
     matchesLibraryFilters(base, {
       author: "all",
-      type: "Documents",
+      type: "PDF",
       status: "all",
     }),
   ).toBe(false);

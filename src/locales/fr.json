@@ -2776,5 +2776,20 @@
   "This book is a script: the speakers come from its labels, and the labels are not read.": "Ce livre est un script : les locuteurs viennent de ses étiquettes, qui ne sont pas lues.",
   "Script line": "Ligne du script",
   "Highlight each word": "Surligner chaque mot",
-  "Marks each word as it is read, on its own or inside the highlighted sentence.": "Marque chaque mot pendant la lecture, seul ou dans la phrase surlignée."
+  "Marks each word as it is read, on its own or inside the highlighted sentence.": "Marque chaque mot pendant la lecture, seul ou dans la phrase surlignée.",
+  "{count} stories": "{count} histoires",
+  "{title} is now in Documents.": "{title} est maintenant dans Documents.",
+  "{title} is now in Stories.": "{title} est maintenant dans Histoires.",
+  "1 story": "1 histoire",
+  "All documents": "Tous les documents",
+  "All stories": "Toutes les histoires",
+  "Import stories": "Importer des histoires",
+  "Make an audiobook in Studio": "Faire un livre audio dans le Studio",
+  "Move to Documents": "Déplacer vers Documents",
+  "Move to Stories": "Déplacer vers Histoires",
+  "No matching stories": "Aucune histoire correspondante",
+  "No stories here": "Aucune histoire ici",
+  "Novels, tales and plays: EPUB, Kindle and FB2 books, or any file you import here.": "Romans, contes et pièces : livres EPUB, Kindle et FB2, ou tout fichier importé ici.",
+  "PDFs, Word files, web pages, notes and course material. They stay apart from your stories, and Work mode can use them.": "PDF, fichiers Word, pages web, notes et supports de cours. Ils restent à part de vos histoires, et le mode Travail peut les utiliser.",
+  "Stories": "Histoires"
 }

@@ -128,6 +128,8 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
       const book = await importDocument(new File([md], `${title || "recording"}.md`, { type: "text/markdown" }));
       book.meta.title = title || book.meta.title;
       book.meta.author = author || book.meta.author;
+      // A narrated recording is a story, whatever its format.
+      book.meta.shelf = "stories";
       await store.saveBook(book);
       window.dispatchEvent(new CustomEvent("origami:library-changed"));
       if (open) window.dispatchEvent(new CustomEvent("origami:open-book", { detail: { id: book.meta.id } }));

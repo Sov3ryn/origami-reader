@@ -11,7 +11,10 @@ import {
   Trash2,
   Undo2,
   BriefcaseBusiness,
+  FileText,
+  Clapperboard,
 } from "lucide-react";
+import { shelfOf } from "../libraryShelf";
 import type { BookMeta } from "../types";
 
 export type BookMenuActions = {
@@ -23,6 +26,9 @@ export type BookMenuActions = {
   trash: (book: BookMeta) => void;
   restore: (book: BookMeta) => void;
   work: (book: BookMeta, on: boolean) => void;
+  shelf: (book: BookMeta, shelf: "stories" | "documents") => void;
+  // Make an audiobook of it in Studio (when Studio is available).
+  studio?: (book: BookMeta) => void;
 };
 
 // The "More" menu on each book. It also opens with a right-click on the card.
@@ -210,6 +216,19 @@ export function BookMenu({
                 <BriefcaseBusiness size={15} />
                 {t("Use in Work mode")}
                 {book.work && <Check size={15} />}
+              </button>
+              {actions.studio && (
+                <button role="menuitem" onClick={() => run(() => actions.studio!(book))}>
+                  <Clapperboard size={15} />
+                  {t("Make an audiobook in Studio")}
+                </button>
+              )}
+              <button
+                role="menuitem"
+                onClick={() => run(() => actions.shelf(book, shelfOf(book) === "stories" ? "documents" : "stories"))}
+              >
+                {shelfOf(book) === "stories" ? <FileText size={15} /> : <BookOpen size={15} />}
+                {shelfOf(book) === "stories" ? t("Move to Documents") : t("Move to Stories")}
               </button>
               <div className="book-menu-separator" role="separator" />
               <button
