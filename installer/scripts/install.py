@@ -64,7 +64,7 @@ def windows_shortcut(target, destination):
     env = dict(os.environ, ORIGAMI_LINK=str(destination), ORIGAMI_EXE=str(target))
     code = "$s=(New-Object -ComObject WScript.Shell).CreateShortcut($env:ORIGAMI_LINK); $s.TargetPath=$env:ORIGAMI_EXE; $s.WorkingDirectory=[IO.Path]::GetDirectoryName($env:ORIGAMI_EXE); $s.Save()"
     subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", code],
-                   env=env, check=True, creationflags=0x08000000, capture_output=True)
+                   env=env, check=True, capture_output=True, **HIDDEN)
 
 
 # AMD's PyTorch for Windows (ROCm), installed on request so speech can use a
@@ -82,7 +82,7 @@ ROCM_TORCH = ["torch-2.9.1%2Brocm7.2.1-cp312-cp312-win_amd64.whl",
 
 def enable_amd_speech(base, dest, py):
     """Returns a warning when the AMD runtime could not be used, else None."""
-    hidden = {"creationflags": 0x08000000} if sys.platform == "win32" else {}
+    hidden = HIDDEN
     if len(str(dest / "python")) + 1 + ROCM_LONGEST > 259:
         return ("AMD graphics support needs a shorter install folder (for example C:\\Origami), "
                 "so speech uses the processor. Run setup again with a shorter folder to use the card.")
@@ -157,7 +157,11 @@ def light_voices():
 # against its SHA-256 and put in place. Finished downloads wait in this cache,
 # so a second attempt after a lost connection does not start over.
 CACHE = Path(os.environ.get("LOCALAPPDATA") or tempfile.gettempdir()) / "Origami Setup Downloads"
-HIDDEN = {"creationflags": 0x08000000} if sys.platform == "win32" else {}
+# Child programs get an empty input, never this script's stdin: controls()
+# keeps a read pending on that pipe, and on Windows a child Python that
+# inherits it can block at startup until the read ends (setup froze at
+# "Installing speech packages" with pip loaded and idle).
+HIDDEN = {"stdin": subprocess.DEVNULL, **({"creationflags": 0x08000000} if sys.platform == "win32" else {})}
 
 
 class Progress:
