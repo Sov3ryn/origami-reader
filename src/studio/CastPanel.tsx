@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, Mic2, Play, Sparkles, Square, Users, Wand2 }
 import { t } from "../i18n";
 import * as store from "../storage";
 import type { Voice } from "../types";
-import { analysisStatus, type AnalysisStatus, type CastMember } from "./cast";
+import { analysisStatus, MOODS, type AnalysisStatus, type CastMember } from "./cast";
 import type { Production } from "./production";
 
 // The cast: every character with their colour, lines and voice. Analyse finds
@@ -18,8 +18,10 @@ export function CastPanel({
   onVoice,
   onMerge,
   onDesign,
+  onMood,
 }: {
   onDesign: (character: CastMember) => void;
+  onMood: (character: CastMember, mood: string) => void;
   production: Production;
   voices: Voice[];
   busy: boolean;
@@ -134,6 +136,18 @@ export function CastPanel({
                   <button onClick={() => onDesign(c)} disabled={busy || !status?.ready}>
                     <Wand2 size={13} /> {t("Design a voice from the book")}
                   </button>
+                  <label className="studio-field">
+                    <span>{t("Make a mood version of this voice")}</span>
+                    <select value="" onChange={(e) => e.target.value && onMood(c, e.target.value)} disabled={busy}>
+                      <option value="">{t("Choose a mood")}</option>
+                      {MOODS.map(([id, label]) => (
+                        <option key={id} value={id}>
+                          {t(label)}
+                        </option>
+                      ))}
+                    </select>
+                    <small className="muted">{t("Opens the voice designer with this voice's description and one of the character's lines. A mood version is a new voice close to this one: listen before saving it, then choose it for the lines that need it.")}</small>
+                  </label>
                   <label className="studio-field">
                     <span>{t("Same person as")}</span>
                     <select value="" onChange={(e) => e.target.value && onMerge(c.id, e.target.value)}>

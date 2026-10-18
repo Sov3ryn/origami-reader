@@ -2740,5 +2740,19 @@
   "Classic: centred small capitals and drop caps": "Classique : petites capitales centrées et lettrines",
   "Design": "Mise en page",
   "Elegant: italic titles and ornaments": "Élégante : titres en italique et ornements",
-  "Modern: flush left, large chapter numbers": "Moderne : alignée à gauche, grands numéros de chapitre"
+  "Modern: flush left, large chapter numbers": "Moderne : alignée à gauche, grands numéros de chapitre",
+  "{name} (usual)": "{name} (habituelle)",
+  "Afraid": "Apeurée",
+  "Angry": "En colère",
+  "Choose a mood": "Choisir une humeur",
+  "Joyful": "Joyeuse",
+  "Make a mood version of this voice": "Créer une version de cette voix avec une humeur",
+  "Opens the voice designer with this voice's description and one of the character's lines. A mood version is a new voice close to this one: listen before saving it, then choose it for the lines that need it.": "Ouvre le créateur de voix avec la description de cette voix et une réplique du personnage. Une version avec une humeur est une nouvelle voix proche de celle-ci : écoutez-la avant de l’enregistrer, puis choisissez-la pour les lignes qui en ont besoin.",
+  "Other voices": "Autres voix",
+  "Sad": "Triste",
+  "Tender": "Tendre",
+  "This line has its own voice. A new take is made when you change it.": "Cette ligne a sa propre voix. Une nouvelle prise est faite quand vous la changez.",
+  "Versions of this voice": "Versions de cette voix",
+  "Voice for this line": "Voix pour cette ligne",
+  "Whispering": "Chuchotée"
 }

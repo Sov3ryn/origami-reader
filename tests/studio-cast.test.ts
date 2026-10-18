@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { castUnits, cleanRoster, conversations, lineCounts, mergeRoster, suggestVoices, type Attributed, type CastMember } from "../src/studio/cast";
+import { castUnits, cleanRoster, conversations, lineCounts, mergeRoster, moodDraft, suggestVoices, type Attributed, type CastMember } from "../src/studio/cast";
 import { findSpeech } from "../src/studio/dialogue";
 import type { ProductionUnit } from "../src/studio/production";
 import { defaultPreferences, type Book, type Voice } from "../src/types";
@@ -98,5 +98,17 @@ describe("script cut into narration and speech", () => {
     const kept = units.find((u) => u.paragraph === 2)!;
     expect(kept).toMatchObject({ id: "p2-u0", status: "approved", take: "t1" });
     expect(units[0].heading).toBe(true);
+  });
+});
+
+describe("mood versions", () => {
+  it("describe the same voice with the mood, read on the character's line", () => {
+    const c: CastMember = { id: "c1", name: "Mrs. Bennet", aliases: [], gender: "f", voice: "v1", color: "#000" };
+    const d = moodDraft(c, { name: "Mara", description: "Warm, slightly husky middle-aged voice", gender: "female" }, "whispering", "Oh! Mr. Bennet, you take delight in vexing me.", "fr", "whispering");
+    expect(d.name).toBe("Mara, whispering");
+    expect(d.prompt).toBe("A female voice. Warm, slightly husky middle-aged voice. Whispering, hushed and breathy, very quiet and close to the listener.");
+    expect(d.text).toContain("vexing");
+    expect(d.language).toBe("French");
+    expect(moodDraft({ ...c, gender: "?" }, undefined, "angry", "No.", "en", "angry").prompt).toBe("Speaking angrily, loud and sharp, with tension in the voice.");
   });
 });

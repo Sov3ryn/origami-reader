@@ -415,6 +415,32 @@ export function passagesAbout(paragraphs: string[], c: Pick<CastMember, "name" |
 
 /** A voice-designer draft for a character: a short description written by the analysis
  * model from the book's own passages, and one of the character's lines to try it on. */
+// Delivery (phase 0, section 2): written instructions are ignored by cloned voices,
+// but the voice designer can make "the same voice, whispering", which really changes
+// how lines are said. The prompts stay in English, the designer's language.
+export const MOODS: [id: string, label: string, prompt: string][] = [
+  ["whispering", "Whispering", "Whispering, hushed and breathy, very quiet and close to the listener."],
+  ["angry", "Angry", "Speaking angrily, loud and sharp, with tension in the voice."],
+  ["sad", "Sad", "Speaking sadly, slow and low, the voice heavy and close to tears."],
+  ["joyful", "Joyful", "Speaking joyfully, bright and lively, smiling through the words."],
+  ["fearful", "Afraid", "Speaking fearfully, trembling and hurried, the breath unsteady."],
+  ["tender", "Tender", "Speaking tenderly, soft and warm, gentle and slow."],
+];
+
+/** A voice designer draft for a mood version of a character's voice, read on one of their own lines. */
+export function moodDraft(c: CastMember, voice: { name: string; description: string; gender: string } | undefined, mood: string, line: string, language: string, label: string) {
+  const prompt = MOODS.find((m) => m[0] === mood)?.[2] || "";
+  const gender = voice?.gender === "female" || voice?.gender === "male" ? voice.gender : c.gender === "f" ? "female" : c.gender === "m" ? "male" : "unspecified";
+  const base = (voice?.description || "").replace(/\s+/g, " ").trim();
+  return {
+    name: `${voice?.name || c.name}, ${label}`,
+    prompt: [gender !== "unspecified" ? `A ${gender} voice.` : "", base ? base.replace(/[.]?$/, ".") : "", prompt].filter(Boolean).join(" "),
+    text: line.slice(0, 300),
+    language: DESIGN_LANGUAGES[(language || "en").slice(0, 2).toLowerCase()] || "English",
+    gender,
+  };
+}
+
 export async function designDraft(c: CastMember, paragraphs: string[], line: string, language: string) {
   const schema = {
     type: "object",

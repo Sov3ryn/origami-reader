@@ -27,7 +27,7 @@ import type { Book, Preferences, Voice } from "../types";
 import { CastPanel } from "./CastPanel";
 import { WordsPanel } from "./WordsPanel";
 import { applyPronunciation, type Pronunciation } from "./pronounce";
-import { analyse, castColor, castUnits, conversations, designDraft, lineCounts, stopAnalysis, suggestVoices, type CastMember } from "./cast";
+import { analyse, castColor, castUnits, conversations, designDraft, lineCounts, MOODS, moodDraft, stopAnalysis, suggestVoices, type CastMember } from "./cast";
 import {
   cancelRender,
   chapterTitles,
@@ -315,6 +315,24 @@ export function ProductionView({
       setAnalysisNote("");
     }
   }
+  // A mood version of a character's voice, made in the voice designer.
+  function moodVoice(c: CastMember, mood: string) {
+    const line = units.find((u) => u.speaker === c.id && u.text.length > 30)?.text || units.find((u) => u.speaker === c.id)?.text || "";
+    const label = t(MOODS.find((m) => m[0] === mood)?.[1] || mood).toLowerCase();
+    const draft = moodDraft(c, voices.find((v) => v.id === c.voice), mood, line, info.language, label);
+    try {
+      localStorage.setItem("origami.voice-design.draft", JSON.stringify(draft));
+      localStorage.setItem("origami.voice-design.mode", "write");
+    } catch {
+      // Without storage the designer opens on its last draft.
+    }
+    window.dispatchEvent(new CustomEvent("origami:design-voice"));
+  }
+  // One line read by another voice (a mood version, say), then a new take.
+  async function setLineVoice(u: ProductionUnit, voice: string) {
+    await saveUnits([{ ...u, voice, status: u.status === "approved" ? "rendered" : u.status }]);
+    void render({ units: [u.id] });
+  }
   // A line's speaker; the rest of that piece of speech follows.
   async function setSpeaker(u: ProductionUnit, speaker: string) {
     const voice = speaker ? castById.get(speaker)?.voice : undefined;
@@ -329,8 +347,10 @@ export function ProductionView({
     const cast = (info.cast || []).map((c) => (c.id === character ? { ...c, voice } : c));
     const nextInfo = { ...info, cast, updated: Date.now() };
     await saveProductionInfo(nextInfo);
+    // Lines given another voice (a mood version) keep it.
+    const before = (info.cast || []).find((c) => c.id === character)?.voice;
     const changed = units
-      .filter((u) => u.speaker === character)
+      .filter((u) => u.speaker === character && (!u.voice || u.voice === before))
       .map((u) => ({ ...u, voice, status: u.take && u.status !== "approved" ? ("pending" as const) : u.status }));
     await saveProductionUnits(info.id, changed);
     const byId = new Map(changed.map((u) => [u.id, u]));
@@ -529,6 +549,7 @@ export function ProductionView({
               onVoice={(c, v) => void setCharacterVoice(c, v)}
               onMerge={(a, b) => void mergeCharacters(a, b)}
               onDesign={(c) => void designVoice(c)}
+              onMood={(c, mood) => moodVoice(c, mood)}
             />
           ) : (
           <ol className="studio-chapter-list">
@@ -629,6 +650,8 @@ export function ProductionView({
               cast={info.cast || []}
               chapterSpeakers={chapterSpeakers}
               onSpeaker={(who) => void setSpeaker(unit, who)}
+              voices={voices}
+              onVoice={(v) => void setLineVoice(unit, v)}
             />
           ) : (
             <Overview
@@ -724,7 +747,11 @@ function LineInspector({
   chapterSpeakers,
   onSpeaker,
   onPause,
+  voices,
+  onVoice,
 }: {
+  voices: Voice[];
+  onVoice: (voice: string) => void;
   onPause: (pause: ProductionUnit["pause"]) => void;
   cast: CastMember[];
   chapterSpeakers: string[];
@@ -795,6 +822,7 @@ function LineInspector({
           )}
         </div>
       )}
+      <LineVoice production={production} unit={unit} cast={cast} voices={voices} onVoice={onVoice} disabled={rendering} />
       <label className="studio-field">
         <span>{t("Spoken text")}</span>
         <textarea
@@ -1059,5 +1087,43 @@ function PortableCopy({ id }: { id: string }) {
         </p>
       )}
     </div>
+  );
+}
+
+// The voice that reads one line: the usual voice of its speaker, or another one
+// such as a mood version ("Mara, whispering"). Versions of the usual voice come first.
+function LineVoice({ production, unit, cast, voices, onVoice, disabled }: { production: Production; unit: ProductionUnit; cast: CastMember[]; voices: Voice[]; onVoice: (voice: string) => void; disabled: boolean }) {
+  const usual = (unit.speaker && cast.find((c) => c.id === unit.speaker)?.voice) || production.info.voice;
+  const current = unit.voice || usual;
+  const usualName = voices.find((v) => v.id === usual)?.name || usual;
+  const who = unit.speaker ? cast.find((c) => c.id === unit.speaker)?.name : "";
+  const related = (v: Voice) => v.id !== usual && (v.name.startsWith(usualName + ",") || (who ? v.name.startsWith(who + ",") : false));
+  const versions = voices.filter(related);
+  const others = voices.filter((v) => v.id !== usual && !related(v));
+  return (
+    <label className="studio-field">
+      <span>{t("Voice for this line")}</span>
+      <select value={current} onChange={(e) => onVoice(e.target.value)} disabled={disabled}>
+        <option value={usual}>{t("{name} (usual)", { name: usualName })}</option>
+        {versions.length > 0 && (
+          <optgroup label={t("Versions of this voice")}>
+            {versions.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        <optgroup label={t("Other voices")}>
+          {!voices.some((v) => v.id === current) && current !== usual && <option value={current}>{current}</option>}
+          {others.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.name}
+            </option>
+          ))}
+        </optgroup>
+      </select>
+      {current !== usual && <small className="muted">{t("This line has its own voice. A new take is made when you change it.")}</small>}
+    </label>
   );
 }
