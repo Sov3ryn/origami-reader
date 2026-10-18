@@ -160,7 +160,7 @@ pub fn add_takes(data: &Path, id: &str, takes: &[Value]) -> Result<()> {
 
 /// A take's audio file, read for playback.
 pub fn take_audio(data: &Path, id: &str, file: &str) -> Result<Vec<u8>> {
-    if !file.ends_with(".wav") || file.contains(['/', '\\']) || file.contains("..") {
+    if !(file.ends_with(".wav") || file.ends_with(".flac")) || file.contains(['/', '\\']) || file.contains("..") {
         return Err("Unknown take.".into());
     }
     std::fs::read(takes_dir(data, id)?.join(file)).map_err(|e| e.to_string())

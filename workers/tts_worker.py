@@ -303,6 +303,37 @@ def main():
             output.writeframes((np.clip(audio, -1, 1) * 32767).astype("<i2").tobytes())
         os.replace(tmp, path)
 
+    def write_take(out_dir, name, audio, rate):
+        """A Studio take: FLAC when soundfile is installed (half the size of
+        WAV, lossless), else WAV. Written to a temporary name, then renamed."""
+        try:
+            import soundfile
+        except ImportError:
+            soundfile = None
+        if soundfile is None:
+            path = out_dir / f"{name}.wav"
+            write_wav(path, audio, rate)
+            return path
+        path = out_dir / f"{name}.flac"
+        tmp = out_dir / f"{name}.tmp.flac"
+        soundfile.write(str(tmp), np.clip(audio, -1, 1), rate, subtype="PCM_16", format="FLAC")
+        os.replace(tmp, path)
+        return path
+
+    def take_checks(audio, rate):
+        """Measurements for Studio's automatic checks: peak and RMS in dBFS,
+        and the silence before and after the speech in seconds."""
+        a = np.abs(np.asarray(audio, dtype=np.float32))
+        if not a.size:
+            return {"peak": -120.0, "rms": -120.0, "lead": 0.0, "trail": 0.0}
+        peak = float(a.max())
+        rms = float(np.sqrt(np.mean(np.square(a, dtype=np.float64))))
+        loud = np.flatnonzero(a > max(0.02, peak * 0.05))
+        lead = float(loud[0] / rate) if loud.size else len(a) / rate
+        trail = float((len(a) - 1 - loud[-1]) / rate) if loud.size else 0.0
+        db = lambda v: round(20 * float(np.log10(max(v, 1e-6))), 1)
+        return {"peak": db(peak), "rms": db(rms), "lead": round(lead, 2), "trail": round(trail, 2)}
+
     def render_batch(request):
         nonlocal batched
         items = request["items"]
@@ -333,9 +364,10 @@ def main():
                 a, rate = generate(request, t, temp, b)
                 outputs.append((a, bool(a.size) and not overran(a.size / rate, b, frame_rate)))
         for item, (a, ended) in zip(items, outputs):
-            path = out_dir / f"{item['take']}.wav"
-            write_wav(path, np.asarray(a, dtype=np.float32).reshape(-1), rate)
-            results.append({"id": item["id"], "take": item["take"], "file": path.name, "duration": len(a) / rate, "ended": bool(ended)})
+            a = np.asarray(a, dtype=np.float32).reshape(-1)
+            path = write_take(out_dir, item["take"], a, rate)
+            results.append({"id": item["id"], "take": item["take"], "file": path.name, "duration": len(a) / rate,
+                            "ended": bool(ended), "rate": rate, "checks": take_checks(a, rate)})
         return {"event": "rendered", "items": results, "batched": bool(fast)}
 
     for line in sys.stdin:

@@ -406,7 +406,7 @@ export function VoiceStudio({
               </label>
             </div>
             <div
-              className="studio-mode"
+              className="voice-design-mode"
               role="tablist"
               aria-label={t("How to describe the voice")}
             >

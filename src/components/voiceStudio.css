@@ -542,7 +542,7 @@
 }
 
 /* Three ways to describe the voice. */
-.studio-mode {
+.voice-design-mode {
   display: flex;
   gap: 4px;
   padding: 4px;
@@ -550,7 +550,7 @@
   border: 1px solid var(--line);
   border-radius: 12px;
 }
-.studio-mode button {
+.voice-design-mode button {
   flex: 1;
   display: inline-flex;
   align-items: center;
@@ -562,7 +562,7 @@
   font-size: 12.5px;
   border-radius: 9px;
 }
-.studio-mode button[aria-selected="true"] {
+.voice-design-mode button[aria-selected="true"] {
   background: color-mix(in srgb, var(--accent) 20%, transparent);
   color: var(--ink);
   box-shadow: inset 0 0 0 1px var(--accent);

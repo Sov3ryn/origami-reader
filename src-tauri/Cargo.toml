@@ -35,12 +35,24 @@ sha2 = "0.10"
 # Updates: Ed25519-signed component lists and zip packages (see docs/UPDATES.md).
 ed25519-dalek = "2"
 zip = { version = "2", default-features = false, features = ["deflate"] }
+# Studio audiobook export (src/studio_audio.rs): FLAC and WAV takes, resampling,
+# MPEG-4 and ID3 tags with chapters, and the square cover.
+claxon = "0.4"
+hound = "3.5"
+rubato = "5.0.1"
+mp4ameta = "0.13"
+id3 = "1.17"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+# Studio print PDFs (src/studio_book.rs): Typst as a library, sandboxed.
+typst = "0.15.1"
+typst-pdf = "0.15.1"
+typst-layout = "0.15.1"
 
 [dev-dependencies]
 tempfile = "3"
 
 # Handwriting recognition with the recogniser built into Windows (src/ink.rs).
 [target.'cfg(windows)'.dependencies]
-windows = { version = "0.62", features = ["UI_Input_Inking", "Foundation_Collections", "Foundation_Numerics"] }
+windows = { version = "0.62", features = ["UI_Input_Inking", "Foundation_Collections", "Foundation_Numerics", "Win32_Foundation", "Win32_Media_MediaFoundation", "Win32_System_Com", "Win32_System_Com_StructuredStorage", "Win32_System_Variant", "Win32_UI_Shell_PropertiesSystem"] }
 windows-collections = "0.3"
 windows-numerics = "0.3"

@@ -9,6 +9,8 @@ mod models;
 mod speech;
 mod store;
 mod studio;
+mod studio_audio;
+mod studio_book;
 mod update;
 mod vault;
 mod voice_studio;
@@ -338,7 +340,7 @@ struct StudioJob {
 }
 const STUDIO_BATCH: usize = 8;
 #[tauri::command]
-fn studio_render(app: tauri::AppHandle, job: State<StudioJob>, id: String, chapter: Option<i64>) -> Result<()> {
+fn studio_render(app: tauri::AppHandle, job: State<StudioJob>, id: String, chapter: Option<i64>, units: Option<Vec<String>>) -> Result<()> {
     use std::sync::atomic::Ordering;
     use tauri::Emitter;
     if job.running.swap(true, Ordering::SeqCst) {
@@ -346,6 +348,8 @@ fn studio_render(app: tauri::AppHandle, job: State<StudioJob>, id: String, chapt
     }
     job.cancel.store(false, Ordering::SeqCst);
     let data = data_root(&app)?;
+    // Chosen lines (regenerate) are rendered once each, whatever their status.
+    let mut chosen: Option<std::collections::VecDeque<String>> = units.map(|u| u.into_iter().collect());
     std::thread::spawn(move || {
         let job = app.state::<StudioJob>();
         let outcome = (|| -> Result<()> {
@@ -358,8 +362,16 @@ fn studio_render(app: tauri::AppHandle, job: State<StudioJob>, id: String, chapt
                 let units = p["units"].as_array().cloned().unwrap_or_default();
                 let total = units.len();
                 let pending = |u: &&Value| u["status"] == "pending";
-                let mut batch: Vec<&Value> = units.iter().filter(pending).filter(|u| chapter.map_or(true, |c| u["chapter"].as_i64() == Some(c))).take(STUDIO_BATCH).collect();
-                if batch.is_empty() && chapter.is_some() {
+                let mut batch: Vec<&Value> = if let Some(queue) = chosen.as_mut() {
+                    let next: Vec<String> = (0..STUDIO_BATCH).filter_map(|_| queue.pop_front()).collect();
+                    if next.is_empty() {
+                        return Ok(());
+                    }
+                    units.iter().filter(|u| next.iter().any(|n| u["id"].as_str() == Some(n))).collect()
+                } else {
+                    units.iter().filter(pending).filter(|u| chapter.map_or(true, |c| u["chapter"].as_i64() == Some(c))).take(STUDIO_BATCH).collect()
+                };
+                if batch.is_empty() && (chapter.is_some() || chosen.is_some()) {
                     return Ok(());
                 }
                 if batch.is_empty() {
@@ -385,11 +397,12 @@ fn studio_render(app: tauri::AppHandle, job: State<StudioJob>, id: String, chapt
                     .zip(items.iter())
                     .map(|(r, item)| serde_json::json!({
                         "id": r["take"], "unit": r["id"], "file": r["file"], "duration": r["duration"], "ended": r["ended"],
+                        "rate": r["rate"], "checks": r["checks"],
                         "seed": item["seed"], "voice": voice, "text": item["text"], "created": now as f64, "model": ""
                     }))
                     .collect();
                 studio::add_takes(&data, &id, &takes)?;
-                let done = total - units.iter().filter(pending).count() + takes.len();
+                let done = if chosen.is_some() { total - units.iter().filter(pending).count() } else { total - units.iter().filter(pending).count() + takes.len() };
                 let _ = app.emit("studio-progress", serde_json::json!({"id": id, "done": done, "total": total}));
             }
         })();
@@ -414,6 +427,198 @@ fn studio_render_running(job: State<StudioJob>) -> bool {
 fn studio_take_audio(app: tauri::AppHandle, id: String, file: String) -> Result<String> {
     Ok(STANDARD.encode(studio::take_audio(&data_root(&app)?, &id, &file)?))
 }
+#[tauri::command]
+async fn studio_choose_folder() -> Option<String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        rfd::FileDialog::new().set_title("Choose where to save the export").pick_folder().map(|p| p.to_string_lossy().into_owned())
+    })
+    .await
+    .ok()
+    .flatten()
+}
+#[tauri::command]
+fn studio_reveal(path: String) -> Result<()> {
+    let p = std::path::PathBuf::from(&path);
+    if !p.exists() {
+        return Err("This file is no longer there.".into());
+    }
+    #[cfg(windows)]
+    {
+        std::process::Command::new("explorer.exe").arg(format!("/select,{}", p.display())).spawn().map(|_| ()).map_err(|e| e.to_string())
+    }
+    #[cfg(not(windows))]
+    {
+        let dir = p.parent().map(|d| d.to_path_buf()).unwrap_or(p);
+        std::process::Command::new(if cfg!(target_os = "macos") { "open" } else { "xdg-open" }).arg(dir).spawn().map(|_| ()).map_err(|e| e.to_string())
+    }
+}
+// Studio export: one at a time, in the background, with progress events.
+#[derive(Default)]
+struct ExportJob {
+    running: std::sync::atomic::AtomicBool,
+    cancel: std::sync::atomic::AtomicBool,
+}
+/// Where the AudioSeal watermark model is kept (Models/audioseal in the data folder).
+fn watermark_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf> {
+    Ok(data_root(app)?.join("Models").join("audioseal"))
+}
+#[tauri::command]
+fn studio_watermark_ready(app: tauri::AppHandle) -> bool {
+    watermark_dir(&app).map(|d| d.join("audioseal_generator_5s.onnx").is_file()).unwrap_or(false) && embed::runtime_available(&app)
+}
+#[tauri::command]
+fn studio_cancel_export(job: State<ExportJob>) {
+    job.cancel.store(true, std::sync::atomic::Ordering::SeqCst);
+}
+#[tauri::command]
+fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, options: Value) -> Result<()> {
+    use std::sync::atomic::Ordering;
+    use tauri::Emitter;
+    if job.running.swap(true, Ordering::SeqCst) {
+        return Err("An export is already running.".into());
+    }
+    job.cancel.store(false, Ordering::SeqCst);
+    let data = data_root(&app)?;
+    std::thread::spawn(move || {
+        let job = app.state::<ExportJob>();
+        let progress = |step: String, value: f64| {
+            let _ = app.emit("studio-export-progress", serde_json::json!({"id": id, "step": step, "value": value}));
+        };
+        let cancelled = || job.cancel.load(Ordering::SeqCst);
+        let outcome = (|| -> Result<Value> {
+            let folder = std::path::PathBuf::from(options["folder"].as_str().ok_or("Choose a folder first.")?);
+            if !folder.is_dir() {
+                return Err("The chosen folder is not available.".into());
+            }
+            let flag = |k: &str| options[k].as_bool().unwrap_or(false);
+            let p = studio::read(&data, &id)?;
+            let takes_dir = studio::takes_dir(&data, &id)?;
+            let meta_in = &options["meta"];
+            let text = |v: &Value| v.as_str().unwrap_or_default().to_string();
+            let title = text(&meta_in["title"]);
+            let mut message = [0u8; 2];
+            getrandom::getrandom(&mut message).map_err(|e| e.to_string())?;
+            let message = u16::from_be_bytes(message);
+            let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
+            let export_id = format!("OS-{message:04X}-{now:x}");
+            let cover_raw = options["cover"].as_str().and_then(|c| STANDARD.decode(c).ok());
+            let mut files: Vec<std::path::PathBuf> = Vec::new();
+            let mut report = Vec::new();
+            if flag("m4b") || flag("mp3") {
+                let wm_dir = watermark_dir(&app)?;
+                if !wm_dir.join("audioseal_generator_5s.onnx").is_file() {
+                    return Err("The watermark model is missing, so audio cannot be exported yet.".into());
+                }
+                let watermark = studio_audio::Watermark::open(&wm_dir, embed::runtime_env(&app)?)?;
+                // The chosen take of every unit, chapter by chapter, with the review player's pauses.
+                let units = p["units"].as_array().cloned().unwrap_or_default();
+                let takes: std::collections::HashMap<String, Value> = p["takes"]
+                    .as_array()
+                    .cloned()
+                    .unwrap_or_default()
+                    .into_iter()
+                    .map(|t| (t["id"].as_str().unwrap_or_default().to_string(), t))
+                    .collect();
+                let mut plans: Vec<studio_audio::ChapterPlan> = Vec::new();
+                let mut current: Option<i64> = None;
+                for (i, u) in units.iter().enumerate() {
+                    let chapter = u["chapter"].as_i64().unwrap_or(0);
+                    if current != Some(chapter) {
+                        let name = options["titles"][chapter.to_string()].as_str().map(str::to_string).unwrap_or_else(|| format!("Chapter {}", chapter + 1));
+                        plans.push(studio_audio::ChapterPlan { title: name, takes: Vec::new() });
+                        current = Some(chapter);
+                    }
+                    let Some(take) = u["take"].as_str().and_then(|t| takes.get(t)) else { continue };
+                    let path = takes_dir.join(take["file"].as_str().unwrap_or_default());
+                    if !path.is_file() {
+                        continue;
+                    }
+                    let next = units.get(i + 1).filter(|n| n["chapter"] == u["chapter"]);
+                    let gap = match next {
+                        None => 0.0,
+                        Some(n) if u["heading"] == true || n["heading"] == true => 1.2,
+                        Some(n) if n["paragraph"] == u["paragraph"] => 0.25,
+                        Some(_) => 0.65,
+                    };
+                    plans.last_mut().unwrap().takes.push((path, gap));
+                }
+                plans.retain(|c| !c.takes.is_empty());
+                // Opening credits, spoken by the narrator: title, author, the AI disclosure and the credit.
+                let credit = text(&options["credit"]);
+                if !credit.is_empty() {
+                    progress("Recording the opening credits".into(), 0.01);
+                    let voice = p["info"]["voice"].as_str().unwrap_or_default().to_string();
+                    let item = serde_json::json!([{"id": "credit", "text": credit, "seed": 7, "take": format!("credit-{now}")}]);
+                    let speech = app.state::<speech::Speech>();
+                    let result = speech.render(app.clone(), voice, item, &takes_dir, None)?;
+                    let file = result["items"][0]["file"].as_str().ok_or("The opening credits could not be recorded.")?;
+                    plans.insert(0, studio_audio::ChapterPlan { title: text(&options["creditTitle"]), takes: vec![(takes_dir.join(file), 0.0)] });
+                }
+                let cover = match &cover_raw {
+                    Some(raw) => studio_audio::square_cover(raw).ok(),
+                    None => None,
+                };
+                let (written, levels) = studio_audio::export(studio_audio::AudioJob {
+                    chapters: plans,
+                    meta: studio_audio::Meta {
+                        title: title.clone(),
+                        author: text(&meta_in["author"]),
+                        narrator: text(&meta_in["narrator"]),
+                        year: text(&meta_in["year"]),
+                        export_id: export_id.clone(),
+                    },
+                    cover,
+                    folder: folder.clone(),
+                    m4b: flag("m4b"),
+                    mp3: flag("mp3"),
+                    watermark: Some(watermark),
+                    message,
+                    progress: &|s, v| progress(s, v * 0.85),
+                    cancelled: &cancelled,
+                })?;
+                files.extend(written);
+                report = levels;
+            }
+            if flag("epub") || flag("pdf") {
+                let manuscript: studio_book::Manuscript = serde_json::from_value(options["manuscript"].clone()).map_err(|e| format!("The book could not be read: {e}"))?;
+                let stem = studio_audio::safe_name(&title);
+                if flag("epub") {
+                    progress("Writing the ebook".into(), 0.88);
+                    let cover = cover_raw.as_deref().and_then(|c| studio_audio::jpeg(c).ok());
+                    let path = studio_audio::free_path(&folder, &stem, "epub");
+                    studio_book::epub(&manuscript, cover.as_deref(), &export_id, &path)?;
+                    files.push(path);
+                }
+                if cancelled() {
+                    return Err("cancelled".into());
+                }
+                if flag("pdf") {
+                    progress("Typesetting the print book".into(), 0.92);
+                    let print: studio_book::PrintOptions = serde_json::from_value(options["print"].clone())
+                        .unwrap_or(studio_book::PrintOptions { trim: (5.5, 8.5), font: "EB Garamond".into(), bleed: false, large: false });
+                    let path = studio_audio::free_path(&folder, &format!("{stem} (print)"), "pdf");
+                    studio_book::pdf(&manuscript, &print, &path)?;
+                    files.push(path);
+                }
+            }
+            // Kept with the production so "Verify a file" can recognise the watermark later.
+            let mut info = p["info"].clone();
+            let mut exports = info["exports"].as_array().cloned().unwrap_or_default();
+            exports.push(serde_json::json!({"id": export_id, "message": message, "date": now as f64, "files": files.iter().map(|f| f.to_string_lossy()).collect::<Vec<_>>()}));
+            info["exports"] = Value::Array(exports);
+            studio::save_info(&data, info)?;
+            Ok(serde_json::json!({"files": files.iter().map(|f| f.to_string_lossy()).collect::<Vec<_>>(), "report": report, "exportId": export_id}))
+        })();
+        job.running.store(false, Ordering::SeqCst);
+        let _ = app.emit("studio-export-done", match outcome {
+            Ok(v) => serde_json::json!({"id": id, "ok": true, "result": v}),
+            Err(e) if e == "cancelled" => serde_json::json!({"id": id, "ok": false, "cancelled": true}),
+            Err(e) => serde_json::json!({"id": id, "ok": false, "message": e}),
+        });
+    });
+    Ok(())
+}
+
 #[tauri::command]
 fn delete_work(db: State<Database>, ids: Vec<String>) -> Result<()> {
     db.0.lock()
@@ -905,6 +1110,7 @@ pub fn run() {
             app.manage(Database(Mutex::new(db)));
             app.manage(speech::Speech::default());
             app.manage(StudioJob::default());
+            app.manage(ExportJob::default());
             app.manage(covers::Covers::default());
             app.manage(voice_studio::Studio::default());
             app.manage(embed::Embedder::default());
@@ -918,6 +1124,7 @@ pub fn run() {
             voice_studio_state, design_voice, cancel_voice_design, voice_preview_audio, update_voice_preview, delete_voice_preview, save_designed_voice, export_voice_preview,
             list_books,
             list_productions, create_production, read_production, save_production_info, save_production_units, delete_production, studio_render, studio_cancel_render, studio_render_running, studio_take_audio,
+            studio_choose_folder, studio_reveal, studio_watermark_ready, studio_cancel_export, studio_export,
             starter_library_installed,
             install_starter_library,
             read_book,

@@ -1,0 +1,674 @@
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { listen } from "@tauri-apps/api/event";
+import {
+  ArrowLeft,
+  Check,
+  ChevronRight,
+  Download,
+  Flag,
+  Lock,
+  PanelLeft,
+  PanelRight,
+  Pause,
+  Play,
+  RotateCcw,
+  SkipBack,
+  SkipForward,
+  Sparkles,
+  Square,
+  Trash2,
+  Undo2,
+  Wand2,
+} from "lucide-react";
+import { t } from "../i18n";
+import type { Book, Voice } from "../types";
+import {
+  cancelRender,
+  chapterTitles,
+  chosenTake,
+  clock,
+  editUnit,
+  issueText,
+  readProduction,
+  renderRunning,
+  saveProductionInfo,
+  saveProductionUnits,
+  spokenLength,
+  startRender,
+  takeIssues,
+  takesOf,
+  typicalPace,
+  type Issue,
+  type Production,
+  type ProductionUnit,
+  type RenderDone,
+  type RenderProgress,
+} from "./production";
+import { usePlayback } from "./usePlayback";
+import { ExportDialog } from "./ExportDialog";
+
+type Filter = "all" | "review" | "pending";
+
+export function ProductionView({
+  production,
+  book,
+  voices,
+  modeSwitch,
+  onBack,
+  onChange,
+  onDelete,
+}: {
+  production: Production;
+  book: Book | null;
+  voices: Voice[];
+  modeSwitch: ReactNode;
+  onBack: () => void;
+  onChange: (p: Production) => void;
+  onDelete: () => Promise<void>;
+}) {
+  const { info, units } = production;
+  const typical = useMemo(() => typicalPace(production.takes), [production.takes]);
+  const issues = useMemo(() => {
+    const map = new Map<string, Issue[]>();
+    for (const u of units) {
+      const found = takeIssues(chosenTake(production, u), u, typical);
+      if (found.length && u.status !== "approved") map.set(u.id, found);
+    }
+    return map;
+  }, [production, units, typical]);
+  const chapters = useMemo(() => {
+    const map = new Map<number, { units: ProductionUnit[]; rendered: number; approved: number; review: number }>();
+    for (const u of units) {
+      const c = map.get(u.chapter) ?? { units: [], rendered: 0, approved: 0, review: 0 };
+      c.units.push(u);
+      if (u.take && u.status !== "pending") c.rendered++;
+      if (u.status === "approved") c.approved++;
+      if (issues.has(u.id)) c.review++;
+      map.set(u.chapter, c);
+    }
+    return [...map.entries()].sort((a, b) => a[0] - b[0]);
+  }, [units, issues]);
+  const titles = useMemo(() => {
+    const fromBook = book ? chapterTitles(book) : new Map<number, string>();
+    for (const u of units) if (u.heading && !fromBook.has(u.chapter)) fromBook.set(u.chapter, u.text.slice(0, 80));
+    return fromBook;
+  }, [book, units]);
+  const chapterName = (c: number) => titles.get(c) || t("Chapter {n}", { n: String(c + 1) });
+
+  const [chapter, setChapter] = useState(chapters[0]?.[0] ?? 0);
+  const [selected, setSelected] = useState("");
+  const [filter, setFilter] = useState<Filter>("all");
+  const [left, setLeft] = useState(true);
+  const [right, setRight] = useState(true);
+  const [rendering, setRendering] = useState(false);
+  const [progressNote, setProgressNote] = useState("");
+  const [status, setStatus] = useState("");
+  const [exporting, setExporting] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const started = useRef<{ at: number; done: number } | null>(null);
+  const script = useRef<HTMLDivElement>(null);
+
+  const chapterUnits = useMemo(() => units.filter((u) => u.chapter === chapter), [units, chapter]);
+  const playback = usePlayback(production, chapterUnits, (id) => {
+    setSelected(id);
+    script.current?.querySelector(`[data-unit="${id}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+  });
+  const unit = units.find((u) => u.id === selected);
+
+  const counts = useMemo(() => {
+    const rendered = units.filter((u) => u.take && u.status !== "pending").length;
+    return { rendered, approved: units.filter((u) => u.status === "approved").length, review: issues.size, pending: units.length - rendered };
+  }, [units, issues]);
+
+  async function reload() {
+    onChange(await readProduction(info.id));
+  }
+  useEffect(() => {
+    void renderRunning().then(setRendering);
+    const off = [
+      listen<RenderProgress>("studio-progress", (e) => {
+        if (e.payload.id !== info.id) return;
+        const now = Date.now();
+        if (!started.current) started.current = { at: now, done: e.payload.done };
+        const s = started.current;
+        const rate = (e.payload.done - s.done) / Math.max(1, (now - s.at) / 1000);
+        const left = e.payload.total - e.payload.done;
+        const eta = rate > 0 ? t(" · about {time} left", { time: clock(left / rate) }) : "";
+        setProgressNote(t("{done} of {total} lines", { done: String(e.payload.done), total: String(e.payload.total) }) + eta);
+        void reload();
+      }),
+      listen<RenderDone>("studio-render-done", (e) => {
+        if (e.payload.id !== info.id) return;
+        setRendering(false);
+        started.current = null;
+        setProgressNote("");
+        setStatus(e.payload.ok ? (e.payload.cancelled ? t("Rendering stopped.") : t("Rendering finished.")) : e.payload.message || t("Rendering failed."));
+        void reload();
+      }),
+    ];
+    return () => off.forEach((p) => void p.then((f) => f()));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [info.id]);
+
+  async function render(options: { chapter?: number; units?: string[] } = {}) {
+    setStatus("");
+    try {
+      await startRender(info.id, options.chapter, options.units);
+      setRendering(true);
+      started.current = null;
+      setProgressNote(t("Starting the voice"));
+    } catch (e) {
+      setStatus(String(e));
+    }
+  }
+  async function saveUnits(changed: ProductionUnit[]) {
+    await saveProductionUnits(info.id, changed);
+    const byId = new Map(changed.map((u) => [u.id, u]));
+    onChange({ ...production, units: units.map((u) => byId.get(u.id) ?? u) });
+  }
+  const approve = (u: ProductionUnit) =>
+    void saveUnits([{ ...u, status: u.status === "approved" ? "rendered" : "approved" }]);
+  function nextToReview(from = selected) {
+    const order = units;
+    const start = Math.max(0, order.findIndex((u) => u.id === from));
+    const found = [...order.slice(start + 1), ...order.slice(0, start + 1)].find((u) => issues.has(u.id) || (u.status === "pending" && u.take));
+    if (!found) return setStatus(t("Nothing left to review."));
+    setChapter(found.chapter);
+    setSelected(found.id);
+    window.setTimeout(() => script.current?.querySelector(`[data-unit="${found.id}"]`)?.scrollIntoView({ block: "center" }), 30);
+  }
+
+  // Keyboard: space plays, arrows move between lines, A approves, R regenerates, N finds the next line to review.
+  useEffect(() => {
+    function key(e: KeyboardEvent) {
+      const target = e.target as HTMLElement;
+      if (target.closest("input, textarea, select, [contenteditable='true']") || e.ctrlKey || e.metaKey || e.altKey) return;
+      const index = chapterUnits.findIndex((u) => u.id === selected);
+      if (e.key === " ") {
+        e.preventDefault();
+        playback.toggle(selected || chapterUnits[0]?.id || "");
+      } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const next = chapterUnits[Math.min(chapterUnits.length - 1, Math.max(0, index + (e.key === "ArrowDown" ? 1 : -1)))];
+        if (next) {
+          setSelected(next.id);
+          script.current?.querySelector(`[data-unit="${next.id}"]`)?.scrollIntoView({ block: "nearest" });
+        }
+      } else if (e.key.toLowerCase() === "a" && unit?.take) approve(unit);
+      else if (e.key.toLowerCase() === "r" && unit && !rendering) void render({ units: [unit.id] });
+      else if (e.key.toLowerCase() === "n") nextToReview();
+      else if (e.key === "Enter" && unit) playback.play(unit.id);
+    }
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  });
+
+  const shown = chapterUnits.filter((u) => filter === "all" || (filter === "review" ? issues.has(u.id) : !u.take || u.status === "pending"));
+  const paragraphs = useMemo(() => {
+    const groups: { paragraph: number; heading: boolean; units: ProductionUnit[] }[] = [];
+    for (const u of shown) {
+      const last = groups.at(-1);
+      if (last && last.paragraph === u.paragraph) last.units.push(u);
+      else groups.push({ paragraph: u.paragraph, heading: u.heading, units: [u] });
+    }
+    return groups;
+  }, [shown]);
+  const chapterLength = spokenLength(production, chapterUnits);
+  const elapsed = (() => {
+    let s = 0;
+    for (let i = 0; i < chapterUnits.length; i++) {
+      const u = chapterUnits[i];
+      if (u.id === playback.current) return s + playback.position;
+      const take = chosenTake(production, u);
+      if (take) s += take.duration + (i + 1 < chapterUnits.length ? 0.4 : 0);
+    }
+    return 0;
+  })();
+  const chapterIndex = chapters.findIndex(([c]) => c === chapter);
+
+  return (
+    <div className={`studio-mode studio-editor${left ? "" : " no-left"}${right ? "" : " no-right"}`}>
+      <header className="studio-bar-top">
+        {modeSwitch}
+        <button className="icon-only" onClick={onBack} aria-label={t("All productions")} data-tip={t("All productions")}>
+          <ArrowLeft size={17} />
+        </button>
+        <div className="studio-title">
+          <strong>{info.title}</strong>
+          <span>{info.author}</span>
+        </div>
+        <span className="studio-spacer" />
+        {rendering ? (
+          <span className="studio-pill busy" role="status">
+            <span className="studio-spinner" aria-hidden="true" />
+            {progressNote || t("Rendering")}
+          </span>
+        ) : status ? (
+          <span className="studio-pill" role="status">
+            {status}
+          </span>
+        ) : null}
+        {rendering ? (
+          <button onClick={() => void cancelRender()}>
+            <Square size={14} /> {t("Stop")}
+          </button>
+        ) : (
+          <div className="studio-split">
+            <button onClick={() => void render({ chapter })} disabled={!chapterUnits.some((u) => u.status === "pending")}>
+              <Sparkles size={15} /> {t("Generate chapter")}
+            </button>
+            <button className="primary" onClick={() => void render()} disabled={!counts.pending}>
+              <Wand2 size={15} /> {t("Generate all")}
+            </button>
+          </div>
+        )}
+        <button onClick={() => setExporting(true)} disabled={!counts.rendered}>
+          <Download size={15} /> {t("Export")}
+        </button>
+        <button className="icon-only" onClick={() => setLeft(!left)} aria-label={t("Chapters panel")} aria-pressed={left} data-tip={t("Chapters panel")}>
+          <PanelLeft size={17} />
+        </button>
+        <button className="icon-only" onClick={() => setRight(!right)} aria-label={t("Inspector panel")} aria-pressed={right} data-tip={t("Inspector panel")}>
+          <PanelRight size={17} />
+        </button>
+      </header>
+
+      {left && (
+        <nav className="studio-side" aria-label={t("Chapters")}>
+          <div className="studio-side-head">
+            <span>{t("Chapters")}</span>
+            <span className="muted">{chapters.length}</span>
+          </div>
+          <ol className="studio-chapter-list">
+            {chapters.map(([c, n]) => (
+              <li key={c}>
+                <button aria-current={c === chapter} onClick={() => setChapter(c)}>
+                  <span className="name">{chapterName(c)}</span>
+                  <span className="studio-meter" aria-hidden="true">
+                    <i className="approved" style={{ width: `${(n.approved / n.units.length) * 100}%` }} />
+                    <i style={{ width: `${((n.rendered - n.approved) / n.units.length) * 100}%` }} />
+                  </span>
+                  <span className="meta">
+                    {n.rendered < n.units.length
+                      ? t("{done}/{total} lines", { done: String(n.rendered), total: String(n.units.length) })
+                      : clock(spokenLength(production, n.units))}
+                    {n.review > 0 && (
+                      <em className="flag">
+                        <Flag size={11} /> {n.review}
+                      </em>
+                    )}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+
+      <main className="studio-doc" ref={script}>
+        <div className="studio-doc-head">
+          <h2>{chapterName(chapter)}</h2>
+          <div className="studio-chips" role="radiogroup" aria-label={t("Show")}>
+            {(
+              [
+                ["all", t("All lines")],
+                ["review", t("To review ({n})", { n: String(chapterUnits.filter((u) => issues.has(u.id)).length) })],
+                ["pending", t("Not generated ({n})", { n: String(chapterUnits.filter((u) => !u.take || u.status === "pending").length) })],
+              ] as [Filter, string][]
+            ).map(([value, label]) => (
+              <button key={value} role="radio" aria-checked={filter === value} onClick={() => setFilter(value)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <article className="studio-page">
+          {paragraphs.map((p) => {
+            const Tag = p.heading ? "h3" : "p";
+            return (
+              <Tag key={p.paragraph + ":" + p.units[0].id}>
+                {p.units.map((u) => (
+                  <span
+                    key={u.id}
+                    data-unit={u.id}
+                    className={[
+                      "studio-line",
+                      u.take && u.status !== "pending" ? "has-take" : "no-take",
+                      u.status,
+                      issues.has(u.id) ? "flagged" : "",
+                      selected === u.id ? "selected" : "",
+                      playback.current === u.id && playback.playing ? "speaking" : "",
+                    ].join(" ")}
+                    onClick={() => setSelected(u.id)}
+                    onDoubleClick={() => playback.play(u.id)}
+                  >
+                    {u.text}
+                    {u.status === "approved" && <Lock className="studio-lock" size={11} aria-label={t("Approved")} />}
+                  </span>
+                ))}
+              </Tag>
+            );
+          })}
+          {!paragraphs.length && <p className="muted">{filter === "review" ? t("Nothing to review in this chapter.") : t("Every line in this chapter has audio.")}</p>}
+        </article>
+      </main>
+
+      {right && (
+        <aside className="studio-inspector" aria-label={t("Inspector")}>
+          {unit ? (
+            <LineInspector
+              key={unit.id}
+              production={production}
+              unit={unit}
+              issues={issues.get(unit.id) || []}
+              rendering={rendering}
+              onPlayTake={(take) => playback.play(unit.id, take)}
+              onSave={(u) => void saveUnits([u])}
+              onApprove={() => approve(unit)}
+              onRegenerate={() => void render({ units: [unit.id] })}
+              onNext={() => nextToReview(unit.id)}
+            />
+          ) : (
+            <Overview
+              production={production}
+              voices={voices}
+              counts={counts}
+              onVoice={async (voice) => {
+                const next = { ...info, voice, updated: Date.now() };
+                await saveProductionInfo(next);
+                onChange({ ...production, info: next });
+              }}
+              onReview={() => nextToReview("")}
+              confirming={confirming}
+              setConfirming={setConfirming}
+              onDelete={onDelete}
+            />
+          )}
+        </aside>
+      )}
+
+      <footer className="studio-player">
+        <div className="studio-transport">
+          <button className="icon-only" disabled={chapterIndex <= 0} onClick={() => setChapter(chapters[chapterIndex - 1][0])} aria-label={t("Previous chapter")} data-tip={t("Previous chapter")}>
+            <SkipBack size={16} />
+          </button>
+          <button
+            className="studio-play"
+            onClick={() => playback.toggle(selected || chapterUnits[0]?.id || "")}
+            aria-label={playback.playing ? t("Pause") : t("Play")}
+            data-tip={t("Play or pause (Space)")}
+            disabled={!chapterUnits.some((u) => u.take)}
+          >
+            {playback.playing ? <Pause size={18} /> : <Play size={18} />}
+          </button>
+          <button className="icon-only" disabled={chapterIndex >= chapters.length - 1} onClick={() => setChapter(chapters[chapterIndex + 1][0])} aria-label={t("Next chapter")} data-tip={t("Next chapter")}>
+            <SkipForward size={16} />
+          </button>
+        </div>
+        <div className="studio-timeline">
+          <div className="studio-now">
+            <span>{chapterName(chapter)}</span>
+            <span className="muted">
+              {clock(elapsed)} / {clock(chapterLength)}
+            </span>
+          </div>
+          <div className="studio-strip" aria-hidden="true">
+            {chapterUnits.map((u) => {
+              const take = chosenTake(production, u);
+              return (
+                <i
+                  key={u.id}
+                  className={[u.status, take ? "" : "empty", issues.has(u.id) ? "flagged" : "", u.id === playback.current ? "now" : "", u.id === selected ? "sel" : ""].join(" ")}
+                  style={{ flexGrow: take ? take.duration : Math.max(1, u.text.length / 15) }}
+                  onClick={() => {
+                    setSelected(u.id);
+                    script.current?.querySelector(`[data-unit="${u.id}"]`)?.scrollIntoView({ block: "center" });
+                  }}
+                />
+              );
+            })}
+          </div>
+        </div>
+        <label className="studio-speed">
+          <span className="sr-only">{t("Playback speed")}</span>
+          <select value={playback.rate} onChange={(e) => playback.setRate(Number(e.target.value))}>
+            {[0.8, 1, 1.15, 1.3, 1.5].map((r) => (
+              <option key={r} value={r}>
+                {r}x
+              </option>
+            ))}
+          </select>
+        </label>
+      </footer>
+
+      {exporting && <ExportDialog production={production} book={book} titles={titles} onClose={() => setExporting(false)} />}
+    </div>
+  );
+}
+
+function LineInspector({
+  production,
+  unit,
+  issues,
+  rendering,
+  onPlayTake,
+  onSave,
+  onApprove,
+  onRegenerate,
+  onNext,
+}: {
+  production: Production;
+  unit: ProductionUnit;
+  issues: Issue[];
+  rendering: boolean;
+  onPlayTake: (take: NonNullable<ReturnType<typeof chosenTake>>) => void;
+  onSave: (u: ProductionUnit) => void;
+  onApprove: () => void;
+  onRegenerate: () => void;
+  onNext: () => void;
+}) {
+  const [draft, setDraft] = useState(unit.text);
+  const takes = takesOf(production, unit.id);
+  const changed = draft.replace(/\s+/g, " ").trim() !== unit.text;
+  return (
+    <div className="studio-panel">
+      <div className="studio-panel-head">
+        <span>{unit.heading ? t("Heading") : t("Line")}</span>
+        <span className={`studio-state ${unit.status}`}>
+          {unit.status === "approved"
+            ? t("Approved")
+            : unit.status === "pending"
+              ? unit.take
+                ? t("Text changed")
+                : t("Not generated")
+              : unit.status === "failed"
+                ? t("Needs a new take")
+                : t("Generated")}
+        </span>
+      </div>
+      <label className="studio-field">
+        <span>{t("Spoken text")}</span>
+        <textarea
+          value={draft}
+          rows={Math.min(8, Math.max(3, Math.ceil(draft.length / 42)))}
+          onChange={(e) => setDraft(e.target.value)}
+          disabled={unit.status === "approved"}
+        />
+      </label>
+      <p className="studio-hint">{t("Change how a line is said (spell out a name, add a comma for a pause). The book's text is not changed.")}</p>
+      <div className="studio-row">
+        {changed && (
+          <button className="primary" onClick={() => onSave(editUnit(unit, draft))}>
+            {t("Save text")}
+          </button>
+        )}
+        {unit.original && !changed && (
+          <button
+            onClick={() => {
+              setDraft(unit.original!);
+              onSave(editUnit(unit, unit.original!));
+            }}
+          >
+            <Undo2 size={14} /> {t("Book text")}
+          </button>
+        )}
+      </div>
+
+      {issues.length > 0 && (
+        <div className="studio-issues" role="note">
+          <strong>
+            <Flag size={13} /> {t("Worth a listen")}
+          </strong>
+          <ul>
+            {issues.map((i) => (
+              <li key={i}>{t(issueText[i])}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="studio-row">
+        <button onClick={onRegenerate} disabled={rendering || unit.status === "approved"} data-tip={t("New take (R)")}>
+          <RotateCcw size={14} /> {unit.take ? t("Regenerate") : t("Generate")}
+        </button>
+        <button className={unit.status === "approved" ? "primary" : ""} onClick={onApprove} disabled={!unit.take} data-tip={t("Approve and lock (A)")}>
+          <Check size={14} /> {unit.status === "approved" ? t("Approved") : t("Approve")}
+        </button>
+        <button className="icon-only" onClick={onNext} aria-label={t("Next line to review (N)")} data-tip={t("Next line to review (N)")}>
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      <div className="studio-panel-head">
+        <span>{t("Takes")}</span>
+        <span className="muted">{takes.length}</span>
+      </div>
+      {takes.length ? (
+        <ol className="studio-takes">
+          {takes.map((take, n) => (
+            <li key={take.id} className={take.id === unit.take ? "chosen" : ""}>
+              <button className="icon-only" onClick={() => onPlayTake(take)} aria-label={t("Play take {n}", { n: String(takes.length - n) })}>
+                <Play size={14} />
+              </button>
+              <span className="studio-take-name">
+                {t("Take {n}", { n: String(takes.length - n) })}
+                <small>
+                  {clock(take.duration)}
+                  {take.text !== unit.text ? " · " + t("older text") : ""}
+                </small>
+              </span>
+              {take.id === unit.take ? (
+                <span className="studio-chosen">
+                  <Check size={13} /> {t("In use")}
+                </span>
+              ) : (
+                <button disabled={unit.status === "approved"} onClick={() => onSave({ ...unit, take: take.id, status: take.text === unit.text ? "rendered" : unit.status })}>
+                  {t("Use")}
+                </button>
+              )}
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="muted">{t("No takes yet.")}</p>
+      )}
+    </div>
+  );
+}
+
+function Overview({
+  production,
+  voices,
+  counts,
+  onVoice,
+  onReview,
+  confirming,
+  setConfirming,
+  onDelete,
+}: {
+  production: Production;
+  voices: Voice[];
+  counts: { rendered: number; approved: number; review: number; pending: number };
+  onVoice: (voice: string) => void;
+  onReview: () => void;
+  confirming: boolean;
+  setConfirming: (v: boolean) => void;
+  onDelete: () => Promise<void>;
+}) {
+  const { info, units } = production;
+  const total = units.length;
+  return (
+    <div className="studio-panel">
+      <div className="studio-panel-head">
+        <span>{t("Production")}</span>
+      </div>
+      <label className="studio-field">
+        <span>{t("Narrator")}</span>
+        <select value={info.voice} onChange={(e) => onVoice(e.target.value)}>
+          {!voices.some((v) => v.id === info.voice) && <option value={info.voice}>{info.voice}</option>}
+          {voices.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <p className="studio-hint">{t("A new narrator applies to lines generated from now on. Regenerate a chapter to hear it everywhere.")}</p>
+      <dl className="studio-stats">
+        <div>
+          <dt>{t("Generated")}</dt>
+          <dd>
+            {counts.rendered} / {total}
+          </dd>
+        </div>
+        <div>
+          <dt>{t("Approved")}</dt>
+          <dd>{counts.approved}</dd>
+        </div>
+        <div>
+          <dt>{t("To review")}</dt>
+          <dd>{counts.review}</dd>
+        </div>
+        <div>
+          <dt>{t("Length")}</dt>
+          <dd>{clock(spokenLength(production, units))}</dd>
+        </div>
+      </dl>
+      <button onClick={onReview} disabled={!counts.review}>
+        <Flag size={14} /> {t("Review flagged lines")}
+      </button>
+      <div className="studio-help">
+        <strong>{t("Shortcuts")}</strong>
+        <ul>
+          <li>
+            <kbd>Space</kbd> {t("play or pause")}
+          </li>
+          <li>
+            <kbd>↑</kbd> <kbd>↓</kbd> {t("previous or next line")}
+          </li>
+          <li>
+            <kbd>R</kbd> {t("new take")} · <kbd>A</kbd> {t("approve")} · <kbd>N</kbd> {t("next to review")}
+          </li>
+          <li>{t("Double-click a line to play from there.")}</li>
+        </ul>
+      </div>
+      <div className="studio-danger">
+        {confirming ? (
+          <>
+            <p>{t("Delete this production and its takes? Exported files are kept.")}</p>
+            <div className="studio-row">
+              <button className="danger" onClick={() => void onDelete()}>
+                {t("Delete")}
+              </button>
+              <button onClick={() => setConfirming(false)}>{t("Cancel")}</button>
+            </div>
+          </>
+        ) : (
+          <button className="danger-text" onClick={() => setConfirming(true)}>
+            <Trash2 size={14} /> {t("Delete production")}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

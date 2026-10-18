@@ -1,27 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { listen } from "@tauri-apps/api/event";
-import { ArrowLeft, Clapperboard, Play, Plus, Square, Trash2 } from "lucide-react";
+import { BookOpen, Clapperboard, Headphones, Mic2, Play, Plus, Search, Square, Wand2, X } from "lucide-react";
 import { t } from "../i18n";
 import * as store from "../storage";
 import type { Book, BookMeta, Preferences, Voice } from "../types";
-import {
-  chapterTitles,
-  createProduction,
-  deleteProduction,
-  listProductions,
-  newProduction,
-  progress,
-  readProduction,
-  saveProductionInfo,
-  startRender,
-  cancelRender,
-  renderRunning,
-  takeAudio,
-  type RenderDone,
-  type RenderProgress,
-  type Production,
-  type ProductionInfo,
-} from "./production";
+import { createProduction, deleteProduction, listProductions, newProduction, progress, readProduction, type Production, type ProductionInfo } from "./production";
+import { ProductionView } from "./ProductionView";
 import "./studio.css";
 
 const LANGUAGES: Record<string, string> = { en: "english", fr: "french", de: "german", es: "spanish", it: "italian", pt: "portuguese", ru: "russian", ja: "japanese", ko: "korean", zh: "chinese" };
@@ -35,8 +18,7 @@ type Props = {
   modeSwitch: ReactNode;
 };
 
-// Studio mode: productions made from library books. This first stage creates a
-// production (a snapshot cut into render units) and shows it by chapter.
+// Studio mode: productions made from library books, each opened in the editor.
 export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
   const [list, setList] = useState<ProductionInfo[] | null>(null);
   const [current, setCurrent] = useState<Production | null>(null);
@@ -44,6 +26,7 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const usable = useMemo(() => voices.filter((v) => v.available), [voices]);
+  const covers = useMemo(() => new Map(books.map((b) => [b.id, b.coverImage])), [books]);
 
   async function refresh() {
     try {
@@ -88,18 +71,97 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
         }}
       />
     );
+  const voiceName = (id: string) => usable.find((v) => v.id === id)?.name || "";
   return (
-    <div className="studio-mode">
-      <header className="studio-top">
+    <div className="studio-mode studio-home">
+      <header className="studio-bar-top">
         {modeSwitch}
-        <h1>
-          <Clapperboard size={20} /> {t("Studio")}
-        </h1>
+        <div className="studio-title">
+          <strong>
+            <Clapperboard size={17} /> {t("Studio")}
+          </strong>
+          <span>{t("Audiobooks and books made from your library")}</span>
+        </div>
+        <span className="studio-spacer" />
         <button className="primary" onClick={() => setCreating(true)} disabled={!store.desktop}>
           <Plus size={16} /> {t("New production")}
         </button>
       </header>
-      {error && <p className="studio-error" role="alert">{error}</p>}
+      {error && (
+        <p className="studio-error" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="studio-home-body">
+        {list && !list.length && (
+          <section className="studio-welcome">
+            <h1>{t("Turn a book into an audiobook")}</h1>
+            <p>{t("Studio reads a book from your library with the voices on this computer, line by line, so you can review every sentence before exporting.")}</p>
+            <ol className="studio-steps">
+              <li>
+                <BookOpen size={20} />
+                <strong>{t("Pick a book")}</strong>
+                <span>{t("Any book in your library.")}</span>
+              </li>
+              <li>
+                <Mic2 size={20} />
+                <strong>{t("Choose a narrator")}</strong>
+                <span>{t("Listen to voices on the book's own lines.")}</span>
+              </li>
+              <li>
+                <Wand2 size={20} />
+                <strong>{t("Generate and review")}</strong>
+                <span>{t("Regenerate any line, approve, then export.")}</span>
+              </li>
+              <li>
+                <Headphones size={20} />
+                <strong>{t("Export")}</strong>
+                <span>{t("M4B or MP3, EPUB and a print PDF.")}</span>
+              </li>
+            </ol>
+            <button className="primary" onClick={() => setCreating(true)} disabled={!store.desktop}>
+              <Plus size={16} /> {t("New production")}
+            </button>
+          </section>
+        )}
+        {list && list.length > 0 && (
+          <>
+            <h2 className="studio-section-title">{t("Productions")}</h2>
+            <ul className="studio-cards">
+              {list.map((p) => {
+                const cover = covers.get(p.bookId);
+                const share = progress(p);
+                return (
+                  <li key={p.id}>
+                    <button className="studio-card" onClick={() => void openProduction(p.id)}>
+                      <span className="studio-cover" style={cover ? { backgroundImage: `url("${cover}")` } : undefined}>
+                        {!cover && <BookOpen size={28} />}
+                      </span>
+                      <span className="studio-card-body">
+                        <strong>{p.title}</strong>
+                        <span className="muted">{p.author}</span>
+                        {voiceName(p.voice) && (
+                          <span className="studio-tag">
+                            <Mic2 size={12} /> {voiceName(p.voice)}
+                          </span>
+                        )}
+                        <span className="studio-progress" aria-hidden="true">
+                          <i style={{ width: `${Math.round(share * 100)}%` }} />
+                        </span>
+                        <span className="muted small">
+                          {share >= 1
+                            ? t("All {total} lines generated", { total: String(p.units || 0) })
+                            : t("{done} of {total} lines generated", { done: String(p.rendered || 0), total: String(p.units || 0) })}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+      </div>
       {creating && (
         <NewProduction
           books={books}
@@ -116,28 +178,6 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
           }}
         />
       )}
-      {list && !list.length && !creating && (
-        <section className="studio-empty">
-          <h2>{t("No productions yet")}</h2>
-          <p>{t("A production turns a book from your library into an audiobook, chapter by chapter, with takes you can review.")}</p>
-        </section>
-      )}
-      <ul className="studio-grid">
-        {list?.map((p) => (
-          <li key={p.id}>
-            <button className="studio-card" onClick={() => void openProduction(p.id)}>
-              <strong>{p.title}</strong>
-              <span className="muted">{p.author}</span>
-              <span className="studio-bar" aria-hidden="true">
-                <i style={{ width: `${Math.round(progress(p) * 100)}%` }} />
-              </span>
-              <span className="muted">
-                {t("{done} of {total} lines rendered", { done: String(p.rendered || 0), total: String(p.units || 0) })}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
@@ -155,239 +195,139 @@ function NewProduction({
   onCancel: () => void;
   onCreate: (bookId: string, voice: string) => Promise<void>;
 }) {
-  const sorted = useMemo(() => [...books].sort((a, b) => a.title.localeCompare(b.title)), [books]);
+  const sorted = useMemo(() => [...books].filter((b) => !b.deleted).sort((a, b) => a.title.localeCompare(b.title)), [books]);
+  const [query, setQuery] = useState("");
   const [bookId, setBookId] = useState(sorted[0]?.id || "");
   const [voice, setVoice] = useState(voices.find((v) => v.id === defaultVoice)?.id || voices[0]?.id || "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [listening, setListening] = useState(false);
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const shown = sorted.filter((b) => !query || (b.title + " " + b.author).toLowerCase().includes(query.toLowerCase()));
+  const chosen = books.find((b) => b.id === bookId);
+  const language = languageName(chosen?.language);
+  const fits = (v: Voice) => !language || v.languages.some((l) => l.toLowerCase() === language);
   // Offer a narrator who speaks the book's language.
   useEffect(() => {
-    const language = languageName(books.find((b) => b.id === bookId)?.language);
-    if (!language) return;
-    const fits = (v: Voice) => v.languages.some((l) => l.toLowerCase() === language);
     const current = voices.find((v) => v.id === voice);
     if (current && fits(current)) return;
     const pick = voices.find((v) => v.id === defaultVoice && fits(v)) || voices.find(fits);
     if (pick) setVoice(pick.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookId]);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  return (
-    <form
-      className="studio-new"
-      onSubmit={async (e) => {
-        e.preventDefault();
-        setBusy(true);
-        setError("");
-        try {
-          await onCreate(bookId, voice);
-        } catch (err) {
-          setError(String(err));
-          setBusy(false);
-        }
-      }}
-    >
-      <h2>{t("New production")}</h2>
-      <label>
-        {t("Book")}
-        <select value={bookId} onChange={(e) => setBookId(e.target.value)} required>
-          {sorted.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.title}
-              {b.author ? ` (${b.author})` : ""}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        {t("Narrator")}
-        <select value={voice} onChange={(e) => setVoice(e.target.value)} required>
-          {voices.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      {error && <p className="studio-error" role="alert">{error}</p>}
-      <div className="studio-actions">
-        <button type="button" onClick={onCancel}>
-          {t("Cancel")}
-        </button>
-        <button type="submit" className="primary" disabled={busy || !bookId || !voice}>
-          {busy ? t("Preparing") : t("Create production")}
-        </button>
-      </div>
-    </form>
-  );
-}
+  useEffect(() => () => audio.current?.pause(), []);
 
-function ProductionView({
-  production,
-  book,
-  voices,
-  modeSwitch,
-  onBack,
-  onChange,
-  onDelete,
-}: {
-  production: Production;
-  book: Book | null;
-  voices: Voice[];
-  modeSwitch: ReactNode;
-  onBack: () => void;
-  onChange: (p: Production) => void;
-  onDelete: () => Promise<void>;
-}) {
-  const { info, units } = production;
-  const chapters = useMemo(() => {
-    const map = new Map<number, { units: number; rendered: number }>();
-    for (const u of units) {
-      const c = map.get(u.chapter) ?? { units: 0, rendered: 0 };
-      c.units++;
-      if (u.status === "rendered" || u.status === "approved") c.rendered++;
-      map.set(u.chapter, c);
-    }
-    return [...map.entries()].sort((a, b) => a[0] - b[0]);
-  }, [units]);
-  const titles = useMemo(() => (book ? chapterTitles(book) : new Map<number, string>()), [book]);
-  const [chapter, setChapter] = useState(chapters[0]?.[0] ?? 0);
-  const shown = units.filter((u) => u.chapter === chapter);
-  const [confirming, setConfirming] = useState(false);
-  const [rendering, setRendering] = useState(false);
-  const [status, setStatus] = useState("");
-  const [playing, setPlaying] = useState("");
-  const audio = useRef<HTMLAudioElement | null>(null);
-  const done = units.filter((u) => u.status !== "pending").length;
-
-  async function reload() {
-    onChange(await readProduction(info.id));
-  }
-  useEffect(() => {
-    void renderRunning().then(setRendering);
-    const off = [
-      listen<RenderProgress>("studio-progress", (e) => {
-        if (e.payload.id !== info.id) return;
-        setStatus(t("{done} of {total} lines rendered", { done: String(e.payload.done), total: String(e.payload.total) }));
-        void reload();
-      }),
-      listen<RenderDone>("studio-render-done", (e) => {
-        if (e.payload.id !== info.id) return;
-        setRendering(false);
-        setStatus(e.payload.ok ? (e.payload.cancelled ? t("Rendering stopped") : t("Rendering finished")) : e.payload.message || t("Rendering failed"));
-        void reload();
-      }),
-    ];
-    return () => {
-      off.forEach((p) => void p.then((f) => f()));
+  // An audition on the book's own first lines.
+  async function listen() {
+    if (listening) {
       audio.current?.pause();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [info.id]);
-
-  async function render(only?: number) {
-    setStatus("");
-    try {
-      await startRender(info.id, only);
-      setRendering(true);
-    } catch (e) {
-      setStatus(String(e));
-    }
-  }
-  async function play(unitId: string) {
-    const take = production.takes.find((x) => x.id === units.find((u) => u.id === unitId)?.take);
-    if (!take) return;
-    audio.current?.pause();
-    if (playing === unitId) {
-      setPlaying("");
+      setListening(false);
       return;
     }
-    const data = await takeAudio(info.id, take.file);
-    const a = new Audio("data:audio/wav;base64," + data);
-    audio.current = a;
-    setPlaying(unitId);
-    a.onended = () => setPlaying("");
-    void a.play();
+    setListening(true);
+    setError("");
+    try {
+      const b = await store.readBook(bookId);
+      const para = b.paragraphs.find((p) => p.kind === "paragraph" && p.text.length > 60) || b.paragraphs[0];
+      const sample = (para?.text || b.meta.title).slice(0, 220).replace(/\s+\S*$/, "");
+      const result = await store.synthesize(sample, voice);
+      const a = new Audio("data:audio/wav;base64," + result.audio);
+      audio.current = a;
+      a.onended = () => setListening(false);
+      await a.play();
+    } catch (e) {
+      setError(String(e));
+      setListening(false);
+    }
   }
+  const sortedVoices = [...voices].sort((a, b) => Number(fits(b)) - Number(fits(a)) || a.name.localeCompare(b.name));
   return (
-    <div className="studio-mode studio-production">
-      <header className="studio-top">
-        {modeSwitch}
-        <button onClick={onBack} aria-label={t("All productions")} data-tip={t("All productions")}>
-          <ArrowLeft size={16} />
-        </button>
-        <h1>{info.title}</h1>
-        <label className="studio-voice">
-          {t("Narrator")}
-          <select
-            value={info.voice}
-            onChange={async (e) => {
-              const next = { ...info, voice: e.target.value, updated: Date.now() };
-              await saveProductionInfo(next);
-              onChange({ ...production, info: next });
-            }}
-          >
-            {voices.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        {rendering ? (
-          <button onClick={() => void cancelRender()}>
-            <Square size={14} /> {t("Stop rendering")}
+    <div className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && !busy && onCancel()}>
+      <form
+        className="studio-dialog studio-new"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="studio-new-title"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          setError("");
+          audio.current?.pause();
+          try {
+            await onCreate(bookId, voice);
+          } catch (err) {
+            setError(String(err));
+            setBusy(false);
+          }
+        }}
+      >
+        <header>
+          <h2 id="studio-new-title">{t("New production")}</h2>
+          <button type="button" className="icon-only" onClick={onCancel} aria-label={t("Close")}>
+            <X size={17} />
           </button>
-        ) : (
-          <>
-            <button onClick={() => void render(chapter)}>
-              <Play size={14} /> {t("Render this chapter")}
+        </header>
+        <div className="studio-new-grid">
+          <div className="studio-book-pick">
+            <label className="studio-search">
+              <Search size={15} />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("Search your library")} aria-label={t("Search your library")} />
+            </label>
+            <ul role="listbox" aria-label={t("Book")}>
+              {shown.map((b) => (
+                <li key={b.id}>
+                  <button type="button" role="option" aria-selected={b.id === bookId} onClick={() => setBookId(b.id)}>
+                    <span className="studio-mini-cover" style={b.coverImage ? { backgroundImage: `url("${b.coverImage}")` } : undefined} />
+                    <span>
+                      <strong>{b.title}</strong>
+                      <small>{b.author}</small>
+                    </span>
+                  </button>
+                </li>
+              ))}
+              {!shown.length && <li className="muted">{t("No book matches.")}</li>}
+            </ul>
+          </div>
+          <div className="studio-new-side">
+            {chosen && (
+              <div className="studio-chosen-book">
+                <span className="studio-cover" style={chosen.coverImage ? { backgroundImage: `url("${chosen.coverImage}")` } : undefined} />
+                <strong>{chosen.title}</strong>
+                <span className="muted">{chosen.author}</span>
+                <span className="muted small">{t("{n} words", { n: chosen.wordCount.toLocaleString() })}</span>
+              </div>
+            )}
+            <label className="studio-field">
+              <span>{t("Narrator")}</span>
+              <select value={voice} onChange={(e) => setVoice(e.target.value)} required>
+                {sortedVoices.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name}
+                    {!fits(v) ? " " + t("(other language)") : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="button" onClick={() => void listen()} disabled={!voice || !bookId}>
+              {listening ? <Square size={14} /> : <Play size={14} />} {listening ? t("Stop") : t("Listen on this book")}
             </button>
-            <button className="primary" onClick={() => void render()} disabled={done === units.length}>
-              <Play size={14} /> {t("Render the book")}
-            </button>
-          </>
+            <p className="studio-hint">{t("You can change the narrator later; lines generated before keep their voice until you regenerate them.")}</p>
+          </div>
+        </div>
+        {error && (
+          <p className="studio-error" role="alert">
+            {error}
+          </p>
         )}
-        {confirming ? (
-          <span className="studio-confirm">
-            {t("Delete this production and its takes? Exported files are kept.")}
-            <button className="danger" onClick={() => void onDelete()}>
-              {t("Delete")}
-            </button>
-            <button onClick={() => setConfirming(false)}>{t("Cancel")}</button>
-          </span>
-        ) : (
-          <button onClick={() => setConfirming(true)} aria-label={t("Delete production")} data-tip={t("Delete production")}>
-            <Trash2 size={16} />
+        <div className="studio-row end">
+          <button type="button" onClick={onCancel}>
+            {t("Cancel")}
           </button>
-        )}
-      </header>
-      <p className="studio-status" role="status">
-        {status || t("{done} of {total} lines rendered", { done: String(done), total: String(units.length) })}
-      </p>
-      <nav className="studio-chapters" aria-label={t("Chapters")}>
-        {chapters.map(([c, n]) => (
-          <button key={c} aria-current={c === chapter} onClick={() => setChapter(c)}>
-            <span>{titles.get(c) || t("Chapter {n}", { n: String(c + 1) })}</span>
-            <span className="muted">
-              {n.rendered}/{n.units}
-            </span>
+          <button type="submit" className="primary" disabled={busy || !bookId || !voice}>
+            {busy ? t("Preparing") : t("Create production")}
           </button>
-        ))}
-      </nav>
-      <main className="studio-script">
-        <ol>
-          {shown.map((u) => (
-            <li key={u.id} className={"studio-unit " + u.status + (u.heading ? " heading" : "") + (playing === u.id ? " playing" : "")}>
-              {u.take ? (
-                <button className="studio-dot" onClick={() => void play(u.id)} aria-label={playing === u.id ? t("Stop") : t("Play this line")} />
-              ) : (
-                <span className="studio-dot" aria-label={t("Not rendered")} />
-              )}
-              <span>{u.text}</span>
-            </li>
-          ))}
-        </ol>
-      </main>
+        </div>
+      </form>
     </div>
   );
 }

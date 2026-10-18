@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="170 232 984 808" width="984" height="808">
+  <title>Origami crane (print, grayscale)</title>
+  <g stroke="none">
+    <polygon points="178,468 575,735 380,718" fill="#8f8f8f"/>
+    <polygon points="178,468 380,718 480,845" fill="#6c6c6c"/>
+    <polygon points="380,718 575,735 480,845" fill="#575757"/>
+    <polygon points="405,930 480,845 497,1022" fill="#464646"/>
+    <polygon points="480,845 575,735 625,695 497,1022" fill="#787878"/>
+    <polygon points="907,242 625,695 790,822" fill="#a8a8a8"/>
+    <polygon points="907,242 905,690 790,822" fill="#6e6e6e"/>
+    <polygon points="625,695 720,865 497,1022" fill="#b4b4b4"/>
+    <polygon points="625,695 790,822 720,865" fill="#cacaca"/>
+    <polygon points="720,865 790,822 857,1032" fill="#8a8a8a"/>
+    <polygon points="497,1022 720,865 655,958" fill="#5c5c5c"/>
+    <polygon points="655,958 720,865 857,1032" fill="#686868"/>
+    <polygon points="795,824 1050,588 1082,612 857,1032" fill="#9c9c9c"/>
+    <polygon points="1050,588 1146,676 1082,612" fill="#7a7a7a"/>
+    <polygon points="1082,612 1146,676 1070,642" fill="#545454"/>
+  </g>
+</svg>
