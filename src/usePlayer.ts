@@ -99,6 +99,8 @@ export function unitPause(
 export function usePlayer(
   report: (s: string) => void,
   onVoiceUsed: (voice: string) => void,
+  // Reading aloud keeps waiting for the voice between sentences (once per reading).
+  onSlow?: (model: string) => void,
 ) {
   const [status, setStatusState] = useState<Status>("idle");
   const statusRef = useRef<Status>("idle");
@@ -344,9 +346,23 @@ export function usePlayer(
         }
       };
       ensure(AHEAD);
+      // Waits for the voice between sentences, after the first (which also
+      // loads the model): three of 1.5 s or more within ten sentences means
+      // this model cannot keep up on this computer.
+      const stalls: number[] = [];
+      let slowSaid = false;
       for (let i = 0; i < units.length; i++) {
         ensure(i + AHEAD);
+        const waitStart = performance.now();
         const response = await pending[i];
+        if (i > 0 && !units[i].take && performance.now() - waitStart > 1500) {
+          stalls.push(i);
+          while (stalls.length && stalls[0] < i - 9) stalls.shift();
+          if (stalls.length >= 3 && !slowSaid) {
+            slowSaid = true;
+            onSlow?.(prefs.speechModel);
+          }
+        }
         if (generation.current !== token) return;
         if (!response.result) throw response.error;
         const result = response.result;

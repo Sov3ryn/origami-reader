@@ -175,3 +175,22 @@ export function recommendations(
     image: "dreamshaper-8-lcm",
   };
 }
+
+// From heaviest to lightest. The light readers (Kokoro, Kitten) speak English only.
+const READER_WEIGHT = ["qwen3-tts-1.7b", "qwen3-tts-0.6b", "kokoro", "kitten-mini", "kitten-micro"];
+const ENGLISH_ONLY = new Set(["kokoro", "kitten-mini", "kitten-micro"]);
+/** A lighter reader to suggest when reading aloud cannot keep up: an installed
+ * one first, else one Origami can download; null when there is none. */
+export function lighterReader(
+  current: string,
+  installed: string[],
+  english: boolean,
+): { id: string; installed: boolean } | null {
+  const at = READER_WEIGHT.indexOf(current);
+  if (at < 0) return null;
+  const candidates = READER_WEIGHT.slice(at + 1).filter((id) => english || !ENGLISH_ONLY.has(id));
+  const ready = candidates.find((id) => installed.includes(id));
+  if (ready) return { id: ready, installed: true };
+  const download = candidates.find((id) => modelCatalog.find((m) => m.id === id)?.download);
+  return download ? { id: download, installed: false } : null;
+}

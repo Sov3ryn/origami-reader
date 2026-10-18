@@ -155,6 +155,8 @@ export type Preferences = {
   skipAuthorYear: boolean;
   pronunciations: PronunciationRule[];
   voiceTemperature: number;
+  // Suggest a lighter reader when reading aloud keeps waiting between sentences.
+  speedHints: boolean;
   // Interface language code; empty follows the operating system.
   uiLanguage: string;
   // "later" means the reader chose Maybe later once; it is asked one last time.
@@ -373,6 +375,7 @@ export const defaultPreferences: Preferences = {
   skipAuthorYear: false,
   pronunciations: [],
   voiceTemperature: 0.9,
+  speedHints: true,
   uiLanguage: "",
   supportPrompt: "ask",
   supportPromptAfter: 0,

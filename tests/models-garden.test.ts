@@ -57,3 +57,12 @@ it("garden season changes stay in the garden and restore custom effects", () => 
   expect(roundtrip.fountain).toBe(false);
   expect(roundtrip.backgroundOpacity).toBe(0.73);
 });
+it("suggests a lighter reader that keeps the reading language", async () => {
+  const { lighterReader } = await import("../src/modelCatalog");
+  expect(lighterReader("qwen3-tts-1.7b", ["qwen3-tts-1.7b", "qwen3-tts-0.6b"], false)).toEqual({ id: "qwen3-tts-0.6b", installed: true });
+  // Kokoro and Kitten speak English only: a French reader is not sent there.
+  expect(lighterReader("qwen3-tts-0.6b", ["qwen3-tts-0.6b", "kokoro"], false)).toBeNull();
+  expect(lighterReader("qwen3-tts-0.6b", ["qwen3-tts-0.6b", "kitten-mini"], true)).toEqual({ id: "kitten-mini", installed: true });
+  expect(lighterReader("qwen3-tts-0.6b", ["qwen3-tts-0.6b"], true)).toEqual({ id: "kokoro", installed: false });
+  expect(lighterReader("kitten-micro", ["kitten-micro"], true)).toBeNull();
+});

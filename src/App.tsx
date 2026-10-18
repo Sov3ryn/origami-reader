@@ -165,6 +165,8 @@ import {
 import { PinDialog, type PinRequest } from "./components/PinDialog";
 import { UpdatesPanel } from "./components/UpdatesPanel";
 import { UpdateToast } from "./components/UpdateToast";
+import { SpeedHint } from "./components/SpeedHint";
+import { lighterReader, modelCatalog } from "./modelCatalog";
 import { PluginSettings } from "./work/plugins/PluginSettings";
 import { HandwritingSettings } from "./work/ink/HandwritingSettings";
 import { VoiceSettings } from "./work/voice/VoiceSettings";
@@ -549,8 +551,17 @@ export default function App() {
   // Notices are translated here, so messages from modules, the speech worker
   // and thrown errors use the interface language when a translation exists.
   const notify = (s: string) => setNotice(t(s));
-  const player = usePlayer(notify, (voice) =>
-    setPrefs((old) => ({ ...old, lastVoice: voice })),
+  // A reader too slow for this computer: suggest a lighter one, once per model.
+  const [slowReader, setSlowReader] = useState("");
+  const slowShown = useRef(new Set<string>());
+  const player = usePlayer(
+    notify,
+    (voice) => setPrefs((old) => ({ ...old, lastVoice: voice })),
+    (model) => {
+      if (!prefRef.current.speedHints || slowShown.current.has(model)) return;
+      slowShown.current.add(model);
+      setSlowReader(model || "default");
+    },
   );
   const playbackStatusRef = useRef(player.status);
   playbackStatusRef.current = player.status;
@@ -5413,6 +5424,14 @@ export default function App() {
                 />
                 {t("Load the voice when Origami opens")}
               </label>
+              <label className="check-label">
+                <input
+                  type="checkbox"
+                  checked={prefs.speedHints}
+                  onChange={(e) => patchPrefs({ speedHints: e.target.checked })}
+                />
+                {t("Suggest a lighter reader when reading aloud waits between sentences")}
+              </label>
               <p className="hint">
                 {t(
                   "The first Play starts sooner. Changing books keeps the loaded voice. Closing Origami releases it.",
@@ -7773,6 +7792,46 @@ export default function App() {
               </div>
             </aside>
           )}
+          {slowReader &&
+            !updateOffer &&
+            (() => {
+              const current = slowReader === "default" ? speechModels.default : slowReader;
+              const lighter = lighterReader(
+                current,
+                speechModels.models.map((m) => m.id),
+                prefs.voiceLanguage === "English",
+              );
+              if (!lighter) return null;
+              const name = (id: string) =>
+                speechModels.models.find((m) => m.id === id)?.name || modelCatalog.find((m) => m.id === id)?.name || id;
+              const bytes = modelCatalog.find((m) => m.id === lighter.id)?.download?.bytes || 0;
+              return (
+                <SpeedHint
+                  current={name(current)}
+                  lighter={name(lighter.id)}
+                  sameVoices={current.startsWith("qwen") && lighter.id.startsWith("qwen")}
+                  installed={lighter.installed}
+                  size={bytes >= 1e9 ? (bytes / 1e9).toFixed(1) + " GB" : Math.round(bytes / 1e6) + " MB"}
+                  onLater={() => setSlowReader("")}
+                  onNever={() => {
+                    setSlowReader("");
+                    patchPrefs({ speedHints: false });
+                  }}
+                  onModels={() => {
+                    setSlowReader("");
+                    patchPrefs({ workMode: false, studioMode: false, settingsCategory: "models" });
+                    setPage("settings");
+                  }}
+                  onSwitch={() => {
+                    setSlowReader("");
+                    const at = player.current;
+                    void chooseSpeechModel(lighter.id).then(() => {
+                      if (at >= 0) void startFrom(at);
+                    });
+                  }}
+                />
+              );
+            })()}
           {updateOffer && (
             <UpdateToast
               found={updateOffer.found}
