@@ -943,6 +943,24 @@ async fn studio_open_portable(app: tauri::AppHandle, path: Option<String>) -> Re
     .map_err(|e| e.to_string())?
 }
 
+/// A moment of a recording as a WAV, to hear a word the transcription was unsure of.
+#[tauri::command]
+async fn studio_recording_clip(path: String, start: f64, end: f64) -> Result<String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let (x, rate) = studio_verify::decode_range(std::path::Path::new(&path), start.max(0.0), (end - start).clamp(0.2, 30.0))?;
+        let mut bytes = std::io::Cursor::new(Vec::new());
+        let spec = hound::WavSpec { channels: 1, sample_rate: rate.max(1), bits_per_sample: 16, sample_format: hound::SampleFormat::Int };
+        let mut w = hound::WavWriter::new(&mut bytes, spec).map_err(|e| e.to_string())?;
+        for v in x {
+            w.write_sample((v.clamp(-1.0, 1.0) * 32767.0) as i16).map_err(|e| e.to_string())?;
+        }
+        w.finalize().map_err(|e| e.to_string())?;
+        Ok(STANDARD.encode(bytes.into_inner()))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 /// Pages of the print book as images, for the export dialog's preview.
 #[tauri::command]
 async fn studio_preview_print(manuscript: Value, print: Value, first: usize, count: usize) -> Result<Value> {
@@ -1692,7 +1710,7 @@ pub fn run() {
             studio_analysis_status, studio_analysis_chat, studio_analysis_stop, studio_replace_units,
             studio_verify_file, studio_check_takes, studio_cancel_check,
             studio_asr_ready, studio_pick_recordings, studio_transcribe, studio_cancel_transcribe, studio_preview_print,
-            studio_save_portable, studio_open_portable, studio_recording_readalong,
+            studio_save_portable, studio_open_portable, studio_recording_clip, studio_recording_readalong,
             studio_setup_status, studio_setup_download, studio_setup_cancel,
             starter_library_installed,
             install_starter_library,

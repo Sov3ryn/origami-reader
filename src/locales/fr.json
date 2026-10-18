@@ -2725,5 +2725,16 @@
   "Opening": "Ouverture",
   "Save a portable copy": "Enregistrer une copie portable",
   "Saved as {file}.": "Enregistrée sous {file}.",
-  "Saving {n}%": "Enregistrement {n} %"
+  "Saving {n}%": "Enregistrement {n} %",
+  "{n} words were hard to hear.": "{n} mots étaient difficiles à entendre.",
+  "{n}% sure": "sûr à {n} %",
+  "Check them": "Les vérifier",
+  "Correct the word if needed, or clear it to remove it. Enter keeps it and goes to the next one.": "Corrigez le mot si besoin, ou videz-le pour le retirer. Entrée le garde et passe au suivant.",
+  "Hear it again": "Réécouter",
+  "Keep and finish": "Garder et terminer",
+  "Keep and next": "Garder et suivant",
+  "No word needs checking.": "Aucun mot à vérifier.",
+  "Stop checking": "Arrêter la vérification",
+  "The word as it should be written": "Le mot tel qu’il doit être écrit",
+  "Word {n} of {total}": "Mot {n} sur {total}"
 }

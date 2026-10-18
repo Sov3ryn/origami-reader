@@ -14,6 +14,8 @@ export const asrReady = (): Promise<boolean> => (desktop ? invoke("studio_asr_re
 export const pickRecordings = () => invoke<string[]>("studio_pick_recordings");
 export const transcribe = (files: string[]) => invoke<void>("studio_transcribe", { files });
 export const cancelTranscribe = () => invoke<void>("studio_cancel_transcribe");
+/** A moment of a recording as base64 WAV, to hear a word. */
+export const recordingClip = (path: string, start: number, end: number) => invoke<string>("studio_recording_clip", { path, start, end });
 /** A read-along EPUB from the recording itself: the original audio, each sentence highlighted as it is heard. */
 export const recordingReadalong = (files: string[], chapters: Chapter[], meta: { title: string; author: string; language: string }) =>
   invoke<string | null>("studio_recording_readalong", { files, chapters: chapters.map((c) => ({ title: c.title, timed: c.timed })), meta });
@@ -30,7 +32,9 @@ const CREDIT =
 const HEADING = /^(?:(?:chapter|chapitre|cap[ií]tulo|kapitel|capitolo|part|partie|book|livre|section)\b|(?:[IVXLC]+|\d+)[.:]?$)/i;
 
 /** Words to sentences, each with its times, the pause after it and its lowest word confidence. */
-export function sentences(words: HeardWord[]): Sentence[] {
+export function sentences(heard: HeardWord[]): Sentence[] {
+  // A word cleared in the review is removed.
+  const words = heard.filter((w) => w[0].trim());
   const out: Sentence[] = [];
   let cur: HeardWord[] = [];
   const close = (next?: HeardWord) => {

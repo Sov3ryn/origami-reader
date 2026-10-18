@@ -1367,3 +1367,49 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* Phase 4: checking doubtful words of a recording */
+.studio-word-review {
+  display: grid;
+  gap: 10px;
+}
+.studio-word-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 4px;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  font-family: var(--reading-font, Georgia, serif);
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+.studio-word-context button {
+  padding: 0 2px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.studio-word-context button:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.studio-word-context button.current {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+  font-weight: 600;
+}
+.studio-word-review input {
+  flex: 1;
+  min-width: 0;
+}
+.studio-pulse {
+  animation: studio-pulse 0.9s ease-in-out infinite alternate;
+}
+@keyframes studio-pulse {
+  to {
+    opacity: 0.35;
+  }
+}

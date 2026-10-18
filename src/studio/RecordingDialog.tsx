@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { AudioLines, BookPlus, FileAudio, FolderOpen, X } from "lucide-react";
+import { AudioLines, BookPlus, Ear, FileAudio, FolderOpen, X } from "lucide-react";
 import { t } from "../i18n";
 import { importDocument } from "../documents";
 import * as store from "../storage";
 import { clock } from "./production";
 import { asrReady, bookMarkdown, cancelTranscribe, doubtful, guessLanguage, pickRecordings, prettyName, recordingReadalong, structure, transcribe, type AsrDone, type AsrProgress, type HeardFile } from "./recording";
 import { revealFile } from "./production";
+import { WordReview } from "./WordReview";
 
 // From a recording: an audiobook or any narrated recording becomes a book in the
 // library, with chapters and paragraphs, transcribed on this computer.
@@ -21,6 +22,7 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [readalong, setReadalong] = useState("");
+  const [checking, setChecking] = useState(false);
   const started = useRef(0);
 
   useEffect(() => {
@@ -96,11 +98,18 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
             <X size={17} />
           </button>
         </header>
-        {heard ? (
+        {heard && checking ? (
+          <WordReview files={files} heard={heard} onChange={setHeard} onDone={() => setChecking(false)} />
+        ) : heard ? (
           <>
             <p className="studio-hint">
               {t("{n} chapters from {time} of audio.", { n: String(chapters.length), time: clock(seconds) })}{" "}
-              {unsure > 0 && t("{n} words were hard to hear; check them while reading.", { n: String(unsure) })}
+              {unsure > 0 && t("{n} words were hard to hear.", { n: String(unsure) })}{" "}
+              {unsure > 0 && (
+                <button onClick={() => setChecking(true)}>
+                  <Ear size={14} /> {t("Check them")}
+                </button>
+              )}
             </p>
             <ol className="studio-rec-chapters">
               {chapters.slice(0, 60).map((c, i) => (

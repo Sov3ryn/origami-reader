@@ -11,9 +11,18 @@ pub type Result<T> = std::result::Result<T, String>;
 
 /// Any supported audio file as mono samples and its sample rate.
 pub fn decode_any(path: &Path) -> Result<(Vec<f32>, u32)> {
+    decode_range(path, 0.0, 1200.0)
+}
+
+/// Up to `seconds` of mono audio from `start` (seconds) on, seeking in compressed
+/// files so a moment hours into an audiobook is read at once.
+pub fn decode_range(path: &Path, start: f64, seconds: f64) -> Result<(Vec<f32>, u32)> {
     let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
     if ext == "flac" || ext == "wav" {
-        return crate::studio_audio::decode(path);
+        let (x, rate) = crate::studio_audio::decode(path)?;
+        let a = ((start.max(0.0) * rate as f64) as usize).min(x.len());
+        let b = (a + (seconds * rate as f64) as usize).min(x.len());
+        return Ok((x[a..b].to_vec(), rate));
     }
     use symphonia::core::codecs::audio::AudioDecoderOptions;
     use symphonia::core::errors::Error;
@@ -36,8 +45,13 @@ pub fn decode_any(path: &Path) -> Result<(Vec<f32>, u32)> {
     let mut decoder = symphonia::default::get_codecs()
         .make_audio_decoder(&params, &AudioDecoderOptions::default())
         .map_err(|_| "This audio codec is not supported.".to_string())?;
+    if start > 0.0 {
+        use symphonia::core::formats::{SeekMode, SeekTo};
+        let time = symphonia::core::units::Time::try_from_secs_f64(start).ok_or("Invalid time.")?;
+        format.seek(SeekMode::Accurate, SeekTo::Time { time, track_id: Some(track_id) }).map_err(|_| "This file cannot be read at that point.".to_string())?;
+        decoder.reset();
+    }
     let (mut out, mut rate, mut tmp) = (Vec::<f32>::new(), 0u32, Vec::<f32>::new());
-    // At most the first 20 minutes: enough to read the watermark.
     while let Some(packet) = format.next_packet().map_err(|e| e.to_string())? {
         if packet.track_id != track_id {
             continue;
@@ -49,7 +63,8 @@ pub fn decode_any(path: &Path) -> Result<(Vec<f32>, u32)> {
                 tmp.resize(buf.samples_interleaved(), 0.0);
                 buf.copy_to_slice_interleaved(&mut tmp);
                 out.extend(tmp.chunks(ch).map(|f| f.iter().sum::<f32>() / ch as f32));
-                if rate > 0 && out.len() > rate as usize * 1200 {
+                if rate > 0 && out.len() as f64 >= rate as f64 * seconds {
+                    out.truncate((rate as f64 * seconds) as usize);
                     break;
                 }
             }
