@@ -1082,6 +1082,19 @@ export function WorkMode({
     [charts, sheets, language],
   );
 
+  // A book beside a note: side by side when there is room, one above the other
+  // when the side panels and the window leave the middle narrow.
+  const [stacked, setStacked] = useState(false);
+  const mainObserver = useRef<ResizeObserver | null>(null);
+  const mainRef = useCallback((el: HTMLElement | null) => {
+    mainObserver.current?.disconnect();
+    if (!el) return;
+    const update = () => setStacked(el.clientWidth < 720);
+    update();
+    mainObserver.current = new ResizeObserver(update);
+    mainObserver.current.observe(el);
+  }, []);
+
   // From Read mode: open the notes for that book with the book beside them.
   const handled = useRef(0);
   useEffect(() => {
@@ -1090,9 +1103,13 @@ export function WorkMode({
     const book = bookById.get(handoff.bookId);
     // Leisure reading stays out: only a work source opens beside the notes.
     if (!book || (sourcesFilter !== "all" && !book.work)) return;
-    const mine = data.notes
-      .filter((n) => passageLinks(n.html).some((p) => p.bookId === handoff.bookId))
-      .sort((a, b) => b.updated - a.updated)[0];
+    // Notes that quote the book, or else the "Notes on ..." made for it before.
+    const forBook = book ? t("Notes on {title}", { title: book.title }) : "";
+    const mine =
+      data.notes
+        .filter((n) => passageLinks(n.html).some((p) => p.bookId === handoff.bookId))
+        .sort((a, b) => b.updated - a.updated)[0] ||
+      data.notes.filter((n) => forBook && n.title === forBook && !(n as { deleted?: boolean }).deleted).sort((a, b) => b.updated - a.updated)[0];
     setSource({ bookId: handoff.bookId, paragraphId: handoff.paragraphId });
     if (mine) setView({ kind: "note", id: mine.id });
     else
@@ -2002,7 +2019,7 @@ export function WorkMode({
           <PanelLeftOpen size={17} />
         </button>
       )}
-      <main className={"work-main" + (view.kind === "note" && source ? " split" : "") + (view.kind === "sheet" ? " sheet-mode" : "") + (view.kind === "board" || view.kind === "plan" ? " sheet-mode board-mode" : "")}>
+      <main ref={mainRef} className={"work-main" + (view.kind === "note" && source ? " split" + (stacked ? " stacked" : "") : "") + (view.kind === "sheet" ? " sheet-mode" : "") + (view.kind === "board" || view.kind === "plan" ? " sheet-mode board-mode" : "")}>
         <PageBoundary resetKey={view.kind + ("id" in view ? view.id : "")}>
         {view.kind === "today" && (
           <Today

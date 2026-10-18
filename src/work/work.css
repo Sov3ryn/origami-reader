@@ -2033,14 +2033,19 @@ body.resizing-panel {
     width: min(320px, calc(100% - 24px));
     z-index: 4;
   }
-  .work-main.split {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 0.45fr) minmax(0, 0.55fr);
+  .work-connections {
+    background: var(--work-sheet);
+    backdrop-filter: none;
   }
-  .source-pane {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
+}
+/* The book above the note when the middle is narrow (WorkMode measures it). */
+.work-main.split.stacked {
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 0.45fr) minmax(0, 0.55fr);
+}
+.work-main.split.stacked .source-pane {
+  border-right: 0;
+  border-bottom: 1px solid var(--line);
 }
 @media (max-width: 680px) {
   .work-mode,
