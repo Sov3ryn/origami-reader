@@ -1025,7 +1025,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
             let cover_raw = options["cover"].as_str().and_then(|c| STANDARD.decode(c).ok());
             let mut files: Vec<std::path::PathBuf> = Vec::new();
             let mut report = Vec::new();
-            if flag("m4b") || flag("mp3") || flag("readalong") || flag("stems") {
+            if flag("m4b") || flag("mp3") || flag("readalong") || flag("stems") || flag("sample") {
                 let wm_dir = watermark_dir(&app)?;
                 if !wm_dir.join("audioseal_generator_5s.onnx").is_file() {
                     return Err("The watermark model is missing, so audio cannot be exported yet.".into());
@@ -1107,6 +1107,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                     mp3: flag("mp3"),
                     readalong: readalong_dir.clone(),
                     stems: flag("stems").then(|| studio_audio::free_dir(&folder, &format!("{} (stems)", studio_audio::safe_name(&title)))),
+                    sample: flag("sample"),
                     comment: format!("{} {}", text(&options["aiLine"]), text(&options["credit"])).trim().to_string(),
                     watermark: Some(watermark),
                     message,

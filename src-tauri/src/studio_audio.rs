@@ -683,6 +683,8 @@ pub struct AudioJob<'a> {
     pub stems: Option<PathBuf>,
     // The AI disclosure and credit written into each stem's tags.
     pub comment: String,
+    // A retail sample: the opening minutes of the story, for store pages.
+    pub sample: bool,
     pub watermark: Option<Watermark>,
     pub message: u16,
     pub progress: &'a dyn Fn(String, f64),
@@ -837,6 +839,26 @@ fn write_stems(ch: &ChapterPlan, number: u32, dir: &Path, watermark: Option<&mut
     Ok(written)
 }
 
+/// The retail sample: the start of a mastered chapter, cut just after the last line that
+/// ends within five minutes, closed with a short fade and a second of the chapter's own
+/// room tone (its first second). None when the chapter has less than a minute of lines.
+pub fn retail_sample(audio: &[f32], lines: &[(String, f64, f64)]) -> Option<Vec<f32>> {
+    let end = lines.iter().map(|l| l.2).filter(|e| *e <= 295.0).fold(0.0, f64::max);
+    if end < 60.0 {
+        return None;
+    }
+    let rate = MASTER_RATE as f64;
+    let n = (((end + 0.15) * rate) as usize).min(audio.len());
+    let mut x = audio[..n].to_vec();
+    let fade = ((0.12 * rate) as usize).min(n);
+    for (k, v) in x[n - fade..].iter_mut().enumerate() {
+        *v *= 1.0 - k as f32 / fade as f32;
+    }
+    let tone = (MASTER_RATE as usize).min(audio.len());
+    x.extend(audio[..tone].iter().enumerate().map(|(k, v)| v * (k as f32 / 2000.0).min(1.0)));
+    Some(x)
+}
+
 /// Masters every chapter, one at a time, and writes the chosen formats. Returns the
 /// written files, a level report per chapter, and the timings for a read-along ebook.
 pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTiming>)> {
@@ -867,6 +889,7 @@ pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTim
         let n = job.chapters.iter().filter(|c| !c.takes.is_empty()).count() as u32;
         let mut track = 0u32;
         let mut stems_written = false;
+        let mut sample_left = job.sample;
         let chapters = std::mem::take(&mut job.chapters);
         for (i, ch) in chapters.iter().enumerate() {
             if (job.cancelled)() {
@@ -881,7 +904,7 @@ pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTim
                 write_stems(ch, track, dir, job.watermark.as_mut(), job.message, &job.meta, &job.comment)?;
                 stems_written = true;
             }
-            if m4b.is_none() && !job.mp3 && job.readalong.is_none() {
+            if m4b.is_none() && !job.mp3 && job.readalong.is_none() && !sample_left {
                 continue;
             }
             (job.progress)(format!("Mastering {}", ch.title), i as f64 / total);
@@ -902,6 +925,16 @@ pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTim
                 mf::encode(&pcm, MASTER_RATE, &path, mf::Codec::Mp3, 128)?;
                 tag_mp3(&path, &job.meta, &ch.title, track, n, job.cover.as_deref())?;
                 files.push(path);
+            }
+            // The sample comes from the first chapter of the story, never the credits.
+            if sample_left && !lines.iter().any(|l| l.0 == "credit") {
+                if let Some(x) = retail_sample(&audio, &lines) {
+                    let path = free_path(&job.folder, &format!("{stem} (retail sample)"), "mp3");
+                    mf::encode(&to_i16(&x, 99), MASTER_RATE, &path, mf::Codec::Mp3, 128)?;
+                    tag_mp3(&path, &job.meta, &format!("{} (retail sample)", job.meta.title), 1, 1, job.cover.as_deref())?;
+                    files.push(path);
+                    sample_left = false;
+                }
             }
             if let Some(dir) = &job.readalong {
                 let path = dir.join(format!("{:03}.mp3", track));
@@ -992,6 +1025,17 @@ mod tests {
         assert!(out[0].parent().unwrap().ends_with("01 One a start"));
         assert!(crate::studio_verify::labels(&out[0])["AI_DISCLOSURE"].as_str().unwrap().starts_with("AI-generated voices."));
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn the_retail_sample_ends_after_a_whole_line() {
+        let rate = MASTER_RATE as usize;
+        let audio = vec![0.1f32; rate * 400];
+        let lines: Vec<(String, f64, f64)> = (0..40).map(|i| (format!("u{i}"), 1.0 + i as f64 * 9.0, 9.0 + i as f64 * 9.0)).collect();
+        let x = retail_sample(&audio, &lines).unwrap();
+        // The last line ending by 295 s ends at 288 s; then 0.15 s and one second of room tone.
+        assert!((x.len() as f64 / rate as f64 - (288.0 + 0.15 + 1.0)).abs() < 0.01);
+        assert!(retail_sample(&audio, &lines[..5]).is_none());
     }
 
     #[test]

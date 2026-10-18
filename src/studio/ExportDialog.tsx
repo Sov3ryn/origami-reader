@@ -49,6 +49,7 @@ export function ExportDialog({
   const [pdf, setPdf] = useState(false);
   const [readalong, setReadalong] = useState(false);
   const [stems, setStems] = useState(false);
+  const [sample, setSample] = useState(false);
   const [trim, setTrim] = useState(1);
   const [font, setFont] = useState("EB Garamond");
   const [large, setLarge] = useState(false);
@@ -72,7 +73,7 @@ export function ExportDialog({
 
   const missing = units.filter((u) => !u.take).length;
   const unapproved = units.filter((u) => u.take && u.status !== "approved").length;
-  const audio = m4b || mp3 || readalong || stems;
+  const audio = m4b || mp3 || readalong || stems || sample;
   useEffect(() => {
     void watermarkReady().then(setWmReady);
     const off = [
@@ -135,6 +136,7 @@ export function ExportDialog({
         pdf,
         readalong,
         stems,
+        sample,
         speakers: { "": t("Narrator"), ...Object.fromEntries((info.cast || []).map((c) => [c.id, c.name])) },
         aiLine: aiLine(info.language),
         shown: readalong ? shownText(production, book) : {},
@@ -152,7 +154,7 @@ export function ExportDialog({
     }
   }
 
-  const nothing = !m4b && !mp3 && !epub && !pdf && !readalong && !stems;
+  const nothing = !m4b && !mp3 && !epub && !pdf && !readalong && !stems && !sample;
   return (
     <div className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && !running && onClose()}>
       <section className="studio-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-export-title">
@@ -266,6 +268,13 @@ export function ExportDialog({
                   <span>
                     {t("MP3, one file per chapter")}
                     <small>{t("128 kbps with Windows' own encoder.")}</small>
+                  </span>
+                </label>
+                <label className="studio-check">
+                  <input type="checkbox" checked={sample} onChange={(e) => setSample(e.target.checked)} disabled={wmReady === false} />
+                  <span>
+                    {t("Retail sample")}
+                    <small>{t("Up to five minutes from the start of the story, without the credits, for a store page.")}</small>
                   </span>
                 </label>
                 <label className="studio-check">

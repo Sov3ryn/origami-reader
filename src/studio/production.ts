@@ -252,6 +252,8 @@ export type ExportOptions = {
   readalong: boolean;
   // One WAV per speaker and chapter, for a sound editor.
   stems: boolean;
+  // The opening minutes of the story as an MP3, for store pages.
+  sample: boolean;
   // Display names of the speakers by cast id ("" is the narrator), for the stems.
   speakers: Record<string, string>;
   aiLine: string;
