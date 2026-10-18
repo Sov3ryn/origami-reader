@@ -9,7 +9,7 @@ export function ModeSwitch({ mode, onChange }: { mode: AppMode; onChange: (mode:
   const option = (value: AppMode, label: string, tip: string, Icon: typeof BookOpen) => (
     <button role="radio" aria-checked={mode === value} onClick={() => onChange(value)} data-tip={tip} data-keys="Ctrl+Shift+W">
       <Icon size={14} />
-      {label}
+      <span className="mode-label">{label}</span>
     </button>
   );
   return (

@@ -150,8 +150,56 @@ body.resizing-panel {
   background: var(--accent);
   box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--accent) 80%, transparent);
 }
+/* The switch fits its column: the buttons share the width, the icons go when
+   space is short, and in a very narrow column only the icons stay (the names
+   remain for screen readers and in the tooltips). */
+.mode-switch {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.sidebar .mode-switch,
+.work-sidebar .mode-switch {
+  container-type: inline-size;
+}
+.mode-switch button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+}
+.mode-switch button svg {
+  flex: none;
+}
+.mode-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@container (max-width: 270px) {
+  .mode-switch button {
+    padding: 5px 8px;
+  }
+  .mode-switch button svg {
+    display: none;
+  }
+}
+@container (max-width: 150px) {
+  .mode-switch button svg {
+    display: inline;
+  }
+  .mode-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
 .sidebar .mode-switch {
-  margin: 4px 14px 10px;
+  display: flex;
+  margin: 4px 6px 10px;
 }
 
 /* --- Sidebar -------------------------------------------------------------------- */
@@ -2065,4 +2113,9 @@ body.resizing-panel {
     animation: none !important;
     transition: none !important;
   }
+}
+.work-brand .mode-switch {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
 }
