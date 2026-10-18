@@ -11,6 +11,10 @@ INSTALL
    (this beta is not signed), choose More info, then Run anyway. Do not turn
    off Windows security. Setup offers the included Microsoft installers for
    WebView2 and Visual C++ if they are missing.
+   If Windows says "Smart App Control blocked an app that may be unsafe",
+   Origami cannot run on that computer for now: Smart App Control only
+   allows signed apps and this free beta is not signed. Please do not reset
+   your computer for it.
 3. Choose a new installation folder, your languages, the language of your
    starter books and appearance. Setup picks the models for your computer
    and four voices per language, to keep the download small. Every other
