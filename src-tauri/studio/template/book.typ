@@ -22,6 +22,9 @@
     setin: "Composé en ",
     typeset: "Mise en page\u{A0}: Origami Studio.",
     crane: "Grue en origami, logo d'Origami Studio",
+    thanks: "Remerciements",
+    about: "À propos de l'auteur",
+    also: "Du même auteur",
   )
 } else {
   (
@@ -34,6 +37,9 @@
     setin: "Set in ",
     typeset: "Typeset with Origami Studio.",
     crane: "Origami crane, the Origami Studio logo",
+    thanks: "Acknowledgements",
+    about: "About the Author",
+    also: "Also by " + M.author,
   )
 }
 
@@ -64,7 +70,12 @@
   top-edge: 0.8em,
   bottom-edge: -0.2em,
   number-type: "old-style",
-  costs: (hyphenation: 100%, runt: 100%, widow: 100%, orphan: 100%),
+  // A retry after a layout failure turns the widow and orphan rules off.
+  costs: if L.at("costs", default: true) {
+    (hyphenation: 100%, runt: 100%, widow: 100%, orphan: 100%)
+  } else {
+    (hyphenation: 100%, runt: 0%, widow: 0%, orphan: 0%)
+  },
 )
 #set smartquote(enabled: false)
 #set par(
@@ -224,7 +235,8 @@
       render-runs(m)
     }
   }
-  if dialogue or i >= cl.len() {
+  // Without drop caps (a retry after a layout failure), the small-capital lead-in stays.
+  if dialogue or i >= cl.len() or not L.at("dropcap", default: true) {
     return par(body)
   }
   // Opening quotation marks are set at half size, raised, and hung in the
@@ -351,6 +363,28 @@
 #align(right, studio-mark())
 #end-mark
 
+// Dedication and epigraph (recto), when the book has them.
+#let front-page(body) = {
+  pagebreak(to: "odd")
+  start-mark(head: false, folio: false, roman: true)
+  v(block-h * 0.3)
+  body
+  end-mark
+}
+#if M.at("dedication", default: "") != "" {
+  front-page(display(align(center, text(style: "italic", M.dedication))))
+}
+#if M.at("epigraph", default: "") != "" {
+  front-page(display(align(right, block(width: 75%, {
+    set par(justify: false)
+    align(left, text(style: "italic", M.epigraph))
+    if M.at("epigraph_by", default: "") != "" {
+      v(lines(1))
+      align(right, text(size: 0.92em, caps(M.epigraph_by, tracking: 0.04em)))
+    }
+  }))))
+}
+
 // Contents (recto, v)
 #pagebreak(to: "odd")
 #start-mark(head: false, folio: true, roman: true)
@@ -437,4 +471,27 @@
     }
   }
   end-mark
+}
+
+// ---------------------------------------------------------------- back matter
+#let back-section(title, body) = {
+  pagebreak(to: "odd", weak: true)
+  start-mark(head: false, folio: true, roman: false)
+  v(block-h * 0.12)
+  display(align(center, text(size: 1.05em, caps(title, tracking: 0.18em))))
+  v(lines(2))
+  body
+  end-mark
+}
+#let paras(text-value) = {
+  for (i, p) in text-value.split("\n").filter(x => x.trim() != "").enumerate() {
+    par(first-line-indent: if i == 0 { 0pt } else { 1.3em }, p.trim())
+  }
+}
+#if M.at("acknowledgements", default: "") != "" { back-section(T.thanks, paras(M.acknowledgements)) }
+#if M.at("about", default: "") != "" { back-section(T.about, paras(M.about)) }
+#if M.at("also_by", default: ()).len() > 0 {
+  back-section(T.also, display(align(center, {
+    for b in M.also_by { text(style: "italic", b); linebreak() }
+  })))
 }

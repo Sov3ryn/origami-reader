@@ -268,6 +268,12 @@ export type Manuscript = {
   rights: string[];
   ai: string;
   first_published: string;
+  dedication?: string;
+  epigraph?: string;
+  epigraph_by?: string;
+  acknowledgements?: string;
+  about?: string;
+  also_by?: string[];
   chapters: { title: string | null; blocks: { text: string; quote?: boolean; center?: boolean }[] }[];
 };
 export type ExportProgress = { id: string; step: string; value: number };
@@ -283,6 +289,8 @@ export const exportProduction = (id: string, options: ExportOptions) => invoke<v
 export const cancelExport = () => invoke<void>("studio_cancel_export");
 export const chooseFolder = () => invoke<string | null>("studio_choose_folder");
 export const revealFile = (path: string) => invoke<void>("studio_reveal", { path });
+export const previewPrint = (manuscript: Manuscript, print: ExportOptions["print"], first: number, count: number) =>
+  invoke<{ pages: number; images: string[] }>("studio_preview_print", { manuscript, print, first, count });
 export const watermarkReady = (): Promise<boolean> => (desktop ? invoke("studio_watermark_ready") : Promise.resolve(false));
 
 // --- Checks and verification (phase 3) ---------------------------------------------------

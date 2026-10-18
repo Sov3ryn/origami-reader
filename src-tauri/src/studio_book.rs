@@ -42,6 +42,19 @@ pub struct Manuscript {
     pub ai: String,
     #[serde(default)]
     pub first_published: String,
+    // Front and back matter, all optional.
+    #[serde(default)]
+    pub dedication: String,
+    #[serde(default)]
+    pub epigraph: String,
+    #[serde(default)]
+    pub epigraph_by: String,
+    #[serde(default)]
+    pub acknowledgements: String,
+    #[serde(default)]
+    pub about: String,
+    #[serde(default)]
+    pub also_by: Vec<String>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -163,6 +176,13 @@ fn prepare(m: &Manuscript, narrow: bool) -> Manuscript {
         rights: m.rights.clone(),
         ai: m.ai.clone(),
         first_published: m.first_published.clone(),
+        dedication: fix(&m.dedication),
+        epigraph: fix(&m.epigraph),
+        epigraph_by: fix(&m.epigraph_by),
+        // Paragraph breaks matter here, so lines are fixed one by one.
+        acknowledgements: m.acknowledgements.lines().map(fix).collect::<Vec<_>>().join("\n"),
+        about: m.about.lines().map(fix).collect::<Vec<_>>().join("\n"),
+        also_by: m.also_by.iter().map(|b| fix(b)).filter(|b| !b.is_empty()).collect(),
         chapters: m
             .chapters
             .iter()
@@ -354,26 +374,31 @@ fn typst_book(m: &Manuscript) -> Vec<u8> {
         .collect();
     let lang = m.lang.split(['-', '_']).next().unwrap_or("en").to_lowercase();
     serde_json::to_vec(&json!({
-        "meta": { "title": m.title, "author": m.author, "lang": lang, "rights": m.rights, "ai": m.ai, "first_published": m.first_published },
+        "meta": {
+            "title": m.title, "author": m.author, "lang": lang, "rights": m.rights, "ai": m.ai, "first_published": m.first_published,
+            "dedication": m.dedication, "epigraph": m.epigraph, "epigraph_by": m.epigraph_by,
+            "acknowledgements": m.acknowledgements, "about": m.about, "also_by": m.also_by,
+        },
         "chapters": chapters,
     }))
     .unwrap_or_default()
 }
 
-fn layout(o: &PrintOptions, inside: f64) -> Vec<u8> {
+fn layout(o: &PrintOptions, inside: f64, safe: u8) -> Vec<u8> {
     let (size, lead) = if o.large { (16.0, 20.0) } else { (11.0, 14.0) };
     serde_json::to_vec(&json!({
         "trim_w": o.trim.0, "trim_h": o.trim.1,
         "inside": inside, "outside": 0.6, "top": 0.75, "bottom": 0.8,
         "bleed": o.bleed, "font": o.font, "size": size, "lead": lead, "mark": "svg",
+        // Fallbacks after a layout failure: 1 drops the drop caps, 2 also the widow rules.
+        "dropcap": safe == 0, "costs": safe < 2,
     }))
     .unwrap_or_default()
 }
 
-/// Typesets the book and writes a print PDF. Returns the page count.
-pub fn pdf(m: &Manuscript, o: &PrintOptions, out: &Path) -> Result<usize> {
+/// Typesets the book once, with the gutter settled on the real page count.
+fn typeset(m: &Manuscript, o: &PrintOptions) -> Result<typst_layout::PagedDocument> {
     use typst_layout::PagedDocument;
-    use typst_pdf::{PdfOptions, Timestamp};
     if unsupported_script(m) {
         return Err("Print PDFs support books in Latin, Greek and Cyrillic scripts for now.".into());
     }
@@ -381,15 +406,25 @@ pub fn pdf(m: &Manuscript, o: &PrintOptions, out: &Path) -> Result<usize> {
     let words: usize = m.chapters.iter().flat_map(|c| c.blocks.iter()).map(|b| b.text.split_whitespace().count()).sum();
     let mut world = world::BookWorld::new();
     world.set("/book.json", typst_book(&m));
-    // Settle the gutter on the real page count: more gutter only adds pages.
     let per_page = if o.large { 150.0 } else { 260.0 } * (o.trim.0 * o.trim.1) / (5.5 * 8.5);
     let mut gutter = kdp_gutter((words as f64 / per_page) as usize + 12);
     let mut doc: Option<PagedDocument> = None;
-    for _ in 0..4 {
-        world.set("/layout.json", layout(o, gutter + 0.125));
-        let result: PagedDocument = typst::compile::<PagedDocument>(&world).output.map_err(|errs| {
-            errs.iter().map(|e| e.message.to_string()).collect::<Vec<_>>().join("; ")
-        })?;
+    // Typst can stop on rare page arrangements (a panic in its line breaker, seen with
+    // drop caps on a whole novel); the book is then set again with fewer refinements.
+    let mut safe = 0u8;
+    let mut tries = 0;
+    while tries < 8 {
+        tries += 1;
+        world.set("/layout.json", layout(o, gutter + 0.125, safe));
+        let compiled = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| typst::compile::<PagedDocument>(&world).output));
+        let result: PagedDocument = match compiled {
+            Ok(r) => r.map_err(|errs| errs.iter().map(|e| e.message.to_string()).collect::<Vec<_>>().join("; "))?,
+            Err(_) if safe < 2 => {
+                safe += 1;
+                continue;
+            }
+            Err(_) => return Err("The book could not be typeset.".into()),
+        };
         let need = kdp_gutter(result.pages().len());
         doc = Some(result);
         if (need - gutter).abs() < 1e-9 {
@@ -397,7 +432,46 @@ pub fn pdf(m: &Manuscript, o: &PrintOptions, out: &Path) -> Result<usize> {
         }
         gutter = need;
     }
-    let doc = doc.ok_or("The book could not be typeset.")?;
+    doc.ok_or_else(|| "The book could not be typeset.".into())
+}
+
+/// Pages of the print book as PNG images, for the preview: the total page count and
+/// `count` pages from `first` (0-based) at `ppi` pixels per inch.
+pub fn preview(m: &Manuscript, o: &PrintOptions, first: usize, count: usize, ppi: f32) -> Result<(usize, Vec<Vec<u8>>)> {
+    // The last typeset book is kept, so turning the preview's pages does not set it again.
+    static LAST: Mutex<Option<(u64, typst_layout::PagedDocument)>> = Mutex::new(None);
+    let key = {
+        use std::hash::{Hash, Hasher};
+        let mut h = std::collections::hash_map::DefaultHasher::new();
+        format!("{m:?}{o:?}").hash(&mut h);
+        h.finish()
+    };
+    let cached = LAST.lock().ok().and_then(|g| g.as_ref().filter(|(k, _)| *k == key).map(|(_, d)| d.clone()));
+    let doc = match cached {
+        Some(d) => d,
+        None => {
+            let d = typeset(m, o)?;
+            if let Ok(mut g) = LAST.lock() {
+                *g = Some((key, d.clone()));
+            }
+            d
+        }
+    };
+    let opts = typst_render::RenderOptions { pixel_per_pt: typst::utils::Scalar::new((ppi / 72.0) as f64), render_bleed: o.bleed };
+    let pages = doc.pages();
+    let images = pages
+        .iter()
+        .skip(first)
+        .take(count)
+        .map(|p| typst_render::render(p, &opts).encode_png().map_err(|e| e.to_string()))
+        .collect::<Result<Vec<_>>>()?;
+    Ok((pages.len(), images))
+}
+
+/// Typesets the book and writes a print PDF. Returns the page count.
+pub fn pdf(m: &Manuscript, o: &PrintOptions, out: &Path) -> Result<usize> {
+    use typst_pdf::{PdfOptions, Timestamp};
+    let doc = typeset(m, o)?;
     let (y, mo, d, h, mi, se) = civil_now();
     let ts = typst::foundations::Datetime::from_ymd_hms(y, mo, d, h, mi, se);
     let opts = PdfOptions {
@@ -467,6 +541,12 @@ hr.scene::after { content: \"*\\2009*\\2009*\"; letter-spacing: 0.6em; }
 .mark img { height: 1.6em; width: auto; vertical-align: middle; margin-right: 0.4em; }
 .mark span { font-size: 0.75em; vertical-align: middle; }
 .colophon { margin-top: 50%; }
+.dedication { margin-top: 35%; text-align: center; font-style: italic; }
+.dedication p { text-indent: 0; text-align: center; }
+.epigraph { margin-top: 30%; }
+.epigraph blockquote { margin: 0 0 0 30%; font-style: italic; }
+.epigraph p { text-indent: 0; text-align: left; }
+.epigraph .by { text-align: right; font-style: normal; font-variant: small-caps; margin-top: 0.6em; }
 nav ol { list-style: none; padding: 0; }
 nav li { margin: 0.4em 0; }
 ";
@@ -529,6 +609,19 @@ pub fn epub(m: &Manuscript, cover_jpeg: Option<&[u8]>, export_id: &str, out: &Pa
     put(&mut zip, "OEBPS/copyright.xhtml", page(&lang, "Copyright", &copyright).as_bytes(), deflated)?;
     manifest.push(r#"<item id="copyright" href="copyright.xhtml" media-type="application/xhtml+xml"/>"#.into());
     spine.push("copyright".into());
+    if !m.dedication.is_empty() {
+        let body = format!("<section class=\"dedication\" epub:type=\"dedication\"><p>{}</p></section>", xml(&m.dedication));
+        put(&mut zip, "OEBPS/dedication.xhtml", page(&lang, "Dedication", &body).as_bytes(), deflated)?;
+        manifest.push(r#"<item id="dedication" href="dedication.xhtml" media-type="application/xhtml+xml"/>"#.into());
+        spine.push("dedication".into());
+    }
+    if !m.epigraph.is_empty() {
+        let by = if m.epigraph_by.is_empty() { String::new() } else { format!("<p class=\"by\">{}</p>", xml(&m.epigraph_by)) };
+        let body = format!("<section class=\"epigraph\" epub:type=\"epigraph\"><blockquote><p>{}</p>{by}</blockquote></section>", xml(&m.epigraph));
+        put(&mut zip, "OEBPS/epigraph.xhtml", page(&lang, "Epigraph", &body).as_bytes(), deflated)?;
+        manifest.push(r#"<item id="epigraph" href="epigraph.xhtml" media-type="application/xhtml+xml"/>"#.into());
+        spine.push("epigraph".into());
+    }
     spine.push("nav".into());
     let mut toc = Vec::new();
     for (i, c) in m.chapters.iter().enumerate() {
@@ -557,6 +650,22 @@ pub fn epub(m: &Manuscript, cover_jpeg: Option<&[u8]>, export_id: &str, out: &Pa
         manifest.push(format!(r#"<item id="c{i}" href="{href}" media-type="application/xhtml+xml"/>"#));
         spine.push(format!("c{i}"));
         toc.push((name, href));
+    }
+    // Back matter, each part on its own page.
+    let fr = lang.to_lowercase().starts_with("fr");
+    let back: [(&str, &str, String); 3] = [
+        ("acknowledgements", if fr { "Remerciements" } else { "Acknowledgements" }, m.acknowledgements.clone()),
+        ("about", if fr { "\u{c0} propos de l'auteur" } else { "About the Author" }, m.about.clone()),
+        ("also-by", if fr { "Du m\u{ea}me auteur" } else { "Also by the Author" }, m.also_by.join("\n")),
+    ];
+    for (id, heading, text) in back.iter().filter(|b| !b.2.trim().is_empty()) {
+        let paras: String = text.lines().filter(|l| !l.trim().is_empty()).map(|l| format!("<p>{}</p>", xml(l.trim()))).collect();
+        let kind = match *id { "acknowledgements" => "acknowledgments", "about" => "contributors", _ => "other-credits" };
+        let body = format!("<section epub:type=\"{kind}\"><h1>{}</h1>{paras}</section>", xml(heading));
+        put(&mut zip, &format!("OEBPS/{id}.xhtml"), page(&lang, heading, &body).as_bytes(), deflated)?;
+        manifest.push(format!(r#"<item id="{id}" href="{id}.xhtml" media-type="application/xhtml+xml"/>"#));
+        spine.push(id.to_string());
+        toc.push((heading.to_string(), format!("{id}.xhtml")));
     }
     let colophon = format!("<section class=\"colophon\" epub:type=\"colophon\"><p>{}</p>{}</section>", xml(l.typeset), mark(&l));
     put(&mut zip, "OEBPS/colophon.xhtml", page(&lang, "Colophon", &colophon).as_bytes(), deflated)?;
@@ -766,6 +875,12 @@ mod tests {
             rights: vec!["Public domain.".into()],
             ai: "".into(),
             first_published: "".into(),
+            dedication: "For Ann.".into(),
+            epigraph: "All the world's a stage.".into(),
+            epigraph_by: "Shakespeare".into(),
+            acknowledgements: "Thanks to everyone.".into(),
+            about: "Ann writes books.".into(),
+            also_by: vec!["Another Book".into()],
             chapters: (0..3)
                 .map(|i| ChapterIn {
                     title: Some(format!("Chapter {}", i + 1)),
@@ -841,6 +956,21 @@ mod tests {
         assert!(pages > 8, "{pages}");
         let bytes = std::fs::read(&out).unwrap();
         assert!(bytes.starts_with(b"%PDF"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn preview_renders_pages_and_matter_is_in_the_ebook() {
+        let (pages, images) = preview(&book("en"), &PrintOptions { trim: (5.5, 8.5), font: "Literata".into(), bleed: false, large: false }, 0, 3, 40.0).unwrap();
+        assert!(pages > 10 && images.len() == 3 && images[0].starts_with(&[0x89, b'P', b'N', b'G']));
+        let dir = std::env::temp_dir().join(format!("origami-matter-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let out = dir.join("m.epub");
+        epub(&book("en"), None, "x", &out).unwrap();
+        let z = zip::ZipArchive::new(std::fs::File::open(&out).unwrap()).unwrap();
+        for f in ["OEBPS/dedication.xhtml", "OEBPS/epigraph.xhtml", "OEBPS/acknowledgements.xhtml", "OEBPS/about.xhtml", "OEBPS/also-by.xhtml"] {
+            assert!(z.file_names().any(|n| n == f), "{f}");
+        }
         let _ = std::fs::remove_dir_all(&dir);
     }
 

@@ -11,6 +11,7 @@ import {
   creditTitle,
   exportProduction,
   manuscript,
+  previewPrint,
   revealFile,
   shownText,
   watermarkReady,
@@ -55,12 +56,17 @@ export function ExportDialog({
   const profile = storeProfiles.find((s) => s.id === store) || storeProfiles[0];
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [rights, setRights] = useState("");
+  const [bleed, setBleed] = useState(false);
+  const [matter, setMatter] = useState({ dedication: "", epigraph: "", epigraph_by: "", acknowledgements: "", about: "", also_by: "" });
+  const [preview, setPreview] = useState<{ pages: number; images: string[]; first: number } | null>(null);
+  const [previewing, setPreviewing] = useState(false);
   const [folder, setFolder] = useState("");
   const [wmReady, setWmReady] = useState<boolean | null>(null);
   const [running, setRunning] = useState(false);
   const [step, setStep] = useState("");
   const [value, setValue] = useState(0);
   const [done, setDone] = useState<ExportDone | null>(null);
+  const [error, setError] = useState("");
 
   const missing = units.filter((u) => !u.take).length;
   const unapproved = units.filter((u) => u.take && u.status !== "approved").length;
@@ -92,13 +98,31 @@ export function ExportDialog({
     return m ? m[1] : null;
   }, [book]);
 
+  // The manuscript with its front and back matter, for exports and the preview.
+  function bookData() {
+    const rightsLines = rights.split("\n").map((l) => l.trim()).filter(Boolean);
+    const m = manuscript(production, book, { rights: rightsLines, ai: production.takes.length ? aiLine(info.language) : "" });
+    return { ...m, ...matter, also_by: matter.also_by.split("\n").map((l) => l.trim()).filter(Boolean) };
+  }
+  async function showPages(first: number) {
+    setPreviewing(true);
+    setError("");
+    try {
+      // Book spreads: the first page alone on the right, then even pages on the left.
+      const r = await previewPrint(bookData(), { trim: TRIMS[trim][1], font, bleed, large }, first, first === 0 ? 1 : 2);
+      setPreview({ ...r, first });
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setPreviewing(false);
+    }
+  }
   async function start() {
     setDone(null);
     setStep(t("Starting"));
     setValue(0);
     const chapterTitles: Record<string, string> = {};
     for (const u of units) if (!(u.chapter in chapterTitles)) chapterTitles[u.chapter] = titles.get(u.chapter) || t("Chapter {n}", { n: String(u.chapter + 1) });
-    const rightsLines = rights.split("\n").map((l) => l.trim()).filter(Boolean);
     try {
       setRunning(true);
       await exportProduction(info.id, {
@@ -115,8 +139,8 @@ export function ExportDialog({
         titles: chapterTitles,
         meta: { title: info.title, author: info.author, narrator, year },
         cover,
-        manuscript: epub || pdf || readalong ? manuscript(production, book, { rights: rightsLines, ai: production.takes.length ? aiLine(info.language) : "" }) : null,
-        print: { trim: TRIMS[trim][1], font, bleed: false, large },
+        manuscript: epub || pdf || readalong ? bookData() : null,
+        print: { trim: TRIMS[trim][1], font, bleed, large },
       });
     } catch (e) {
       setRunning(false);
@@ -295,6 +319,13 @@ export function ExportDialog({
                       <input type="checkbox" checked={large} onChange={(e) => setLarge(e.target.checked)} />
                       <span>{t("Large print")}</span>
                     </label>
+                    <label className="studio-check small">
+                      <input type="checkbox" checked={bleed} onChange={(e) => setBleed(e.target.checked)} />
+                      <span>{t("Bleed")}</span>
+                    </label>
+                    <button onClick={() => void showPages(0)} disabled={previewing}>
+                      {previewing ? t("Typesetting") : t("Preview pages")}
+                    </button>
                   </div>
                 )}
               </fieldset>
@@ -310,11 +341,68 @@ export function ExportDialog({
                 <input value={year} onChange={(e) => setYear(e.target.value.replace(/[^0-9]/g, "").slice(0, 4))} inputMode="numeric" />
               </label>
               <label className="studio-field">
+                <span>{t("Dedication")}</span>
+                <input value={matter.dedication} onChange={(e) => setMatter({ ...matter, dedication: e.target.value })} />
+              </label>
+              <div className="studio-inline grow">
+                <label className="studio-field">
+                  <span>{t("Epigraph")}</span>
+                  <input value={matter.epigraph} onChange={(e) => setMatter({ ...matter, epigraph: e.target.value })} />
+                </label>
+                <label className="studio-field">
+                  <span>{t("Quoted from")}</span>
+                  <input value={matter.epigraph_by} onChange={(e) => setMatter({ ...matter, epigraph_by: e.target.value })} />
+                </label>
+              </div>
+              <label className="studio-field">
+                <span>{t("Acknowledgements")}</span>
+                <textarea rows={2} value={matter.acknowledgements} onChange={(e) => setMatter({ ...matter, acknowledgements: e.target.value })} />
+              </label>
+              <label className="studio-field">
+                <span>{t("About the author")}</span>
+                <textarea rows={2} value={matter.about} onChange={(e) => setMatter({ ...matter, about: e.target.value })} />
+              </label>
+              <label className="studio-field">
+                <span>{t("Also by the author (one title per line)")}</span>
+                <textarea rows={2} value={matter.also_by} onChange={(e) => setMatter({ ...matter, also_by: e.target.value })} />
+              </label>
+              <label className="studio-field">
                 <span>{t("Copyright page lines (optional)")}</span>
                 <textarea rows={3} value={rights} onChange={(e) => setRights(e.target.value)} placeholder={t("For example: Text in the public domain. Cover by the author.")} />
               </label>
             </details>
             <p className="studio-hint">{t("Every export carries “Made with Origami Studio” and the crane on its copyright page; audiobooks say it in their opening credits and carry AI labels and an inaudible watermark.")}</p>
+            {preview && (
+              <div className="studio-preview">
+                <div className="studio-spread">
+                  {preview.first === 0 && <span className="studio-page-blank" aria-hidden="true" />}
+                  {preview.images.map((img, i) => (
+                    <img key={preview.first + i} src={"data:image/png;base64," + img} alt={t("Page {n}", { n: String(preview.first + i + 1) })} />
+                  ))}
+                </div>
+                <div className="studio-row">
+                  <button onClick={() => void showPages(preview.first <= 1 ? 0 : preview.first - 2)} disabled={previewing || preview.first === 0}>
+                    {t("Previous pages")}
+                  </button>
+                  <span className="muted small">
+                    {preview.first === 0
+                      ? t("Page {n} of {total}", { n: "1", total: String(preview.pages) })
+                      : t("Pages {a} and {b} of {n}", { a: String(preview.first + 1), b: String(Math.min(preview.pages, preview.first + 2)), n: String(preview.pages) })}
+                  </span>
+                  <button onClick={() => void showPages(preview.first === 0 ? 1 : preview.first + 2)} disabled={previewing || preview.first + (preview.first === 0 ? 1 : 2) >= preview.pages}>
+                    {t("Next pages")}
+                  </button>
+                  <button className="icon-only" onClick={() => setPreview(null)} aria-label={t("Close the preview")}>
+                    <X size={15} />
+                  </button>
+                </div>
+              </div>
+            )}
+            {error && (
+              <p className="studio-error" role="alert">
+                {error}
+              </p>
+            )}
             {done && !done.ok && <p className="studio-error" role="alert">{done.cancelled ? t("Export cancelled.") : done.message}</p>}
             <div className="studio-row folder">
               <button onClick={() => void chooseFolder().then((f) => f && setFolder(f))}>

@@ -753,6 +753,18 @@ fn studio_transcribe(app: tauri::AppHandle, job: State<AsrJob>, files: Vec<Strin
     });
     Ok(())
 }
+/// Pages of the print book as images, for the export dialog's preview.
+#[tauri::command]
+async fn studio_preview_print(manuscript: Value, print: Value, first: usize, count: usize) -> Result<Value> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let m: studio_book::Manuscript = serde_json::from_value(manuscript).map_err(|e| format!("The book could not be read: {e}"))?;
+        let o: studio_book::PrintOptions = serde_json::from_value(print).map_err(|e| e.to_string())?;
+        let (pages, images) = studio_book::preview(&m, &o, first, count.min(6), 80.0)?;
+        Ok(serde_json::json!({"pages": pages, "images": images.iter().map(|i| STANDARD.encode(i)).collect::<Vec<_>>()}))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
 // Studio export: one at a time, in the background, with progress events.
 #[derive(Default)]
 struct ExportJob {
@@ -1484,7 +1496,7 @@ pub fn run() {
             studio_choose_folder, studio_reveal, studio_watermark_ready, studio_cancel_export, studio_export,
             studio_analysis_status, studio_analysis_chat, studio_analysis_stop, studio_replace_units,
             studio_verify_file, studio_check_takes, studio_cancel_check,
-            studio_asr_ready, studio_pick_recordings, studio_transcribe, studio_cancel_transcribe,
+            studio_asr_ready, studio_pick_recordings, studio_transcribe, studio_cancel_transcribe, studio_preview_print,
             starter_library_installed,
             install_starter_library,
             read_book,

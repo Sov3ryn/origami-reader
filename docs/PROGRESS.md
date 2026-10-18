@@ -607,3 +607,9 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - The audio export now masters and encodes one chapter at a time (the M4B encoder stays open across chapters), so a 10-hour book no longer needs several gigabytes of memory, and it returns each line's start and end for the read-along.
 - Speech units keep their own quotation marks (and the spaces inside guillemets), so the narration between them is clean for the voice and for the read-along text; lines that are a whole paragraph show the book's text (a heading reads "I", not "One").
 - Checked: chapter I generated with three voices (narrator, Mrs. Bennet, Mr. Bennet) in 26 to 45 s; M4B and read-along exported in 30 s; 66 timed lines in reading order, never overlapping, ending 2 s before the chapter's end.
+
+## Studio phase 5 (first part): front and back matter, print preview, 18 October 2026
+
+- Export dialog, "Credits and rights": dedication, epigraph with its source, acknowledgements, about the author and "also by" (one title per line), set in the print book (dedication and epigraph on their own right-hand pages before the contents; back matter after the last chapter, each on a new page) and in both EPUBs (their own pages, with EPUB structure types, in the contents).
+- Print preview: "Preview pages" typesets the whole book and shows real spreads (the first page alone on the right, then even pages on the left) rendered by Typst; the last typeset book is kept, so page turns are quick. A bleed option joins trim, typeface and large print.
+- Typst stopped with a panic in its line breaker on the whole of Pride and Prejudice (no single chapter fails alone: a page arrangement with drop caps). The typesetter now catches it and sets the book again without drop caps, then also without the widow and orphan rules; the novel sets in 400 pages.

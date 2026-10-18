@@ -1275,3 +1275,31 @@
   align-items: center;
   gap: 6px;
 }
+
+/* Phase 5: print preview and front matter */
+.studio-preview {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+.studio-spread {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+}
+.studio-spread img {
+  max-height: 420px;
+  max-width: 48%;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.3);
+  background: #fff;
+}
+.studio-inline.grow > * {
+  flex: 1;
+  min-width: 160px;
+}
+.studio-page-blank {
+  width: 48%;
+  max-width: 280px;
+}
