@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PanelResizer, rememberWidth, rememberedWidth } from "./PanelResizer";
 import {
   BookOpen,
   FileSpreadsheet,
@@ -321,6 +322,11 @@ export function WorkMode({
   const [linkForMe, setLinkForMe] = useState(false);
   // Both side columns fold away on their own, and stay as they were left.
   const [sidebarOpen, setSidebarOpen] = useState(() => remembered("origami.workSidebar", true));
+  // Side panel widths, dragged by their edges and kept on this computer.
+  const [leftWidth, setLeftWidth] = useState(() => rememberedWidth("origami.workLeftWidth", 252));
+  const [rightWidth, setRightWidth] = useState(() => rememberedWidth("origami.workRightWidth", 320));
+  useEffect(() => rememberWidth("origami.workLeftWidth", leftWidth), [leftWidth]);
+  useEffect(() => rememberWidth("origami.workRightWidth", rightWidth), [rightWidth]);
   const [connectionsOpen, setConnectionsOpen] = useState(() => remembered("origami.workConnections", true));
   useEffect(() => remember("origami.workSidebar", sidebarOpen), [sidebarOpen]);
   useEffect(() => remember("origami.workConnections", connectionsOpen), [connectionsOpen]);
@@ -1688,7 +1694,14 @@ export function WorkMode({
       data-work-theme={theme}
       role="region"
       aria-label={t("Work mode")}
+      style={{ "--work-left": `${leftWidth}px`, "--work-right": `${rightWidth}px` } as React.CSSProperties}
     >
+      {sidebarOpen && (
+        <PanelResizer side="left" width={leftWidth} min={200} max={440} fallback={252} inset={{ edge: 12, gap: 6 }} label={t("Resize the sidebar")} onChange={setLeftWidth} />
+      )}
+      {showConnections && (
+        <PanelResizer side="right" width={rightWidth} min={260} max={620} fallback={320} inset={{ edge: 12, gap: 6 }} label={t("Resize the side panel")} onChange={setRightWidth} />
+      )}
       <nav className="work-sidebar" aria-label={t("Work navigation")} hidden={!sidebarOpen}>
         <div className="work-brand">
           <img src="/crane.png" alt="" />

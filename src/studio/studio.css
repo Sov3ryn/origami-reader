@@ -764,8 +764,9 @@
   gap: 8px;
   min-height: 0;
 }
-.studio-search {
+.studio-dialog label.studio-search {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 8px;
   padding: 0 10px;

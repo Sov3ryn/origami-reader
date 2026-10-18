@@ -216,6 +216,11 @@ function NewProduction({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookId]);
   useEffect(() => () => audio.current?.pause(), []);
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => e.key === "Escape" && !busy && onCancel();
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [busy, onCancel]);
 
   // An audition on the book's own first lines.
   async function listen() {

@@ -13,7 +13,7 @@
   inset: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: 252px minmax(0, 1fr);
+  grid-template-columns: var(--work-left, 252px) minmax(0, 1fr);
   gap: 12px;
   padding: 12px;
   color: var(--ink);
@@ -23,7 +23,39 @@
   animation: work-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .work-mode.with-connections {
-  grid-template-columns: 252px minmax(0, 1fr) 320px;
+  grid-template-columns: var(--work-left, 252px) minmax(0, 1fr) var(--work-right, 320px);
+}
+/* Drag handles in the gaps beside the side panels (PanelResizer). */
+.panel-resizer {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  width: 8px;
+  z-index: 6;
+  cursor: col-resize;
+  border-radius: 4px;
+  touch-action: none;
+}
+.panel-resizer::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 30%;
+  bottom: 30%;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 150ms;
+}
+.panel-resizer:hover::after,
+.panel-resizer:focus-visible::after,
+body.resizing-panel .panel-resizer::after {
+  opacity: 0.7;
+}
+body.resizing-panel {
+  cursor: col-resize;
+  user-select: none;
 }
 .work-mode.loading {
   place-items: center;
@@ -1989,6 +2021,9 @@
   .work-mode,
   .work-mode.with-connections {
     grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .panel-resizer {
+    display: none;
   }
   .work-connections {
     position: absolute;

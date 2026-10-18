@@ -172,18 +172,45 @@ export function EditorMenu({
   const ref = useRef<HTMLDivElement>(null);
   const [sub, setSub] = useState<Sub>(null);
   const [place, setPlace] = useState({ left: x, top: y });
+  // Submenus open to the right, or to the left when the window edge is near.
+  const [flip, setFlip] = useState(false);
+  const [subTop, setSubTop] = useState(0);
+  const main = useRef<HTMLDivElement>(null);
+  const subRef = useRef<HTMLDivElement>(null);
   const { from, to, empty } = editor.state.selection;
   const text = editor.state.doc.textBetween(from, to, " ").trim();
   const inTable = editor.isActive("table");
 
+  // Placed once, from the main column only, so opening a submenu never moves
+  // the menu under the pointer. A blurred or transformed ancestor makes
+  // "fixed" relative to itself, so the menu measures where it really lands.
   useLayoutEffect(() => {
-    const r = ref.current?.getBoundingClientRect();
-    if (!r) return;
-    setPlace({
-      left: Math.max(8, Math.min(x, window.innerWidth - r.width - 8)),
-      top: Math.max(8, Math.min(y, window.innerHeight - r.height - 8)),
-    });
-  }, [x, y, sub]);
+    const el = ref.current;
+    const col = main.current;
+    if (!el || !col) return;
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    // The opening animation scales and shifts the menu; measure without it.
+    el.style.animation = "none";
+    const r = el.getBoundingClientRect();
+    el.style.animation = "";
+    const dx = r.left - x;
+    const dy = r.top - y;
+    const left = Math.max(8, Math.min(x, window.innerWidth - col.offsetWidth - 8));
+    const top = Math.max(8, Math.min(y, window.innerHeight - col.offsetHeight - 8));
+    setPlace({ left: left - dx, top: top - dy });
+    setFlip(left + col.offsetWidth + 4 + 240 > window.innerWidth - 8);
+  }, [x, y]);
+  // A submenu starts level with its item and stays inside the window.
+  useLayoutEffect(() => {
+    const panel = subRef.current;
+    const opener = main.current?.querySelector<HTMLElement>("button[aria-expanded='true']");
+    if (!panel || !opener || !main.current) return;
+    const base = main.current.getBoundingClientRect().top;
+    const wanted = opener.getBoundingClientRect().top - base - 5;
+    const room = window.innerHeight - 8 - (base + panel.offsetHeight);
+    setSubTop(Math.max(8 - base, Math.min(wanted, room)));
+  }, [sub]);
   useEffect(() => {
     const close = (e: Event) => {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
@@ -228,8 +255,8 @@ export function EditorMenu({
   );
 
   return (
-    <div ref={ref} className="editor-menu" role="menu" style={place} onContextMenu={(e) => e.preventDefault()}>
-      <div className="editor-menu-col">
+    <div ref={ref} className={"editor-menu" + (flip ? " flip" : "")} role="menu" style={place} onContextMenu={(e) => e.preventDefault()}>
+      <div className="editor-menu-col" ref={main}>
         <div className="editor-menu-format" role="group" aria-label={t("Formatting")}>
           {(
             [
@@ -278,7 +305,7 @@ export function EditorMenu({
         {item(t("Link as a note"), <Link2 size={15} />, () => onLinkNote(text), { disabled: !text || text.length > 120 })}
       </div>
       {sub && (
-        <div className="editor-menu-col sub" role="menu">
+        <div className="editor-menu-col sub" role="menu" ref={subRef} style={{ top: subTop }}>
           {sub === "highlight" && <ColorRow kind="highlight" editor={editor} onDone={onClose} />}
           {sub === "underline" && <ColorRow kind="underline" editor={editor} onDone={onClose} />}
           {sub === "turn" && (

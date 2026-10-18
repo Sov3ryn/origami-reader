@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { BookOpen, CheckCircle2, FileAudio, FolderOpen, Headphones, Printer, X, XCircle } from "lucide-react";
+import { BookOpen, CheckCircle2, FileAudio, FolderOpen, Headphones, X, XCircle } from "lucide-react";
 import { t } from "../i18n";
 import type { Book } from "../types";
 import {
@@ -75,6 +75,11 @@ export function ExportDialog({
     ];
     return () => off.forEach((p) => void p.then((f) => f()));
   }, [info.id]);
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => e.key === "Escape" && !running && onClose();
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [running, onClose]);
   const cover = useMemo(() => {
     const c = book?.meta.coverImage || "";
     const m = c.match(/^data:image\/[a-z+]+;base64,(.+)$/);
@@ -231,7 +236,7 @@ export function ExportDialog({
                 <label className="studio-check">
                   <input type="checkbox" checked={pdf} onChange={(e) => setPdf(e.target.checked)} />
                   <span>
-                    <Printer size={13} /> {t("Print PDF")}
+                    {t("Print PDF")}
                     <small>{t("Typeset for print, with margins that follow KDP's rules.")}</small>
                   </span>
                 </label>

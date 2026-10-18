@@ -282,7 +282,15 @@
   color: var(--ink);
 }
 .editor-menu-col.sub {
+  position: absolute;
+  left: calc(100% + 4px);
   min-width: 210px;
+  max-height: calc(100vh - 16px);
+  overflow: auto;
+}
+.editor-menu.flip .editor-menu-col.sub {
+  left: auto;
+  right: calc(100% + 4px);
 }
 .editor-menu-col > button {
   display: flex;

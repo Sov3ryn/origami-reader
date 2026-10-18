@@ -696,7 +696,7 @@
   grid-template-columns: minmax(0, 1fr);
 }
 .work-mode.sidebar-hidden.with-connections {
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) var(--work-right, 320px);
 }
 .work-brand .sidebar-toggle {
   margin-left: auto;

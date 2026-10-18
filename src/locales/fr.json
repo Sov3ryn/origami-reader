@@ -2574,5 +2574,8 @@
   "Too loud: the peaks clip": "Trop forte : les crêtes saturent",
   "Much quieter than usual": "Beaucoup plus faible que d'habitude",
   "Long silence before or after the speech": "Long silence avant ou après la parole",
-  "The text changed since this take": "Le texte a changé depuis cette prise"
+  "The text changed since this take": "Le texte a changé depuis cette prise",
+  "Drag to resize. Double-click to reset.": "Glissez pour redimensionner. Double-cliquez pour rétablir.",
+  "Resize the sidebar": "Redimensionner la barre latérale",
+  "Resize the side panel": "Redimensionner le panneau latéral"
 }

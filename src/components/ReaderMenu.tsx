@@ -46,14 +46,19 @@ export function ReaderMenu({
   const menu = useRef<HTMLDivElement>(null);
   const [place, setPlace] = useState({ left: x, top: y });
   // Kept inside the window, opening upward or leftward near the edges.
+  // A blurred or transformed ancestor makes "fixed" relative to itself, so the
+  // menu measures where it really lands and corrects for it.
   useLayoutEffect(() => {
-    const r = menu.current?.getBoundingClientRect();
-    if (!r) return;
-    setPlace({
-      left: x + r.width > window.innerWidth - 8 ? Math.max(8, x - r.width) : x,
-      top:
-        y + r.height > window.innerHeight - 8 ? Math.max(8, y - r.height) : y,
-    });
+    const el = menu.current;
+    if (!el) return;
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    el.style.animation = "none";
+    const r = el.getBoundingClientRect();
+    el.style.animation = "";
+    const left = x + r.width > window.innerWidth - 8 ? Math.max(8, x - r.width) : x;
+    const top = y + r.height > window.innerHeight - 8 ? Math.max(8, y - r.height) : y;
+    setPlace({ left: left - (r.left - x), top: top - (r.top - y) });
   }, [x, y]);
   useEffect(() => {
     menu.current
