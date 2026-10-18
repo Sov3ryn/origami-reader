@@ -65,7 +65,9 @@ pub fn platform() -> &'static str {
 /// What each component may write, relative to the install folder.
 fn allowed(component: &str) -> &'static [&'static str] {
     match component {
-        "app" => &["origami-reader.exe", "origami-reader", "runtime/", "licenses/"],
+        // The uninstaller is accepted from beta 12 on; earlier updaters refuse
+        // it, so it is shipped in an app update only after beta 12 is common.
+        "app" => &["origami-reader.exe", "origami-reader", "runtime/", "licenses/", "Uninstall Origami.ps1"],
         "workers" => &["workers/"],
         "voices" => &["voices/", "voice-catalog.json"],
         "image-runtime" => &["image-runtime/"],

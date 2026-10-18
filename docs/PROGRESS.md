@@ -700,3 +700,9 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - Reading aloud suggests a lighter reader when it keeps waiting for the voice (three waits of 1.5 s within ten sentences): a small card above the player names the next lighter reader that speaks the reading language, switches and continues, or opens Settings, Models; it can be turned off in Reading aloud settings. Checked in the development app with the threshold forced.
 - Checked in the development app: Space in the 3D book turned the page and left playback paused; Read, Work and Studio open without page errors.
 - Not done from the reviews (noted for later): splitting chapters longer than about 90 minutes before mastering (it changes the watermark, timings and track layout), highlights when reading a selection, full-text library search.
+
+
+## Beta 12, 18 October 2026
+
+- Released for Windows (Studio on): Origami-Reader-Setup-Beta-12.exe on the hub (SHA-256 462e22e0...) and the signed app and workers update on origami-updates, carrying the quality review's fixes and the lighter-reader suggestion. Checked on the release build with a fresh data folder: the three modes, the Studio home and the new Reading aloud setting, with no page errors.
+- Found while packaging: the release refresh (refresh-windows.py) never updated the kit's uninstaller, so kits kept an old copy; it now does, and beta 12's kit has the UTF-8 uninstaller. Installed copies get the uninstaller through setup only for now: earlier updaters refuse files outside their list, so update.rs accepts "Uninstall Origami.ps1" from beta 12 on and a later app update can ship it.

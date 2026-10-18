@@ -65,6 +65,8 @@ def main():
     # ONNX Runtime for Related notes, from the kit's own Python packages.
     for source, name in package_windows.runtime_files(payload / "python/Lib/site-packages"):
         add(source, "runtime/" + name)
+    # The uninstaller changes too (beta 12 reads receipts as UTF-8).
+    add(REPO / "installer/scripts/Uninstall Origami.ps1", "Uninstall Origami.ps1")
     add(REPO / "LICENSE", "licenses/Origami-Source-PolyForm-Strict-1.0.0.txt")
     add(REPO / "APP-LICENSE.md", "licenses/Origami-Reader-App-License.txt")
     for source in sorted((REPO / "docs/licenses").glob("*")):
