@@ -2736,5 +2736,9 @@
   "No word needs checking.": "Aucun mot à vérifier.",
   "Stop checking": "Arrêter la vérification",
   "The word as it should be written": "Le mot tel qu’il doit être écrit",
-  "Word {n} of {total}": "Mot {n} sur {total}"
+  "Word {n} of {total}": "Mot {n} sur {total}",
+  "Classic: centred small capitals and drop caps": "Classique : petites capitales centrées et lettrines",
+  "Design": "Mise en page",
+  "Elegant: italic titles and ornaments": "Élégante : titres en italique et ornements",
+  "Modern: flush left, large chapter numbers": "Moderne : alignée à gauche, grands numéros de chapitre"
 }

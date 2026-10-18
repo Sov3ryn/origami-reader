@@ -10,6 +10,11 @@
 #let B = json("/book.json")
 #let M = B.meta
 #let fr = M.lang == "fr"
+// Book design: "classic" (centred small capitals, drop caps), "modern" (flush
+// left, large numerals, no drop caps) or "elegant" (italic titles, ornaments).
+#let theme = M.at("theme", default: "classic")
+#let modern = theme == "modern"
+#let elegant = theme == "elegant"
 
 #let T = if fr {
   (
@@ -144,14 +149,21 @@
   if not st.show-head { return none }
   let p = here().page()
   let label = if calc.even(p) { M.author } else { M.title }
-  align(center, text(size: 0.82em, caps(label, tracking: 0.12em)))
+  if modern {
+    align(if calc.even(p) { left } else { right }, text(size: 0.82em, caps(label, tracking: 0.1em)))
+  } else if elegant {
+    align(center, text(size: 0.9em, style: "italic", label))
+  } else {
+    align(center, text(size: 0.82em, caps(label, tracking: 0.12em)))
+  }
 }
 
 #let folio() = context {
   let st = page-state()
   if not st.show-folio { return none }
   let n = counter(page).get().first()
-  align(center, text(size: 0.9em, numbering(if st.roman { "i" } else { "1" }, n)))
+  let side = if modern { if calc.even(here().page()) { left } else { right } } else { center }
+  align(side, text(size: 0.9em, numbering(if st.roman { "i" } else { "1" }, n)))
 }
 
 #set page(
@@ -196,8 +208,11 @@
 // Dialogue openers (dash) get the small-capital lead-in only.
 #let opening-par(runs, more: ()) = {
   let first = runs.at(0)
-  if type(first) != str {
-    return par(render-runs(runs))
+  // Modern books open flush left, without a drop cap or small capitals.
+  if modern or type(first) != str {
+    par(first-line-indent: 0pt, render-runs(runs))
+    for m in more { par(render-runs(m)) }
+    return
   }
   let cl = first.clusters()
   let i = 0
@@ -258,6 +273,16 @@
   }
 }
 
+// A small drawn ornament (no font glyph needed): a lozenge between two rules.
+#let ornament(width: 3.2em) = box(grid(
+  columns: 3,
+  column-gutter: 0.35em,
+  align: horizon,
+  line(length: width / 2 - 0.6em, stroke: 0.35pt),
+  rotate(45deg, rect(width: 0.28em, height: 0.28em, fill: black, stroke: none)),
+  line(length: width / 2 - 0.6em, stroke: 0.35pt),
+))
+
 #let render-block(b, first: false, more: (), indent: false, flush: false) = {
   if b.k == "p" {
     let role = b.at("role", default: none)
@@ -283,7 +308,13 @@
       above: lines(1) + gap,
       below: lines(1) + gap,
       sticky: true,
-      align(center, text(tracking: 0.6em, "*\u{2009}*\u{2009}*")),
+      if modern {
+        align(center, line(length: 2.5em, stroke: 0.4pt))
+      } else if elegant {
+        align(center, ornament())
+      } else {
+        align(center, text(tracking: 0.6em, "*\u{2009}*\u{2009}*"))
+      },
     )
   } else if b.k == "q" {
     let verse = b.at("verse", default: false)
@@ -419,7 +450,7 @@
 #show heading.where(level: 1): it => block(width: 100%, above: 0pt, below: 0pt, {
   set text(weight: "regular", hyphenate: false)
   set par(justify: false, first-line-indent: 0pt, leading: 0.55em)
-  align(center, it.body)
+  align(if modern { left } else { center }, it.body)
 })
 
 #pagebreak(to: "odd", weak: true)
@@ -430,10 +461,44 @@
   if idx > 0 { pagebreak(to: "odd", weak: true) }
   start-mark(head: true, folio: true, roman: false)
   [#metadata(idx) <chapter-start>]
-  v(block-h * 0.24)
+  v(block-h * if modern { 0.16 } else { 0.24 })
   let title = ch.at("title", default: none)
   // Untitled chapters are numbered.
   let num = ch.at("num", default: if title == none { str(idx + 1) } else { none })
+  if modern {
+    // A title that is only a numeral ("XII") is set as the chapter number.
+    let (num, title) = if num == none and title != none and title.len() <= 8 and title.match(regex("^[IVXLCDM0-9]+[.]?$")) != none {
+      (title.trim("."), none)
+    } else { (num, title) }
+    heading(level: 1, {
+      if num != none { text(size: 3.2em, number-type: "lining", num) }
+      if title != none {
+        if num != none {
+          linebreak()
+          v(0.4em)
+        }
+        text(size: if title.len() > 70 { 1.0em } else { 1.35em }, title)
+      }
+    })
+    v(lines(1))
+    line(length: 2.5em, stroke: 0.6pt)
+    v(lines(2) - 0.6pt)
+  } else if elegant {
+    heading(level: 1, {
+      if num != none { text(size: 1.6em, style: "italic", num) }
+      if title != none {
+        if num != none {
+          linebreak()
+          v(0.5em)
+        }
+        text(size: if title.len() > 70 { 1.0em } else { 1.3em }, style: "italic", title)
+      }
+      linebreak()
+      v(0.8em)
+      ornament(width: 4.5em)
+    })
+    v(lines(3))
+  } else {
   heading(level: 1, {
     if num != none { text(size: 1.0em, caps(T.chapter + " " + num, tracking: 0.2em)) }
     if title != none {
@@ -450,6 +515,7 @@
     }
   })
   v(lines(3))
+  }
   // A short first paragraph (under about three lines) takes the next plain
   // paragraphs along so the text keeps wrapping the drop cap.
   let blocks = ch.blocks

@@ -278,6 +278,7 @@ export type Manuscript = {
   acknowledgements?: string;
   about?: string;
   also_by?: string[];
+  theme?: string;
   chapters: { title: string | null; blocks: { text: string; quote?: boolean; center?: boolean }[] }[];
 };
 export type ExportProgress = { id: string; step: string; value: number };

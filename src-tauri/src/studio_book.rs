@@ -55,6 +55,9 @@ pub struct Manuscript {
     pub about: String,
     #[serde(default)]
     pub also_by: Vec<String>,
+    // Book design: "classic", "modern" or "elegant".
+    #[serde(default)]
+    pub theme: String,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -170,6 +173,7 @@ fn prepare(m: &Manuscript, narrow: bool) -> Manuscript {
         if fr { french(&t, narrow) } else { t }
     };
     Manuscript {
+        theme: m.theme.clone(),
         title: m.title.clone(),
         author: m.author.clone(),
         lang: m.lang.clone(),
@@ -378,6 +382,7 @@ fn typst_book(m: &Manuscript) -> Vec<u8> {
             "title": m.title, "author": m.author, "lang": lang, "rights": m.rights, "ai": m.ai, "first_published": m.first_published,
             "dedication": m.dedication, "epigraph": m.epigraph, "epigraph_by": m.epigraph_by,
             "acknowledgements": m.acknowledgements, "about": m.about, "also_by": m.also_by,
+            "theme": m.theme,
         },
         "chapters": chapters,
     }))
@@ -524,6 +529,23 @@ fn page(lang: &str, title: &str, body: &str) -> String {
     )
 }
 
+/// The EPUB's additions for the chosen book design (the print template has the same three).
+fn theme_css(theme: &str) -> &'static str {
+    match theme {
+        "modern" => "h1 { text-align: left; font-size: 1.6em; letter-spacing: 0; margin: 2em 0 1.5em; }
+h1::after { content: \"\"; display: block; width: 2.5em; border-bottom: 1px solid currentColor; margin-top: 0.6em; }
+h1 + p, p.first { text-indent: 0; }
+hr.scene { border: 0; border-top: 1px solid currentColor; width: 2.5em; margin: 1.4em auto; }
+hr.scene::after { content: none; }
+",
+        "elegant" => "h1 { font-style: italic; letter-spacing: 0; font-size: 1.5em; }
+h1::after { content: \"\\25C6\"; display: block; font-size: 0.45em; font-style: normal; margin-top: 0.9em; }
+hr.scene::after { content: \"\\25C6\"; letter-spacing: 0; font-size: 0.7em; }
+",
+        _ => "",
+    }
+}
+
 const EPUB_CSS: &str = "body { margin: 0 5%; line-height: 1.5; }
 h1 { font-size: 1.4em; text-align: center; margin: 3em 0 2em; font-weight: normal; letter-spacing: 0.05em; }
 p { margin: 0; text-indent: 1.3em; text-align: justify; hyphens: auto; -epub-hyphens: auto; }
@@ -576,7 +598,7 @@ pub fn epub(m: &Manuscript, cover_jpeg: Option<&[u8]>, export_id: &str, out: &Pa
         b"<?xml version=\"1.0\"?>\n<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\"><rootfiles><rootfile full-path=\"OEBPS/content.opf\" media-type=\"application/oebps-package+xml\"/></rootfiles></container>\n",
         deflated,
     )?;
-    put(&mut zip, "OEBPS/style.css", EPUB_CSS.as_bytes(), deflated)?;
+    put(&mut zip, "OEBPS/style.css", format!("{EPUB_CSS}{}", theme_css(&m.theme)).as_bytes(), deflated)?;
     put(&mut zip, "OEBPS/crane.png", CRANE_PNG, stored)?;
     let mut manifest = vec![
         r#"<item id="css" href="style.css" media-type="text/css"/>"#.to_string(),
@@ -883,6 +905,7 @@ mod tests {
 
     fn book(lang: &str) -> Manuscript {
         Manuscript {
+            theme: String::new(),
             title: "A <Test> & Book".into(),
             author: "Ann Author".into(),
             lang: lang.into(),

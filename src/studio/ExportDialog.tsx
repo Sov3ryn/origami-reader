@@ -52,6 +52,7 @@ export function ExportDialog({
   const [trim, setTrim] = useState(1);
   const [font, setFont] = useState("EB Garamond");
   const [large, setLarge] = useState(false);
+  const [theme, setTheme] = useState("classic");
   const [narrator, setNarrator] = useState(t("Digital voices"));
   const [store, setStore] = useState("personal");
   const profile = storeProfiles.find((s) => s.id === store) || storeProfiles[0];
@@ -103,7 +104,7 @@ export function ExportDialog({
   function bookData() {
     const rightsLines = rights.split("\n").map((l) => l.trim()).filter(Boolean);
     const m = manuscript(production, book, { rights: rightsLines, ai: production.takes.length ? aiLine(info.language) : "" });
-    return { ...m, ...matter, also_by: matter.also_by.split("\n").map((l) => l.trim()).filter(Boolean) };
+    return { ...m, ...matter, theme, also_by: matter.also_by.split("\n").map((l) => l.trim()).filter(Boolean) };
   }
   async function showPages(first: number) {
     setPreviewing(true);
@@ -337,6 +338,16 @@ export function ExportDialog({
                       {previewing ? t("Typesetting") : t("Preview pages")}
                     </button>
                   </div>
+                )}
+                {(epub || pdf || readalong) && (
+                  <label className="studio-field">
+                    <span>{t("Design")}</span>
+                    <select value={theme} onChange={(e) => setTheme(e.target.value)}>
+                      <option value="classic">{t("Classic: centred small capitals and drop caps")}</option>
+                      <option value="modern">{t("Modern: flush left, large chapter numbers")}</option>
+                      <option value="elegant">{t("Elegant: italic titles and ornaments")}</option>
+                    </select>
+                  </label>
                 )}
               </fieldset>
             </div>
