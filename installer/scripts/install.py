@@ -406,7 +406,10 @@ def pip_install(py, args, progress, message, weight, count, waiting=None):
             words = line.split()
             if line.startswith(("Collecting", "Processing")) and seen < count:
                 seen += 1
-                current["name"] = words[1].split("/")[-1].split("\\")[-1][:60] if len(words) > 1 else ""
+                # "Processing C:\...\Origami Setup Downloads\wheels\torch-....whl (from -r ...)":
+                # the path may hold spaces, so take everything before " (from".
+                target = line.split(None, 1)[1].split(" (from")[0].strip() if len(words) > 1 else ""
+                current["name"] = target.replace("\\", "/").split("/")[-1][:60]
                 progress.add(step, message, current["name"])
             elif line.startswith("Installing collected packages"):
                 current["name"] = "unpacking"
