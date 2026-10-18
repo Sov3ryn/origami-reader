@@ -58,6 +58,7 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
         production={current}
         book={book}
         voices={usable}
+        prefs={prefs}
         modeSwitch={modeSwitch}
         onBack={() => {
           setCurrent(null);

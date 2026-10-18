@@ -1912,6 +1912,18 @@ export default function App() {
   // --- Work Mode ---------------------------------------------------------------
   const appMode: AppMode = prefs.studioMode && STUDIO_ENABLED ? "studio" : prefs.workMode ? "work" : "read";
   const otherMode = appMode !== "read";
+  // Studio asks for a voice to be designed for a character: open the voice
+  // designer, which starts from the draft Studio left for it.
+  useEffect(() => {
+    const open = () => {
+      patchPrefs({ workMode: false, studioMode: false });
+      setPage("voices");
+      setVoiceSection("create");
+    };
+    window.addEventListener("origami:design-voice", open);
+    return () => window.removeEventListener("origami:design-voice", open);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   function switchMode(mode: AppMode) {
     if (mode === appMode) return;
     const work = mode === "work";

@@ -282,7 +282,7 @@
 /* Editor layout: chapters | script | inspector, a player along the bottom. */
 .studio-editor {
   display: grid;
-  grid-template-columns: 250px minmax(0, 1fr) 330px;
+  grid-template-columns: var(--studio-left, 250px) minmax(0, 1fr) var(--studio-right, 330px);
   grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas:
     "top top top"
@@ -290,10 +290,15 @@
     "player player player";
 }
 .studio-editor.no-left {
-  grid-template-columns: 0 minmax(0, 1fr) 330px;
+  grid-template-columns: 0 minmax(0, 1fr) var(--studio-right, 330px);
 }
 .studio-editor.no-right {
-  grid-template-columns: 250px minmax(0, 1fr) 0;
+  grid-template-columns: var(--studio-left, 250px) minmax(0, 1fr) 0;
+}
+/* The resize handles sit on the panel borders, below the top bar. */
+.studio-editor > .panel-resizer {
+  top: 56px;
+  bottom: 64px;
 }
 .studio-editor.no-left.no-right {
   grid-template-columns: 0 minmax(0, 1fr) 0;
@@ -970,7 +975,11 @@
 
 @media (max-width: 1100px) {
   .studio-editor {
-    grid-template-columns: 210px minmax(0, 1fr) 290px;
+    --studio-left: 210px;
+    --studio-right: 290px;
+  }
+  .studio-editor > .panel-resizer {
+    display: none;
   }
 }
 @media (max-width: 860px) {
@@ -994,4 +1003,190 @@
   .studio-split button:first-child {
     display: none;
   }
+}
+
+/* Phase 2: cast, speakers and voices */
+.studio-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 10px 10px 6px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--studio-soft);
+}
+.studio-tabs button {
+  flex: 1;
+  justify-content: center;
+  border: 0;
+  padding: 6px 8px;
+  background: transparent;
+  font-size: var(--fs-small, 13px);
+  color: var(--muted);
+}
+.studio-tabs button[aria-selected="true"] {
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+}
+.studio-cast {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  padding: 4px 10px 14px;
+  gap: 10px;
+}
+.studio-cast-head {
+  display: grid;
+  gap: 8px;
+}
+.studio-cast-head button {
+  justify-content: center;
+}
+.studio-cast-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.studio-cast-row {
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--studio-soft);
+}
+.studio-cast-main {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.studio-cast-name {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-small, 13.5px);
+}
+.studio-cast-name strong {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.studio-cast-name small {
+  color: var(--muted);
+}
+.studio-swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.studio-mode .icon-only.plain {
+  border: 0;
+  background: transparent;
+  padding: 2px;
+}
+.studio-mode label.studio-cast-voice,
+.studio-cast label.studio-cast-voice {
+  display: flex !important;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+.studio-cast-voice select {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  font-size: var(--fs-small, 13px);
+}
+.studio-cast-more {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+}
+.studio-line.voiced {
+  color: color-mix(in srgb, var(--who, var(--accent)) 55%, var(--ink));
+  background: color-mix(in srgb, var(--who, var(--accent)) 9%, transparent);
+}
+.studio-line.voiced.selected {
+  background: color-mix(in srgb, var(--who, var(--accent)) 22%, transparent);
+  outline-color: var(--who, var(--accent));
+}
+.studio-line.unsure {
+  text-decoration: underline dashed color-mix(in srgb, var(--studio-warn) 80%, transparent);
+  text-underline-offset: 5px;
+}
+.studio-unsure {
+  color: var(--studio-warn);
+}
+.studio-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+.studio-quick button {
+  padding: 3px 8px;
+  font-size: var(--fs-caption, 12px);
+  border-radius: 999px !important;
+  border-color: color-mix(in srgb, var(--who, var(--muted)) 50%, var(--line));
+}
+.studio-quick button.on {
+  background: color-mix(in srgb, var(--who, var(--accent)) 25%, transparent);
+}
+.studio-quick kbd {
+  font-size: 0.8em;
+}
+.studio-words {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+  padding: 4px 10px 14px;
+}
+.studio-word-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.studio-word {
+  border-radius: 9px;
+}
+.studio-word.open {
+  background: var(--studio-soft);
+}
+.studio-word-main {
+  width: 100%;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  padding: 6px 8px !important;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.studio-word-main strong {
+  font-weight: 600;
+}
+.studio-word-main .small {
+  margin-left: auto;
+}
+.studio-say {
+  color: var(--accent);
+  font-size: var(--fs-small, 13px);
+}
+.studio-word-more {
+  display: grid;
+  gap: 8px;
+  padding: 2px 8px 10px;
+}
+.studio-occurrences {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }

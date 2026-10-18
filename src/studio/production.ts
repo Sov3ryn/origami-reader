@@ -18,6 +18,11 @@ export type ProductionInfo = {
   created: number;
   updated: number;
   sourceHash: string;
+  // The characters and their voices, after an analysis (phase 2).
+  cast?: import("./cast").CastMember[];
+  analysis?: { model: string; date: number; speech: number; uncertain: number };
+  // How names and rare words are said in this production (phase 2).
+  pronunciations?: import("./pronounce").Pronunciation[];
   // Filled in by the list: how many units exist and how many have audio.
   units?: number;
   rendered?: number;
@@ -38,6 +43,12 @@ export type ProductionUnit = {
   take?: string;
   // The text as cut from the book, kept when the spoken text is edited.
   original?: string;
+  // Speech (phase 2): who says it, the piece of speech it belongs to, how sure
+  // the analysis was (0 to 1), and the voice that reads it (else the narrator's).
+  speaker?: string;
+  speech?: string;
+  confidence?: number;
+  voice?: string;
 };
 
 export type Take = {
@@ -127,6 +138,7 @@ export const createProduction = (p: Production) => invoke<ProductionInfo>("creat
 export const readProduction = (id: string) => invoke<Production>("read_production", { id });
 export const saveProductionInfo = (info: ProductionInfo) => invoke<void>("save_production_info", { info });
 export const saveProductionUnits = (id: string, units: ProductionUnit[]) => invoke<void>("save_production_units", { id, units });
+export const replaceProductionUnits = (id: string, units: ProductionUnit[]) => invoke<void>("studio_replace_units", { id, units });
 export const deleteProduction = (id: string) => invoke<void>("delete_production", { id });
 
 // --- Rendering ---------------------------------------------------------------------------

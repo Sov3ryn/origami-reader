@@ -11,6 +11,7 @@ mod store;
 mod studio;
 mod studio_audio;
 mod studio_book;
+mod studio_llm;
 mod update;
 mod vault;
 mod voice_studio;
@@ -358,28 +359,42 @@ fn studio_render(app: tauri::AppHandle, job: State<StudioJob>, id: String, chapt
                     return Err("cancelled".into());
                 }
                 let p = studio::read(&data, &id)?;
-                let voice = p["info"]["voice"].as_str().unwrap_or_default().to_string();
+                let narrator = p["info"]["voice"].as_str().unwrap_or_default().to_string();
                 let units = p["units"].as_array().cloned().unwrap_or_default();
                 let total = units.len();
+                // Each unit speaks with its own voice (a character's) or the narrator's;
+                // a batch is always one voice, so the worker never switches mid-batch.
+                let voice_of = |u: &Value| u["voice"].as_str().filter(|v| !v.is_empty()).unwrap_or(&narrator).to_string();
                 let pending = |u: &&Value| u["status"] == "pending";
-                let mut batch: Vec<&Value> = if let Some(queue) = chosen.as_mut() {
-                    let next: Vec<String> = (0..STUDIO_BATCH).filter_map(|_| queue.pop_front()).collect();
-                    if next.is_empty() {
-                        return Ok(());
-                    }
-                    units.iter().filter(|u| next.iter().any(|n| u["id"].as_str() == Some(n))).collect()
-                } else {
-                    units.iter().filter(pending).filter(|u| chapter.map_or(true, |c| u["chapter"].as_i64() == Some(c))).take(STUDIO_BATCH).collect()
+                let one_voice = |candidates: Vec<&Value>| -> Vec<Value> {
+                    let Some(first) = candidates.first() else { return Vec::new() };
+                    let v = voice_of(first);
+                    candidates.into_iter().filter(|u| voice_of(u) == v).take(STUDIO_BATCH).cloned().collect()
                 };
-                if batch.is_empty() && (chapter.is_some() || chosen.is_some()) {
+                let batch: Vec<Value> = if let Some(queue) = chosen.as_mut() {
+                    let Some(first) = queue.front().and_then(|f| units.iter().find(|u| u["id"].as_str() == Some(f.as_str()))) else {
+                        return Ok(());
+                    };
+                    let v = voice_of(first);
+                    let mut picked = Vec::new();
+                    queue.retain(|n| {
+                        let same = picked.len() < STUDIO_BATCH && units.iter().find(|u| u["id"].as_str() == Some(n.as_str())).is_some_and(|u| voice_of(u) == v);
+                        if same {
+                            picked.push(n.clone());
+                        }
+                        !same
+                    });
+                    units.iter().filter(|u| picked.iter().any(|n| u["id"].as_str() == Some(n))).cloned().collect()
+                } else {
+                    // Chapter by chapter (the asked one, or the first with work left),
+                    // and inside a chapter one voice at a time.
+                    let scope = chapter.or_else(|| units.iter().find(|u| u["status"] == "pending").and_then(|u| u["chapter"].as_i64()));
+                    one_voice(units.iter().filter(pending).filter(|u| scope.is_some_and(|c| u["chapter"].as_i64() == Some(c))).collect())
+                };
+                if batch.is_empty() {
                     return Ok(());
                 }
-                if batch.is_empty() {
-                    batch = units.iter().filter(pending).take(STUDIO_BATCH).collect();
-                }
-                if batch.is_empty() {
-                    return Ok(());
-                }
+                let voice = voice_of(&batch[0]);
                 let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
                 let items: Vec<Value> = batch
                     .iter()
@@ -451,6 +466,50 @@ fn studio_reveal(path: String) -> Result<()> {
         let dir = p.parent().map(|d| d.to_path_buf()).unwrap_or(p);
         std::process::Command::new(if cfg!(target_os = "macos") { "open" } else { "xdg-open" }).arg(dir).spawn().map(|_| ()).map_err(|e| e.to_string())
     }
+}
+// --- Studio analysis (characters and speakers) -------------------------------------------
+/// The largest dedicated graphics memory on this computer, read once.
+fn graphics_memory_mb() -> u64 {
+    static VRAM: std::sync::OnceLock<u64> = std::sync::OnceLock::new();
+    *VRAM.get_or_init(|| {
+        hardware::profile()["gpus"]
+            .as_array()
+            .map(|g| g.iter().filter(|x| x["integrated"] != true).filter_map(|x| x["vramMb"].as_u64()).max().unwrap_or(0))
+            .unwrap_or(0)
+    })
+}
+fn analysis_files(app: &tauri::AppHandle) -> Result<(std::path::PathBuf, std::path::PathBuf, bool)> {
+    let (exe, models) = studio_llm::locate(&data_root(app)?);
+    let exe = exe.ok_or("The analysis model is not installed.")?;
+    let vram = graphics_memory_mb();
+    let model = studio_llm::choose(&models, vram).ok_or("The analysis model is not installed.")?;
+    Ok((exe, model, vram >= 3_000))
+}
+#[tauri::command]
+async fn studio_analysis_status(app: tauri::AppHandle) -> Value {
+    tauri::async_runtime::spawn_blocking(move || match analysis_files(&app) {
+        Ok((_, model, gpu)) => serde_json::json!({"ready": true, "model": model.file_name().map(|n| n.to_string_lossy().into_owned()), "gpu": gpu}),
+        Err(e) => serde_json::json!({"ready": false, "message": e}),
+    })
+    .await
+    .unwrap_or_else(|_| serde_json::json!({"ready": false}))
+}
+#[tauri::command]
+async fn studio_analysis_chat(app: tauri::AppHandle, system: String, user: String, schema: Value, max_tokens: Option<u32>) -> Result<String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let (exe, model, gpu) = analysis_files(&app)?;
+        app.state::<studio_llm::Analysis>().chat(&exe, &model, gpu, &system, &user, schema, max_tokens.unwrap_or(4000))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+#[tauri::command]
+fn studio_analysis_stop(analysis: State<studio_llm::Analysis>) {
+    analysis.stop();
+}
+#[tauri::command]
+fn studio_replace_units(app: tauri::AppHandle, id: String, units: Vec<Value>) -> Result<()> {
+    studio::replace_units(&data_root(&app)?, &id, units)
 }
 // Studio export: one at a time, in the background, with progress events.
 #[derive(Default)]
@@ -1111,6 +1170,7 @@ pub fn run() {
             app.manage(speech::Speech::default());
             app.manage(StudioJob::default());
             app.manage(ExportJob::default());
+            app.manage(studio_llm::Analysis::default());
             app.manage(covers::Covers::default());
             app.manage(voice_studio::Studio::default());
             app.manage(embed::Embedder::default());
@@ -1125,6 +1185,7 @@ pub fn run() {
             list_books,
             list_productions, create_production, read_production, save_production_info, save_production_units, delete_production, studio_render, studio_cancel_render, studio_render_running, studio_take_audio,
             studio_choose_folder, studio_reveal, studio_watermark_ready, studio_cancel_export, studio_export,
+            studio_analysis_status, studio_analysis_chat, studio_analysis_stop, studio_replace_units,
             starter_library_installed,
             install_starter_library,
             read_book,
@@ -1211,6 +1272,7 @@ pub fn run() {
                 app.state::<voice_studio::Studio>().shutdown();
                 let _ = app.state::<speech::Speech>().shutdown();
                 let _ = app.state::<covers::Covers>().shutdown();
+                app.state::<studio_llm::Analysis>().stop();
             }
         });
 }

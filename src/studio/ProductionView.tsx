@@ -21,7 +21,11 @@ import {
   Wand2,
 } from "lucide-react";
 import { t } from "../i18n";
-import type { Book, Voice } from "../types";
+import type { Book, Preferences, Voice } from "../types";
+import { CastPanel } from "./CastPanel";
+import { WordsPanel } from "./WordsPanel";
+import { applyPronunciation, type Pronunciation } from "./pronounce";
+import { analyse, castColor, castUnits, conversations, designDraft, lineCounts, stopAnalysis, suggestVoices, type CastMember } from "./cast";
 import {
   cancelRender,
   chapterTitles,
@@ -31,6 +35,7 @@ import {
   issueText,
   readProduction,
   renderRunning,
+  replaceProductionUnits,
   saveProductionInfo,
   saveProductionUnits,
   spokenLength,
@@ -46,13 +51,16 @@ import {
 } from "./production";
 import { usePlayback } from "./usePlayback";
 import { ExportDialog } from "./ExportDialog";
+import { PanelResizer, rememberWidth, rememberedWidth } from "../work/PanelResizer";
 
-type Filter = "all" | "review" | "pending";
+type Filter = "all" | "review" | "pending" | "speaker";
+const uncertainSpeaker = (u: ProductionUnit) => Boolean(u.speech) && (u.confidence ?? 1) < 0.7;
 
 export function ProductionView({
   production,
   book,
   voices,
+  prefs,
   modeSwitch,
   onBack,
   onChange,
@@ -61,12 +69,14 @@ export function ProductionView({
   production: Production;
   book: Book | null;
   voices: Voice[];
+  prefs: Preferences;
   modeSwitch: ReactNode;
   onBack: () => void;
   onChange: (p: Production) => void;
   onDelete: () => Promise<void>;
 }) {
   const { info, units } = production;
+  const castById = useMemo(() => new Map((info.cast || []).map((c) => [c.id, c])), [info.cast]);
   const typical = useMemo(() => typicalPace(production.takes), [production.takes]);
   const issues = useMemo(() => {
     const map = new Map<string, Issue[]>();
@@ -99,7 +109,15 @@ export function ProductionView({
   const [selected, setSelected] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [left, setLeft] = useState(true);
+  const [leftTab, setLeftTab] = useState<"chapters" | "cast" | "words">("chapters");
+  const [analysing, setAnalysing] = useState(false);
+  const [analysisNote, setAnalysisNote] = useState("");
+  const stopRequested = useRef(false);
   const [right, setRight] = useState(true);
+  const [leftWidth, setLeftWidth] = useState(() => rememberedWidth("origami.studioLeftWidth", 250));
+  const [rightWidth, setRightWidth] = useState(() => rememberedWidth("origami.studioRightWidth", 330));
+  useEffect(() => rememberWidth("origami.studioLeftWidth", leftWidth), [leftWidth]);
+  useEffect(() => rememberWidth("origami.studioRightWidth", rightWidth), [rightWidth]);
   const [rendering, setRendering] = useState(false);
   const [progressNote, setProgressNote] = useState("");
   const [status, setStatus] = useState("");
@@ -178,6 +196,145 @@ export function ProductionView({
     window.setTimeout(() => script.current?.querySelector(`[data-unit="${found.id}"]`)?.scrollIntoView({ block: "center" }), 30);
   }
 
+  // Phase 2: find the characters and who says each line, then cut the script so
+  // each character reads their own speech. Takes whose text did not change stay.
+  async function runAnalysis() {
+    if (!book) return setStatus(t("The book is no longer in the library."));
+    setAnalysing(true);
+    stopRequested.current = false;
+    setStatus("");
+    try {
+      const paragraphs = book.paragraphs.map((p) => p.text);
+      const result = await analyse(paragraphs, info.language || "en", (step, value) => setAnalysisNote(`${t(step)} ${Math.round(value * 100)}%`), () => stopRequested.current);
+      const known = new Map((info.cast || []).map((c) => [c.id, c]));
+      const draft = castUnits(book, prefs, result.speech, result.speakers, [], units);
+      const counts = lineCounts(draft);
+      const speaking = result.cast.filter((c) => counts.get(c.id));
+      const voicesFor = suggestVoices(
+        speaking.map((c) => ({ id: c.id, gender: c.gender, lines: counts.get(c.id) })),
+        voices,
+        info.voice,
+        info.language,
+        conversations(result.speech, result.speakers),
+      );
+      const cast: CastMember[] = speaking.map((c, i) => ({
+        id: c.id,
+        name: c.name,
+        aliases: c.aliases,
+        gender: c.gender,
+        voice: known.get(c.id)?.voice || voicesFor.get(c.id) || info.voice,
+        color: known.get(c.id)?.color || castColor(i),
+        lines: counts.get(c.id),
+      }));
+      const next = castUnits(book, prefs, result.speech, result.speakers, cast, units);
+      await replaceProductionUnits(info.id, next);
+      const nextInfo = {
+        ...info,
+        cast,
+        analysis: { model: "", date: Date.now(), speech: result.speech.length, uncertain: next.filter(uncertainSpeaker).length },
+        updated: Date.now(),
+      };
+      await saveProductionInfo(nextInfo);
+      onChange(await readProduction(info.id));
+      setStatus(t("{n} characters found.", { n: String(cast.length) }));
+      setLeftTab("cast");
+    } catch (e) {
+      setStatus(String(e).includes("cancelled") ? t("Analysis stopped.") : String(e));
+    } finally {
+      setAnalysing(false);
+      setAnalysisNote("");
+      void stopAnalysis().catch(() => undefined);
+    }
+  }
+  // A voice designed for a character: the analysis model describes the voice from
+  // the book's passages, and the voice designer opens with that draft and one of their lines.
+  async function designVoice(c: CastMember) {
+    if (!book) return setStatus(t("The book is no longer in the library."));
+    setAnalysing(true);
+    setAnalysisNote(t("Reading about {name}", { name: c.name }));
+    try {
+      const line = units.find((u) => u.speaker === c.id && u.text.length > 30)?.text || units.find((u) => u.speaker === c.id)?.text || "";
+      const draft = await designDraft(c, book.paragraphs.map((p) => p.text), line, info.language);
+      try {
+        localStorage.setItem("origami.voice-design.draft", JSON.stringify(draft));
+        localStorage.setItem("origami.voice-design.mode", "write");
+      } catch {
+        // Without storage the designer opens on its last draft.
+      }
+      await stopAnalysis().catch(() => undefined);
+      window.dispatchEvent(new CustomEvent("origami:design-voice"));
+    } catch (e) {
+      setStatus(String(e));
+    } finally {
+      setAnalysing(false);
+      setAnalysisNote("");
+    }
+  }
+  // A line's speaker; the rest of that piece of speech follows.
+  async function setSpeaker(u: ProductionUnit, speaker: string) {
+    const voice = speaker ? castById.get(speaker)?.voice : undefined;
+    const group = u.speech ? units.filter((x) => x.speech === u.speech) : [u];
+    const changed = group.map((x) => {
+      const needsTake = x.take && x.status !== "approved" && (x.voice || "") !== (voice || "");
+      return { ...x, speaker: speaker || undefined, voice, confidence: 1, status: needsTake ? ("pending" as const) : x.status };
+    });
+    await saveUnits(changed);
+  }
+  async function setCharacterVoice(character: string, voice: string) {
+    const cast = (info.cast || []).map((c) => (c.id === character ? { ...c, voice } : c));
+    const nextInfo = { ...info, cast, updated: Date.now() };
+    await saveProductionInfo(nextInfo);
+    const changed = units
+      .filter((u) => u.speaker === character)
+      .map((u) => ({ ...u, voice, status: u.take && u.status !== "approved" ? ("pending" as const) : u.status }));
+    await saveProductionUnits(info.id, changed);
+    const byId = new Map(changed.map((u) => [u.id, u]));
+    onChange({ ...production, info: nextInfo, units: units.map((u) => byId.get(u.id) ?? u) });
+  }
+  async function mergeCharacters(from: string, into: string) {
+    const target = castById.get(into);
+    const source = castById.get(from);
+    if (!target || !source) return;
+    const cast = (info.cast || []).filter((c) => c.id !== from).map((c) => (c.id === into ? { ...c, aliases: [...new Set([...c.aliases, source.name, ...source.aliases])] } : c));
+    const nextInfo = { ...info, cast, updated: Date.now() };
+    await saveProductionInfo(nextInfo);
+    const changed = units
+      .filter((u) => u.speaker === from)
+      .map((u) => ({ ...u, speaker: into, voice: target.voice, status: u.take && u.status !== "approved" && u.voice !== target.voice ? ("pending" as const) : u.status }));
+    await saveProductionUnits(info.id, changed);
+    const byId = new Map(changed.map((u) => [u.id, u]));
+    onChange({ ...production, info: nextInfo, units: units.map((u) => byId.get(u.id) ?? u) });
+  }
+  // A pronunciation for the whole book: every line with the word, in its spoken text.
+  async function pronounce(p: Pronunciation) {
+    const list = [...(info.pronunciations || []).filter((x) => x.word !== p.word), p];
+    const nextInfo = { ...info, pronunciations: list, updated: Date.now() };
+    await saveProductionInfo(nextInfo);
+    const previous = info.pronunciations?.find((x) => x.word === p.word);
+    // Changing an earlier choice starts again from the book's word.
+    const base = previous ? units.map((u) => (u.original && u.text.includes(previous.sayAs) ? { ...u, text: u.text.split(previous.sayAs).join(p.word) } : u)) : units;
+    const changed = applyPronunciation(base, p);
+    await saveProductionUnits(info.id, changed);
+    const byId = new Map(changed.map((u) => [u.id, u]));
+    onChange({ ...production, info: nextInfo, units: units.map((u) => byId.get(u.id) ?? u) });
+    setStatus(t("{n} lines will say it the new way.", { n: String(changed.length) }));
+  }
+  function jumpTo(id: string) {
+    const u = units.find((x) => x.id === id);
+    if (!u) return;
+    setChapter(u.chapter);
+    setFilter("all");
+    setSelected(id);
+    window.setTimeout(() => script.current?.querySelector(`[data-unit="${id}"]`)?.scrollIntoView({ block: "center" }), 40);
+  }
+
+  // The characters who speak in this chapter, most lines first: keys 1 to 9 assign them.
+  const chapterSpeakers = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const u of units) if (u.chapter === chapter && u.speaker) counts.set(u.speaker, (counts.get(u.speaker) || 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id).filter((id) => castById.has(id)).slice(0, 9);
+  }, [units, chapter, castById]);
+
   // Keyboard: space plays, arrows move between lines, A approves, R regenerates, N finds the next line to review.
   useEffect(() => {
     function key(e: KeyboardEvent) {
@@ -198,12 +355,19 @@ export function ProductionView({
       else if (e.key.toLowerCase() === "r" && unit && !rendering) void render({ units: [unit.id] });
       else if (e.key.toLowerCase() === "n") nextToReview();
       else if (e.key === "Enter" && unit) playback.play(unit.id);
+      else if (/^[0-9]$/.test(e.key) && unit?.speech) {
+        // 0 gives the line to the narrator; 1 to 9 to this chapter's speakers.
+        const who = e.key === "0" ? "" : chapterSpeakers[Number(e.key) - 1];
+        if (who !== undefined) void setSpeaker(unit, who);
+      }
     }
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   });
 
-  const shown = chapterUnits.filter((u) => filter === "all" || (filter === "review" ? issues.has(u.id) : !u.take || u.status === "pending"));
+  const shown = chapterUnits.filter(
+    (u) => filter === "all" || (filter === "review" ? issues.has(u.id) : filter === "speaker" ? uncertainSpeaker(u) : !u.take || u.status === "pending"),
+  );
   const paragraphs = useMemo(() => {
     const groups: { paragraph: number; heading: boolean; units: ProductionUnit[] }[] = [];
     for (const u of shown) {
@@ -227,7 +391,16 @@ export function ProductionView({
   const chapterIndex = chapters.findIndex(([c]) => c === chapter);
 
   return (
-    <div className={`studio-mode studio-editor${left ? "" : " no-left"}${right ? "" : " no-right"}`}>
+    <div
+      className={`studio-mode studio-editor${left ? "" : " no-left"}${right ? "" : " no-right"}`}
+      style={{ "--studio-left": `${leftWidth}px`, "--studio-right": `${rightWidth}px` } as React.CSSProperties}
+    >
+      {left && (
+        <PanelResizer side="left" width={leftWidth} min={180} max={420} fallback={250} inset={{ edge: 0, gap: 0 }} label={t("Resize the chapters panel")} onChange={setLeftWidth} />
+      )}
+      {right && (
+        <PanelResizer side="right" width={rightWidth} min={260} max={560} fallback={330} inset={{ edge: 0, gap: 0 }} label={t("Resize the inspector")} onChange={setRightWidth} />
+      )}
       <header className="studio-bar-top">
         {modeSwitch}
         <button className="icon-only" onClick={onBack} aria-label={t("All productions")} data-tip={t("All productions")}>
@@ -274,11 +447,32 @@ export function ProductionView({
       </header>
 
       {left && (
-        <nav className="studio-side" aria-label={t("Chapters")}>
-          <div className="studio-side-head">
-            <span>{t("Chapters")}</span>
-            <span className="muted">{chapters.length}</span>
+        <nav className="studio-side" aria-label={leftTab === "cast" ? t("Cast") : t("Chapters")}>
+          <div className="studio-tabs" role="tablist">
+            <button role="tab" aria-selected={leftTab === "chapters"} onClick={() => setLeftTab("chapters")}>
+              {t("Chapters")} <span className="muted">{chapters.length}</span>
+            </button>
+            <button role="tab" aria-selected={leftTab === "cast"} onClick={() => setLeftTab("cast")}>
+              {t("Cast")} <span className="muted">{(info.cast || []).length || ""}</span>
+            </button>
+            <button role="tab" aria-selected={leftTab === "words"} onClick={() => setLeftTab("words")}>
+              {t("Words")}
+            </button>
           </div>
+          {leftTab === "words" ? (
+            <WordsPanel production={production} onApply={(p) => void pronounce(p)} onJump={jumpTo} />
+          ) : leftTab === "cast" ? (
+            <CastPanel
+              production={production}
+              voices={voices}
+              busy={analysing}
+              progress={analysisNote}
+              onAnalyse={() => (analysing ? (stopRequested.current = true) : void runAnalysis())}
+              onVoice={(c, v) => void setCharacterVoice(c, v)}
+              onMerge={(a, b) => void mergeCharacters(a, b)}
+              onDesign={(c) => void designVoice(c)}
+            />
+          ) : (
           <ol className="studio-chapter-list">
             {chapters.map(([c, n]) => (
               <li key={c}>
@@ -302,6 +496,7 @@ export function ProductionView({
               </li>
             ))}
           </ol>
+          )}
         </nav>
       )}
 
@@ -314,6 +509,7 @@ export function ProductionView({
                 ["all", t("All lines")],
                 ["review", t("To review ({n})", { n: String(chapterUnits.filter((u) => issues.has(u.id)).length) })],
                 ["pending", t("Not generated ({n})", { n: String(chapterUnits.filter((u) => !u.take || u.status === "pending").length) })],
+                ...(info.cast?.length ? [["speaker", t("Unsure speaker ({n})", { n: String(chapterUnits.filter(uncertainSpeaker).length) })]] : []),
               ] as [Filter, string][]
             ).map(([value, label]) => (
               <button key={value} role="radio" aria-checked={filter === value} onClick={() => setFilter(value)}>
@@ -338,7 +534,11 @@ export function ProductionView({
                       issues.has(u.id) ? "flagged" : "",
                       selected === u.id ? "selected" : "",
                       playback.current === u.id && playback.playing ? "speaking" : "",
+                      u.speaker ? "voiced" : "",
+                      uncertainSpeaker(u) ? "unsure" : "",
                     ].join(" ")}
+                    style={u.speaker && castById.get(u.speaker) ? ({ "--who": castById.get(u.speaker)!.color } as React.CSSProperties) : undefined}
+                    title={u.speaker ? castById.get(u.speaker)?.name : undefined}
                     onClick={() => setSelected(u.id)}
                     onDoubleClick={() => playback.play(u.id)}
                   >
@@ -367,6 +567,9 @@ export function ProductionView({
               onApprove={() => approve(unit)}
               onRegenerate={() => void render({ units: [unit.id] })}
               onNext={() => nextToReview(unit.id)}
+              cast={info.cast || []}
+              chapterSpeakers={chapterSpeakers}
+              onSpeaker={(who) => void setSpeaker(unit, who)}
             />
           ) : (
             <Overview
@@ -456,7 +659,13 @@ function LineInspector({
   onApprove,
   onRegenerate,
   onNext,
+  cast,
+  chapterSpeakers,
+  onSpeaker,
 }: {
+  cast: CastMember[];
+  chapterSpeakers: string[];
+  onSpeaker: (speaker: string) => void;
   production: Production;
   unit: ProductionUnit;
   issues: Issue[];
@@ -486,6 +695,43 @@ function LineInspector({
                 : t("Generated")}
         </span>
       </div>
+      {cast.length > 0 && (
+        <div className="studio-field">
+          <span>{unit.speech ? t("Speaker") : t("Read by")}</span>
+          {unit.speech ? (
+            <>
+              <select value={unit.speaker || ""} onChange={(e) => onSpeaker(e.target.value)} aria-label={t("Speaker")}>
+                <option value="">{t("Narrator")}</option>
+                {[...cast]
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+              </select>
+              {(unit.confidence ?? 1) < 0.7 && <small className="studio-unsure">{t("The analysis was not sure. Check who says this.")}</small>}
+              {chapterSpeakers.length > 0 && (
+                <div className="studio-quick" aria-label={t("Quick choice")}>
+                  <button className={!unit.speaker ? "on" : ""} onClick={() => onSpeaker("")}>
+                    <kbd>0</kbd> {t("Narrator")}
+                  </button>
+                  {chapterSpeakers.map((id, i) => {
+                    const c = cast.find((x) => x.id === id);
+                    return c ? (
+                      <button key={id} className={unit.speaker === id ? "on" : ""} onClick={() => onSpeaker(id)} style={{ "--who": c.color } as React.CSSProperties}>
+                        <kbd>{i + 1}</kbd> {c.name}
+                      </button>
+                    ) : null;
+                  })}
+                </div>
+              )}
+            </>
+          ) : (
+            <small className="muted">{t("Narration, read by the narrator.")}</small>
+          )}
+        </div>
+      )}
       <label className="studio-field">
         <span>{t("Spoken text")}</span>
         <textarea

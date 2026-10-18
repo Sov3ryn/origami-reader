@@ -133,6 +133,22 @@ pub fn save_units(data: &Path, id: &str, units: Vec<Value>) -> Result<()> {
     tx.commit().map_err(|e| e.to_string())
 }
 
+/// Replaces every unit (a new cut of the manuscript, such as speech split from
+/// narration). Takes are kept; units that keep their id keep their takes.
+pub fn replace_units(data: &Path, id: &str, units: Vec<Value>) -> Result<()> {
+    let mut db = open(&folder(data, id)?)?;
+    let tx = db.transaction().map_err(|e| e.to_string())?;
+    tx.execute("DELETE FROM units", []).map_err(|e| e.to_string())?;
+    for (ord, unit) in units.iter().enumerate() {
+        tx.execute(
+            "INSERT INTO units(id, ord, chapter, data) VALUES(?1, ?2, ?3, ?4)",
+            params![unit["id"].as_str().unwrap_or_default(), ord as i64, unit["chapter"].as_i64().unwrap_or(0), unit.to_string()],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+    tx.commit().map_err(|e| e.to_string())
+}
+
 /// The folder for take audio files.
 pub fn takes_dir(data: &Path, id: &str) -> Result<PathBuf> {
     Ok(folder(data, id)?.join("takes"))
