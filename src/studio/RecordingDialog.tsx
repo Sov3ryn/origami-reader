@@ -8,6 +8,8 @@ import { clock } from "./production";
 import { asrReady, bookMarkdown, cancelTranscribe, doubtful, guessLanguage, pickRecordings, prettyName, recordingReadalong, structure, transcribe, type AsrDone, type AsrProgress, type HeardFile } from "./recording";
 import { revealFile } from "./production";
 import { WordReview } from "./WordReview";
+import { alignBook } from "./align";
+import type { BookMeta } from "../types";
 
 // From a recording: an audiobook or any narrated recording becomes a book in the
 // library, with chapters and paragraphs, transcribed on this computer.
@@ -23,6 +25,10 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
   const [saving, setSaving] = useState(false);
   const [readalong, setReadalong] = useState("");
   const [checking, setChecking] = useState(false);
+  // The read-along can use a library book's own text, timed to the recording.
+  const [books, setBooks] = useState<BookMeta[]>([]);
+  const [textFrom, setTextFrom] = useState("");
+  const [aligned, setAligned] = useState("");
   const started = useRef(0);
 
   useEffect(() => {
@@ -44,6 +50,50 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
   }, [running, onClose]);
 
   const chapters = useMemo(() => (heard ? structure(heard, { title, author }) : []), [heard, title, author]);
+  useEffect(() => {
+    if (!heard) return;
+    void store
+      .listBooks()
+      .then((list) => {
+        const live = list.filter((b) => !b.deleted).sort((a, b) => a.title.localeCompare(b.title));
+        setBooks(live);
+        const fold = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+        const same = live.find((b) => title && fold(b.title) === fold(title));
+        if (same) setTextFrom(same.id);
+      })
+      .catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [heard]);
+  async function makeReadalong() {
+    setSaving(true);
+    setError("");
+    try {
+      if (textFrom) {
+        const book = await store.readBook(textFrom);
+        const a = alignBook(book, heard || []);
+        // The share of the recording found in the book (a recording may read only part of it).
+        const heardWords = (heard || []).reduce((n, f) => n + f.words.length, 0);
+        const share = a.matched / Math.max(1, heardWords);
+        if (!a.chapters.length || share < 0.3) throw new Error(t("This recording does not seem to read that book."));
+        setAligned(t("{n}% of the recording was found in the book.", { n: String(Math.min(100, Math.round(share * 100))) }));
+        const path = await recordingReadalong(files, a.chapters, {
+          title: book.meta.title,
+          author: book.meta.author,
+          language: book.meta.language || guessLanguage(book.paragraphs.slice(0, 40).map((p) => p.text).join(" ")),
+          note: "Text from the ebook, timed to the recording with Origami Studio.",
+        });
+        if (path) setReadalong(path);
+      } else {
+        const language = guessLanguage(chapters.flatMap((c) => c.paragraphs).slice(0, 40).join(" "));
+        const path = await recordingReadalong(files, chapters, { title: title || t("Untitled recording"), author, language });
+        if (path) setReadalong(path);
+      }
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setSaving(false);
+    }
+  }
   const unsure = useMemo(() => (heard ? doubtful(heard).length : 0), [heard]);
   const seconds = heard?.reduce((a, f) => a + f.seconds, 0) || 0;
   const elapsed = progress && started.current ? (Date.now() - started.current) / 1000 : 0;
@@ -123,7 +173,7 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
             </ol>
             {readalong ? (
               <p className="studio-success">
-                {t("Read-along ebook saved.")}
+                {t("Read-along ebook saved.")} {aligned}
                 <button onClick={() => void revealFile(readalong)}>
                   <FolderOpen size={14} /> {t("Show in folder")}
                 </button>
@@ -131,23 +181,23 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
             ) : (
               <p className="studio-hint">
                 {t("The recording can also become a read-along EPUB: its own audio, each sentence highlighted as it is heard.")}{" "}
-                <button
-                  disabled={saving || !chapters.length || files.some((f) => !/\.(mp3|m4a|m4b)$/i.test(f))}
-                  onClick={async () => {
-                    setSaving(true);
-                    try {
-                      const language = guessLanguage(chapters.flatMap((c) => c.paragraphs).slice(0, 40).join(" "));
-                      const path = await recordingReadalong(files, chapters, { title: title || t("Untitled recording"), author, language });
-                      if (path) setReadalong(path);
-                    } catch (e) {
-                      setError(String(e));
-                    } finally {
-                      setSaving(false);
-                    }
-                  }}
-                >
-                  <AudioLines size={14} /> {t("Make the read-along EPUB")}
-                </button>
+                <span className="studio-inline">
+                  <select value={textFrom} onChange={(e) => setTextFrom(e.target.value)} aria-label={t("Text of the read-along")}>
+                    <option value="">{t("Text as heard")}</option>
+                    {books.length > 0 && (
+                      <optgroup label={t("The text of a book in the library")}>
+                        {books.map((b) => (
+                          <option key={b.id} value={b.id}>
+                            {b.title}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                  <button disabled={saving || !chapters.length || files.some((f) => !/\.(mp3|m4a|m4b)$/i.test(f))} onClick={() => void makeReadalong()}>
+                    <AudioLines size={14} /> {saving ? t("Aligning") : t("Make the read-along EPUB")}
+                  </button>
+                </span>
               </p>
             )}
             {error && (

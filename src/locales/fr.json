@@ -2758,5 +2758,11 @@
   "Retail sample": "Extrait commercial",
   "Up to five minutes from the start of the story, without the credits, for a store page.": "Jusqu’à cinq minutes du début de l’histoire, sans le générique, pour une page de boutique.",
   "Word manuscript": "Manuscrit Word",
-  "The usual submission layout for editors and agents: double spaced, Times New Roman, a page per chapter.": "La présentation habituelle pour les éditeurs et les agents : double interligne, Times New Roman, une page par chapitre."
+  "The usual submission layout for editors and agents: double spaced, Times New Roman, a page per chapter.": "La présentation habituelle pour les éditeurs et les agents : double interligne, Times New Roman, une page par chapitre.",
+  "{n}% of the recording was found in the book.": "{n} % de l’enregistrement a été retrouvé dans le livre.",
+  "Aligning": "Alignement",
+  "Text as heard": "Texte tel qu’entendu",
+  "Text of the read-along": "Texte de l’édition lue",
+  "The text of a book in the library": "Le texte d’un livre de la bibliothèque",
+  "This recording does not seem to read that book.": "Cet enregistrement ne semble pas lire ce livre."
 }

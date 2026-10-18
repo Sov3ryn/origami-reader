@@ -797,7 +797,8 @@ async fn studio_recording_readalong(files: Vec<String>, chapters: Vec<Value>, me
             author: text(&meta["author"]),
             lang: text(&meta["language"]),
             narrator: String::new(),
-            ai: "Text transcribed from the recording with Origami Studio.".into(),
+            // An edition aligned with the ebook keeps the book's text; otherwise it was transcribed.
+            ai: meta["note"].as_str().filter(|n| !n.is_empty()).unwrap_or("Text transcribed from the recording with Origami Studio.").to_string(),
             rights: Vec::new(),
         };
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);

@@ -17,7 +17,7 @@ export const cancelTranscribe = () => invoke<void>("studio_cancel_transcribe");
 /** A moment of a recording as base64 WAV, to hear a word. */
 export const recordingClip = (path: string, start: number, end: number) => invoke<string>("studio_recording_clip", { path, start, end });
 /** A read-along EPUB from the recording itself: the original audio, each sentence highlighted as it is heard. */
-export const recordingReadalong = (files: string[], chapters: Chapter[], meta: { title: string; author: string; language: string }) =>
+export const recordingReadalong = (files: string[], chapters: Pick<Chapter, "title" | "timed">[], meta: { title: string; author: string; language: string; note?: string }) =>
   invoke<string | null>("studio_recording_readalong", { files, chapters: chapters.map((c) => ({ title: c.title, timed: c.timed })), meta });
 
 type Sentence = { text: string; start: number; end: number; gap: number; conf: number };
