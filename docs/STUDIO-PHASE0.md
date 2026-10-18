@@ -215,6 +215,14 @@ The real pipeline has no cast list. Ministral 3 8B lists the characters in each 
 7. Watermark: run a short blind headphone test with a few friends before calling it inaudible?
 8. Pocket TTS cloning weights are gated on Hugging Face (free sign-in, accept terms). Host them on the Origami hub (allowed by CC-BY-4.0, terms to re-check), or let users download them with their own account?
 
+## Owner listening results (17 October 2026)
+
+- Emotion: mood references and direct voice design are both better than plain or instructed delivery. Mood references are usually preferable but often change the voice too much; direct design is sometimes the best but hit or miss. Next: generate several candidates per line and keep the one with the best voice match.
+- French engines: VoxCPM2 best, then Qwen3-TTS 1.7B, then Chatterbox. VoxCPM2 is slow (0.6x real time), so it is a candidate for a "best quality" French render, not the default.
+- Chatterbox emotion slider: 0.3 sounded best.
+- Laptop voices: Qwen on the GPU, then qwentts.cpp, then Pocket TTS.
+- Batched rendering: one at a time 4 of 4 good; 8 at once only 2 of 4 the same or near the same. The batched path needs a closer quality check (sampling differences, padding) before phase 1 relies on it.
+
 ## Housekeeping
 
 A disk cleanup run by another assistant during the session removed `node_modules` and `src-tauri/target` (about 80 GB). `node_modules` was reinstalled from the lockfile and all tests pass; `target` rebuilds on the next Rust build. Update keys, app data, the hub copy, models and the beta 7 setup were checked and are intact.
