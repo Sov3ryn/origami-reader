@@ -57,6 +57,7 @@ import {
   escapeHtml,
   linkMentions,
   noteLinks,
+  noteExcerpt,
   noteText,
   pairId,
   passageLinks,
@@ -1124,7 +1125,7 @@ export function WorkMode({
         kind: "note",
         title: n.title || t("Untitled"),
         subtitle: subjects.find((s) => s.id === n.subjectId)?.name || t("Note"),
-        excerpt: noteText(n.html).slice(0, 220),
+        excerpt: noteExcerpt(n.html, 220),
         vault: n.vault,
       });
     for (const a of highlights)
@@ -2846,7 +2847,7 @@ function Today({
           <FileText size={20} />
           <span className="today-label">{last ? t("Continue") : t("Start writing")}</span>
           <strong>{last ? last.title || t("Untitled") : t("Your first note")}</strong>
-          <small>{last ? noteText(last.html).slice(0, 90) || t("Empty note") : t("Notes save as you type.")}</small>
+          <small>{last ? noteExcerpt(last.html, 90) || t("Empty note") : t("Notes save as you type.")}</small>
         </button>
         <button className="today-card" onClick={onInbox}>
           <Inbox size={20} />
@@ -2879,7 +2880,7 @@ function Today({
                   </span>
                 )}
                 <strong>{n.title || t("Untitled")}</strong>
-                <span>{noteText(n.html).slice(0, 140)}</span>
+                <span>{noteExcerpt(n.html, 140)}</span>
                 <small>{new Date(n.updated).toLocaleDateString()}</small>
               </button>
             ))}
@@ -3021,7 +3022,7 @@ function SubjectPage({
           {notes.map((n) => (
             <button key={n.id} className="note-tile" onClick={() => onOpen(n.id)}>
               <strong>{n.title || t("Untitled")}</strong>
-              <span>{noteText(n.html).slice(0, 160)}</span>
+              <span>{noteExcerpt(n.html, 160)}</span>
               <small>{new Date(n.updated).toLocaleDateString()}</small>
             </button>
           ))}

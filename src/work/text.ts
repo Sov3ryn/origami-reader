@@ -53,6 +53,12 @@ export function noteText(html: string, { links = true } = {}) {
     .trim();
 }
 
+/** A note's text for a tile: without its headings (unless it has nothing else), on one line. */
+export function noteExcerpt(html: string, length: number) {
+  const body = noteText(html.replace(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi, " "));
+  return (body || noteText(html)).replace(/\s+/g, " ").slice(0, length);
+}
+
 export function noteLinks(html: string): string[] {
   const out: string[] = [];
   for (const m of html.matchAll(/\bdata-note="([^"]*)"/g)) {
