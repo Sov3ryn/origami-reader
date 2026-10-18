@@ -1245,3 +1245,33 @@
   margin: 0;
   overflow-wrap: anywhere;
 }
+
+/* Phase 4: book from a recording */
+.studio-rec-chapters {
+  margin: 0;
+  padding-left: 22px;
+  max-height: 340px;
+  overflow: auto;
+  display: grid;
+  gap: 6px;
+}
+.studio-rec-chapters li span {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.studio-files.compact li {
+  justify-content: flex-start;
+  padding: 4px 10px;
+  font-size: var(--fs-small, 13px);
+}
+.studio-notice {
+  margin: 10px 26px 0;
+  color: var(--studio-good);
+}
+.studio-export-running p {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

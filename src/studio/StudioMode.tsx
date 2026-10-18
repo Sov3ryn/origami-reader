@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { BookOpen, Clapperboard, Headphones, Mic2, Play, Plus, Search, ShieldCheck, Square, Wand2, X } from "lucide-react";
+import { AudioLines, BookOpen, Clapperboard, Headphones, Mic2, Play, Plus, Search, ShieldCheck, Square, Wand2, X } from "lucide-react";
 import { t } from "../i18n";
 import * as store from "../storage";
 import type { Book, BookMeta, Preferences, Voice } from "../types";
 import { createProduction, deleteProduction, listProductions, newProduction, progress, readProduction, verifyFile, type Production, type ProductionInfo, type Verification } from "./production";
 import { ProductionView } from "./ProductionView";
+import { RecordingDialog } from "./RecordingDialog";
 import "./studio.css";
 
 const LANGUAGES: Record<string, string> = { en: "english", fr: "french", de: "german", es: "spanish", it: "italian", pt: "portuguese", ru: "russian", ja: "japanese", ko: "korean", zh: "chinese" };
@@ -25,6 +26,8 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
   const [book, setBook] = useState<Book | null>(null);
   const [creating, setCreating] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [notice, setNotice] = useState("");
   const [verified, setVerified] = useState<Verification | null>(null);
   const [error, setError] = useState("");
   const usable = useMemo(() => voices.filter((v) => v.available), [voices]);
@@ -103,6 +106,9 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
         >
           <ShieldCheck size={16} /> {verifying ? t("Checking") : t("Verify a file")}
         </button>
+        <button onClick={() => setRecording(true)} disabled={!store.desktop} data-tip={t("Make a book from an audiobook or a recording")}>
+          <AudioLines size={16} /> {t("From a recording")}
+        </button>
         <button className="primary" onClick={() => setCreating(true)} disabled={!store.desktop}>
           <Plus size={16} /> {t("New production")}
         </button>
@@ -110,6 +116,11 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
       {error && (
         <p className="studio-error" role="alert">
           {error}
+        </p>
+      )}
+      {notice && (
+        <p className="studio-notice" role="status">
+          {notice}
         </p>
       )}
       <div className="studio-home-body">
@@ -183,6 +194,7 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
         )}
       </div>
       {verified && <VerifyResult result={verified} onClose={() => setVerified(null)} />}
+      {recording && <RecordingDialog onClose={() => setRecording(false)} onMade={() => setNotice(t("The book is in your library."))} />}
       {creating && (
         <NewProduction
           books={books}

@@ -1924,6 +1924,23 @@ export default function App() {
     return () => window.removeEventListener("origami:design-voice", open);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Studio added a book (a recording made into text): show it, and open it when asked.
+  useEffect(() => {
+    const changed = () => void store.listBooks().then(setBooks).catch(error);
+    const openIt = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      if (!id) return;
+      patchPrefs({ workMode: false, studioMode: false });
+      void store.listBooks().then(setBooks).then(() => openBook(id)).catch(error);
+    };
+    window.addEventListener("origami:library-changed", changed);
+    window.addEventListener("origami:open-book", openIt);
+    return () => {
+      window.removeEventListener("origami:library-changed", changed);
+      window.removeEventListener("origami:open-book", openIt);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   function switchMode(mode: AppMode) {
     if (mode === appMode) return;
     const work = mode === "work";

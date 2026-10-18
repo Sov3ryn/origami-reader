@@ -13,6 +13,7 @@ mod studio_audio;
 mod studio_book;
 mod studio_llm;
 mod studio_verify;
+mod studio_asr;
 mod update;
 mod vault;
 mod voice_studio;
@@ -668,6 +669,89 @@ struct CheckJob {
 #[tauri::command]
 fn studio_cancel_check(job: State<CheckJob>) {
     job.cancel.store(true, std::sync::atomic::Ordering::SeqCst);
+}
+// --- Studio phase 4: recordings to text ---------------------------------------------------------
+#[derive(Default)]
+struct AsrJob {
+    running: std::sync::atomic::AtomicBool,
+    cancel: std::sync::atomic::AtomicBool,
+}
+#[tauri::command]
+fn studio_asr_ready(app: tauri::AppHandle) -> bool {
+    data_root(&app).map(|d| studio_asr::installed(&studio_asr::model_dir(&d))).unwrap_or(false) && embed::runtime_available(&app)
+}
+#[tauri::command]
+async fn studio_pick_recordings() -> Vec<String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let mut files: Vec<String> = rfd::FileDialog::new()
+            .set_title("Choose the recording (one file, or one file per chapter)")
+            .add_filter("Audio", &["mp3", "m4a", "m4b", "wav"])
+            .pick_files()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|p| p.to_string_lossy().into_owned())
+            .collect();
+        // Chapter files are usually numbered: keep them in natural order.
+        files.sort_by(|a, b| {
+            let key = |s: &str| {
+                let name = std::path::Path::new(s).file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default();
+                let digits: String = name.chars().skip_while(|c| !c.is_ascii_digit()).take_while(|c| c.is_ascii_digit()).collect();
+                (digits.parse::<u64>().unwrap_or(u64::MAX), name)
+            };
+            key(a).cmp(&key(b))
+        });
+        files
+    })
+    .await
+    .unwrap_or_default()
+}
+#[tauri::command]
+fn studio_cancel_transcribe(job: State<AsrJob>) {
+    job.cancel.store(true, std::sync::atomic::Ordering::SeqCst);
+}
+#[tauri::command]
+fn studio_transcribe(app: tauri::AppHandle, job: State<AsrJob>, files: Vec<String>) -> Result<()> {
+    use std::sync::atomic::Ordering;
+    use tauri::Emitter;
+    if files.is_empty() {
+        return Err("Choose a recording first.".into());
+    }
+    if job.running.swap(true, Ordering::SeqCst) {
+        return Err("A recording is already being transcribed.".into());
+    }
+    job.cancel.store(false, Ordering::SeqCst);
+    let dir = studio_asr::model_dir(&data_root(&app)?);
+    std::thread::spawn(move || {
+        let job = app.state::<AsrJob>();
+        let outcome = (|| -> Result<Vec<Value>> {
+            if !studio_asr::installed(&dir) {
+                return Err("The transcription model is not installed.".into());
+            }
+            let mut model = studio_asr::Parakeet::open(embed::runtime_env(&app)?, &dir)?;
+            let mut out = Vec::new();
+            let n = files.len();
+            for (i, f) in files.iter().enumerate() {
+                let path = std::path::PathBuf::from(f);
+                let report = |v: f64| {
+                    let _ = app.emit("studio-asr-progress", serde_json::json!({"file": i, "files": n, "value": (i as f64 + v) / n as f64, "name": path.file_name().map(|x| x.to_string_lossy().into_owned())}));
+                };
+                let (words, seconds) = studio_asr::transcribe_file(&mut model, &path, &report, &|| job.cancel.load(Ordering::SeqCst))?;
+                out.push(serde_json::json!({
+                    "name": path.file_stem().map(|x| x.to_string_lossy().into_owned()),
+                    "seconds": seconds,
+                    "words": words.iter().map(|w| serde_json::json!([w.text, (w.start * 100.0).round() / 100.0, (w.end * 100.0).round() / 100.0, (w.conf as f64 * 100.0).round() / 100.0])).collect::<Vec<_>>(),
+                }));
+            }
+            Ok(out)
+        })();
+        job.running.store(false, Ordering::SeqCst);
+        let _ = app.emit("studio-asr-done", match outcome {
+            Ok(files) => serde_json::json!({"ok": true, "files": files}),
+            Err(e) if e == "cancelled" => serde_json::json!({"ok": false, "cancelled": true}),
+            Err(e) => serde_json::json!({"ok": false, "message": e}),
+        });
+    });
+    Ok(())
 }
 // Studio export: one at a time, in the background, with progress events.
 #[derive(Default)]
@@ -1336,6 +1420,7 @@ pub fn run() {
             app.manage(ExportJob::default());
             app.manage(studio_llm::Analysis::default());
             app.manage(CheckJob::default());
+            app.manage(AsrJob::default());
             app.manage(covers::Covers::default());
             app.manage(voice_studio::Studio::default());
             app.manage(embed::Embedder::default());
@@ -1352,6 +1437,7 @@ pub fn run() {
             studio_choose_folder, studio_reveal, studio_watermark_ready, studio_cancel_export, studio_export,
             studio_analysis_status, studio_analysis_chat, studio_analysis_stop, studio_replace_units,
             studio_verify_file, studio_check_takes, studio_cancel_check,
+            studio_asr_ready, studio_pick_recordings, studio_transcribe, studio_cancel_transcribe,
             starter_library_installed,
             install_starter_library,
             read_book,

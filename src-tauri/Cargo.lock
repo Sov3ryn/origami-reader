@@ -3855,6 +3855,7 @@ dependencies = [
  "libloading 0.8.9",
  "mp4ameta",
  "ort",
+ "realfft",
  "rfd",
  "rubato",
  "rusqlite",
