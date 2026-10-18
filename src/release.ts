@@ -4,7 +4,7 @@
 // PRIVATE_BETA to false and change the window title in
 // src-tauri/tauri.conf.json back to "Origami Reader".
 export const PRIVATE_BETA = true;
-export const VERSION = "0.1.0-beta.9";
+export const VERSION = "0.1.0-beta.10";
 // Studio is in development: on in development builds, or with VITE_STUDIO=1.
 export const STUDIO_ENABLED = import.meta.env.DEV || import.meta.env.VITE_STUDIO === "1";
 // The day this build was made, stamped by Vite.

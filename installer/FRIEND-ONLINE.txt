@@ -1,4 +1,4 @@
-ORIGAMI READER 0.1.0 BETA 9, WINDOWS
+ORIGAMI READER 0.1.0 BETA 10, WINDOWS
 
 This is a private beta for invited friends. Please do not share or re-upload it.
 
@@ -12,13 +12,16 @@ INSTALL
    off Windows security. Setup offers the included Microsoft installers for
    WebView2 and Visual C++ if they are missing.
 3. Choose a new installation folder, your languages, the language of your
-   starter books, appearance and models.
+   starter books and appearance. Setup picks the models for your computer
+   and four voices per language, to keep the download small. Every other
+   voice and model can be downloaded later in the app (Voices, and
+   Settings, Models).
    The review page shows how much setup will download. Only what you choose
    is downloaded, each part from its publisher, checked before use.
 4. Accept the app license (and the image model licenses for pictures).
 5. When setup finishes, choose Launch Origami.
 
-For a small laptop: light voices and SD-Turbo, without Qwen or DreamShaper.
+For a small laptop: keep the light voices setup suggests.
 If a download stops, run setup again: finished downloads are kept.
 
 The full guide and the feedback page are on the private Origami page where

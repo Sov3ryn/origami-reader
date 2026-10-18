@@ -167,7 +167,7 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
           <section className="studio-welcome">
             <h1>{t("Turn a book into an audiobook")}</h1>
             <p>{t("Studio reads a book from your library with the voices on this computer, line by line, so you can review every sentence before exporting.")}</p>
-            <ol className="studio-steps">
+            <ol className="studio-welcome-steps">
               <li>
                 <BookOpen size={20} />
                 <strong>{t("Pick a book")}</strong>

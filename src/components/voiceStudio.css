@@ -193,7 +193,7 @@
 .studio-advanced[open] summary {
   margin-bottom: 18px;
 }
-.studio-inline {
+.voice-studio .studio-inline {
   display: flex;
   gap: 8px;
 }
@@ -242,7 +242,7 @@
   padding-left: 10px;
   color: var(--muted);
 }
-.studio-search input {
+.voice-studio .studio-search input {
   border: 0 !important;
   background: transparent !important;
   min-width: 0;
@@ -345,17 +345,17 @@
   fill: var(--accent);
   margin: 8px 0;
 }
-.studio-player {
+.voice-studio .studio-player {
   display: flex;
   gap: 12px;
   align-items: center;
 }
-.studio-player input {
+.voice-studio .studio-player input {
   flex: 1;
   min-width: 20px;
   accent-color: var(--accent);
 }
-.studio-player small {
+.voice-studio .studio-player small {
   font-size: 11px;
   white-space: nowrap;
   color: var(--muted);
@@ -407,7 +407,7 @@
   align-items: flex-start;
   line-height: 1.5;
 }
-.studio-check input {
+.voice-studio .studio-check input {
   accent-color: var(--accent);
   margin-top: 3px;
 }
@@ -419,7 +419,7 @@
   font-size: 13px;
   margin-top: 15px;
 }
-.studio-notice {
+.voice-studio .studio-notice {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -430,10 +430,10 @@
   background: color-mix(in srgb, var(--accent) 8%, transparent);
   font-size: 13px;
 }
-.studio-notice > div {
+.voice-studio .studio-notice > div {
   flex: 1;
 }
-.studio-notice p {
+.voice-studio .studio-notice p {
   color: var(--muted);
   line-height: 1.6;
   margin: 5px 0;
@@ -496,7 +496,7 @@
 }
 
 /* Progress through the three stages. */
-.studio-steps {
+.voice-studio .studio-steps {
   display: flex;
   gap: 8px;
   list-style: none;
@@ -504,7 +504,7 @@
   margin: 0 0 22px;
   flex-wrap: wrap;
 }
-.studio-steps li {
+.voice-studio .studio-steps li {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -516,7 +516,7 @@
   font-size: 13px;
   background: color-mix(in srgb, var(--panel, #25232b) 85%, transparent);
 }
-.studio-steps li span {
+.voice-studio .studio-steps li span {
   display: grid;
   place-items: center;
   width: 24px;
@@ -526,16 +526,16 @@
   font-size: 12px;
   flex-shrink: 0;
 }
-.studio-steps li.current {
+.voice-studio .studio-steps li.current {
   color: var(--ink);
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
-.studio-steps li.current span {
+.voice-studio .studio-steps li.current span {
   border-color: var(--accent);
   color: var(--accent);
 }
-.studio-steps li.done span {
+.voice-studio .studio-steps li.done span {
   background: #80ba96;
   border-color: #80ba96;
   color: #12251a;
