@@ -872,6 +872,7 @@
 .studio-dialog label.studio-check {
   display: flex;
   flex-direction: row;
+  margin: 0;
   gap: 9px;
   align-items: flex-start;
   cursor: pointer;
