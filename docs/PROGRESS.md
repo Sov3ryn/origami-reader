@@ -662,3 +662,7 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - French (and other non-English) voices on computers without a graphics card for speech: setup made the light English reader (Kitten Mini) the default there, and the voice list showed only the current reader's voices, so a French voice pack looked empty. The list now shows the voices of the other installed models whenever the current reader has none in the chosen language (choosing one offers to switch models), and setup makes Qwen the default reader when a non-English voice pack is chosen, with a first voice in the interface language (or the first other language chosen).
 - Update available: when the daily check finds an update, a small card appears above the player (never over the page or a dialog) with the version, the first line of the notes, "Download now" with its size, "Later" and "Details" (Settings). Installing shows its progress in the card, then "Restart now". A copy that was not installed with the installer only offers the details.
 
+
+## Beta 9, 18 October 2026
+
+- Released for Windows: Origami-Reader-Setup-Beta-9.exe on the hub (v0.1.0-beta.9, SHA-256 b4c4dc0e...), and the app and workers update (signed, encrypted) as the newest release of origami-updates, so beta 8 copies offer it themselves. Studio stays hidden in this build. Start-up checked on the release build with a fresh data folder: Stories and Documents, the six starter books, no errors.
