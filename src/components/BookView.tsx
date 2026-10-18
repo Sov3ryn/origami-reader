@@ -646,7 +646,8 @@ export function BookView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [position, phase]);
   useEffect(() => {
-    if (playing && follow && speaking >= 0 && phase === "ready") show(speaking);
+    // Narration that starts on the closed book opens it onto the passage read.
+    if (playing && follow && speaking >= 0) show(speaking);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [speaking]);
   // Narration crossing onto the next page inside one paragraph.

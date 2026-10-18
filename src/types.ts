@@ -62,6 +62,8 @@ export type BookMeta = {
   // A source for Work Mode: imported there, or added from the book menu.
   // Work Mode shows only these by default, so leisure reading stays apart.
   work?: boolean;
+  // Read aloud with this Studio production's cast and takes instead of the live voice.
+  narration?: string;
   // Which library it is in; unset, its format and genres decide (libraryShelf.ts).
   shelf?: "stories" | "documents";
 };
@@ -301,6 +303,8 @@ export type SpeechResult = {
   rate: number;
   duration: number;
   unvoiced?: boolean;
+  // The audio's type when it is not WAV (a Studio take in FLAC).
+  mime?: string;
 };
 export const defaultPreferences: Preferences = {
   theme: "plum",

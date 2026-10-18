@@ -122,6 +122,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  Clapperboard,
   Download,
   Underline,
   MessageSquare,
@@ -212,6 +213,7 @@ import { droppedFiles } from "./dropFiles";
 import { WorkMode, type Handoff } from "./work/WorkMode";
 import { ModeSwitch, nextMode, type AppMode } from "./work/ModeSwitch";
 import { StudioMode } from "./studio/StudioMode";
+import { listProductions, readProduction, type ProductionInfo } from "./studio/production";
 import { HoverTips } from "./work/HoverTips";
 import "./work/tips.css";
 import { CardComposer } from "./work/CardComposer";
@@ -558,6 +560,8 @@ export default function App() {
   const spokenRange = useMemo(() => {
     if (!book || !speakingUnit) return null;
     const p = book.paragraphs[speakingUnit.paragraph];
+    // A Studio line knows where it sits in the paragraph.
+    if (p && speakingUnit.range) return { paragraph: speakingUnit.paragraph, ...speakingUnit.range };
     if (!p || speakingUnit.first < 0) return null;
     const count = sentences(
       cleanSpokenText(
@@ -583,6 +587,31 @@ export default function App() {
     prefs.pronunciations,
   ]);
   const sentenceMark = prefs.highlight === "sentence" ? spokenRange : null;
+  // A Studio production of the open book, which can read it aloud with its cast.
+  const [bookProduction, setBookProduction] = useState<ProductionInfo | null>(null);
+  const openBookId = book?.meta.id;
+  useEffect(() => {
+    setBookProduction(null);
+    if (!openBookId || !store.desktop) return;
+    let live = true;
+    void listProductions()
+      .then((list) => {
+        const found = list
+          .filter((x) => x.bookId === openBookId && (x as ProductionInfo & { rendered?: number }).rendered)
+          .sort((a, b) => (b.updated || 0) - (a.updated || 0))[0];
+        if (live) setBookProduction(found || null);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [openBookId]);
+  const studioNarration = Boolean(book && bookProduction && book.meta.narration === bookProduction.id);
+  useEffect(() => {
+    if (book && bookProduction && studioNarration) player.setNarration(book.meta.id, () => readProduction(bookProduction.id));
+    else player.setNarration(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [book?.meta.id, bookProduction?.id, studioNarration]);
   // The word being read: estimated as the clip plays, painted when asked for,
   // and passed to the book so a sentence running onto the next page turns it.
   useEffect(() => {
@@ -7872,7 +7901,25 @@ export default function App() {
               </div>
             </div>
             <div className="playback-options">
-              {page === "reader" && book && (
+              {page === "reader" && book && bookProduction && (
+                <button
+                  className={"voice-chip studio-cast-chip" + (studioNarration ? " active" : "")}
+                  aria-pressed={studioNarration}
+                  title={
+                    studioNarration
+                      ? t("Read by the Studio cast. Choose to go back to the live voice.")
+                      : t("Read this book with its Studio production: the cast and the takes made in Studio.")
+                  }
+                  onClick={() => {
+                    void player.stop();
+                    void updateMeta({ ...book.meta, narration: studioNarration ? undefined : bookProduction.id }).catch(error);
+                  }}
+                >
+                  <Clapperboard size={14} />
+                  <span>{t("Studio cast")}</span>
+                </button>
+              )}
+              {page === "reader" && book && !studioNarration && (
                 <button
                   className="voice-link voice-chip"
                   title={t("Choose a voice")}

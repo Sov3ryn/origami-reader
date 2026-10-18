@@ -7134,3 +7134,7 @@ html[data-hidden="true"] .garden-effects * {
   }
 }
 
+.voice-chip.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}

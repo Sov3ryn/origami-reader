@@ -1,4 +1,7 @@
 import { useCallback, useRef, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import type { Production } from "./studio/production";
+import { studioUnits } from "./studioNarration";
 import * as storage from "./storage";
 import {
   isShortSpeech,
@@ -17,6 +20,10 @@ export type Unit = {
   first: number;
   last: number;
   heading?: boolean;
+  // Studio narration: where the line sits in the paragraph, its voice and its take.
+  range?: { start: number; end: number };
+  voice?: string;
+  take?: { production: string; file: string; duration: number };
 };
 type Status = "idle" | "generating" | "playing" | "paused";
 const rulesKey = (prefs: Preferences, bookId: string) =>
@@ -132,6 +139,8 @@ export function usePlayer(
   const fadeRun = useRef(0);
   const fadeScale = useRef(1);
   const cache = useRef(new Map<string, SpeechResult>());
+  // The Studio production read aloud for a book, loaded fresh at each start.
+  const narration = useRef<{ bookId: string; load: () => Promise<Production> } | null>(null);
   const session = useRef<{
     book: Book;
     units: Unit[];
@@ -192,7 +201,12 @@ export function usePlayer(
       return;
     }
     activePrefs.current = prefs;
-    const rules = rulesKey(prefs, book.meta.id);
+    const cast =
+      selection === undefined && narration.current && narration.current.bookId === book.meta.id
+        ? await narration.current.load().catch(() => null)
+        : null;
+    if (generation.current !== token) return;
+    const rules = rulesKey(prefs, book.meta.id) + (cast ? "|" + cast.info.id : "");
     const resumable =
       resumeCurrent &&
       previous?.book.meta.id === book.meta.id &&
@@ -224,13 +238,28 @@ export function usePlayer(
             last: -1,
             paragraph: position,
           }))
-        : bookUnits(book, position, prefs);
+        : cast
+          ? studioUnits(book, cast, position)
+          : bookUnits(book, position, prefs);
     session.current = { book, units, index: 0, rules, onPosition };
     const voice = bookVoice(book.meta, prefs);
     const get = async (unit: Unit) => {
+      // A Studio take plays as it was made.
+      if (unit.take) {
+        try {
+          const audio = await invoke<string>("studio_take_audio", { id: unit.take.production, file: unit.take.file });
+          return {
+            result: { audio, rate: 0, duration: unit.take.duration, mime: unit.take.file.endsWith(".flac") ? "audio/flac" : "audio/wav" } as SpeechResult,
+            error: null,
+          };
+        } catch (error) {
+          return { result: null, error };
+        }
+      }
+      const lineVoice = unit.voice || voice;
       const key = JSON.stringify([
         book.meta.id,
-        voice,
+        lineVoice,
         unit.text,
         prefs.voiceTemperature,
         prefs.speechModel,
@@ -245,7 +274,7 @@ export function usePlayer(
       try {
         const result = await storage.synthesize(
           unit.text,
-          voice,
+          lineVoice,
           prefs.voiceTemperature,
           prefs.speechModel,
         );
@@ -349,7 +378,7 @@ export function usePlayer(
           c.charCodeAt(0),
         );
         const url = URL.createObjectURL(
-          new Blob([bytes], { type: "audio/wav" }),
+          new Blob([bytes], { type: result.mime || "audio/wav" }),
         );
         urls.current.add(url);
         const player = new Audio(url);
@@ -471,6 +500,10 @@ export function usePlayer(
     }));
   }
   return {
+    // Sets (or clears) the Studio production that reads a book aloud.
+    setNarration: (bookId: string | null, load?: () => Promise<Production>) => {
+      narration.current = bookId && load ? { bookId, load } : null;
+    },
     status,
     current,
     currentUnit,
