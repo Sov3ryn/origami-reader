@@ -162,3 +162,16 @@ describe("complete commercial starter-library editions", () => {
     });
   }
 });
+
+describe("translated starter books", () => {
+  it("picks the edition for the chosen language and falls back to English", async () => {
+    const { starterTranslation, starterLanguages } = await import("../src/starterLibrary");
+    expect(starterLanguages).toContain("fr");
+    expect(starterTranslation("starter-pride-prejudice", "fr")?.file).toBe("fr/pride-prejudice.epub");
+    expect(starterTranslation("starter-pride-prejudice", "fr-CA")?.file).toBe("fr/pride-prejudice.epub");
+    expect(starterTranslation("starter-pride-prejudice", "en")).toBeUndefined();
+    expect(starterTranslation("starter-pride-prejudice", "")).toBeUndefined();
+    // Monte Cristo is not translated into every language yet.
+    expect(starterTranslation("starter-count-monte-cristo", "ar")).toBeUndefined();
+  });
+});

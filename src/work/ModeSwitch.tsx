@@ -1,5 +1,6 @@
 import { BookOpen, Clapperboard, PenLine } from "lucide-react";
 import { t } from "../i18n";
+import { STUDIO_ENABLED } from "../release";
 
 export type AppMode = "read" | "work" | "studio";
 
@@ -15,9 +16,9 @@ export function ModeSwitch({ mode, onChange }: { mode: AppMode; onChange: (mode:
     <div className="mode-switch" role="radiogroup" aria-label={t("Mode (Ctrl+Shift+W)")}>
       {option("read", t("Read"), t("Read mode"), BookOpen)}
       {option("work", t("Work"), t("Work mode: notes and study"), PenLine)}
-      {option("studio", t("Studio"), t("Studio: audiobooks and books"), Clapperboard)}
+      {STUDIO_ENABLED && option("studio", t("Studio"), t("Studio: audiobooks and books"), Clapperboard)}
     </div>
   );
 }
 
-export const nextMode = (mode: AppMode): AppMode => (mode === "read" ? "work" : mode === "work" ? "studio" : "read");
+export const nextMode = (mode: AppMode): AppMode => (mode === "read" ? "work" : mode === "work" && STUDIO_ENABLED ? "studio" : "read");

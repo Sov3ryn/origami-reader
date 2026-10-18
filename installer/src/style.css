@@ -105,7 +105,7 @@ h1:focus {
   outline: none;
 }
 small {
-  font-size: 12px;
+  font-size: 14px;
 }
 input,
 select {
@@ -307,7 +307,7 @@ input::placeholder {
 }
 .brand small {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2.5px;
   color: #bfb0d4;
   margin-top: 5px;
@@ -334,7 +334,7 @@ input::placeholder {
   background: transparent;
   color: #a89bb7;
   text-align: left;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
 }
 .sidebar nav button:disabled {
@@ -380,11 +380,11 @@ input::placeholder {
   gap: 9px;
   align-items: center;
   color: #cebddf;
-  font-size: 12px;
+  font-size: 14px;
 }
 .scene-caption small {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   color: #9c8cab;
   margin-top: 5px;
 }
@@ -392,7 +392,7 @@ input::placeholder {
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 12px;
+  font-size: 14px;
   color: #94859f;
   padding-top: 17px;
 }
@@ -413,7 +413,7 @@ input::placeholder {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 1.8px;
   color: #a799b7;
@@ -435,7 +435,7 @@ input::placeholder {
   align-items: center;
   color: #c0b3cf;
   position: relative;
-  font-size: 12px;
+  font-size: 14px;
 }
 .platform-select select {
   appearance: none;
@@ -443,7 +443,7 @@ input::placeholder {
   border: 0;
   padding: 7px 17px 7px 0;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
 }
 .platform-select > svg:last-child {
   position: absolute;
@@ -469,7 +469,7 @@ input::placeholder {
   animation: enter 0.3s ease-out;
 }
 .eyebrow {
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2.6px;
   font-weight: 600;
   color: #b799d9;
@@ -482,7 +482,7 @@ h1 {
   line-height: 1.2;
 }
 .page-heading > p:last-child {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
   max-width: 490px;
   line-height: 1.85;
@@ -516,7 +516,7 @@ h1 {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1.8px;
   color: #cbb7e1;
   margin-bottom: 16px;
@@ -529,7 +529,7 @@ h1 {
   color: #f2eaf7;
 }
 .art-copy p {
-  font-size: 12px;
+  font-size: 14px;
   color: #c2b3d0;
   margin-top: 9px;
 }
@@ -574,11 +574,11 @@ h1 {
 }
 .welcome-features strong {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
 }
 .welcome-features p {
-  font-size: 12px;
+  font-size: 14px;
   color: #a69bb3;
   line-height: 1.7;
   margin-top: 7px;
@@ -588,7 +588,7 @@ h1 {
   align-items: flex-start;
   gap: 8px;
   color: #9e91ac;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.7;
 }
 .quiet-note svg {
@@ -606,7 +606,7 @@ h1 {
   gap: 15px;
 }
 .footer-context {
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
   color: #b7a4ca;
 }
@@ -615,7 +615,7 @@ h1 {
   letter-spacing: 0;
   margin-top: 6px;
   color: #84768f;
-  font-size: 12px;
+  font-size: 14px;
 }
 .footer-actions {
   display: flex;
@@ -631,7 +631,7 @@ h1 {
   min-height: 39px;
   padding: 10px 19px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   border: 1px solid transparent;
 }
@@ -660,7 +660,7 @@ h1 {
   background: transparent;
   border: 0;
   color: #c7abed;
-  font-size: 12px;
+  font-size: 14px;
   padding: 7px 4px;
   border-radius: 5px;
 }
@@ -676,10 +676,10 @@ h1 {
   gap: 15px;
   align-items: center;
   color: #746481;
-  font-size: 12px;
+  font-size: 14px;
 }
 .outside-caption > span:first-child {
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2.3px;
 }
 .outside-caption > span:nth-child(2) {
@@ -692,10 +692,10 @@ h1 {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
+  font-size: 14px;
 }
 .section-label {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 1.8px;
   color: #a99ab9;
@@ -726,12 +726,12 @@ h1 {
   gap: 10px;
 }
 .choice strong {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
 }
 .choice small {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   color: #9f92ae;
   line-height: 1.6;
   margin-top: 9px;
@@ -739,7 +739,7 @@ h1 {
 .choice em {
   display: inline-block;
   color: #c4a6e9;
-  font-size: 12px;
+  font-size: 14px;
   margin-top: 10px;
   font-style: normal;
 }
@@ -769,7 +769,7 @@ h1 {
   background: #dabaff;
 }
 .field-label {
-  font-size: 12px;
+  font-size: 14px;
   display: block;
   margin: 23px 0 10px;
   color: #c8bcd5;
@@ -791,14 +791,14 @@ h1 {
   width: 100%;
   padding: 8px 0;
   font-family: "Cascadia Code", Consolas, monospace;
-  font-size: 12px;
+  font-size: 14px;
 }
 .path-field.invalid {
   border-color: #eaa2b5;
 }
 .field-help,
 .error {
-  font-size: 12px;
+  font-size: 14px;
   color: #9687a5;
   line-height: 1.6;
   margin-top: 9px;
@@ -821,11 +821,11 @@ h1 {
   flex-shrink: 0;
 }
 .info-card strong {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
 }
 .info-card p {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.8;
   margin-top: 7px;
   color: #a296af;
@@ -842,18 +842,18 @@ h1 {
   color: #b59bce;
 }
 .component strong {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   display: block;
 }
 .component small {
-  font-size: 12px;
+  font-size: 14px;
   color: #9e90ab;
   display: block;
   margin-top: 5px;
 }
 .pill {
-  font-size: 12px;
+  font-size: 14px;
   padding: 5px 8px;
   border: 1px solid #c6a0ed26;
   border-radius: 5px;
@@ -882,12 +882,12 @@ h1 {
 }
 .toggle-row strong {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
 }
 .toggle-row small {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   color: #a295af;
   margin-top: 7px;
   line-height: 1.8;
@@ -939,13 +939,13 @@ h1 {
 }
 .language-tools input {
   padding: 10px 12px;
-  font-size: 12px;
+  font-size: 14px;
   min-width: 0;
   flex: 1;
 }
 .language-tools button {
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 14px;
 }
 .language-grid {
   display: grid;
@@ -990,13 +990,13 @@ h1 {
 }
 .language-description strong {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
 }
 .language-description small {
   display: block;
   color: #a295af;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
   margin-top: 6px;
 }
@@ -1021,7 +1021,7 @@ h1 {
   margin: 21px 0 24px;
   padding-top: 17px;
   border-top: 1px solid var(--line);
-  font-size: 12px;
+  font-size: 14px;
   color: #a89ab6;
 }
 .selection-total strong {
@@ -1032,7 +1032,7 @@ h1 {
   padding: 34px 20px;
   text-align: center;
   color: #a498b2;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.8;
 }
 .empty-state svg {
@@ -1121,7 +1121,7 @@ h1 {
   position: absolute;
   right: 17px;
   bottom: 17px;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--sample-accent);
 }
 .theme-grid {
@@ -1140,13 +1140,13 @@ h1 {
 }
 .theme-choice > span:nth-child(2) {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   color: #ccc0d9;
   margin-top: 9px;
 }
 .theme-choice small {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   color: #b899df;
   margin-top: 4px;
 }
@@ -1170,7 +1170,7 @@ h1 {
   margin-top: 21px;
 }
 .compact-fields label {
-  font-size: 12px;
+  font-size: 14px;
   color: #a99ab8;
 }
 .compact-fields select {
@@ -1178,7 +1178,7 @@ h1 {
   width: 100%;
   padding: 10px;
   margin-top: 8px;
-  font-size: 12px;
+  font-size: 14px;
 }
 .review-banner {
   display: flex;
@@ -1201,7 +1201,7 @@ h1 {
   display: block;
   color: #aa9ab8;
   margin-top: 6px;
-  font-size: 12px;
+  font-size: 14px;
 }
 .review-banner .pill {
   margin-left: auto;
@@ -1213,7 +1213,7 @@ h1 {
   align-items: start;
   padding: 14px 0;
   border-bottom: 1px solid var(--line);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.8;
 }
 .summary-row > span {
@@ -1226,7 +1226,7 @@ h1 {
 }
 .summary-row .text-button {
   padding: 0;
-  font-size: 12px;
+  font-size: 14px;
 }
 .export-button {
   margin-top: 17px;
@@ -1283,7 +1283,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 15px;
   color: #d2c3e0;
 }
 .progress-heading strong {
@@ -1294,7 +1294,7 @@ h1 {
   letter-spacing: -1px;
 }
 .progress-heading small {
-  font-size: 14px;
+  font-size: 15px;
   letter-spacing: 0;
   margin-left: 3px;
   color: #a68abb;
@@ -1327,11 +1327,11 @@ h1 {
   display: flex;
   justify-content: space-between;
   color: #a592b6;
-  font-size: 12px;
+  font-size: 14px;
   margin-top: 12px;
 }
 .progress-meta > span:last-child {
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1.4px;
 }
 .phase-list {
@@ -1345,7 +1345,7 @@ h1 {
   display: flex;
   gap: 11px;
   align-items: center;
-  font-size: 12px;
+  font-size: 14px;
   color: #877991;
 }
 .phase-list li > span {
@@ -1355,7 +1355,7 @@ h1 {
   height: 19px;
   border: 1px solid #ffffff17;
   border-radius: 50%;
-  font-size: 12px;
+  font-size: 14px;
 }
 .phase-list li.current {
   color: #e1cbf5;
@@ -1370,7 +1370,7 @@ h1 {
 }
 .phase-list small {
   margin-left: auto;
-  font-size: 12px;
+  font-size: 14px;
   color: #9b87ac;
 }
 .complete-mark {
@@ -1420,7 +1420,7 @@ h1 {
   color: #dfc9f4;
 }
 .completion-details small {
-  font-size: 12px;
+  font-size: 14px;
   color: #9f8eaf;
 }
 .completion-launch {
@@ -1463,7 +1463,7 @@ dialog h2 {
   margin: 12px 0 20px;
 }
 dialog p {
-  font-size: 12px;
+  font-size: 14px;
   color: #b9abc8;
   line-height: 1.9;
   margin-bottom: 17px;
@@ -1628,7 +1628,7 @@ dialog p {
     font-size: 22px;
   }
   .brand small {
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
   }
   .sidebar nav ol {
@@ -1659,7 +1659,7 @@ dialog p {
     gap: 8px;
   }
   .preview-badge {
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 1px;
   }
   .content {
@@ -1672,7 +1672,7 @@ dialog p {
     font-size: 28px;
   }
   .page-heading > p:last-child {
-    font-size: 12px;
+    font-size: 14px;
   }
   .welcome-art {
     height: 210px;
@@ -1701,11 +1701,11 @@ dialog p {
   }
   .welcome-features p {
     grid-column: 2;
-    font-size: 12px;
+    font-size: 14px;
     margin-top: 5px;
   }
   .welcome-features strong {
-    font-size: 12px;
+    font-size: 14px;
   }
   .installer footer {
     margin: 0 20px;
@@ -1713,11 +1713,11 @@ dialog p {
     gap: 9px;
   }
   .footer-context {
-    font-size: 12px;
+    font-size: 14px;
   }
   .primary,
   .secondary {
-    font-size: 12px;
+    font-size: 14px;
     padding: 10px 13px;
     gap: 7px;
   }
@@ -1737,13 +1737,13 @@ dialog p {
     grid-template-columns: repeat(3, 1fr);
   }
   .theme-choice > span:nth-child(2) {
-    font-size: 12px;
+    font-size: 14px;
   }
   .theme-choice {
     padding: 10px 7px;
   }
   .theme-preview-label {
-    font-size: 12px;
+    font-size: 14px;
     bottom: 10px;
   }
   .summary-row {
@@ -1754,39 +1754,39 @@ dialog p {
     gap: 10px;
   }
   .review-banner strong {
-    font-size: 14px;
+    font-size: 15px;
   }
   .review-banner .pill {
-    font-size: 12px;
+    font-size: 14px;
   }
   .completion-details {
     padding: 19px 5px;
     grid-template-columns: 1fr 1fr 1.3fr;
   }
   .completion-details strong {
-    font-size: 14px;
+    font-size: 15px;
   }
   .outside-caption > span:first-child {
     display: none;
   }
   .outside-caption {
-    font-size: 12px;
+    font-size: 14px;
     justify-content: space-between;
   }
   .outside-caption > span:nth-child(2) {
     margin-left: 0;
   }
   .phase-list small {
-    font-size: 12px;
+    font-size: 14px;
   }
   .progress-heading {
-    font-size: 12px;
+    font-size: 14px;
   }
   .progress-meta {
-    font-size: 12px;
+    font-size: 14px;
   }
   .progress-meta > span:last-child {
-    font-size: 12px;
+    font-size: 14px;
   }
   .dialog-actions {
     flex-wrap: wrap;
@@ -1795,7 +1795,7 @@ dialog p {
 
 /* Keep settings and theme labels readable at desktop and narrow widths. */
 .page-heading > p:last-child {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.7;
 }
 .theme-choice {
@@ -1804,7 +1804,7 @@ dialog p {
   border-radius: 11px;
 }
 .theme-choice > span:nth-child(2) {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.45;
   font-weight: 500;
   color: #eee5f7;
@@ -1812,7 +1812,7 @@ dialog p {
 }
 .theme-choice small {
   display: inline-block;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.4;
   color: #e0c8ff;
   background: #ad80da1c;
@@ -1825,7 +1825,7 @@ dialog p {
   gap: 10px;
 }
 .theme-preview-label {
-  font-size: 13px;
+  font-size: 15px;
 }
 .swatches i {
   width: 24px;
@@ -1838,22 +1838,22 @@ dialog p {
 .toggle-row strong,
 .field-label,
 .compact-fields label {
-  font-size: 14px;
+  font-size: 15px;
 }
 .toggle-row small,
 .field-help,
 .info-card p,
 .quiet-note,
 .compact-fields select {
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.65;
 }
 .primary,
 .secondary {
-  font-size: 13px;
+  font-size: 15px;
 }
 .section-label {
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1.5px;
 }
 .model-choice {
@@ -1861,18 +1861,18 @@ dialog p {
 }
 .model-choice label {
   display: block;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   margin-bottom: 10px;
 }
 .model-choice select {
   width: 100%;
   padding: 12px;
-  font-size: 14px;
+  font-size: 15px;
 }
 .model-choice p {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.7;
   margin-top: 10px;
 }
@@ -1890,16 +1890,16 @@ dialog p {
 .folder-dialog > input {
   width: 100%;
   padding: 12px;
-  font-size: 14px;
+  font-size: 15px;
 }
 .folder-dialog p {
-  font-size: 13px;
+  font-size: 15px;
 }
 .native-browse {
   margin-bottom: 15px;
 }
 .close-installer-link {
-  font-size: 13px;
+  font-size: 15px;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
@@ -1907,7 +1907,7 @@ dialog p {
   margin: 20px auto 0;
   max-width: 450px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.7;
 }
 @media (max-width: 650px) {
@@ -1919,10 +1919,10 @@ dialog p {
     min-height: 105px;
   }
   .theme-choice > span:nth-child(2) {
-    font-size: 13px;
+    font-size: 15px;
   }
   .theme-choice small {
-    font-size: 12px;
+    font-size: 14px;
     padding: 2px 4px;
   }
   .footer-context {
@@ -1935,7 +1935,7 @@ dialog p {
     flex-wrap: wrap;
   }
   .completion-launch {
-    font-size: 13px;
+    font-size: 15px;
     white-space: normal;
   }
 }
@@ -2030,7 +2030,7 @@ dialog p {
   gap: 8px;
   padding: 7px 10px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 15px;
 }
 .language-menu {
   position: absolute;
@@ -2056,7 +2056,7 @@ dialog p {
   background: none;
   color: inherit;
   padding: 7px 9px;
-  font-size: 13px;
+  font-size: 15px;
   text-align: start;
   border-radius: 6px;
 }
@@ -2071,7 +2071,7 @@ dialog p {
 }
 .language-menu small {
   opacity: 0.65;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .flag-badge {
@@ -2096,4 +2096,288 @@ dialog p {
 }
 .sidebar .language-menu {
   width: min(260px, calc(var(--left-width, 260px) - 16px));
+}
+
+
+/* Beta 8 layout: fill the window, keep pages on one screen at 1090 x 610
+   (a 1366 x 768 laptop at 125%), larger text, compact headings. */
+.setup {
+  height: 100vh;
+  min-height: 0;
+  padding: 0;
+}
+.installer {
+  width: 100vw;
+  height: 100vh;
+  min-height: 0;
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+.installer main {
+  min-height: 0;
+  height: 100vh;
+}
+.sidebar {
+  padding: 20px 16px 16px;
+}
+.brand {
+  margin-bottom: 26px;
+}
+.topbar {
+  height: 46px;
+  padding: 0 28px;
+  flex: none;
+}
+.content {
+  padding: 4px 32px 16px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.eyebrow {
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+h1 {
+  font-size: clamp(24px, 2.4vw, 30px);
+}
+.page-heading {
+  margin-bottom: 16px;
+}
+.page-heading > p:last-child {
+  margin-top: 6px;
+  max-width: 640px;
+  font-size: 15px;
+}
+.installer footer {
+  margin: 0 28px;
+  padding: 12px 0 14px;
+  flex: none;
+}
+.welcome-art {
+  height: 150px;
+}
+.toggle-row {
+  padding: 11px 0;
+}
+.toggle-row strong {
+  font-size: 15px;
+}
+.toggle-row small {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-top: 3px;
+}
+.prefs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 32px;
+}
+.prefs-grid > .section-label,
+.prefs-grid > .model-choice {
+  grid-column: 1 / -1;
+}
+.prefs-grid .toggle-row small {
+  max-width: none;
+  padding-right: 48px;
+}
+.section-label {
+  font-size: 13px;
+  margin: 10px 0 0;
+}
+.section-gap {
+  margin-top: 14px;
+}
+.model-choice {
+  padding: 10px 0 4px;
+}
+.starter-books {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(170px, 240px);
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  border: 1px solid #a581cc33;
+  border-radius: 12px;
+  background: #ffffff06;
+  color: var(--accent);
+}
+.starter-books label {
+  color: #eee9f5;
+}
+.starter-books strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+.starter-books small {
+  display: block;
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.starter-books select {
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid #a581cc44;
+  background: #1b1622;
+  color: #eee9f5;
+  font-size: 15px;
+}
+.appearance-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.appearance-layout .appearance-example {
+  height: 300px;
+  margin: 0;
+}
+.appearance-choices {
+  display: grid;
+  gap: 10px;
+}
+.day-night {
+  display: inline-flex;
+  justify-self: start;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 10px;
+  background: #ffffff0a;
+  border: 1px solid #ffffff14;
+}
+.day-night button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #cdbfdc;
+  font-size: 15px;
+}
+.day-night button[aria-checked="true"] {
+  background: #c8a6eb33;
+  color: #f4ecfc;
+}
+.appearance-choices .background-preset-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.appearance-choices .preset-thumbnail {
+  height: 46px;
+}
+.appearance-choices .preset-card-copy {
+  padding: 6px 8px 7px;
+}
+.appearance-choices .preset-card-copy strong {
+  font-size: 13px;
+  line-height: 1.25;
+}
+.appearance-choices .preset-card-copy em {
+  font-size: 12px;
+  margin-top: 3px;
+}
+.preset-default-note {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+}
+@media (max-width: 1000px), (max-height: 640px) {
+  .installer {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+  .sidebar-scene .scene-caption,
+  .sidebar-bottom {
+    display: none;
+  }
+  .appearance-layout .appearance-example {
+    height: 250px;
+  }
+}
+@media (max-width: 860px) {
+  .prefs-grid,
+  .appearance-layout {
+    grid-template-columns: 1fr;
+  }
+  .starter-books {
+    grid-template-columns: 1fr;
+  }
+}
+
+.outside-caption {
+  display: none;
+}
+
+/* Second pass: no top bar (the sidebar shows the step), compact rows. */
+.topbar {
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  height: auto;
+  padding: 0;
+  z-index: 2;
+}
+.preview-badge {
+  display: none;
+}
+.installer main {
+  position: relative;
+}
+.content {
+  padding-top: 22px;
+}
+.page-heading .eyebrow {
+  display: none;
+}
+.brand small {
+  letter-spacing: 1.5px;
+}
+.language-card {
+  min-height: 0;
+  padding: 10px 14px;
+}
+.language-grid {
+  gap: 8px;
+}
+.model-choice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.model-choice label {
+  margin: 0;
+  font-size: 15px;
+}
+.model-choice select {
+  padding: 8px 10px;
+}
+.model-choice p {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  font-size: 14px;
+}
+.toggle-row {
+  padding: 9px 0;
+}
+.appearance-layout {
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+}
+.appearance-choices .background-preset-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.appearance-choices .preset-thumbnail {
+  height: 40px;
+}
+
+.summary-row {
+  padding-top: 9px;
+  padding-bottom: 9px;
 }

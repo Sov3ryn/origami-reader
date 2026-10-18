@@ -559,3 +559,11 @@ Follows docs/UX-REVIEW-2026-10-13.md.
   - Speaker attribution: 876-line double-annotated English and French test set; rules plus Ministral 3 8B reach 91 to 95%.
 - New code: src/studio/dialogue.ts (speech and tags in English quotes, French dashes and guillemets) and src/studio/attribution.ts (rules pass), with tests/studio-dialogue.test.ts. 248 TypeScript tests pass.
 - node_modules and src-tauri/target were removed by an outside disk cleanup during the session; node_modules was reinstalled from the lockfile.
+
+## Beta 8 preparation, 17 October 2026
+
+- Starter books in 19 languages: AI translations of the starter editions (assets/starter-library/translations, 108 editions, 47 MB; translations.json holds each file's SHA-256, title and a translation note). Every book is in all 19 languages except The Count of Monte Cristo (13: not yet in Arabic, Bengali, Hindi, Russian, Turkish or Ukrainian); a missing book stays in English. scripts/add-starter-translations.py copies only finished ("packaged") editions. Translations are first editions; independent review is pending.
+- Setup asks for the starter book language (page 2, with the count of translated books) and writes it to the preferences; a new library uses it, then the interface language. Existing libraries keep their books.
+- Setup UI: larger text, the window fills the screen (clamped to the monitor's work area, minimum 820 x 560), no platform preview select, two-column preferences and a smaller review page. Appearance is one card per place (lake and garden, four seasons) with a day and night toggle instead of separate night cards with missing images; the preview sits beside the choices. No page scrolls at 1280 x 800.
+- Studio stays hidden in release builds (STUDIO_ENABLED: development builds or VITE_STUDIO=1).
+- Releases are Windows only from beta 8 (AGENTS.md); macOS and Linux return once they can be tested here.

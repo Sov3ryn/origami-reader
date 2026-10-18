@@ -208,6 +208,8 @@ export type Preferences = {
   workMode: boolean;
   // Studio mode (productions); exclusive with Work mode.
   studioMode?: boolean;
+  // Language of the starter books, chosen in setup (an interface language code).
+  starterLanguage?: string;
   studyFourButtons: boolean;
   studyNewPerDay: number;
   // "standard" (Granite 97M) or "precise" (Granite 311M) for Related notes.

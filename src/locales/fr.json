@@ -2451,5 +2451,14 @@
   "Rendering finished": "Enregistrement terminé",
   "Rendering stopped": "Enregistrement arrêté",
   "Stop rendering": "Arrêter l’enregistrement",
-  "Not rendered": "Pas encore enregistrée"
+  "Not rendered": "Pas encore enregistrée",
+  "{count} of the six books in this language; the others stay in English. Translations are AI editions.": "{count} des six livres dans cette langue ; les autres restent en anglais. Les traductions sont des éditions faites par IA.",
+  "{language} ({count} of {total} books translated)": "{language} ({count} livres traduits sur {total})",
+  "{language} (original editions)": "{language} (éditions originales)",
+  "All six books in this language. Translations are AI editions.": "Les six livres dans cette langue. Les traductions sont des éditions faites par IA.",
+  "Choose where you read, by day or by night. The spring lake at night (Plum Nocturne) is the default.": "Choisissez où vous lisez, de jour comme de nuit. Le lac au printemps, la nuit (Nocturne prune), est proposé par défaut.",
+  "Lake": "Lac",
+  "Six complete classics to start your library.": "Six classiques complets pour commencer votre bibliothèque.",
+  "Starter books": "Livres de départ",
+  "You can change the style, texture and animations later in Origami.": "Vous pourrez changer le style, la texture et les animations plus tard dans Origami."
 }

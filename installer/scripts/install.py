@@ -744,7 +744,8 @@ def install(base, options):
                        **({"speechModel": worker["defaultModel"]} if models else {}),
                        "preloadAtStartup": True, "autoUpdate": bool(options.get("updates", True)), "voice": initial_voice,
                        "voiceLanguage": voices.get(initial_voice, {}).get("language", "English"),
-                       "uiLanguage": str(options.get("uiLanguage", ""))[:16]}
+                       "uiLanguage": str(options.get("uiLanguage", ""))[:16],
+                       "starterLanguage": str(options.get("starterLanguage", ""))[:16]}
         data.mkdir(parents=True, exist_ok=True)
         with sqlite3.connect(data / "origami.sqlite3") as db:
             db.execute("CREATE TABLE IF NOT EXISTS settings(id TEXT PRIMARY KEY, data TEXT NOT NULL)")

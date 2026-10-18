@@ -1,4 +1,5 @@
 import manifest from "../assets/starter-library/manifest.json";
+import translations from "../assets/starter-library/translations.json";
 import { importDocument } from "./documents";
 import type { Book, BookMeta } from "./types";
 
@@ -8,6 +9,22 @@ const editions = import.meta.glob("../assets/starter-library/books/*.epub", {
   query: "?url",
   import: "default",
 }) as Record<string, string>;
+// AI translations of the starter editions, chosen in setup (starterLanguage).
+const translated = import.meta.glob("../assets/starter-library/translations/*/*.epub", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+type Translation = { file: string; sha256: string; title: string; translation: string };
+const translationIndex = translations as Record<string, Record<string, Translation>>;
+/** Interface languages that have at least one translated starter book. */
+export const starterLanguages = [...new Set(Object.values(translationIndex).flatMap((t) => Object.keys(t)))].sort();
+/** The edition of a starter book in a language, or undefined for the English original. */
+export function starterTranslation(id: string, language: string | undefined) {
+  if (!language) return undefined;
+  const byLanguage = translationIndex[id] || {};
+  return byLanguage[language] || byLanguage[language.split("-")[0]];
+}
 const covers = import.meta.glob("../assets/starter-library/covers/*.webp", {
   eager: true,
   query: "?url",
@@ -41,12 +58,15 @@ async function localAsset(url: string | undefined) {
 export async function prepareStarterBooks(
   existing: BookMeta[],
   readExisting: (id: string) => Promise<Book>,
+  language?: string,
 ) {
   const books = [];
   for (const edition of manifest.books) {
     // Preserve imported copies, reading positions, custom art and deleted entries.
+    const version = starterTranslation(edition.id, language);
+    const sha256 = version?.sha256 || edition.sha256;
     const found = existing.find(
-      (b) => b.id === edition.id || b.sourceHash === edition.sha256,
+      (b) => b.id === edition.id || b.sourceHash === sha256,
     );
     if (found?.coverImage || found?.deleted) continue;
     const book = found
@@ -55,13 +75,15 @@ export async function prepareStarterBooks(
           new File(
             [
               await localAsset(
-                editions[`../assets/starter-library/books/${edition.filename}`],
+                version
+                  ? translated[`../assets/starter-library/translations/${version.file}`]
+                  : editions[`../assets/starter-library/books/${edition.filename}`],
               ),
             ],
-            edition.filename,
+            version ? version.file.split("/").pop()! : edition.filename,
           ),
         );
-    if (book.meta.sourceHash !== edition.sha256)
+    if (book.meta.sourceHash !== sha256)
       throw new Error("Bundled starter edition failed its integrity check.");
     const artwork = await localAsset(
       covers[

@@ -38,7 +38,7 @@ import { VoiceDownloads } from "./components/VoiceDownloads";
 import { ReaderMenu, type ReaderMenuAction } from "./components/ReaderMenu";
 import { BookView, type BookNav } from "./components/BookView";
 import { BOOK_MIN_WIDTH } from "./bookLayout";
-import { BUILD_DATE, PRIVATE_BETA, VERSION } from "./release";
+import { BUILD_DATE, PRIVATE_BETA, STUDIO_ENABLED, VERSION } from "./release";
 import type { AuthorNote } from "./authors";
 import { fillBookDetails, isUnknownAuthor, loadPack } from "./authorPack";
 import fontLicense from "../public/fonts/opendyslexic/OFL.txt?raw";
@@ -1908,7 +1908,7 @@ export default function App() {
     patchPrefs({ rightOpen: true, inspector: tab });
   }
   // --- Work Mode ---------------------------------------------------------------
-  const appMode: AppMode = prefs.studioMode ? "studio" : prefs.workMode ? "work" : "read";
+  const appMode: AppMode = prefs.studioMode && STUDIO_ENABLED ? "studio" : prefs.workMode ? "work" : "read";
   const otherMode = appMode !== "read";
   function switchMode(mode: AppMode) {
     if (mode === appMode) return;
@@ -5581,7 +5581,7 @@ export default function App() {
             <BackgroundScene prefs={prefs} artVersion={artVersion} />
           )}
           <StudioMode
-            open={Boolean(prefs.studioMode)}
+            open={appMode === "studio"}
             books={books.filter((b) => !b.deleted && !b.vault)}
             voices={voices}
             prefs={prefs}

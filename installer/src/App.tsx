@@ -5,6 +5,7 @@ import { listen } from "@tauri-apps/api/event";
 import { installationPlan } from "./model";
 const native = "__TAURI_INTERNALS__" in window;
 import { PresetPicker } from "./PresetPicker";
+import { StarterBooks, starterLabel } from "./StarterBooks";
 import { getPreset, presetOptions, surfaceNames } from "./presets";
 import imageModelLicense from "../../docs/licenses/DreamShaper-OpenRAIL-M.txt?raw";
 import turboModelLicense from "../../docs/licenses/SD-Turbo-LICENSE.txt?raw";
@@ -23,7 +24,6 @@ import {
   BookOpen,
   Check,
   CheckCheck,
-  ChevronDown,
   CircleHelp,
   Folder,
   Globe2,
@@ -382,13 +382,6 @@ export default function App() {
     if (!native && progress >= 100 && step === 6) setStep(7);
   }, [progress, step]);
 
-  function changePlatform(platform: Platform) {
-    setOptions((prev) => ({
-      ...prev,
-      platform,
-      installPath: defaultPath(platform, prev.scope),
-    }));
-  }
   function changeScope(scope: SetupOptions["scope"]) {
     setOptions((prev) => ({
       ...prev,
@@ -626,23 +619,6 @@ export default function App() {
               <i /> {native ? t("BETA INSTALLER") : t("INTERFACE PREVIEW")}
             </span>
             <div className="topbar-actions">
-              <label className="platform-select">
-                <Monitor size={14} />
-                <span className="sr-only">{t("Preview platform")}</span>
-                <select
-                  aria-label={native ? "Detected platform" : "Preview platform"}
-                  value={options.platform}
-                  disabled={native || step >= 6}
-                  onChange={(e) => changePlatform(e.target.value as Platform)}
-                >
-                  {platforms.map((platform) => (
-                    <option key={platform.id} value={platform.id}>
-                      {platform.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={12} />
-              </label>
               <button
                 className="icon-button"
                 aria-label={
@@ -1032,6 +1008,11 @@ export default function App() {
                   "Language packs",
                   "Keep your setup light, or bring more languages into your library. Every language pack is optional.",
                 )}
+                <StarterBooks
+                  value={options.starterLanguage}
+                  interfaceLanguage={options.uiLanguage || detectLanguage()}
+                  onChange={(code) => update("starterLanguage", code)}
+                />
                 <Toggle
                   label={t("Set up local speech")}
                   detail={t(
@@ -1178,7 +1159,7 @@ export default function App() {
                 {title(
                   "03 / APPEARANCE",
                   "Starting appearance",
-                  "Choose a complete background style. Plum Nocturne is the default.",
+                  "Choose where you read, by day or by night. The spring lake at night (Plum Nocturne) is the default.",
                 )}
                 <PresetPicker
                   options={options}
@@ -1198,6 +1179,7 @@ export default function App() {
                   "Default preferences",
                   "Choose what to install and how Origami starts.",
                 )}
+                <div className="prefs-grid">
                 <div className="section-label">{t("MODELS TO INSTALL")}</div>
                 <Toggle
                   label={t("Install book cover model")}
@@ -1257,9 +1239,6 @@ export default function App() {
                           "Enable local speech in Language packs to install a TTS model.",
                         )}
                   </p>
-                </div>
-                <div className="section-label section-gap">
-                  {t("COMFORT & ATMOSPHERE")}
                 </div>
                 <Toggle
                   label={t("Reduce motion")}
@@ -1321,6 +1300,7 @@ export default function App() {
                   checked={options.startOnLogin}
                   onChange={(value) => update("startOnLogin", value)}
                 />
+                </div>
               </>
             )}
             {step === 5 &&
@@ -1373,6 +1353,7 @@ export default function App() {
                         : "None selected",
                       2,
                     )}
+                    {summaryRow("Starter books", starterLabel(options.starterLanguage, options.uiLanguage || detectLanguage()), 2)}
                     {summaryRow("Starting style", t(preset.name), 3)}
                     {summaryRow(
                       "Models",

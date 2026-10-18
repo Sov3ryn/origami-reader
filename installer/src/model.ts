@@ -53,6 +53,8 @@ export interface SetupOptions {
   startMenu: boolean;
   // Interface language code; empty follows the operating system.
   uiLanguage: string;
+  // Language of the six starter books; empty follows the interface language.
+  starterLanguage: string;
 }
 export function defaultPath(
   platform: Platform,
@@ -112,6 +114,7 @@ export function initialOptions(): SetupOptions {
     startOnLogin: false,
     startMenu: true,
     uiLanguage: "",
+    starterLanguage: "",
   };
 }
 export function installationPlan(options: SetupOptions) {

@@ -124,6 +124,25 @@ fn finish(app: tauri::AppHandle, launch: bool) -> Result<(),String> {
 }
 fn main() {
     tauri::Builder::default().manage(Session::default())
+        // Small laptops (1366 x 768 at 125%) have less room than the default
+        // window: shrink it to fit the screen's work area and center it.
+        .setup(|app| {
+            if let Some(w) = app.get_webview_window("main") {
+                if let Ok(Some(m)) = w.current_monitor() {
+                    let area = m.work_area();
+                    let scale = m.scale_factor();
+                    let (aw, ah) = (area.size.width as f64 / scale, area.size.height as f64 / scale);
+                    if let Ok(size) = w.inner_size() {
+                        let (cw, ch) = (size.width as f64 / scale, size.height as f64 / scale);
+                        if cw > aw - 16.0 || ch > ah - 16.0 {
+                            let _ = w.set_size(tauri::LogicalSize::new(cw.min(aw - 16.0), ch.min(ah - 16.0)));
+                            let _ = w.center();
+                        }
+                    }
+                }
+            }
+            Ok(())
+        })
         .on_window_event(|window,event| { if let tauri::WindowEvent::CloseRequested{api,..}=event { if window.state::<Session>().active.load(Ordering::SeqCst) { api.prevent_close(); let _=window.emit("install-close-requested",()); } } })
         .invoke_handler(tauri::generate_handler![package_info, system_info, choose_folder, install, control_install, finish])
         .run(tauri::generate_context!()).expect("Cannot open Origami Reader Installer");

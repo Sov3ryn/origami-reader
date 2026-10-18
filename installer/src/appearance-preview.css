@@ -22,7 +22,7 @@
   padding: 22px 12px;
   border-right: 1px solid var(--line);
   background: color-mix(in srgb, var(--bg) 87%, transparent);
-  font-size: 12px;
+  font-size: 14px;
 }
 .example-sidebar img {
   width: 30px;
@@ -55,7 +55,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 18px;
-  font-size: 12px;
+  font-size: 14px;
   background: color-mix(in srgb, var(--bg) 86%, transparent);
   border-bottom: 1px solid var(--line);
 }
@@ -121,7 +121,7 @@
   padding: 12px 18px;
   background: color-mix(in srgb, var(--bg) 95%, transparent);
   border-top: 1px solid var(--line);
-  font-size: 12px;
+  font-size: 14px;
 }
 .example-play {
   width: 30px;
@@ -185,19 +185,19 @@
 }
 .preset-card-copy strong {
   display: block;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
 }
 .preset-card-copy small {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   color: #c6b9d4;
   line-height: 1.5;
   margin-top: 5px;
 }
 .preset-card-copy em {
   display: inline-block;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.4;
   font-style: normal;
   color: #e6cfff;
@@ -216,7 +216,7 @@
 }
 .preset-default-note {
   color: #c1b4cd;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.7;
   margin-top: 17px;
 }
@@ -263,7 +263,7 @@
     width: 100%;
   }
   .example-paper p {
-    font-size: 12px;
+    font-size: 14px;
   }
   .example-paper h2 {
     font-size: 20px;

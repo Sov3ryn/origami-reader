@@ -1,0 +1,662 @@
+{
+ "starter-grayson-stories": {
+  "ar": {
+   "file": "ar/grayson-stories.epub",
+   "sha256": "12c91f55fd58c06a4bdbc5ebdcc754a9574f9b402d13bfad2ef05bfc04627bc3",
+   "title": "كتاب غرايسون للقصص",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "bn": {
+   "file": "bn/grayson-stories.epub",
+   "sha256": "3ba0079564a3f0bd5cbff2798dfbc9d24b9678936499c96c14273bbab11bd90c",
+   "title": "গ্রেসনের গল্পের বই",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "de": {
+   "file": "de/grayson-stories.epub",
+   "sha256": "6da0f40a05813a1601d684675371cb8b03b2272e8c174f33c5329ef7058feeda",
+   "title": "Graysons Geschichtenbuch",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "es": {
+   "file": "es/grayson-stories.epub",
+   "sha256": "e23e5d9ed25ff4f7d074675748314d33369decb1095f52a24b464d19873f1046",
+   "title": "El libro de relatos de Grayson",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "fr": {
+   "file": "fr/grayson-stories.epub",
+   "sha256": "3492d65ca48254962fc760f89e878a6219a316074d7e4e688db778ef8061ae1d",
+   "title": "Le Livre de nouvelles de Grayson",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "hi": {
+   "file": "hi/grayson-stories.epub",
+   "sha256": "ca2968d7239062b20a3ee55516ec31c408204b270d942b9e7581cc49ba871d70",
+   "title": "ग्रेसन का कहानी-संग्रह",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "id": {
+   "file": "id/grayson-stories.epub",
+   "sha256": "03e561206b3975215df27fe3f9afb4903db1dfdc5f489f5b5d68c8a0b7659f24",
+   "title": "Buku Kumpulan Cerita Grayson",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "it": {
+   "file": "it/grayson-stories.epub",
+   "sha256": "7cdb52cc39a7542d6d20c801de0b4863b4b1558aeee86bff46d5e9540cc5e79a",
+   "title": "Il libro dei racconti di Grayson",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ja": {
+   "file": "ja/grayson-stories.epub",
+   "sha256": "903626148d618f3ab4a338406c2b733f6f8559afc205c53f83bed9a7f6292d6f",
+   "title": "グレイソンの物語集",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ko": {
+   "file": "ko/grayson-stories.epub",
+   "sha256": "1ba96417449d828449f5e0d4c015055f0b9be64a0a55d7e4a84507018b00be04",
+   "title": "그레이슨 이야기집",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "nl": {
+   "file": "nl/grayson-stories.epub",
+   "sha256": "5dc96626f39c5945c66b85f4418fcda01bf8d184ff01c622c553aa1b6db8f16a",
+   "title": "Graysons verhalenboek",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "pl": {
+   "file": "pl/grayson-stories.epub",
+   "sha256": "c79a9422b301e9687bc55603e4a8eb1c3d233c2af4c8ff0ae422f42686f81b1c",
+   "title": "Księga opowieści Grayson",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "pt-BR": {
+   "file": "pt-BR/grayson-stories.epub",
+   "sha256": "d76902c50b7a1d306f36dbb5782cddf7be10683a27cb085201a33ab687ef1458",
+   "title": "O livro de contos de Grayson",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ru": {
+   "file": "ru/grayson-stories.epub",
+   "sha256": "5a814cd287e1d7430b4c1f2de7d0e60308f9157b26617924890c23e722808c0b",
+   "title": "Книга рассказов Грейсон",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "th": {
+   "file": "th/grayson-stories.epub",
+   "sha256": "0fe7ea206321d474b2334c4d1dd6034b7e11ec1b92a48e93005e05f8e2a69224",
+   "title": "รวมเรื่องเล่าของเกรย์สัน",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "tr": {
+   "file": "tr/grayson-stories.epub",
+   "sha256": "88f34a4018d1616f6c4b997d4097508e8b27233b9163c1befc6e2053acbbba01",
+   "title": "Grayson&#x27;ın Öykü Kitabı",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "uk": {
+   "file": "uk/grayson-stories.epub",
+   "sha256": "8252495124348802da5f094766dc2c0b6661c2718c89d64e73e4154496feb11c",
+   "title": "Книга оповідань Ґрейсон",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "vi": {
+   "file": "vi/grayson-stories.epub",
+   "sha256": "4ef73df3f08f4b5b5d4ab919f3aa804631bab700b2533118dd8c45b509e58678",
+   "title": "Tập truyện của Grayson",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "zh-CN": {
+   "file": "zh-CN/grayson-stories.epub",
+   "sha256": "7cef954a929cbf7ce68a13055c59a1d16a69f14f2d9ecd2fa6a84ca3f6186c18",
+   "title": "格雷森故事集",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  }
+ },
+ "starter-journey-center-earth": {
+  "ar": {
+   "file": "ar/journey-center-earth.epub",
+   "sha256": "0565988ba66bc73ada4503c421560ae3eb6bff3a801d0c08487641b1537fdc6f",
+   "title": "رحلة إلى مركز الأرض",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "bn": {
+   "file": "bn/journey-center-earth.epub",
+   "sha256": "86a129844eb63b1313e375bc09f73797b0ca464e68b3c521af6e25501ccc5de1",
+   "title": "পৃথিবীর কেন্দ্রে যাত্রা",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "de": {
+   "file": "de/journey-center-earth.epub",
+   "sha256": "12a2a3d81d7f6fb14a923fc2726bb25edf5701764a49927639a788077cfc841c",
+   "title": "Reise zum Mittelpunkt der Erde",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "es": {
+   "file": "es/journey-center-earth.epub",
+   "sha256": "22dbb87c07fc0e862fd977fb12ecb77b18894be628da6c7aa6acb1fcae75656c",
+   "title": "Viaje al centro de la Tierra",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "fr": {
+   "file": "fr/journey-center-earth.epub",
+   "sha256": "b53f07218434ab6c0ed04eec4c56eb68a326b656853b3d2b5ceabaced805e49c",
+   "title": "Voyage au centre de la Terre",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "hi": {
+   "file": "hi/journey-center-earth.epub",
+   "sha256": "b7a40b6a73d94d77198c6cc2fd40399bd69653ba07e297d692adc1172f264e3c",
+   "title": "पृथ्वी के केंद्र की यात्रा",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "id": {
+   "file": "id/journey-center-earth.epub",
+   "sha256": "77dcc91e60e09d028e33c444f102134bf95841aa37401cc2bb40cb5ae45885bd",
+   "title": "Perjalanan ke Pusat Bumi",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "it": {
+   "file": "it/journey-center-earth.epub",
+   "sha256": "31748c56601c60097814618195c25239d7d0e52ab8f7c5cc77cfa434b5c5eba8",
+   "title": "Viaggio al centro della Terra",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ja": {
+   "file": "ja/journey-center-earth.epub",
+   "sha256": "eb615f6a62c47a314291e5efa6f9ce54ef619ac2fd3ef6bdf7eb43a6fde50635",
+   "title": "地球の中心への旅",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ko": {
+   "file": "ko/journey-center-earth.epub",
+   "sha256": "94ee20f6fc263e783a99ad9bba73e7663dcc94fec7cf4cccc98f0685c9c5fcd1",
+   "title": "지구 중심으로의 여행",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "nl": {
+   "file": "nl/journey-center-earth.epub",
+   "sha256": "e107ee071b68a0319f64e6977bd4147a6e7cf71457a10808d9404e8072d6aff8",
+   "title": "Reis naar het middelpunt van de aarde",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "pl": {
+   "file": "pl/journey-center-earth.epub",
+   "sha256": "617cf2a8fca56ba7a79485c65aa20a966e1af8167ef12beaf679084b1bb34588",
+   "title": "Podróż do wnętrza Ziemi",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "pt-BR": {
+   "file": "pt-BR/journey-center-earth.epub",
+   "sha256": "f6c6c7db750c244565777d4a19635296bd57d6fd7d7f420ac2fe03a4deed3937",
+   "title": "Viagem ao centro da Terra",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ru": {
+   "file": "ru/journey-center-earth.epub",
+   "sha256": "74859c0e97bf6a10e2bcb1ad463f0553b3056a089698fac201e9048286ccc98e",
+   "title": "Путешествие к центру Земли",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "th": {
+   "file": "th/journey-center-earth.epub",
+   "sha256": "c094957702836c50b22275751603dc10af44ce81d16b52d3f23b3d227a3acd4f",
+   "title": "การเดินทางสู่ใจกลางโลก",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "tr": {
+   "file": "tr/journey-center-earth.epub",
+   "sha256": "ac96dca5c7470b656a6482a80075ebbfc3822ceafdf9074ecd4492980d5ed82e",
+   "title": "Dünyanın Merkezine Yolculuk",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "uk": {
+   "file": "uk/journey-center-earth.epub",
+   "sha256": "41c1b050fe3f4a65fd1e84985a74349a1ee8f2367039f898b06e893d36152468",
+   "title": "Подорож до центру Землі",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "vi": {
+   "file": "vi/journey-center-earth.epub",
+   "sha256": "4c531abd49c9922319d6c66258a1ef54aa600bf08c0e828bf9817beb8433ad06",
+   "title": "Hành trình vào tâm Trái Đất",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "zh-CN": {
+   "file": "zh-CN/journey-center-earth.epub",
+   "sha256": "f99be6ace69ed39c1193c34eb1c68abf02ae94381a7a940343c066499f6b5c29",
+   "title": "地心之旅",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  }
+ },
+ "starter-moonstone": {
+  "ar": {
+   "file": "ar/moonstone.epub",
+   "sha256": "7cb977c4be166ade430aa969f10e50e3988a19d28387cf399a9a617ea0184692",
+   "title": "حجر القمر",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "bn": {
+   "file": "bn/moonstone.epub",
+   "sha256": "1688e660cb5c2ebdd48739be61e71abd8d6081d2bbd82d52c0bce57d8488ced0",
+   "title": "চন্দ্রমণি",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "de": {
+   "file": "de/moonstone.epub",
+   "sha256": "42b58c785882992bae70ea4f5a96ff63ee9709e64ad924313b438dda6f8076a2",
+   "title": "Der Mondstein",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "es": {
+   "file": "es/moonstone.epub",
+   "sha256": "3d55004dfa6b6d12e77e51905807015667a80fa6e3f3e9e80e159584291e0df0",
+   "title": "La piedra lunar",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "fr": {
+   "file": "fr/moonstone.epub",
+   "sha256": "04973bd32c90672404b124198b7e42c5e791deb968939fe66794944fea0ff53d",
+   "title": "La Pierre de lune",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "hi": {
+   "file": "hi/moonstone.epub",
+   "sha256": "9257a98f3cc4f69b581416d00f224a46cf26b4a0d71195017e9d2a631e53fe2b",
+   "title": "चंद्रमणि",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "id": {
+   "file": "id/moonstone.epub",
+   "sha256": "bd370846c5405d5af6c48a35fec6950bd3c07ec9b9cbda47fec9231fbd07bf12",
+   "title": "Batu Bulan",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "it": {
+   "file": "it/moonstone.epub",
+   "sha256": "e6a2c24a65c12d1fb9c71d1da61daf677b85dbf04ad12a7a69ffde1f0aeb82b5",
+   "title": "La pietra di luna",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ja": {
+   "file": "ja/moonstone.epub",
+   "sha256": "a766e01a77193d7a83ebb71979c2c16de579eddc575ff92cd98cf8fc63e3097a",
+   "title": "月の石",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ko": {
+   "file": "ko/moonstone.epub",
+   "sha256": "6c32f5e8eba78f9e6fd2c098adf26ef0135dd5abbc81f65500cf95157779b969",
+   "title": "달의 보석",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "nl": {
+   "file": "nl/moonstone.epub",
+   "sha256": "d76a5d10ae63ffdc0400b7fc07c81a49ef12787f7b36800f1e760162347012ea",
+   "title": "De maansteen",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "pl": {
+   "file": "pl/moonstone.epub",
+   "sha256": "70d034e28d355973fdf3d708693019cc03b01cc91808f9860bcd3235bb063d6b",
+   "title": "Kamień Księżycowy",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "pt-BR": {
+   "file": "pt-BR/moonstone.epub",
+   "sha256": "2de2b9df5bfb6e25885f06f26b62e891cad8f9ff60f45ad80d7b411d6da97499",
+   "title": "A Pedra da Lua",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ru": {
+   "file": "ru/moonstone.epub",
+   "sha256": "a6b95777a07b796d3b6f62847a10c5548c7dc4f97f8b954a06ed181dd7a489ef",
+   "title": "Лунный камень",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "th": {
+   "file": "th/moonstone.epub",
+   "sha256": "e3537bbb97576a8b599b7d3cbd536a47150dbb88cae7f0fbf7286ae47d04bc8b",
+   "title": "มณีจันทรา",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "tr": {
+   "file": "tr/moonstone.epub",
+   "sha256": "04b957ed3ac13dfb10fcebd9802b5c1dc8818334a572f6cb465cc1c68af4c469",
+   "title": "Ay Taşı",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "uk": {
+   "file": "uk/moonstone.epub",
+   "sha256": "bd3dd958e4cd68e78888be0b8cdc44bf4e75e664cff0dab1721f723a7f653797",
+   "title": "Місячний камінь",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "vi": {
+   "file": "vi/moonstone.epub",
+   "sha256": "6932e525753330d1f4de372d3875ac20e604f6f57a25537309d8943a52b5dc30",
+   "title": "Viên ngọc Mặt Trăng",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "zh-CN": {
+   "file": "zh-CN/moonstone.epub",
+   "sha256": "d074895e264456ca1c03b40404d664182ea1ff80c788625a1d5ec0588bb684e5",
+   "title": "月亮宝石",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  }
+ },
+ "starter-pride-prejudice": {
+  "ar": {
+   "file": "ar/pride-prejudice.epub",
+   "sha256": "808775cb5d0134de58358358f8f26d5a2c295fc15c0df4e6ea7b58e711d6d567",
+   "title": "الكبرياء والتحامل",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "bn": {
+   "file": "bn/pride-prejudice.epub",
+   "sha256": "3a0881aad95f3a3e2b1e6c4878cc3bd25af8079e0cf2fef02d6a293e852104f4",
+   "title": "অহংকার ও পূর্বধারণা",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "de": {
+   "file": "de/pride-prejudice.epub",
+   "sha256": "fc7c08ed7e3c730a1f195d968d00c506f2322888b57273faa2262a64ce99f777",
+   "title": "Stolz und Vorurteil",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "es": {
+   "file": "es/pride-prejudice.epub",
+   "sha256": "95304f756b6cb1f9cd99e3f269cf71f0b0475b52174b09eec23c11568a6ca7f3",
+   "title": "Orgullo y prejuicio",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "fr": {
+   "file": "fr/pride-prejudice.epub",
+   "sha256": "85fa59702d46c24b157251559b3642e9353a7ecead49117547ab5e12129a5ac8",
+   "title": "Orgueil et Préjugés",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "hi": {
+   "file": "hi/pride-prejudice.epub",
+   "sha256": "ecf5785bfd14728c21a13fdfe768b84b2c6d5fdc144d669a919934b2f2912875",
+   "title": "गर्व और पूर्वाग्रह",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "id": {
+   "file": "id/pride-prejudice.epub",
+   "sha256": "fc6307d4fa232a100295889671ea9958cf8459252132e2086ee80a5a7e9a59b7",
+   "title": "Keangkuhan dan Prasangka",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "it": {
+   "file": "it/pride-prejudice.epub",
+   "sha256": "b5f38167fd7e0bf5925d73c895178e73bc4762aadbbfa3407f34afefa95471f5",
+   "title": "Orgoglio e pregiudizio",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ja": {
+   "file": "ja/pride-prejudice.epub",
+   "sha256": "0a42a91d81d3f0a6b842e4464190fc28729a7e9b9eaaf65f512f64393fe81db4",
+   "title": "誇りと偏見",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ko": {
+   "file": "ko/pride-prejudice.epub",
+   "sha256": "d300b83021e9516a47b088f5612be7cf6a2a3a3b4cd231738c6ea9b35f2f5d71",
+   "title": "오만과 편견",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "nl": {
+   "file": "nl/pride-prejudice.epub",
+   "sha256": "c26395fa5bf26cc5e2d11515f6e77cddf3b3e6074d84f6ed81606fb3beed6462",
+   "title": "Trots en vooroordeel",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "pl": {
+   "file": "pl/pride-prejudice.epub",
+   "sha256": "1c8653d6f4657dde24f94390508d9627035b6cd627b11a367f72ebefc82f5138",
+   "title": "Duma i uprzedzenie",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "pt-BR": {
+   "file": "pt-BR/pride-prejudice.epub",
+   "sha256": "4f5ae023e65796c38a2dfd42f75ca49b7cd9c9b168e9a7f724fdb34a1826db20",
+   "title": "Orgulho e preconceito",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ru": {
+   "file": "ru/pride-prejudice.epub",
+   "sha256": "6ba0bfd024ba92bbc60e0f7e0cef42823e38065364f4f805da263f4154e1bac7",
+   "title": "Гордость и предубеждение",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "th": {
+   "file": "th/pride-prejudice.epub",
+   "sha256": "6e220c15fddef59e735d5b3cf579383fa6d269076753502b88f40a67b8ce4f74",
+   "title": "ทระนงและอคติ",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "tr": {
+   "file": "tr/pride-prejudice.epub",
+   "sha256": "2e58dc10315288c6d3a65b8df0719e813e760863f41eaa927830f9df62abe184",
+   "title": "Gurur ve Önyargı",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "uk": {
+   "file": "uk/pride-prejudice.epub",
+   "sha256": "b3b6a7ff56c249aebf647c95dbbf226a628a96ce8f3d1c86b65ec87dadb80ad4",
+   "title": "Гордість і упередження",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "vi": {
+   "file": "vi/pride-prejudice.epub",
+   "sha256": "7f7815f5f75c6e3a49fb1cb1f77d45a9d2e6df44fd26ace9e63dec9e9d9c4c25",
+   "title": "Kiêu hãnh và định kiến",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "zh-CN": {
+   "file": "zh-CN/pride-prejudice.epub",
+   "sha256": "102aa79e1b69590620418afcf0f31d144a3d4874b92d5b9abc86ad5153bdb751",
+   "title": "傲慢与偏见",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  }
+ },
+ "starter-count-monte-cristo": {
+  "de": {
+   "file": "de/count-monte-cristo.epub",
+   "sha256": "f4453ecf04fd7330eaef85088c6339192c09ba537eca36f35e46fa40351e69fb",
+   "title": "Der Graf von Monte Cristo",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "es": {
+   "file": "es/count-monte-cristo.epub",
+   "sha256": "a7dfd37615016bb59ed2d7055fa418e8e4181c1f2953563e5e0e5796394c1fed",
+   "title": "El conde de Montecristo",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "fr": {
+   "file": "fr/count-monte-cristo.epub",
+   "sha256": "0e4b5de4d54eab33326baa690d1ce7a7dc793fced7a2028f53d99ddcf5b9262d",
+   "title": "Le Comte de Monte-Cristo",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "id": {
+   "file": "id/count-monte-cristo.epub",
+   "sha256": "3df09b03d6ef7a87fb14aade057c6371f5718f0ea1421c439158ae15e0f7177d",
+   "title": "Comte de Monte Cristo",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "it": {
+   "file": "it/count-monte-cristo.epub",
+   "sha256": "9d6ec3bbcb7ff6f1d40e94b1e5b5a659ceb2c340541f1a0016305fd2fa39dfb0",
+   "title": "Il conte di Montecristo",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ja": {
+   "file": "ja/count-monte-cristo.epub",
+   "sha256": "cb373f00e44f4ebd3dec10655016c1c535caa4e86467cbe2de9d0506489de8cd",
+   "title": "モンテ・クリスト伯",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ko": {
+   "file": "ko/count-monte-cristo.epub",
+   "sha256": "2082c6bc61d50c26e4f7f0a6b56c64e2da19050b983ca50acf49afd2ef5513db",
+   "title": "몽테크리스토 백작",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "nl": {
+   "file": "nl/count-monte-cristo.epub",
+   "sha256": "7a986dfd24e794003a41c9be7e3b0f2cb6c8efb6f64916a7f97067079114e119",
+   "title": "De graaf van Monte Cristo",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "pl": {
+   "file": "pl/count-monte-cristo.epub",
+   "sha256": "317a518b84513a600a4c7cf1890ce07c4918c23d768daa64c8ae21a553c3233f",
+   "title": "Hrabia Monte Cristo",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "pt-BR": {
+   "file": "pt-BR/count-monte-cristo.epub",
+   "sha256": "3b02d815913b2d3e48dac8d411bf57621430a839acd21206a485dc883dc6f24a",
+   "title": "O Conde de Monte Cristo",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "th": {
+   "file": "th/count-monte-cristo.epub",
+   "sha256": "8bd30e7b474ef18e7ca2272f6efc3c2885f4b9eaaa2b731aa7f50d2578a6146d",
+   "title": "เคานต์แห่งมอนเต คริสโต",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "vi": {
+   "file": "vi/count-monte-cristo.epub",
+   "sha256": "0c5b7fd7e740ddde5cf52132e5d4a2528d160d5c2b912ff0b330d10f03d0fe7f",
+   "title": "Bá tước Monte Cristo",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "zh-CN": {
+   "file": "zh-CN/count-monte-cristo.epub",
+   "sha256": "e6ae54d4bcf5c79214ffa4447f664be2bef5199e464a04bb20dfd087e70108cd",
+   "title": "基督山伯爵",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  }
+ },
+ "starter-dracula": {
+  "ar": {
+   "file": "ar/dracula.epub",
+   "sha256": "95a45ba6ba8df326aee3d0f39cf4b0955b402e506aee1ea61dc87bc9c9ba733c",
+   "title": "دراكولا",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "bn": {
+   "file": "bn/dracula.epub",
+   "sha256": "5f5b0e51585703bd23190e9fdbefefce5ecc897789af7bf0084121d9cac755e0",
+   "title": "ড্রাকুলা",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "de": {
+   "file": "de/dracula.epub",
+   "sha256": "4cdfdb6bc0b6c1088ac1ffa23a4ae3d789eadc005bbfb5c51e779b0a40466768",
+   "title": "Dracula",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "es": {
+   "file": "es/dracula.epub",
+   "sha256": "bae70c271f43ebd7e9847da33f100b90fe350c6c1f3f0d4b1075c205b11f60de",
+   "title": "Drácula",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "hi": {
+   "file": "hi/dracula.epub",
+   "sha256": "ba12645bce08e8104c1ae5ae0c2babff0657d0e5cfaf709fddba8ad35eb90c2f",
+   "title": "ड्रैकुला",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "id": {
+   "file": "id/dracula.epub",
+   "sha256": "e543f6685e311282d1e4af51c3088a25ee5ce5dabd8d79bbb107483838aaf585",
+   "title": "Dracula",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "it": {
+   "file": "it/dracula.epub",
+   "sha256": "d1c0ccd195671c86b3b0bc572a86262ba69e5825ee89a53e1cb154a2cb4f26b9",
+   "title": "Dracula",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ja": {
+   "file": "ja/dracula.epub",
+   "sha256": "452394a20d3093158e3cb6e2c6c8d4f5b401ba1413ca1e6963e7d11dea81335a",
+   "title": "ドラキュラ",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ko": {
+   "file": "ko/dracula.epub",
+   "sha256": "ff23a942c6d44f5fba84a1e39b28cdb6e11fe87c2d1ab7390d8ec6e7523f14e4",
+   "title": "드라큘라",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "nl": {
+   "file": "nl/dracula.epub",
+   "sha256": "e963e45d0fe8506f6b736f2a78b66c068aefd9b240a2b5ec5bb2e9fb2a67173b",
+   "title": "Dracula",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "pl": {
+   "file": "pl/dracula.epub",
+   "sha256": "50d99ab8512b3bb7a08f335d412e40946cdaa7c8907094cf81817a02bbb43d90",
+   "title": "Dracula",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "pt-BR": {
+   "file": "pt-BR/dracula.epub",
+   "sha256": "81505736eec0f530cb546c17b2ff330d5d2b57ebbc75e4b95fb70fa74f074d58",
+   "title": "Drácula",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "ru": {
+   "file": "ru/dracula.epub",
+   "sha256": "617b93744570c57b61c946e871d7694589cc0dd9c80f9ad76b2aaa6b16cb0fdf",
+   "title": "Дракула",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "th": {
+   "file": "th/dracula.epub",
+   "sha256": "b72804091c5c76b2c54b1114392fed8f07b50328105fab51e57f3a2a90984ab6",
+   "title": "แดร็กคูลา",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "tr": {
+   "file": "tr/dracula.epub",
+   "sha256": "313ff64fe92251940b40e7ae79ed5e0026bd70cf01674700cd9bf74eba76d6ee",
+   "title": "Drakula",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "uk": {
+   "file": "uk/dracula.epub",
+   "sha256": "fbd21a13d008acdfac8c890a8edcf165f3c685db04334b1cf7c3498ebacf9bef",
+   "title": "Дракула",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "vi": {
+   "file": "vi/dracula.epub",
+   "sha256": "b15edf93fe44cf2d36acbadd7b091a410e65b95ed27777974f15bdcfb1b6b76e",
+   "title": "Dracula",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "zh-CN": {
+   "file": "zh-CN/dracula.epub",
+   "sha256": "7e3f77d63e0cf9425dfa8f64c5dc4d703e2bb1b7bb76677d202a7ecfd6aa59eb",
+   "title": "德古拉",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "fr": {
+   "file": "fr/dracula.epub",
+   "sha256": "26ed67694918392fb694d9e715f47cd1a9c6d9b72194bd7f183b314bfe7ff075",
+   "title": "Dracula",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  }
+ }
+}

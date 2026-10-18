@@ -25,7 +25,10 @@ export async function initializeLibrary() {
       ? await invoke<boolean>("starter_library_installed")
       : await (await db()).get("settings", starterMigration);
     if (done) return;
-    const books = await prepareStarterBooks(await listBooks(), readBook);
+    // Setup records the language chosen for the starter books.
+    const settings = await readSettings().catch(() => ({}) as Partial<Preferences>);
+    const language = settings.starterLanguage || settings.uiLanguage || navigator.language || "";
+    const books = await prepareStarterBooks(await listBooks(), readBook, language);
     if (desktop) {
       await invoke("install_starter_library", { books });
       return;
