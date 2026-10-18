@@ -89,6 +89,7 @@ export function SchedulePage({
                       {task.done && <Check size={12} />}
                     </button>
                     <span>{task.text}</span>
+                    {task.date < today && !task.done && <em className="agenda-late">{t("Late")}</em>}
                     <button className="agenda-note" onClick={() => onOpen(task.noteId)} title={t("Open note")}>
                       <FileText size={12} />
                       {task.noteTitle || t("Untitled")}
