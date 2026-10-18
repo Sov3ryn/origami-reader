@@ -90,6 +90,30 @@ pub fn create(data: &Path, info: Value, units: Vec<Value>) -> Result<Value> {
     Ok(info)
 }
 
+/// True when a production with this id is already here.
+pub fn exists(data: &Path, id: &str) -> bool {
+    folder(data, id).map(|d| d.exists()).unwrap_or(false)
+}
+
+/// Recreates a production from a portable copy: its details, its units as they
+/// were (chosen takes and statuses kept) and its takes.
+pub fn restore(data: &Path, info: Value, units: Vec<Value>, takes: &[Value]) -> Result<PathBuf> {
+    let id = info["id"].as_str().unwrap_or_default().to_string();
+    create(data, info, units)?;
+    let dir = folder(data, &id)?;
+    let mut db = open(&dir)?;
+    let tx = db.transaction().map_err(|e| e.to_string())?;
+    for take in takes {
+        tx.execute(
+            "INSERT OR REPLACE INTO takes(id, unit, data) VALUES(?1, ?2, ?3)",
+            params![take["id"].as_str().unwrap_or_default(), take["unit"].as_str().unwrap_or_default(), take.to_string()],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+    tx.commit().map_err(|e| e.to_string())?;
+    Ok(dir.join("takes"))
+}
+
 /// The production with all its units and takes.
 pub fn read(data: &Path, id: &str) -> Result<Value> {
     let db = open(&folder(data, id)?)?;

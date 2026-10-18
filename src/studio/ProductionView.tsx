@@ -7,6 +7,7 @@ import {
   Download,
   Flag,
   Lock,
+  Package,
   PanelLeft,
   PanelRight,
   Pause,
@@ -36,6 +37,8 @@ import {
   issueText,
   readProduction,
   renderRunning,
+  revealFile,
+  savePortable,
   replaceProductionUnits,
   checkTakes,
   cancelCheck,
@@ -989,6 +992,7 @@ function Overview({
           <li>{t("Double-click a line to play from there.")}</li>
         </ul>
       </div>
+      <PortableCopy id={info.id} />
       <div className="studio-danger">
         {confirming ? (
           <>
@@ -1006,6 +1010,54 @@ function Overview({
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+// Saves the production as one file (takes, book and designed voices) to carry to another computer.
+function PortableCopy({ id }: { id: string }) {
+  const [saving, setSaving] = useState(false);
+  const [value, setValue] = useState(0);
+  const [saved, setSaved] = useState("");
+  const [error, setError] = useState("");
+  useEffect(() => {
+    const off = listen<number>("studio-portable-progress", (e) => setValue(e.payload));
+    return () => void off.then((f) => f());
+  }, []);
+  return (
+    <div className="studio-portable">
+      <button
+        onClick={async () => {
+          setSaving(true);
+          setSaved("");
+          setError("");
+          setValue(0);
+          try {
+            setSaved((await savePortable(id)) || "");
+          } catch (e) {
+            setError(String(e));
+          } finally {
+            setSaving(false);
+          }
+        }}
+        disabled={saving}
+        data-tip={t("One file with the takes, the book and the designed voices, to continue on another computer")}
+      >
+        <Package size={14} /> {saving ? t("Saving {n}%", { n: String(Math.round(value * 100)) }) : t("Save a portable copy")}
+      </button>
+      {saved && (
+        <p className="studio-hint">
+          {t("Saved as {file}.", { file: saved.split(/[\\/]/).pop() || saved })}{" "}
+          <button className="link" onClick={() => void revealFile(saved)}>
+            {t("Show in folder")}
+          </button>
+        </p>
+      )}
+      {error && (
+        <p className="studio-error" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

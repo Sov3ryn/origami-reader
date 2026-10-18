@@ -2717,5 +2717,13 @@
   "Finds the characters and who says each line, so each can have a voice (Ministral 3 and llama.cpp).": "Trouve les personnages et qui dit chaque réplique, pour donner une voix à chacun (Ministral 3 et llama.cpp).",
   "Makes a book from an audiobook or any narrated recording (NVIDIA Parakeet).": "Fait un livre à partir d’un livre audio ou de tout enregistrement narré (NVIDIA Parakeet).",
   "Stems, one WAV per speaker": "Pistes séparées, un WAV par locuteur",
-  "For a sound editor: every chapter as one track per speaker, lined up, unlimited 32-bit WAV.": "Pour un logiciel audio : chaque chapitre en une piste par locuteur, alignées, en WAV 32 bits sans limiteur."
+  "For a sound editor: every chapter as one track per speaker, lined up, unlimited 32-bit WAV.": "Pour un logiciel audio : chaque chapitre en une piste par locuteur, alignées, en WAV 32 bits sans limiteur.",
+  "Continue a production saved on another computer": "Reprendre une production enregistrée sur un autre ordinateur",
+  "One file with the takes, the book and the designed voices, to continue on another computer": "Un seul fichier avec les prises, le livre et les voix créées, pour continuer sur un autre ordinateur",
+  "Open a portable copy": "Ouvrir une copie portable",
+  "Opened. Voices not on this computer: {voices}. Lines already generated keep their audio; choose other voices for new takes.": "Ouverte. Voix absentes de cet ordinateur : {voices}. Les lignes déjà générées gardent leur audio ; choisissez d’autres voix pour les nouvelles prises.",
+  "Opening": "Ouverture",
+  "Save a portable copy": "Enregistrer une copie portable",
+  "Saved as {file}.": "Enregistrée sous {file}.",
+  "Saving {n}%": "Enregistrement {n} %"
 }

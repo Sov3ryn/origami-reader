@@ -309,6 +309,10 @@ export type Verification = {
   labels?: Record<string, string>;
   watermark?: { missing?: boolean; detected?: boolean; probability?: number; confidence?: number; message?: string; match?: { title: string; author: string; export: string; date: number } | null };
 };
+// Portable productions: one file with the takes, the book and the designed voices.
+export type PortableOpened = { id: string; voicesAdded: string[]; missingVoices: string[]; bookAdded: boolean };
+export const savePortable = (id: string) => invoke<string | null>("studio_save_portable", { id, path: null });
+export const openPortable = () => invoke<PortableOpened | null>("studio_open_portable", { path: null });
 export const verifyFile = (path?: string) => invoke<Verification>("studio_verify_file", { path: path ?? null });
 /** The transcription models installed for voice notes, smallest first. */
 export async function transcriptionModels(): Promise<string[]> {

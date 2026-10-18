@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AudioLines, BookOpen, Clapperboard, Headphones, Mic2, Play, Plus, Search, ShieldCheck, Square, Wand2, X } from "lucide-react";
+import { AudioLines, BookOpen, Clapperboard, FolderOpen, Headphones, Mic2, Play, Plus, Search, ShieldCheck, Square, Wand2, X } from "lucide-react";
 import { t } from "../i18n";
 import * as store from "../storage";
 import type { Book, BookMeta, Preferences, Voice } from "../types";
-import { createProduction, deleteProduction, listProductions, newProduction, progress, readProduction, verifyFile, type Production, type ProductionInfo, type Verification } from "./production";
+import { createProduction, deleteProduction, listProductions, newProduction, openPortable, progress, readProduction, verifyFile, type Production, type ProductionInfo, type Verification } from "./production";
 import { ProductionView } from "./ProductionView";
 import { RecordingDialog } from "./RecordingDialog";
 import { StudioSetup } from "./StudioSetup";
@@ -29,6 +29,7 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
   const [verifying, setVerifying] = useState(false);
   const [recording, setRecording] = useState(false);
   const [notice, setNotice] = useState("");
+  const [opening, setOpening] = useState(false);
   const [verified, setVerified] = useState<Verification | null>(null);
   const [error, setError] = useState("");
   const usable = useMemo(() => voices.filter((v) => v.available), [voices]);
@@ -106,6 +107,30 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
           data-tip={t("Check whether an audio file was made with Origami Studio")}
         >
           <ShieldCheck size={16} /> {verifying ? t("Checking") : t("Verify a file")}
+        </button>
+        <button
+          onClick={async () => {
+            setError("");
+            setNotice("");
+            setOpening(true);
+            try {
+              const r = await openPortable();
+              if (!r) return;
+              if (r.bookAdded) window.dispatchEvent(new CustomEvent("origami:library-changed"));
+              await refresh();
+              await openProduction(r.id);
+              const names = r.missingVoices.map((v) => voices.find((x) => x.id === v)?.name || v);
+              if (names.length) setNotice(t("Opened. Voices not on this computer: {voices}. Lines already generated keep their audio; choose other voices for new takes.", { voices: names.join(", ") }));
+            } catch (e) {
+              setError(String(e));
+            } finally {
+              setOpening(false);
+            }
+          }}
+          disabled={!store.desktop || opening}
+          data-tip={t("Continue a production saved on another computer")}
+        >
+          <FolderOpen size={16} /> {opening ? t("Opening") : t("Open a portable copy")}
         </button>
         <button onClick={() => setRecording(true)} disabled={!store.desktop} data-tip={t("Make a book from an audiobook or a recording")}>
           <AudioLines size={16} /> {t("From a recording")}

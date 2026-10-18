@@ -1351,3 +1351,19 @@
   gap: 4px;
   white-space: nowrap;
 }
+
+/* Phase 6: portable copy */
+.studio-portable {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  margin-top: 12px;
+}
+.studio-portable .link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}

@@ -15,6 +15,7 @@ mod studio_llm;
 mod studio_verify;
 mod studio_asr;
 mod studio_models;
+mod studio_archive;
 mod update;
 mod vault;
 mod voice_studio;
@@ -847,6 +848,101 @@ fn studio_setup_download(app: tauri::AppHandle, parts: Vec<String>) -> Result<()
 fn studio_setup_cancel(setup: State<studio_models::Setup>) {
     setup.cancel();
 }
+/// Saves a portable copy of a production (its takes, its book and its designed
+/// voices) as one file, to continue on another computer. Returns the file, or
+/// None when the reader cancels.
+#[tauri::command]
+async fn studio_save_portable(app: tauri::AppHandle, id: String, path: Option<String>) -> Result<Option<String>> {
+    use tauri::Emitter;
+    let data = data_root(&app)?;
+    let p = studio::read(&data, &id)?;
+    let name = format!("{}.{}", studio_audio::safe_name(p["info"]["title"].as_str().unwrap_or("Production")), studio_archive::EXTENSION);
+    let picked = tauri::async_runtime::spawn_blocking(move || {
+        if let Some(p) = path {
+            return Some(std::path::PathBuf::from(p));
+        }
+        rfd::FileDialog::new().set_title("Save a portable copy").set_file_name(name).add_filter("Origami production", &[studio_archive::EXTENSION]).save_file()
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+    let Some(out) = picked else { return Ok(None) };
+    tauri::async_runtime::spawn_blocking(move || {
+        let book = p["info"]["bookId"].as_str().and_then(|b| app.state::<Database>().0.lock().ok().and_then(|db| db.read(b).ok()));
+        let created = voice_studio::created_root(&app)?;
+        let voices: Vec<studio_archive::VoiceFile> = studio_archive::voices_used(&p)
+            .into_iter()
+            .filter(|v| studio_archive::voice_id_ok(v))
+            .filter_map(|v| {
+                let profile: Value = serde_json::from_slice(&std::fs::read(created.join(format!("{v}.json"))).ok()?).ok()?;
+                let audio = created.join(format!("{v}.wav"));
+                audio.is_file().then_some(studio_archive::VoiceFile { id: v, profile, audio })
+            })
+            .collect();
+        let takes = studio::takes_dir(&data, &id)?;
+        studio_archive::write(&out, &p, book.as_ref(), &voices, &takes, &|v| {
+            let _ = app.emit("studio-portable-progress", v);
+        })?;
+        Ok(Some(out.to_string_lossy().into_owned()))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// Opens a portable copy: the production (under a new id if this one is already
+/// here), its book when the library does not have it, and its designed voices.
+/// Returns the new production's id and the voices this computer is missing.
+#[tauri::command]
+async fn studio_open_portable(app: tauri::AppHandle, path: Option<String>) -> Result<Option<Value>> {
+    use tauri::Emitter;
+    let picked = tauri::async_runtime::spawn_blocking(move || {
+        if let Some(p) = path {
+            return Some(std::path::PathBuf::from(p));
+        }
+        rfd::FileDialog::new().set_title("Open a portable production").add_filter("Origami production", &[studio_archive::EXTENSION]).pick_file()
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+    let Some(path) = picked else { return Ok(None) };
+    tauri::async_runtime::spawn_blocking(move || {
+        let data = data_root(&app)?;
+        let mut opened = studio_archive::open(&path)?;
+        let mut info = opened.production["info"].clone();
+        let mut id = info["id"].as_str().unwrap_or_default().to_string();
+        if id.is_empty() || studio::exists(&data, &id) || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') || id.len() >= 80 {
+            let mut r = [0u8; 4];
+            getrandom::getrandom(&mut r).map_err(|e| e.to_string())?;
+            id = format!("prod-{}", r.iter().map(|b| format!("{b:02x}")).collect::<String>());
+        }
+        info["id"] = serde_json::json!(id);
+        info["updated"] = serde_json::json!(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as f64).unwrap_or(0.0));
+        let units = opened.production["units"].as_array().cloned().unwrap_or_default();
+        let takes = opened.production["takes"].as_array().cloned().unwrap_or_default();
+        let takes_dir = studio::restore(&data, info, units, &takes)?;
+        let extracted = studio_archive::extract_takes(&mut opened.zip, &takes_dir, &|v| {
+            let _ = app.emit("studio-portable-progress", v);
+        });
+        if let Err(e) = extracted {
+            let _ = studio::delete(&data, &id);
+            return Err(e);
+        }
+        let added = studio_archive::extract_voices(&mut opened.zip, &voice_studio::created_root(&app)?)?;
+        let mut book_added = false;
+        if let Some(book) = opened.book.take() {
+            let db = app.state::<Database>();
+            let db = db.0.lock().map_err(|_| "Database busy")?;
+            if db.read(book["id"].as_str().unwrap_or_default()).is_err() {
+                db.save(book)?;
+                book_added = true;
+            }
+        }
+        let have: Vec<String> = speech::voices(&app).iter().filter_map(|v| v["id"].as_str().map(str::to_string)).collect();
+        let missing: Vec<String> = studio_archive::voices_used(&opened.production).into_iter().filter(|v| !have.contains(v)).collect();
+        Ok(Some(serde_json::json!({ "id": id, "voicesAdded": added, "missingVoices": missing, "bookAdded": book_added })))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 /// Pages of the print book as images, for the export dialog's preview.
 #[tauri::command]
 async fn studio_preview_print(manuscript: Value, print: Value, first: usize, count: usize) -> Result<Value> {
@@ -1595,7 +1691,8 @@ pub fn run() {
             studio_choose_folder, studio_reveal, studio_watermark_ready, studio_cancel_export, studio_export,
             studio_analysis_status, studio_analysis_chat, studio_analysis_stop, studio_replace_units,
             studio_verify_file, studio_check_takes, studio_cancel_check,
-            studio_asr_ready, studio_pick_recordings, studio_transcribe, studio_cancel_transcribe, studio_preview_print, studio_recording_readalong,
+            studio_asr_ready, studio_pick_recordings, studio_transcribe, studio_cancel_transcribe, studio_preview_print,
+            studio_save_portable, studio_open_portable, studio_recording_readalong,
             studio_setup_status, studio_setup_download, studio_setup_cancel,
             starter_library_installed,
             install_starter_library,
