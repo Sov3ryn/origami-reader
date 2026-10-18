@@ -2802,8 +2802,10 @@ html[data-hidden="true"] .ambient-layer {
     color 220ms ease;
 }
 /* The word being read (painted with the Custom Highlight API). */
+/* The word: a stronger shade of the page's own sentence colour, so it shows
+   on every paper (day or night) and over the sentence highlight. */
 ::highlight(spoken-word) {
-  background-color: var(--word-bg, color-mix(in srgb, var(--accent) 45%, transparent));
+  background-color: var(--word-bg, color-mix(in srgb, var(--mark-ink, var(--ink)) 30%, var(--mark-bg, var(--accent))));
   color: var(--mark-ink, inherit);
   text-decoration: underline;
   text-decoration-color: var(--accent);

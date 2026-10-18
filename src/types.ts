@@ -380,7 +380,7 @@ export const defaultPreferences: Preferences = {
   paragraphPause: 450,
   headingPause: 800,
   highlight: "sentence",
-  wordHighlight: false,
+  wordHighlight: true,
   readerFont: "book",
   letterSpacing: 0,
   wordSpacing: 0,
