@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { installationPlan } from "./model";
 const native = "__TAURI_INTERNALS__" in window;
+type InstallOutcome = { ok: boolean; result?: { warnings?: string[] }; error?: string };
 import { PresetPicker } from "./PresetPicker";
 import { StarterBooks, starterLabel } from "./StarterBooks";
 import { getPreset, presetOptions, surfaceNames } from "./presets";
@@ -279,12 +280,44 @@ export default function App() {
     const closeListener = listen("install-close-requested", () =>
       setCancel(true),
     );
+    // A reloaded window starts at Welcome: rejoin an installation that is
+    // still running, or show the one that finished meanwhile.
+    const finishedListener = listen<InstallOutcome>("install-finished", ({ payload }) => {
+      if (!liveInstall.current) showOutcome(payload);
+    });
+    if (native)
+      void invoke<{ active: boolean; last?: { percent?: number; message?: string; file?: string }; outcome?: InstallOutcome }>(
+        "install_state",
+      ).then((state) => {
+        if (state.active) {
+          setStep(6);
+          if (state.last?.percent !== undefined) setProgress(state.last.percent);
+          if (state.last?.message)
+            setInstallMessage(progressText(state.last.message) + (state.last.file ? ` · ${state.last.file}` : ""));
+        } else if (state.outcome) showOutcome(state.outcome);
+      });
     return () => {
       void progressListener.then((unlisten) => unlisten());
       void closeListener.then((unlisten) => unlisten());
+      void finishedListener.then((unlisten) => unlisten());
     };
   }, []);
+  // The result of an installation started by this page or an earlier load of it.
+  function showOutcome(outcome: InstallOutcome) {
+    if (outcome.ok) {
+      setWarnings(outcome.result?.warnings || []);
+      setStep(7);
+      return;
+    }
+    const message = String(outcome.error || "").replace(/^Error:\s*/, "");
+    // An earlier version is installed: ask before replacing it.
+    const found = message.match(/EARLIER:(.+)$/);
+    if (found) setEarlier(found[1].trim());
+    else setInstallError(message);
+    setStep(5);
+  }
   const [step, setStep] = useState(0);
+  const liveInstall = useRef(false);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
   const [query, setQuery] = useState("");
@@ -485,6 +518,7 @@ export default function App() {
     setPaused(false);
     setStep(6);
     if (native) {
+      liveInstall.current = true;
       try {
         const result = await invoke<{ warnings: string[] }>("install", {
           options: {
@@ -498,15 +532,11 @@ export default function App() {
               options.speech && options.amdSpeech && system?.speech === "rocm",
           },
         });
-        setWarnings(result.warnings);
-        setStep(7);
+        showOutcome({ ok: true, result });
       } catch (error) {
-        const message = String(error).replace(/^Error:\s*/, "");
-        // An earlier version is installed: ask before replacing it.
-        const found = message.match(/EARLIER:(.+)$/);
-        if (found) setEarlier(found[1].trim());
-        else setInstallError(message);
-        setStep(5);
+        showOutcome({ ok: false, error: String(error) });
+      } finally {
+        liveInstall.current = false;
       }
     }
   }

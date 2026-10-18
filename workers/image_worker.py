@@ -5,6 +5,20 @@ import argparse
 import json
 from pathlib import Path
 
+def cuda_usable(torch):
+    """True when PyTorch has code for this NVIDIA card. The CUDA 12.8 build
+    covers compute capability 7.0 and newer; on an older card with a recent
+    driver is_available() is still true, but every kernel would fail."""
+    if not torch.cuda.is_available():
+        return False
+    try:
+        major, minor = torch.cuda.get_device_capability(0)
+        built = [a.split("_")[1] for a in torch.cuda.get_arch_list() if a.startswith("sm_")]
+        return any(len(b) >= 2 and int(b[:-1]) == major and int(b[-1]) <= minor for b in built)
+    except (RuntimeError, ValueError, AssertionError):
+        return False
+
+
 def main():
     p=argparse.ArgumentParser()
     for key in ["config","model","prompt","negative","output","seed","width","height"]:p.add_argument("--"+key,required=True)
@@ -14,7 +28,7 @@ def main():
     from diffusers import StableDiffusionPipeline, StableDiffusionXLPipeline, ZImagePipeline, UNet2DConditionModel, LCMScheduler, EulerDiscreteScheduler
     from safetensors.torch import load_file
     device=c.get("device","auto")
-    if device=="auto":device="cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+    if device=="auto":device="cuda" if cuda_usable(torch) else "mps" if torch.backends.mps.is_available() else "cpu"
     dtype=torch.float32 if device=="cpu" else torch.float16
     torch.set_num_threads(max(1,min(8,(os.cpu_count() or 2)//2)))
     base=c["model"];profile=c["profile"]

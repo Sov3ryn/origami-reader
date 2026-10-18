@@ -4,7 +4,9 @@ use std::{io::{BufRead, BufReader, Write}, path::PathBuf, process::{ChildStdin, 
 use tauri::{Emitter, Manager, State};
 
 #[derive(Default)]
-struct Session { active: AtomicBool, input: Mutex<Option<ChildStdin>>, installed: Mutex<Option<PathBuf>> }
+// `last` and `outcome` let a reloaded setup window find a running or
+// finished installation again (the page restarts at Welcome on a reload).
+struct Session { active: AtomicBool, input: Mutex<Option<ChildStdin>>, installed: Mutex<Option<PathBuf>>, last: Mutex<Option<Value>>, outcome: Mutex<Option<Value>> }
 fn root() -> Result<PathBuf, String> { std::env::current_exe().map_err(|e|e.to_string())?.parent().map(PathBuf::from).ok_or("Missing package directory".into()) }
 fn hidden(c: &mut Command) {
     #[cfg(windows)] { use std::os::windows::process::CommandExt; c.creation_flags(0x08000000); }
@@ -46,11 +48,23 @@ fn graphics_adapters() -> Vec<String> {
     #[allow(unreachable_code)]
     Vec::new()
 }
+// The CUDA build of PyTorch that setup installs (cu128) runs on compute
+// capability 7.0 and newer (Volta, Turing, RTX). Older NVIDIA cards, and
+// drivers too old to report it, use the processor build instead.
+const CUDA_MIN_CAPABILITY: f32 = 7.0;
+fn nvidia_supported() -> bool {
+    let mut c = Command::new("nvidia-smi");
+    c.args(["--query-gpu=compute_cap", "--format=csv,noheader"]);
+    hidden(&mut c);
+    c.output().ok().filter(|o| o.status.success()).is_some_and(|o| {
+        String::from_utf8_lossy(&o.stdout).lines().any(|l| l.trim().parse::<f32>().is_ok_and(|v| v >= CUDA_MIN_CAPABILITY))
+    })
+}
 #[tauri::command]
 async fn system_info() -> Value {
     tauri::async_runtime::spawn_blocking(|| {
         let gpus = graphics_adapters();
-        let nvidia = gpus.iter().any(|g| g.to_lowercase().contains("nvidia"));
+        let nvidia = gpus.iter().any(|g| g.to_lowercase().contains("nvidia")) && nvidia_supported();
         let apple = cfg!(target_os = "macos") && std::env::consts::ARCH == "aarch64";
         // AMD's PyTorch for Windows (ROCm) supports Radeon RX 7000 and 9000
         // and Radeon AI PRO cards; older and integrated Radeon stay on the CPU.
@@ -79,6 +93,8 @@ fn control_install(state: State<Session>, action: String) -> Result<(),String> {
 #[tauri::command]
 async fn install(app: tauri::AppHandle, mut options: Value) -> Result<Value,String> {
     if app.state::<Session>().active.swap(true, Ordering::SeqCst) { return Err("Installation already running".into()); }
+    if let Ok(mut o) = app.state::<Session>().outcome.lock() { *o = None; }
+    if let Ok(mut l) = app.state::<Session>().last.lock() { *l = None; }
     let handle = app.clone();
     let result = tauri::async_runtime::spawn_blocking(move || -> Result<Value,String> {
         let base = root()?;
@@ -99,6 +115,7 @@ async fn install(app: tauri::AppHandle, mut options: Value) -> Result<Value,Stri
             let line = line.map_err(|e|e.to_string())?;
             if let Ok(event) = serde_json::from_str::<Value>(&line) {
                 let _ = handle.emit("install-progress", &event);
+                if let Ok(mut l) = handle.state::<Session>().last.lock() { *l = Some(event.clone()); }
                 if event["event"] == "complete" || event["event"] == "error" { final_result = Some(event); }
             }
         }
@@ -109,9 +126,20 @@ async fn install(app: tauri::AppHandle, mut options: Value) -> Result<Value,Stri
         *handle.state::<Session>().installed.lock().map_err(|_|"Installer busy")? = result["executable"].as_str().map(PathBuf::from);
         Ok(result)
     }).await.map_err(|e|e.to_string()).and_then(|v|v);
+    let outcome = match &result { Ok(v) => json!({"ok": true, "result": v}), Err(e) => json!({"ok": false, "error": e}) };
+    if let Ok(mut o) = app.state::<Session>().outcome.lock() { *o = Some(outcome.clone()); }
     app.state::<Session>().active.store(false, Ordering::SeqCst);
     if let Ok(mut input) = app.state::<Session>().input.lock() { *input = None; }
+    let _ = app.emit("install-finished", &outcome);
     result
+}
+#[tauri::command]
+fn install_state(state: State<Session>) -> Value {
+    json!({
+        "active": state.active.load(Ordering::SeqCst),
+        "last": state.last.lock().ok().and_then(|l| l.clone()),
+        "outcome": state.outcome.lock().ok().and_then(|o| o.clone()),
+    })
 }
 #[tauri::command]
 fn finish(app: tauri::AppHandle, launch: bool) -> Result<(),String> {
@@ -144,6 +172,6 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window,event| { if let tauri::WindowEvent::CloseRequested{api,..}=event { if window.state::<Session>().active.load(Ordering::SeqCst) { api.prevent_close(); let _=window.emit("install-close-requested",()); } } })
-        .invoke_handler(tauri::generate_handler![package_info, system_info, choose_folder, install, control_install, finish])
+        .invoke_handler(tauri::generate_handler![package_info, system_info, choose_folder, install, install_state, control_install, finish])
         .run(tauri::generate_context!()).expect("Cannot open Origami Reader Installer");
 }

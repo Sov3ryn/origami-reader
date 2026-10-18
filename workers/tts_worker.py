@@ -11,6 +11,20 @@ import wave
 PROTOCOL = sys.stdout
 
 
+def cuda_usable(torch):
+    """True when PyTorch has code for this NVIDIA card. The CUDA 12.8 build
+    covers compute capability 7.0 and newer; on an older card with a recent
+    driver is_available() is still true, but every kernel would fail."""
+    if not torch.cuda.is_available():
+        return False
+    try:
+        major, minor = torch.cuda.get_device_capability(0)
+        built = [a.split("_")[1] for a in torch.cuda.get_arch_list() if a.startswith("sm_")]
+        return any(len(b) >= 2 and int(b[:-1]) == major and int(b[-1]) <= minor for b in built)
+    except (RuntimeError, ValueError, AssertionError):
+        return False
+
+
 def isolate():
     """Protocol output only on the original stdout; libraries print to stderr."""
     global PROTOCOL
@@ -174,7 +188,10 @@ def main():
     mps_available = bool(mps and mps.is_available())
     if device == "auto":
         # NVIDIA on Windows and Linux, Apple silicon GPU on macOS, else CPU.
-        device = "cuda" if torch.cuda.is_available() else "mps" if mps_available else "cpu"
+        device = "cuda" if cuda_usable(torch) else "mps" if mps_available else "cpu"
+    if device == "cuda" and torch.cuda.is_available() and not cuda_usable(torch):
+        # An NVIDIA card older than this PyTorch supports: use the processor.
+        device = "cpu"
     torch.set_num_threads(1 if device in ("cuda", "mps") else max(1, min(8, (os.cpu_count() or 2) // 2)))
     if device == "cuda" and not torch.cuda.is_available():
         send({"event": "error", "message": "The configured NVIDIA device is unavailable."})
