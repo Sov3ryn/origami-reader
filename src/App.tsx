@@ -163,10 +163,11 @@ import {
 } from "lucide-react";
 import { PinDialog, type PinRequest } from "./components/PinDialog";
 import { UpdatesPanel } from "./components/UpdatesPanel";
+import { UpdateToast } from "./components/UpdateToast";
 import { PluginSettings } from "./work/plugins/PluginSettings";
 import { HandwritingSettings } from "./work/ink/HandwritingSettings";
 import { VoiceSettings } from "./work/voice/VoiceSettings";
-import { checkUpdates, checkedToday, markChecked, updateStatus } from "./updates";
+import { checkUpdates, checkedToday, markChecked, updateStatus, type UpdateFound } from "./updates";
 import type {
   Book,
   BookMeta,
@@ -1029,17 +1030,17 @@ export default function App() {
     if (!ready) return;
     void store.saveSettings(prefs).catch(error);
   }, [prefs, ready]);
-  // Automatic update checks: once a day, only when turned on and configured,
-  // and only to say an update exists (installing stays in Settings).
+  // Automatic update checks: once a day, only when turned on and configured.
+  // An update shows as a small card in the corner with "Download now".
+  const [updateOffer, setUpdateOffer] = useState<{ found: UpdateFound; managed: boolean } | null>(null);
   useEffect(() => {
     if (!ready || !prefs.autoUpdate || checkedToday()) return;
     const timer = window.setTimeout(() => {
       void updateStatus()
-        .then((s) => (s.configured ? checkUpdates() : null))
-        .then((found) => {
+        .then(async (s) => (s.configured ? { found: await checkUpdates(), managed: s.managed } : null))
+        .then((offer) => {
           markChecked();
-          if (found?.components.length)
-            setNotice(t("Origami {version} is available. Install it from Settings, About and support.", { version: found.version || "" }));
+          if (offer?.found.components.length) setUpdateOffer(offer);
         })
         .catch(() => undefined);
     }, 20000);
@@ -1853,7 +1854,8 @@ export default function App() {
           if (vaultView) b.meta.vault = vaultView;
           if (forWork) b.meta.work = true;
           // Imported into the library on screen; from elsewhere, the guess decides.
-          if (page === "library" && !forWork) b.meta.shelf = shelf;
+          if (forWork) b.meta.shelf = "documents";
+          else if (page === "library") b.meta.shelf = shelf;
           const existing = known.find(
             (k) => k.sourceHash === b.meta.sourceHash,
           );
@@ -7763,6 +7765,18 @@ export default function App() {
                 )}
               </div>
             </aside>
+          )}
+          {updateOffer && (
+            <UpdateToast
+              found={updateOffer.found}
+              managed={updateOffer.managed}
+              onLater={() => setUpdateOffer(null)}
+              onSettings={() => {
+                setUpdateOffer(null);
+                patchPrefs({ workMode: false, studioMode: false });
+                setPage("settings");
+              }}
+            />
           )}
           <footer className="player" inert={otherMode}>
             <div className="now-playing">

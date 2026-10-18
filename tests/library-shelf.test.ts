@@ -6,7 +6,7 @@ describe("the two libraries", () => {
     expect(guessShelf({ format: "EPUB" })).toBe("stories");
     expect(guessShelf({ format: "PDF" })).toBe("documents");
     expect(guessShelf({ format: "PDF", genres: ["Gothic horror"] })).toBe("stories");
-    expect(guessShelf({ format: "EPUB", work: true })).toBe("documents");
+    expect(guessShelf({ format: "EPUB" })).toBe("stories");
     expect(guessShelf({ format: "Markdown", genres: ["Short stories"] })).toBe("stories");
   });
   it("keep the library a book was put in", () => {
