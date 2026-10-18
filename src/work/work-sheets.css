@@ -449,3 +449,29 @@
   border-style: dashed;
   color: var(--muted);
 }
+.sheet-tile .sheet-corner {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 2px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--line);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.sheet-tile .sheet-corner i {
+  min-width: 0;
+  padding: 1px 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: normal;
+  color: var(--muted);
+  background: var(--panel, #222);
+}
+.sheet-tile .sheet-corner i.head {
+  color: inherit;
+  font-weight: 600;
+}

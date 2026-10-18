@@ -12,6 +12,7 @@ import {
   toDelimited,
   usedRange,
   findSheet,
+  sheetCorner,
 } from "../src/work/sheets/model";
 import { readXlsx, writeXlsx } from "../src/work/sheets/excel";
 import { buildOption, chartTypes, defaultSpec, linearTrend, toDataset } from "../src/work/charts/spec";
@@ -142,5 +143,21 @@ describe("charts", () => {
     expect(files["Report.html"]).toContain(`<img src="${svg}"`);
     expect(files["Report.md"]).toContain(`![Sales](${svg})`);
     expect(files["Budget.xlsx"]).toBe("base64:AAAA");
+  });
+});
+
+describe("sheet tiles", () => {
+  it("show the filled top-left corner, numbers rounded", () => {
+    const book = {
+      id: "w",
+      name: "W",
+      sheetOrder: ["s"],
+      sheets: { s: { id: "s", name: "Log", cellData: { 1: { 1: { v: "Month" }, 2: { v: "Pages" } }, 2: { 1: { v: "Jan" }, 2: { v: 140.456 } } } } },
+    };
+    expect(sheetCorner(book)).toEqual([
+      ["Month", "Pages"],
+      ["Jan", "140.46"],
+    ]);
+    expect(sheetCorner({ ...book, sheets: { s: { id: "s", name: "Empty" } } })).toEqual([]);
   });
 });

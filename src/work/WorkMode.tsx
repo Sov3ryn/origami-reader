@@ -94,6 +94,7 @@ import {
   parseRange,
   rangeText,
   readRange,
+  sheetCorner,
   tablesFromHtml,
   usedRange,
   workbookText,
@@ -3001,7 +3002,7 @@ function SubjectPage({
               <button key={x.id} className="note-tile sheet-tile" onClick={() => onOpenSheet(x.id)}>
                 <FileSpreadsheet size={18} className="sheet-glyph" />
                 <strong>{x.title || t("Untitled")}</strong>
-                <span>{workbookText(x.data, 160)}</span>
+                <SheetCorner data={x.data} />
                 <small>{new Date(x.updated).toLocaleDateString()}</small>
               </button>
             ))}
@@ -3278,5 +3279,20 @@ function Palette({
         </div>
       </div>
     </div>
+  );
+}
+
+// A sheet tile shows its first cells as a small grid rather than run-together text.
+function SheetCorner({ data }: { data: SheetDoc["data"] }) {
+  const corner = sheetCorner(data);
+  if (!corner.length) return <span className="muted">{t("Empty sheet")}</span>;
+  return (
+    <span className="sheet-corner" aria-hidden="true" style={{ gridTemplateColumns: `repeat(${corner[0].length}, minmax(0, 1fr))` }}>
+      {corner.flat().map((v, i) => (
+        <i key={i} className={i < corner[0].length ? "head" : ""}>
+          {v}
+        </i>
+      ))}
+    </span>
   );
 }

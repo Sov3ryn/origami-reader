@@ -784,6 +784,7 @@
   "Embed from the web",
   "Embeds load from their own services and need an internet connection; those services see your IP address and may use cookies. When off, embeds show as links. Nothing else goes online.",
   "Empty note",
+  "Empty sheet",
   "Empty voice note",
   "Enable local speech in Language packs to install a TTS model.",
   "End",

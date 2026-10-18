@@ -160,6 +160,25 @@ export function workbookText(book: WorkbookData, limit = 4000) {
   return parts.join(" ");
 }
 
+/** The top-left corner of a workbook's first sheet that holds values, for a tile preview. */
+export function sheetCorner(book: WorkbookData, rows = 4, cols = 4): string[][] {
+  const s = book.sheets[book.sheetOrder[0]];
+  const data = s?.cellData || {};
+  const filled = Object.entries(data).flatMap(([r, row]) =>
+    Object.entries(row || {})
+      .filter(([, c]) => c?.v !== undefined && c?.v !== null && String(c.v).trim() !== "")
+      .map(([col]) => [Number(r), Number(col)] as const),
+  );
+  if (!filled.length) return [];
+  const top = Math.min(...filled.map((x) => x[0]));
+  const left = Math.min(...filled.map((x) => x[1]));
+  const show = (v: CellValue | undefined) => (typeof v === "number" ? String(Math.round(v * 100) / 100) : v === undefined || v === null ? "" : String(v));
+  // Only as wide and tall as the values reach.
+  const width = Math.min(cols, Math.max(...filled.map((x) => x[1])) - left + 1);
+  const height = Math.min(rows, Math.max(...filled.map((x) => x[0])) - top + 1);
+  return Array.from({ length: height }, (_, i) => Array.from({ length: width }, (_, j) => show(data[top + i]?.[left + j]?.v)));
+}
+
 // Rows of a table written in a note (the editor's HTML), for charts.
 export function tablesFromHtml(html: string): CellValue[][][] {
   const tables: CellValue[][][] = [];

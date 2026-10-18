@@ -1322,6 +1322,9 @@
 }
 .exam-date {
   display: inline-flex;
+  /* A label: the app-wide label rule stacks and spaces its children. */
+  flex-direction: row;
+  margin: 0;
   align-items: center;
   gap: 6px;
   padding: 2px 8px;
