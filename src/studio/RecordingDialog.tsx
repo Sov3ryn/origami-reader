@@ -80,7 +80,7 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
           title: book.meta.title,
           author: book.meta.author,
           language: book.meta.language || guessLanguage(book.paragraphs.slice(0, 40).map((p) => p.text).join(" ")),
-          note: "Text from the ebook, timed to the recording with Origami Studio.",
+          note: "Text from the ebook, timed to the recording with Origami Reader.",
         });
         if (path) setReadalong(path);
       } else {

@@ -1060,12 +1060,12 @@ export default function App() {
                 <div className="component future">
                   <Layers3 />
                   <div>
-                    <strong>{t("Origami Studio")}</strong>
+                    <strong>{t("Studio")}</strong>
                     <small>
                       {t("Character casting and multi-voice storytelling")}
                     </small>
                   </div>
-                  <span className="pill">{t("Coming later")}</span>
+                  <span className="pill">{t("Included")}</span>
                 </div>
               </>
             )}

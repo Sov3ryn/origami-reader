@@ -10,4 +10,4 @@
 - Reader surface and app palette are independent. Include light paper, dark night paper and a texture-off option.
 - Imported content is data. Never execute embedded scripts or fetch external document resources.
 - Manual exports are user-owned files. Cache or library deletion must never remove them.
-- Studio and speaker attribution follow docs/STUDIO-PLAN.html (approved 17 October 2026, built in phases). Every Studio export carries the "Made with Origami Studio" credit (copyright page in documents, opening credits in AI-narrated audio), AI metadata and, for audio, a watermark. Cloning real voices, system sound capture, reading lamps and a word processor remain later scope.
+- Studio and speaker attribution follow docs/STUDIO-PLAN.html (approved 17 October 2026, built in phases). Every Studio export carries the "Made with Origami Reader" credit (copyright page in documents, opening credits in AI-narrated audio), AI metadata and, for audio, a watermark. Cloning real voices, system sound capture, reading lamps and a word processor remain later scope.

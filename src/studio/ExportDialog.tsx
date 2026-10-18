@@ -24,7 +24,7 @@ import {
 } from "./production";
 
 // Export: an audiobook (M4B with chapters, or MP3 per chapter), an EPUB and a
-// print PDF. Every file carries the "Made with Origami Studio" credit; audio
+// print PDF. Every file carries the "Made with Origami Reader" credit; audio
 // also gets the spoken credit, AI labels and the inaudible watermark.
 const TRIMS: [string, [number, number]][] = [
   ["5 x 8 in", [5, 8]],
@@ -416,7 +416,7 @@ export function ExportDialog({
                 <textarea rows={3} value={rights} onChange={(e) => setRights(e.target.value)} placeholder={t("For example: Text in the public domain. Cover by the author.")} />
               </label>
             </details>
-            <p className="studio-hint">{t("Every export carries “Made with Origami Studio” and the crane on its copyright page; audiobooks say it in their opening credits and carry AI labels and an inaudible watermark.")}</p>
+            <p className="studio-hint">{t("Every export carries “Made with Origami Reader” and the crane on its copyright page; audiobooks say it in their opening credits and carry AI labels and an inaudible watermark.")}</p>
             {preview && (
               <div className="studio-preview">
                 <div className="studio-spread">

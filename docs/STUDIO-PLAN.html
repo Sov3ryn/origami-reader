@@ -16,7 +16,7 @@
 <h1>Studio plan</h1>
 <p class="lead">The third mode beside Read and Work. Studio turns recordings into well-made books, and books into full-cast audiobooks, entirely on the user's computer.</p>
 <p><strong>Status:</strong> approved 17 October 2026 with the recommended decisions (section 14); phase 0 experiments under way. Nothing here is built yet. It is based on research done on 17 October 2026 (six parallel reviews of products, models, licenses, laws and file formats) and on speed tests run on the development PC (RTX 4080 SUPER 16 GB, Ryzen 9 7950X3D, 64 GB). Legal points are a non-lawyer's reading, not legal advice.</p>
-<nav aria-label="Plan contents"><a href="#overview">What Studio is</a><a href="#findings">What the research found</a><a href="#measured">Measured on this PC</a><a href="#produce">Book to audiobook</a><a href="#transcribe">Recording to book</a><a href="#design">Book design</a><a href="#mark">The Origami Studio mark</a><a href="#features">Premium features</a><a href="#engines">Models and tools</a><a href="#hardware">Hardware tiers</a><a href="#architecture">Architecture</a><a href="#phases">Build phases</a><a href="#checks">Quality checks</a><a href="#decisions">Decisions for you</a><a href="#sources">Sources</a></nav>
+<nav aria-label="Plan contents"><a href="#overview">What Studio is</a><a href="#findings">What the research found</a><a href="#measured">Measured on this PC</a><a href="#produce">Book to audiobook</a><a href="#transcribe">Recording to book</a><a href="#design">Book design</a><a href="#mark">The Origami Reader mark</a><a href="#features">Premium features</a><a href="#engines">Models and tools</a><a href="#hardware">Hardware tiers</a><a href="#architecture">Architecture</a><a href="#phases">Build phases</a><a href="#checks">Quality checks</a><a href="#decisions">Decisions for you</a><a href="#sources">Sources</a></nav>
 </header>
 <main>
 
@@ -37,7 +37,7 @@
 <div><b>7 · Export</b>Audiobook, book, read-along, store profiles.</div>
 </div>
 <p><strong>Where it lives:</strong> the mode switch becomes <em>Read · Work · Studio</em>. Ctrl+Shift+W cycles through the three modes (Ctrl+Shift+S is already strikethrough in notes). Studio uses the same layout rules as the rest of the app: both side panels collapse independently and the inspector tabs are contextual. AGENTS.md lists Studio and speaker attribution as later scope; this plan is that later scope, and AGENTS.md is updated once the plan is approved. Voice cloning and capture stay later.</p>
-<div class="callout"><strong>The one restriction:</strong> every export carries a small "Made with Origami Studio" credit with the crane, and every audiobook says "Made with Origami Studio" in its opening credits. Section 07 shows how to place it so stores accept the files, and how it doubles as the AI disclosure the law now asks for. Everything else stays free and unlocked, as the support dialog already promises.</div>
+<div class="callout"><strong>The one restriction:</strong> every export carries a small "Made with Origami Reader" credit with the crane, and every audiobook says "Made with Origami Reader" in its opening credits. Section 07 shows how to place it so stores accept the files, and how it doubles as the AI disclosure the law now asks for. Everything else stays free and unlocked, as the support dialog already promises.</div>
 <p><strong>Why this can stand out:</strong> the research found no tool that turns an audiobook into a formatted ebook, and no narration tool that exports a read-along EPUB from its own render. ElevenLabs Studio is the benchmark for casting and takes, but it is online, paid by credits and limits regenerations. Origami can do the same work locally, privately, with unlimited takes, in French and English from day one, and produce the book, the audiobook and the read-along edition from one production.</p>
 </section>
 
@@ -207,18 +207,18 @@
 </section>
 
 <section id="mark">
-<h2>07. The "Made with Origami Studio" mark</h2>
-<p>Your requirement: a small "Made with Origami Studio" with a tiny crane at the bottom right of documents, and a spoken "Made with Origami Studio" at the start of audiobooks. The research changes where it should go, not whether.</p>
+<h2>07. The "Made with Origami Reader" mark</h2>
+<p>Your requirement: a small "Made with Origami Reader" with a tiny crane at the bottom right of documents, and a spoken "Made with Origami Reader" at the start of audiobooks. The research changes where it should go, not whether.</p>
 <div class="grid">
 <div class="panel"><h3>Documents</h3><ul>
-<li><strong>Recommended:</strong> crane plus "Made with Origami Studio" at the bottom right of the copyright page (or of the last page if there is none). This is where production credits belong; Vellum's optional badge uses the same place and books with it are on every store.</li>
+<li><strong>Recommended:</strong> crane plus "Made with Origami Reader" at the bottom right of the copyright page (or of the last page if there is none). This is where production credits belong; Vellum's optional badge uses the same place and books with it are on every store.</li>
 <li><strong>EPUB:</strong> reflowable ebooks have no fixed page corners, so the mark goes on the copyright page and on a short closing colophon page, right-aligned.</li>
 <li><strong>Every page instead?</strong> Possible in PDF and Word, but Apple's rules forbid advertising inside books, and a logo on every page reads as a watermark or an ad. This is decision 1.</li>
-<li>A small grayscale vector crane is drawn for print (about 4 mm), beside the existing lavender crane for screens. Localized: "Réalisé avec Origami Studio" in French books.</li>
+<li>A small grayscale vector crane is drawn for print (about 4 mm), beside the existing lavender crane for screens. Localized: "Réalisé avec Origami Reader" in French books.</li>
 </ul></div>
 <div class="panel"><h3>Audiobooks</h3><ul>
-<li><strong>Recommended spoken credit:</strong> "[Title], by [Author]. Narrated by digital voices. Made with Origami Studio."</li>
-<li>French: "[Titre], de [Auteur]. Lu par des voix numériques. Réalisé avec Origami Studio."</li>
+<li><strong>Recommended spoken credit:</strong> "[Title], by [Author]. Narrated by digital voices. Made with Origami Reader."</li>
+<li>French: "[Titre], de [Auteur]. Lu par des voix numériques. Réalisé avec Origami Reader."</li>
 <li>It sits inside the opening credits, where stores expect the title, author and narrator, so it reads as a production credit and not as an ad. It also serves as the AI disclosure that Spotify, Storytel and the EU rules ask for.</li>
 <li>No web address, slogan or music sting: those are what stores reject.</li>
 </ul></div>
@@ -232,7 +232,7 @@
 </ul>
 <h3>License wording</h3>
 <p>APP-LICENSE.md gains a Studio clause, shown once at the first export with an accept button, and a French version (required in Quebec for standard-form contracts). Draft:</p>
-<div class="panel small"><strong>Origami Studio exports.</strong> Origami Studio adds a credit to what you export: in documents, the words "Made with Origami Studio" and the crane logo on the copyright page (or the last page if there is none) at the size the app sets; in audiobooks, a spoken "Made with Origami Studio" in the opening credits; and metadata labels and an inaudible watermark stating that the voices were generated with AI. You may publish, share and sell your exports. You may not remove, cover, crop, shrink, edit out, re-record over or otherwise hide the credit, the labels or the watermark, or have someone else do so, in an export or any copy, edition or format made from it. Any exception must be in writing from Sov3ryn. This applies only to files made with Origami Studio and does not limit rights given by the licenses of included components.</div>
+<div class="panel small"><strong>Origami Reader exports.</strong> Origami Reader adds a credit to what you export: in documents, the words "Made with Origami Reader" and the crane logo on the copyright page (or the last page if there is none) at the size the app sets; in audiobooks, a spoken "Made with Origami Reader" in the opening credits; and metadata labels and an inaudible watermark stating that the voices were generated with AI. You may publish, share and sell your exports. You may not remove, cover, crop, shrink, edit out, re-record over or otherwise hide the credit, the labels or the watermark, or have someone else do so, in an export or any copy, edition or format made from it. Any exception must be in writing from Sov3ryn. This applies only to files made with Origami Reader and does not limit rights given by the licenses of included components.</div>
 <p class="small">Realistically this is a contract term: it is enforced by ending the license, as the current terms already do. The mark is added by Origami's own export code, never by the GPL light reader. Apache and MIT model licenses place no limits on outputs, so the clause does not conflict with them.</p>
 </section>
 
@@ -379,7 +379,7 @@ Exports go where the user chooses and are never deleted by Studio.</div>
 <div class="callout"><strong>Decided 17 October 2026:</strong> all eight recommendations below were approved, and phase 0 is done. <strong>Changed after phase 0:</strong> the analysis model is Ministral 3 (8B on 8 GB+ graphics cards, 3B otherwise) instead of Qwen3.5; print starts with KDP, IngramSpark later.</div>
 <div class="table-wrap"><table><thead><tr><th>#</th><th>Question</th><th>Recommendation</th></tr></thead><tbody>
 <tr><td>1</td><td>Where does the document mark go?</td><td>Bottom right of the copyright page (and a closing colophon in EPUB), not on every page. Same visibility to anyone who looks, accepted by stores.</td></tr>
-<tr><td>2</td><td>Spoken credit wording, and on which audio?</td><td>"Narrated by digital voices. Made with Origami Studio." on every AI-narrated audiobook. For the user's own recordings in recording-to-book, only the written mark and metadata, since the voice is a real person.</td></tr>
+<tr><td>2</td><td>Spoken credit wording, and on which audio?</td><td>"Narrated by digital voices. Made with Origami Reader." on every AI-narrated audiobook. For the user's own recordings in recording-to-book, only the written mark and metadata, since the voice is a real person.</td></tr>
 <tr><td>3</td><td>Watermark and labels in every export?</td><td>Yes. It is what the EU rules expect and it costs nothing in sound quality.</td></tr>
 <tr><td>4</td><td>Which phase first?</td><td>Phase 1, single narrator. Every later feature needs its render queue, takes and exports, and it ships the long-promised audiobook export. The cast follows directly.</td></tr>
 <tr><td>5</td><td>Language model download</td><td>Qwen3.5 4B (2.7 GB) by default for everyone, 9B (5.7 GB) offered on computers with 8 GB or more of graphics memory, after the French comparison in phase 0.</td></tr>
@@ -405,6 +405,6 @@ Exports go where the user chooses and are never deleted by Studio.</div>
 </ul>
 </section>
 </main>
-<footer><p class="small">Origami Studio plan · Sov3ryn · prepared 17 October 2026. Companion to <a href="PRODUCT-PLAN.html">the first-release plan</a>, section 07.</p></footer>
+<footer><p class="small">Origami Reader Studio plan · Sov3ryn · prepared 17 October 2026. Companion to <a href="PRODUCT-PLAN.html">the first-release plan</a>, section 07.</p></footer>
 </body>
 </html>

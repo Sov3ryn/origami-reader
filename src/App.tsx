@@ -5547,7 +5547,7 @@ export default function App() {
             <ul className="donate-points">
               <li>{t("New voices and languages")}</li>
               <li>{t("Day and night scenes and new atmospheres")}</li>
-              <li>{t("Audiobook export and Origami Studio")}</li>
+              <li>{t("Audiobook export and Studio")}</li>
             </ul>
             <div className="donate-actions">
               <button className="donate-button" onClick={openSupport}>

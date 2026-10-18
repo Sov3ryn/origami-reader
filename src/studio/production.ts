@@ -375,12 +375,12 @@ export const storeProfiles: StoreProfile[] = [
 export const refusingStores = "Audible (ACX), Apple Books and INaudio do not accept audiobooks narrated with AI voices made on your own computer.";
 
 const CREDITS: Record<string, (title: string, author: string) => string> = {
-  en: (t, a) => `${t}, by ${a}. Narrated by digital voices. Made with Origami Studio.`,
-  fr: (t, a) => `${t}, de ${a}. Lu par des voix numériques. Réalisé avec Origami Studio.`,
-  de: (t, a) => `${t}, von ${a}. Gelesen von digitalen Stimmen. Erstellt mit Origami Studio.`,
-  es: (t, a) => `${t}, de ${a}. Narrado por voces digitales. Hecho con Origami Studio.`,
-  it: (t, a) => `${t}, di ${a}. Letto da voci digitali. Realizzato con Origami Studio.`,
-  pt: (t, a) => `${t}, de ${a}. Narrado por vozes digitais. Feito com Origami Studio.`,
+  en: (t, a) => `${t}, by ${a}. Narrated by digital voices. Made with Origami Reader.`,
+  fr: (t, a) => `${t}, de ${a}. Lu par des voix numériques. Réalisé avec Origami Reader.`,
+  de: (t, a) => `${t}, von ${a}. Gelesen von digitalen Stimmen. Erstellt mit Origami Reader.`,
+  es: (t, a) => `${t}, de ${a}. Narrado por voces digitales. Hecho con Origami Reader.`,
+  it: (t, a) => `${t}, di ${a}. Letto da voci digitali. Realizzato con Origami Reader.`,
+  pt: (t, a) => `${t}, de ${a}. Narrado por vozes digitais. Feito com Origami Reader.`,
 };
 const CREDIT_TITLES: Record<string, string> = {
   en: "Opening credits",

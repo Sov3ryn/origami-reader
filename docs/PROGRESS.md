@@ -706,3 +706,8 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 
 - Released for Windows (Studio on): Origami-Reader-Setup-Beta-12.exe on the hub (SHA-256 462e22e0...) and the signed app and workers update on origami-updates, carrying the quality review's fixes and the lighter-reader suggestion. Checked on the release build with a fresh data folder: the three modes, the Studio home and the new Reading aloud setting, with no page errors.
 - Found while packaging: the release refresh (refresh-windows.py) never updated the kit's uninstaller, so kits kept an old copy; it now does, and beta 12's kit has the UTF-8 uninstaller. Installed copies get the uninstaller through setup only for now: earlier updaters refuse files outside their list, so update.rs accepts "Uninstall Origami.ps1" from beta 12 on and a later app update can ship it.
+
+
+## Export credit renamed, 18 October 2026
+
+- The owner's decision: exports now say "Made with Origami Reader" instead of "Made with Origami Studio", because Meta publishes a design tool called Origami Studio. Changed everywhere the credit appears: the spoken opening credits (six languages), audio tags and encoder name, EPUB and Word metadata, the print template's copyright page, Verify a file, the Studio dialogs, all 20 locale files, AGENTS.md and STUDIO-PLAN.html. The mode itself is still called Studio inside the app. Setup's component list now shows Studio as included rather than "Coming later". Exports made before this change keep their old wording; their watermark is unaffected.

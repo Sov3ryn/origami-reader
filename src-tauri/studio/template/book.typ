@@ -1,4 +1,4 @@
-// Origami Studio: the fixed book template for print PDFs.
+// Origami Reader: the fixed book template for print PDFs.
 //
 // The book arrives as data: /book.json (text) and /layout.json (trim,
 // margins, font). Strings are placed as text only. Nothing from the book is
@@ -20,13 +20,13 @@
   (
     chapter: "Chapitre",
     contents: "Table des matières",
-    made: "Réalisé avec Origami Studio",
+    made: "Réalisé avec Origami Reader",
     preface: "Préface",
     epilogue: "Épilogue",
     first: "Première publication\u{A0}: ",
     setin: "Composé en ",
-    typeset: "Mise en page\u{A0}: Origami Studio.",
-    crane: "Grue en origami, logo d'Origami Studio",
+    typeset: "Mise en page\u{A0}: Origami Reader.",
+    crane: "Grue en origami, logo d'Origami Reader",
     thanks: "Remerciements",
     about: "À propos de l'auteur",
     also: "Du même auteur",
@@ -35,13 +35,13 @@
   (
     chapter: "Chapter",
     contents: "Contents",
-    made: "Made with Origami Studio",
+    made: "Made with Origami Reader",
     preface: "Preface",
     epilogue: "Epilogue",
     first: "First published ",
     setin: "Set in ",
-    typeset: "Typeset with Origami Studio.",
-    crane: "Origami crane, the Origami Studio logo",
+    typeset: "Typeset with Origami Reader.",
+    crane: "Origami crane, the Origami Reader logo",
     thanks: "Acknowledgements",
     about: "About the Author",
     also: "Also by " + M.author,
@@ -61,7 +61,7 @@
 #set document(
   title: M.title,
   author: M.author,
-  keywords: ("Origami Studio", "Made with Origami Studio"),
+  keywords: ("Origami Reader", "Made with Origami Reader"),
   date: auto,
 )
 

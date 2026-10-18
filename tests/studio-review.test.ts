@@ -96,9 +96,9 @@ describe("timing", () => {
 
 describe("export text", () => {
   it("speaks the credit in the book's language", () => {
-    expect(creditLine({ title: "Dracula", author: "Bram Stoker", language: "en" })).toBe("Dracula, by Bram Stoker. Narrated by digital voices. Made with Origami Studio.");
-    expect(creditLine({ title: "Dracula", author: "Bram Stoker", language: "fr-FR" })).toContain("Réalisé avec Origami Studio");
-    expect(creditLine({ title: "X", author: "Y", language: "ja" })).toContain("Made with Origami Studio");
+    expect(creditLine({ title: "Dracula", author: "Bram Stoker", language: "en" })).toBe("Dracula, by Bram Stoker. Narrated by digital voices. Made with Origami Reader.");
+    expect(creditLine({ title: "Dracula", author: "Bram Stoker", language: "fr-FR" })).toContain("Réalisé avec Origami Reader");
+    expect(creditLine({ title: "X", author: "Y", language: "ja" })).toContain("Made with Origami Reader");
     expect(creditTitle("fr")).toBe("Générique");
   });
   it("builds the manuscript from the book, not from edited spoken text", () => {

@@ -844,7 +844,7 @@ async fn studio_recording_readalong(files: Vec<String>, chapters: Vec<Value>, me
             lang: text(&meta["language"]),
             narrator: String::new(),
             // An edition aligned with the ebook keeps the book's text; otherwise it was transcribed.
-            ai: meta["note"].as_str().filter(|n| !n.is_empty()).unwrap_or("Text transcribed from the recording with Origami Studio.").to_string(),
+            ai: meta["note"].as_str().filter(|n| !n.is_empty()).unwrap_or("Text transcribed from the recording with Origami Reader.").to_string(),
             rights: Vec::new(),
             theme: String::new(),
         };
@@ -1173,10 +1173,10 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                 // The chosen take of every unit, chapter by chapter, with the review player's pauses.
                 let units = p["units"].as_array().cloned().unwrap_or_default();
                 // The spoken credit is never left out: the default one when none came
-                // or when it does not name Origami Studio.
+                // or when it does not name Origami Reader.
                 let language = p["info"]["language"].as_str().unwrap_or_default();
                 let credit = Some(text(&options["credit"]))
-                    .filter(|c| c.contains("Origami Studio"))
+                    .filter(|c| c.contains("Origami Reader"))
                     .unwrap_or_else(|| studio_audio::credit_line(p["info"]["title"].as_str().unwrap_or(&title), p["info"]["author"].as_str().unwrap_or_default(), language));
                 let credit_title = Some(text(&options["creditTitle"])).filter(|c| !c.trim().is_empty()).unwrap_or_else(|| studio_audio::credit_title(language));
                 let takes: std::collections::HashMap<String, Value> = p["takes"]

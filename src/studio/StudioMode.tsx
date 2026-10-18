@@ -116,7 +116,7 @@ export function StudioMode({ open, books, voices, prefs, modeSwitch }: Props) {
             }
           }}
           disabled={!store.desktop || verifying}
-          data-tip={t("Check whether an audio file was made with Origami Studio")}
+          data-tip={t("Check whether an audio file was made with Origami Reader")}
         >
           <ShieldCheck size={16} /> {verifying ? t("Checking") : t("Verify a file")}
         </button>
@@ -440,8 +440,8 @@ function VerifyResult({ result, onClose }: { result: Verification; onClose: () =
           <div className="studio-verdict yes">
             <ShieldCheck size={20} />
             <div>
-              <strong>{t("Made with Origami Studio")}</strong>
-              <p>{t("This audio carries the Origami Studio watermark: it was narrated with AI-generated voices.")}</p>
+              <strong>{t("Made with Origami Reader")}</strong>
+              <p>{t("This audio carries the Origami Reader watermark: it was narrated with AI-generated voices.")}</p>
               {w.match ? (
                 <p className="muted small">
                   {t("Export {id} of {title}, {date}.", { id: w.match.export, title: w.match.title, date: new Date(w.match.date).toLocaleDateString() })}
@@ -453,7 +453,7 @@ function VerifyResult({ result, onClose }: { result: Verification; onClose: () =
           </div>
         ) : (
           <div className="studio-verdict no">
-            <strong>{t("No Origami Studio watermark found.")}</strong>
+            <strong>{t("No Origami Reader watermark found.")}</strong>
             <p className="muted small">{t("Short or heavily changed audio (sped up, cut very short) can lose it.")}</p>
           </div>
         )}

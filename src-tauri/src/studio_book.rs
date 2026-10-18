@@ -2,7 +2,7 @@
 // (embedded as a library, docs/STUDIO-PHASE0.md section 6). The manuscript
 // arrives as data and is only ever placed as text: the Typst template reads
 // it with json() and never evaluates it, and EPUB text is XML-escaped.
-// Both carry the "Made with Origami Studio" mark on the copyright page.
+// Both carry the "Made with Origami Reader" mark on the copyright page.
 use serde::Deserialize;
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -480,7 +480,7 @@ pub fn pdf(m: &Manuscript, o: &PrintOptions, out: &Path) -> Result<usize> {
     let (y, mo, d, h, mi, se) = civil_now();
     let ts = typst::foundations::Datetime::from_ymd_hms(y, mo, d, h, mi, se);
     let opts = PdfOptions {
-        creator: typst::foundations::Smart::Custom(Some("Origami Studio".into())),
+        creator: typst::foundations::Smart::Custom(Some("Origami Reader".into())),
         timestamp: ts.map(Timestamp::new_utc),
         ..PdfOptions::default()
     };
@@ -515,9 +515,9 @@ struct Labels {
 }
 fn labels(lang: &str) -> Labels {
     if lang.to_lowercase().starts_with("fr") {
-        Labels { contents: "Table des mati\u{e8}res", made: "R\u{e9}alis\u{e9} avec Origami Studio", chapter: "Chapitre", typeset: "Mise en page\u{a0}: Origami Studio." }
+        Labels { contents: "Table des mati\u{e8}res", made: "R\u{e9}alis\u{e9} avec Origami Reader", chapter: "Chapitre", typeset: "Mise en page\u{a0}: Origami Reader." }
     } else {
-        Labels { contents: "Contents", made: "Made with Origami Studio", chapter: "Chapter", typeset: "Prepared with Origami Studio." }
+        Labels { contents: "Contents", made: "Made with Origami Reader", chapter: "Chapter", typeset: "Prepared with Origami Reader." }
     }
 }
 
@@ -582,7 +582,7 @@ fn mark(l: &Labels) -> String {
 /// Roman 12 pt, double spaced, one-inch margins, half-inch indents, the author and
 /// an approximate word count on the first page, each chapter on a new page a third
 /// of the way down, "#" for scene breaks, and a running head "Author / TITLE / page".
-/// The last page carries the rights lines, the AI line and "Made with Origami Studio";
+/// The last page carries the rights lines, the AI line and "Made with Origami Reader";
 /// the document properties carry the same labels.
 pub fn docx(m: &Manuscript, export_id: &str, out: &Path) -> Result<()> {
     use zip::write::SimpleFileOptions;
@@ -679,14 +679,14 @@ pub fn docx(m: &Manuscript, export_id: &str, out: &Path) -> Result<()> {
     let (y, mo, d, h, mi, se) = civil_now();
     let now = format!("{y:04}-{mo:02}-{d:02}T{h:02}:{mi:02}:{se:02}Z");
     let core = format!(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><dc:title>{t}</dc:title><dc:creator>{a}</dc:creator><dc:language>{lang}</dc:language><cp:keywords>Made with Origami Studio</cp:keywords><dc:description>{d}</dc:description><dcterms:created xsi:type=\"dcterms:W3CDTF\">{now}</dcterms:created></cp:coreProperties>",
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><dc:title>{t}</dc:title><dc:creator>{a}</dc:creator><dc:language>{lang}</dc:language><cp:keywords>Made with Origami Reader</cp:keywords><dc:description>{d}</dc:description><dcterms:created xsi:type=\"dcterms:W3CDTF\">{now}</dcterms:created></cp:coreProperties>",
         t = xml(&m.title),
         a = xml(&m.author),
         lang = xml(&lang),
         d = xml(&format!("{} {}", l.made, m.ai).trim().to_string()),
     );
     let custom = format!(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/custom-properties\" xmlns:vt=\"http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes\"><property fmtid=\"{{D5CDD505-2E9C-101B-9397-08002B2CF9AE}}\" pid=\"2\" name=\"ORIGAMI_EXPORT_ID\"><vt:lpwstr>{id}</vt:lpwstr></property><property fmtid=\"{{D5CDD505-2E9C-101B-9397-08002B2CF9AE}}\" pid=\"3\" name=\"MADE_WITH\"><vt:lpwstr>Origami Studio</vt:lpwstr></property>{ai}</Properties>",
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/custom-properties\" xmlns:vt=\"http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes\"><property fmtid=\"{{D5CDD505-2E9C-101B-9397-08002B2CF9AE}}\" pid=\"2\" name=\"ORIGAMI_EXPORT_ID\"><vt:lpwstr>{id}</vt:lpwstr></property><property fmtid=\"{{D5CDD505-2E9C-101B-9397-08002B2CF9AE}}\" pid=\"3\" name=\"MADE_WITH\"><vt:lpwstr>Origami Reader</vt:lpwstr></property>{ai}</Properties>",
         id = xml(export_id),
         ai = if m.ai.is_empty() { String::new() } else { format!("<property fmtid=\"{{D5CDD505-2E9C-101B-9397-08002B2CF9AE}}\" pid=\"4\" name=\"AI_DISCLOSURE\"><vt:lpwstr>{}</vt:lpwstr></property>", xml(&m.ai)) },
     );
@@ -846,7 +846,7 @@ pub fn epub(m: &Manuscript, cover_jpeg: Option<&[u8]>, export_id: &str, out: &Pa
     let cover_meta = if cover_jpeg.is_some() { "<meta name=\"cover\" content=\"cover-image\"/>" } else { "" };
     let ai_meta = if m.ai.is_empty() { String::new() } else { format!("<meta property=\"origami:ai-disclosure\">{}</meta>", xml(&m.ai)) };
     let opf = format!(
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"uid\" xml:lang=\"{lang}\" prefix=\"origami: https://origami.app/ns#\">\n<metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n<dc:identifier id=\"uid\">{uid}</dc:identifier>\n<dc:title>{title}</dc:title>\n<dc:creator>{author}</dc:creator>\n<dc:language>{lang}</dc:language>\n<dc:contributor id=\"producer\">Origami Studio</dc:contributor>\n<meta refines=\"#producer\" property=\"role\" scheme=\"marc:relators\">bkp</meta>\n<meta property=\"dcterms:modified\">{modified}</meta>\n<meta name=\"generator\" content=\"Origami Studio\"/>\n<meta property=\"origami:export-id\">{id}</meta>\n{ai_meta}\n{cover_meta}\n</metadata>\n<manifest>\n{manifest}\n</manifest>\n<spine toc=\"ncx\">\n{spine}\n</spine>\n</package>\n",
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"uid\" xml:lang=\"{lang}\" prefix=\"origami: https://origami.app/ns#\">\n<metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n<dc:identifier id=\"uid\">{uid}</dc:identifier>\n<dc:title>{title}</dc:title>\n<dc:creator>{author}</dc:creator>\n<dc:language>{lang}</dc:language>\n<dc:contributor id=\"producer\">Origami Reader</dc:contributor>\n<meta refines=\"#producer\" property=\"role\" scheme=\"marc:relators\">bkp</meta>\n<meta property=\"dcterms:modified\">{modified}</meta>\n<meta name=\"generator\" content=\"Origami Reader\"/>\n<meta property=\"origami:export-id\">{id}</meta>\n{ai_meta}\n{cover_meta}\n</metadata>\n<manifest>\n{manifest}\n</manifest>\n<spine toc=\"ncx\">\n{spine}\n</spine>\n</package>\n",
         lang = xml(&lang),
         title = xml(&m.title),
         author = xml(&m.author),
@@ -1019,7 +1019,7 @@ pub fn readalong_epub(meta: &ReadMeta, chapters: &[ReadChapter], cover_jpeg: Opt
     let (y, mo, d, h, mi, s) = civil_now();
     let cover_meta = if cover_jpeg.is_some() { "<meta name=\"cover\" content=\"cover-image\"/>" } else { "" };
     let opf = format!(
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"uid\" xml:lang=\"{lang}\" prefix=\"origami: https://origami.app/ns#\">\n<metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n<dc:identifier id=\"uid\">urn:origami:{id}-readalong</dc:identifier>\n<dc:title>{title}</dc:title>\n<dc:creator>{author}</dc:creator>\n<dc:language>{lang}</dc:language>\n<dc:contributor id=\"producer\">Origami Studio</dc:contributor>\n<meta refines=\"#producer\" property=\"role\" scheme=\"marc:relators\">bkp</meta>\n<meta property=\"dcterms:modified\">{y:04}-{mo:02}-{d:02}T{h:02}:{mi:02}:{s:02}Z</meta>\n<meta name=\"generator\" content=\"Origami Studio\"/>\n<meta property=\"origami:export-id\">{id}</meta>\n<meta property=\"origami:ai-disclosure\">{ai}</meta>\n<meta property=\"media:duration\">{total}</meta>\n{durations}\n{narrator}<meta property=\"media:active-class\">-epub-media-overlay-active</meta>\n{cover_meta}\n</metadata>\n<manifest>\n{manifest}\n</manifest>\n<spine>\n{spine}\n</spine>\n</package>\n",
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"uid\" xml:lang=\"{lang}\" prefix=\"origami: https://origami.app/ns#\">\n<metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n<dc:identifier id=\"uid\">urn:origami:{id}-readalong</dc:identifier>\n<dc:title>{title}</dc:title>\n<dc:creator>{author}</dc:creator>\n<dc:language>{lang}</dc:language>\n<dc:contributor id=\"producer\">Origami Reader</dc:contributor>\n<meta refines=\"#producer\" property=\"role\" scheme=\"marc:relators\">bkp</meta>\n<meta property=\"dcterms:modified\">{y:04}-{mo:02}-{d:02}T{h:02}:{mi:02}:{s:02}Z</meta>\n<meta name=\"generator\" content=\"Origami Reader\"/>\n<meta property=\"origami:export-id\">{id}</meta>\n<meta property=\"origami:ai-disclosure\">{ai}</meta>\n<meta property=\"media:duration\">{total}</meta>\n{durations}\n{narrator}<meta property=\"media:active-class\">-epub-media-overlay-active</meta>\n{cover_meta}\n</metadata>\n<manifest>\n{manifest}\n</manifest>\n<spine>\n{spine}\n</spine>\n</package>\n",
         lang = xml(&lang),
         id = xml(export_id),
         title = xml(&meta.title),
@@ -1052,7 +1052,7 @@ mod tests {
         let mut doc = String::new();
         std::io::Read::read_to_string(&mut z.by_name("word/document.xml").unwrap(), &mut doc).unwrap();
         assert!(doc.contains("A &lt;TEST&gt; &amp; BOOK"));
-        assert!(doc.contains("Made with Origami Studio") && doc.contains("about 3,200 words"));
+        assert!(doc.contains("Made with Origami Reader") && doc.contains("about 3,200 words"));
         assert!(doc.contains("w:pStyle w:val=\"ChapterMs\""));
         let mut custom = String::new();
         std::io::Read::read_to_string(&mut z.by_name("docProps/custom.xml").unwrap(), &mut custom).unwrap();
@@ -1109,10 +1109,10 @@ mod tests {
         let mut opf = String::new();
         std::io::Read::read_to_string(&mut z.by_name("OEBPS/content.opf").unwrap(), &mut opf).unwrap();
         assert!(opf.contains("A &lt;Test&gt; &amp; Book"));
-        assert!(opf.contains("Origami Studio"));
+        assert!(opf.contains("Origami Reader"));
         let mut c = String::new();
         std::io::Read::read_to_string(&mut z.by_name("OEBPS/copyright.xhtml").unwrap(), &mut c).unwrap();
-        assert!(c.contains("Made with Origami Studio") && c.contains("crane.png"));
+        assert!(c.contains("Made with Origami Reader") && c.contains("crane.png"));
         let _ = std::fs::remove_dir_all(&dir);
     }
 

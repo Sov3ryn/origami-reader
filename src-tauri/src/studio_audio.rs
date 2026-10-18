@@ -12,7 +12,7 @@ pub type Result<T> = std::result::Result<T, String>;
 pub const MASTER_RATE: u32 = 44_100;
 pub const DIGITAL_SOURCE_TYPE: &str = "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia";
 pub const AI_DISCLOSURE: &str = "Narrated by AI-generated digital voices";
-pub const ENCODER: &str = "Origami Studio";
+pub const ENCODER: &str = "Origami Reader";
 
 // --- Decoding and resampling ------------------------------------------------------------
 
@@ -402,7 +402,7 @@ pub fn tag_m4b(path: &Path, meta: &Meta, chapters: &[ChapterMark], cover: Option
     tag.set_genre("Audiobook");
     tag.set_encoder(ENCODER);
     tag.set_media_type(MediaType::AudioBook);
-    tag.set_comment(format!("{AI_DISCLOSURE}. Made with Origami Studio."));
+    tag.set_comment(format!("{AI_DISCLOSURE}. Made with Origami Reader."));
     tag.set_data(Fourcc(*b"\xa9nrt"), Data::Utf8(meta.narrator.clone()));
     if let Some(c) = cover {
         tag.set_artwork(Img::jpeg(c.to_vec()));
@@ -439,7 +439,7 @@ pub fn tag_mp3(path: &Path, meta: &Meta, title: &str, track: u32, total: u32, co
     for (d, v) in [("NARRATOR", meta.narrator.as_str()), ("DIGITAL_SOURCE_TYPE", DIGITAL_SOURCE_TYPE), ("AI_DISCLOSURE", AI_DISCLOSURE), ("ORIGAMI_EXPORT_ID", meta.export_id.as_str())] {
         t.add_frame(ExtendedText { description: d.into(), value: v.into() });
     }
-    t.add_frame(Comment { lang: "eng".into(), description: "".into(), text: format!("{AI_DISCLOSURE}. Made with Origami Studio.") });
+    t.add_frame(Comment { lang: "eng".into(), description: "".into(), text: format!("{AI_DISCLOSURE}. Made with Origami Reader.") });
     if let Some(c) = cover {
         t.add_frame(Picture { mime_type: "image/jpeg".into(), picture_type: PictureType::CoverFront, description: "Cover".into(), data: c.to_vec() });
     }
@@ -794,12 +794,12 @@ impl Drop for Staging {
 pub fn credit_line(title: &str, author: &str, language: &str) -> String {
     let author = if author.trim().is_empty() { "an unknown author" } else { author };
     match language.get(..2).unwrap_or("en").to_lowercase().as_str() {
-        "fr" => format!("{title}, de {author}. Lu par des voix numériques. Réalisé avec Origami Studio."),
-        "de" => format!("{title}, von {author}. Gelesen von digitalen Stimmen. Erstellt mit Origami Studio."),
-        "es" => format!("{title}, de {author}. Narrado por voces digitales. Hecho con Origami Studio."),
-        "it" => format!("{title}, di {author}. Letto da voci digitali. Realizzato con Origami Studio."),
-        "pt" => format!("{title}, de {author}. Narrado por vozes digitais. Feito com Origami Studio."),
-        _ => format!("{title}, by {author}. Narrated by digital voices. Made with Origami Studio."),
+        "fr" => format!("{title}, de {author}. Lu par des voix numériques. Réalisé avec Origami Reader."),
+        "de" => format!("{title}, von {author}. Gelesen von digitalen Stimmen. Erstellt mit Origami Reader."),
+        "es" => format!("{title}, de {author}. Narrado por voces digitales. Hecho con Origami Reader."),
+        "it" => format!("{title}, di {author}. Letto da voci digitali. Realizzato con Origami Reader."),
+        "pt" => format!("{title}, de {author}. Narrado por vozes digitais. Feito com Origami Reader."),
+        _ => format!("{title}, by {author}. Narrated by digital voices. Made with Origami Reader."),
     }
 }
 
@@ -1001,7 +1001,7 @@ fn write_stems(ch: &ChapterPlan, number: u32, dir: &Path, watermark: Option<&mut
         out.finalize().map_err(|e| e.to_string())?;
         let name = format!("{} - {} - {}", meta.title, ch.title, speaker);
         let note = format!("{comment} Export {}.", meta.export_id);
-        tag_wav(&path, &[(b"INAM", &name), (b"IART", &meta.author), (b"ICMT", note.trim()), (b"ISFT", "Origami Studio"), (b"ICRD", &meta.year)])?;
+        tag_wav(&path, &[(b"INAM", &name), (b"IART", &meta.author), (b"ICMT", note.trim()), (b"ISFT", "Origami Reader"), (b"ICRD", &meta.year)])?;
         written.push(path);
     }
     // The background sound as its own stem, lowered where anyone speaks.
@@ -1027,7 +1027,7 @@ fn write_stems(ch: &ChapterPlan, number: u32, dir: &Path, watermark: Option<&mut
         out.finalize().map_err(|e| e.to_string())?;
         let name = format!("{} - {} - Background", meta.title, ch.title);
         let note = format!("{comment} Export {}.", meta.export_id);
-        tag_wav(&path, &[(b"INAM", &name), (b"IART", &meta.author), (b"ICMT", note.trim()), (b"ISFT", "Origami Studio"), (b"ICRD", &meta.year)])?;
+        tag_wav(&path, &[(b"INAM", &name), (b"IART", &meta.author), (b"ICMT", note.trim()), (b"ISFT", "Origami Reader"), (b"ICRD", &meta.year)])?;
         written.push(path);
     }
     Ok(written)
@@ -1221,9 +1221,9 @@ mod tests {
     #[test]
     fn the_spoken_credit_names_origami_studio_in_every_language() {
         for lang in ["en", "fr-FR", "de", "es", "it", "pt-BR", "ja", ""] {
-            assert!(credit_line("Emma", "", lang).contains("Origami Studio"));
+            assert!(credit_line("Emma", "", lang).contains("Origami Reader"));
         }
-        assert_eq!(credit_line("Emma", "Jane Austen", "en"), "Emma, by Jane Austen. Narrated by digital voices. Made with Origami Studio.");
+        assert_eq!(credit_line("Emma", "Jane Austen", "en"), "Emma, by Jane Austen. Narrated by digital voices. Made with Origami Reader.");
         assert_eq!(credit_title("fr"), "Générique");
     }
 
@@ -1260,7 +1260,7 @@ mod tests {
         let at = |t: f64| s[(t * MASTER_RATE as f64) as usize].abs();
         assert!(at(1.2) < 1e-3 && s[(2.5 * MASTER_RATE as f64) as usize..(2.9 * MASTER_RATE as f64) as usize].iter().any(|v| v.abs() > 0.05));
         let bytes = std::fs::read(&out[0]).unwrap();
-        assert!(bytes.windows(14).any(|w| w == b"Origami Studio"));
+        assert!(bytes.windows(14).any(|w| w == b"Origami Reader"));
         assert_eq!(u32::from_le_bytes(bytes[4..8].try_into().unwrap()) as usize, bytes.len() - 8);
         assert!(out[0].parent().unwrap().ends_with("01 One a start"));
         assert!(crate::studio_verify::labels(&out[0])["AI_DISCLOSURE"].as_str().unwrap().starts_with("AI-generated voices."));
