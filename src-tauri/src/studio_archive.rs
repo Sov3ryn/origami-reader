@@ -26,6 +26,10 @@ fn take_name_ok(name: &str) -> bool {
     (name.ends_with(".flac") || name.ends_with(".wav")) && !name.contains(['/', '\\', ':']) && !name.contains("..") && name.len() < 200
 }
 
+fn bed_name_ok(name: &str) -> bool {
+    ["bed.mp3", "bed.m4a", "bed.wav", "bed.flac", "bed.ogg"].contains(&name)
+}
+
 pub fn voice_id_ok(id: &str) -> bool {
     id.starts_with("designed-vd-") && id.len() < 100 && id.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'-')
 }
@@ -64,6 +68,13 @@ pub fn write(out: &Path, production: &Value, book: Option<&Value>, voices: &[Voi
             .as_array()
             .map(|a| a.iter().filter_map(|t| t["file"].as_str()).filter(|f| take_name_ok(f)).map(str::to_string).collect())
             .unwrap_or_default();
+        // The background sound sits next to the takes folder.
+        if let Some(bed) = production["info"]["bed"]["file"].as_str().filter(|f| bed_name_ok(f)) {
+            if let Some(Ok(mut f)) = takes_dir.parent().map(|d| std::fs::File::open(d.join(bed))) {
+                zip.start_file(format!("bed/{bed}"), stored).map_err(|e| e.to_string())?;
+                std::io::copy(&mut f, &mut zip).map_err(|e| e.to_string())?;
+            }
+        }
         let total = files.len().max(1) as f64;
         for (i, name) in files.iter().enumerate() {
             let path = takes_dir.join(name);
@@ -134,6 +145,16 @@ pub fn extract_takes(zip: &mut zip::ZipArchive<std::fs::File>, takes_dir: &Path,
     let mut count = 0;
     for i in 0..zip.len() {
         let mut entry = zip.by_index(i).map_err(|e| e.to_string())?;
+        // The background sound goes next to the takes folder.
+        if let Some(bed) = entry.name().strip_prefix("bed/").map(str::to_string) {
+            if bed_name_ok(&bed) && entry.size() <= MAX_AUDIO {
+                if let Some(dir) = takes_dir.parent() {
+                    let mut out = std::fs::File::create(dir.join(&bed)).map_err(|e| e.to_string())?;
+                    std::io::copy(&mut (&mut entry).take(MAX_AUDIO), &mut out).map_err(|e| e.to_string())?;
+                }
+            }
+            continue;
+        }
         let Some(name) = entry.name().strip_prefix("takes/").map(str::to_string) else { continue };
         if !take_name_ok(&name) || entry.size() > MAX_AUDIO {
             continue;
@@ -215,11 +236,12 @@ mod tests {
         let takes = dir.join("takes");
         std::fs::create_dir_all(&takes).unwrap();
         std::fs::write(takes.join("t1.flac"), b"fLaC audio").unwrap();
+        std::fs::write(dir.join("bed.mp3"), b"ID3 rain").unwrap();
         let voices = dir.join("voices-src");
         std::fs::create_dir_all(&voices).unwrap();
         std::fs::write(voices.join("v.wav"), b"RIFF0000WAVEdata").unwrap();
         let production = json!({
-            "info": { "id": "prod-1", "voice": "designed-vd-abc", "cast": [{ "voice": "kit-amber" }] },
+            "info": { "id": "prod-1", "voice": "designed-vd-abc", "cast": [{ "voice": "kit-amber" }], "bed": { "file": "bed.mp3" } },
             "units": [{ "id": "u1", "take": "t1", "voice": "designed-vd-abc" }],
             "takes": [{ "id": "t1", "unit": "u1", "file": "t1.flac" }, { "id": "t2", "unit": "u1", "file": "../evil.flac" }],
         });
@@ -232,8 +254,9 @@ mod tests {
         let mut opened = open(&archive).unwrap();
         assert_eq!(opened.production["info"]["id"], "prod-1");
         assert_eq!(opened.book.as_ref().unwrap()["id"], "book-1");
-        let out = dir.join("restored");
+        let out = dir.join("restored").join("takes");
         assert_eq!(extract_takes(&mut opened.zip, &out, &|_| {}).unwrap(), 1);
+        assert_eq!(std::fs::read(dir.join("restored").join("bed.mp3")).unwrap(), b"ID3 rain");
         assert_eq!(std::fs::read(out.join("t1.flac")).unwrap(), b"fLaC audio");
         let root = dir.join("CreatedVoices");
         assert_eq!(extract_voices(&mut opened.zip, &root).unwrap(), vec!["designed-vd-abc"]);
