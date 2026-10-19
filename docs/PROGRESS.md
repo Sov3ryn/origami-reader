@@ -711,3 +711,10 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 ## Export credit renamed, 18 October 2026
 
 - The owner's decision: exports now say "Made with Origami Reader" instead of "Made with Origami Studio", because Meta publishes a design tool called Origami Studio. Changed everywhere the credit appears: the spoken opening credits (six languages), audio tags and encoder name, EPUB and Word metadata, the print template's copyright page, Verify a file, the Studio dialogs, all 20 locale files, AGENTS.md and STUDIO-PLAN.html. The mode itself is still called Studio inside the app. Setup's component list now shows Studio as included rather than "Coming later". Exports made before this change keep their old wording; their watermark is unaffected.
+
+## Beta 12.1: setup certificate fix, 19 October 2026
+
+- A tester's Windows 11 PC stopped setup at 91% with `CERTIFICATE_VERIFY_FAILED` (first with a wrong system date, then "unable to get local issuer certificate" once the date was right). Python trusts only root certificates already in the Windows store, and Windows adds most roots the first time something needs them, so a fresh PC can lack the root of a download host. pip's wheel is the first download, so every online install on such a PC failed there.
+- Setup's downloads (install.py `ssl_context`) now verify through truststore 0.10.4 (MIT, vendored in installer/scripts/vendor and shipped as bootstrap/vendor; the app's later downloads use pip's copy), which asks Windows to check the certificate and fetch a missing root, as browsers do. Certificate failures stop at once with a message about the date and time or HTTPS-inspecting antivirus, instead of eight retries and the raw error.
+- Checked against PyPI, Hugging Face, PyTorch and GitHub, and against expired and self-signed certificates (still refused).
+- Beta 12.1 is beta 12's setup with only bootstrap/install.py replaced and bootstrap/vendor added (all other 757 files compared by size and CRC), published as v0.1.0-beta.12.1. Installed copies need no update; the app's Settings downloads (workers/setup_install.py) get the same fix with the next app update.
