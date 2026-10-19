@@ -1,5 +1,6 @@
 """Offline package installation. Only fresh, per-user destinations are accepted."""
 import hashlib
+import importlib
 import json
 import shlex
 import os
@@ -257,10 +258,46 @@ def fetch(item, progress, message):
     return final
 
 
+_SSL = []
+
+
+def ssl_context():
+    """Certificates are checked by the system (Windows' own certificate check,
+    as browsers do) through truststore. Python alone only trusts the root
+    certificates already in the Windows store, and Windows adds most of them
+    the first time something needs them, so on a fresh PC downloads failed
+    with CERTIFICATE_VERIFY_FAILED. truststore ships beside setup's script
+    (bootstrap/vendor) and inside pip for the app's later downloads."""
+    if not _SSL:
+        import ssl
+        context = None
+        vendor = Path(__file__).resolve().parent / "vendor"
+        if vendor.is_dir() and str(vendor) not in sys.path:
+            sys.path.insert(0, str(vendor))
+        for module in ("truststore", "pip._vendor.truststore"):
+            try:
+                context = importlib.import_module(module).SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                break
+            except Exception:
+                continue
+        _SSL.append(context or ssl.create_default_context())
+    return _SSL[0]
+
+
+def certificate_problem(error):
+    import ssl
+    reason = getattr(error, "reason", None)
+    if isinstance(error, ssl.SSLCertVerificationError) or isinstance(reason, ssl.SSLCertVerificationError) or "CERTIFICATE_VERIFY_FAILED" in str(error):
+        return ("Windows could not confirm the security certificate of a download site. Check that the computer's "
+                "date and time are right; if an antivirus or company network inspects secure connections, allow "
+                f"Origami Setup or try another network, then {AGAIN}. What was already downloaded is kept.")
+    return None
+
+
 def open_url(url, headers):
     import urllib.request
     return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "Origami-Setup/1", **headers}),
-                                  timeout=STALL)
+                                  timeout=STALL, context=ssl_context())
 
 
 def fetch_pieces(item, part, progress, message, name):
@@ -313,6 +350,8 @@ def fetch_pieces(item, part, progress, message, name):
             except Exception as error:
                 if cancelled.is_set():
                     raise
+                if certificate_problem(error):
+                    raise RuntimeError(certificate_problem(error)) from error
                 # Take back what this attempt counted; the piece starts again.
                 with lock:
                     received[0] -= got
@@ -369,6 +408,8 @@ def fetch_stream(item, part, progress, message, name):
         except (OSError, urllib.error.URLError) as error:
             if cancelled.is_set():
                 raise
+            if certificate_problem(error):
+                raise RuntimeError(certificate_problem(error)) from error
             if attempt == 7:
                 raise RuntimeError(f"Could not download {name}. Check the internet connection and {AGAIN}; "
                                    f"what was already downloaded is kept. ({error})")
@@ -608,8 +649,13 @@ def fetch_pip(pip, progress):
     CACHE.mkdir(parents=True, exist_ok=True)
     final = CACHE / pip["sha256"]
     if not final.is_file():
-        with urllib.request.urlopen(urllib.request.Request(pip["url"], headers={"User-Agent": "Origami-Setup/1"}), timeout=60) as r:
-            data = r.read()
+        try:
+            with urllib.request.urlopen(urllib.request.Request(pip["url"], headers={"User-Agent": "Origami-Setup/1"}),
+                                        timeout=60, context=ssl_context()) as r:
+                data = r.read()
+        except OSError as error:
+            raise RuntimeError(certificate_problem(error) or
+                               f"Could not download pip. Check the internet connection and {AGAIN}. ({error})") from error
         if hashlib.sha256(data).hexdigest() != pip["sha256"]:
             raise ValueError(f"The pip download did not match its published fingerprint. {again()}.")
         final.write_bytes(data)

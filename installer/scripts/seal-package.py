@@ -36,6 +36,9 @@ def record(relative, group="core"):
 shutil.copy2(repo / "workers/tts_worker.py", payload / "workers/tts_worker.py")
 record("workers/tts_worker.py")
 shutil.copy2(repo / "installer/scripts/install.py", kit / "bootstrap/install.py")
+# truststore: setup checks download certificates with Windows (see install.py ssl_context).
+shutil.rmtree(kit / "bootstrap/vendor", ignore_errors=True)
+shutil.copytree(repo / "installer/scripts/vendor", kit / "bootstrap/vendor", ignore=shutil.ignore_patterns("__pycache__"))
 shutil.copy2(args.instructions or repo / "installer/FRIEND-BETA.txt", kit / "START HERE.txt")
 notices = ["ORIGAMI THIRD-PARTY NOTICES\n\nOrigami Reader: Copyright (c) 2026 Sov3ryn. App use: Origami-Reader-App-License.txt. Source code: PolyForm Strict 1.0.0 (source-available; no redistribution). Dependency and model licenses remain separate.\nPython package notices are also retained in python/Lib/site-packages/*.dist-info and, for the light reader, python-light/Lib/site-packages/*.dist-info.\nEach model folder under models/ carries its own license and notice files.\nImage runtime notices accompany its binaries.\n"]
 

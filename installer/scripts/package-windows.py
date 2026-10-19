@@ -170,6 +170,7 @@ def main():
     shutil.copy2(REPO / "src-tauri/target/release/origami-setup.exe", kit / "origami-installer-ui.exe")
     (kit / "bootstrap").mkdir()
     shutil.copy2(REPO / "installer/scripts/install.py", kit / "bootstrap/install.py")
+    shutil.copytree(REPO / "installer/scripts/vendor", kit / "bootstrap/vendor", ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copy2(REPO / "installer/FRIEND-BETA.txt", kit / "START HERE.txt")
     manifest = {"schemaVersion": 1, "version": VERSION, "platform": "windows", "architecture": "x86_64",
                 "executable": "origami-reader.exe", "voiceCount": len(catalog), "totalBytes": sum(f["size"] for f in files), "files": files}
