@@ -228,6 +228,8 @@ import type { Subject as WorkSubject } from "./work/types";
 import { paintWord, playedFraction, rangesFor, wordAt } from "./spokenWord";
 import { useMedia } from "./useMedia";
 import { shelfOf, type Shelf } from "./libraryShelf";
+import { useReadingStats } from "./useReadingStats";
+import { places } from "./places";
 type ReadingAnchor = {
   bookId: string;
   paragraphId: string;
@@ -2041,6 +2043,30 @@ export default function App() {
   // --- Work Mode ---------------------------------------------------------------
   const appMode: AppMode = prefs.studioMode && STUDIO_ENABLED ? "studio" : prefs.workMode ? "work" : "read";
   const otherMode = appMode !== "read";
+  // Reading time, days and finished books unlock places to read.
+  const finishedBooks = useMemo(() => books.filter(bookFinished).length, [books]);
+  useReadingStats(
+    ready,
+    appMode === "read" && page === "reader" && Boolean(book),
+    player.status === "playing",
+    finishedBooks,
+    setPrefs,
+  );
+  const knownPlaces = useRef<string[] | null>(null);
+  const earnedPlaces = prefs.readingStats?.unlocked;
+  useEffect(() => {
+    if (!ready || !earnedPlaces) return;
+    const fresh = knownPlaces.current
+      ? earnedPlaces.filter((id) => !knownPlaces.current!.includes(id))
+      : [];
+    knownPlaces.current = earnedPlaces;
+    const first = places.find((p) => p.id === fresh[0]);
+    if (first)
+      setNotice(
+        t("New place to read: {title}. Find it in Scene and colors.", { title: t(first.title) }) +
+          (fresh.length > 1 ? " " + t("{count} more places are ready too.", { count: fresh.length - 1 }) : ""),
+      );
+  }, [ready, earnedPlaces]);
   // On narrow windows only one panel is open at a time, and a click beside it closes it.
   const lastPanel = useRef<"left" | "right">("right");
   useEffect(() => {
@@ -4983,6 +5009,7 @@ export default function App() {
             autoScale={autoScale}
             onChange={patchPrefs}
             scope="settings"
+            books={books}
           />
           <div className="inspector-content">
             <Section id="settings-library-theme" title={t("Library theme")}>
@@ -7849,6 +7876,7 @@ export default function App() {
                     prefs={reading}
                     autoScale={autoScale}
                     onChange={patchReading}
+                    books={books}
                   />
                 ) : activeTab === "voice" ? (
                   voicePanel()

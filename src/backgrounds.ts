@@ -1,5 +1,6 @@
 import type { Preferences, SceneAppearance } from "./types";
 import { defaultPreferences } from "./types";
+import { placeSceneId, places, type Place } from "./places";
 
 export const effectLabels = {
   mist: "Drifting mist",
@@ -31,6 +32,8 @@ export type BackgroundDefinition = {
   // Temporary art: a filtered copy of the other half of the pair. It is used
   // until a painted version of the same composition exists at `image`.
   draft?: { from: string; filter: string };
+  // A celebration or reading-milestone place, drawn by <origami-background>.
+  place?: Place;
 };
 
 export const backgrounds: readonly BackgroundDefinition[] = [
@@ -215,6 +218,13 @@ export const backgrounds: readonly BackgroundDefinition[] = [
     },
   },
   { id: "paper", name: "Paper hills", effects: [] },
+  ...places.map((place) => ({
+    id: placeSceneId(place.id),
+    name: place.title,
+    image: place.image,
+    effects: [],
+    place,
+  })),
 ];
 
 export const seasons: readonly { id: Season; name: string }[] = [

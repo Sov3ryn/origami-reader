@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { openSettings, expandSections } from "./sections";
+import { pickScene } from "./scenes";
 test("garden profiles keep their location, settings and motion controls", async ({
   page,
 }) => {
@@ -8,9 +9,7 @@ test("garden profiles keep their location, settings and motion controls", async 
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
   await expandSections(page);
-  await page
-    .getByRole("button", { name: "Garden · Spring night", exact: true })
-    .click();
+  await pickScene(page, "Garden · Spring night");
   await expect(page.locator(".background-art")).toHaveClass(
     /background-garden-spring-night/,
   );
@@ -21,12 +20,8 @@ test("garden profiles keep their location, settings and motion controls", async 
   );
   await page.getByLabel("Background opacity", { exact: true }).fill("72");
   await page.getByLabel("Bamboo fountain", { exact: true }).uncheck();
-  await page
-    .getByRole("button", { name: "Garden · Summer day", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Garden · Spring day", exact: true })
-    .click();
+  await pickScene(page, "Garden · Summer day");
+  await pickScene(page, "Garden · Spring day");
   await expect(
     page.getByLabel("Bamboo fountain", { exact: true }),
   ).not.toBeChecked();

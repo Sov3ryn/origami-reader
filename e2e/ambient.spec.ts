@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { closeGallery, openGallery, pickScene } from "./scenes";
 import { expandSections } from "./sections";
 
 test("ambient controls preserve opacity, pause motion and keep reading opaque", async ({
@@ -102,13 +103,13 @@ test("ambient controls preserve opacity, pause motion and keep reading opaque", 
   await opacity.fill("0");
   await expect(page.locator(".background-art")).toHaveCount(0);
   await opacity.fill("63");
-  await page.getByRole("button", { name: "Paper hills", exact: true }).click();
+  await pickScene(page, "Paper hills");
   await expect(page.locator(".ambient-layer")).toHaveCount(0);
   await expect(
     page.getByLabel("Subtle background motion", { exact: true }),
   ).toBeDisabled();
   await expect(page.locator(".background-art")).toHaveCSS("opacity", "0.63");
-  await page.getByRole("button", { name: "None", exact: true }).click();
+  await pickScene(page, "None");
   await expect(page.locator(".background-art")).toHaveCount(0);
   await expect(opacity).toBeDisabled();
 });
@@ -148,18 +149,21 @@ test("library uses the full workspace and thumbnail previews survive hover", asy
     page.getByRole("heading", { name: "Settings", exact: true }),
   ).toBeVisible();
   await expect(page.locator(".inspector")).toHaveCount(0);
-  const thumbnail = page.locator(".preview-lake");
+  await openGallery(page);
+  const thumbnail = page.locator(".gallery-tile.preview-lake .gallery-art");
   const before = await thumbnail.evaluate(
     (el) => getComputedStyle(el).backgroundImage,
   );
   expect(before).toContain("moonlit-lake.webp");
-  await page.getByRole("button", { name: "Paper hills", exact: true }).click();
-  const lake = page.getByRole("button", { name: "Moonlit lake", exact: true });
+  const gallery = page.locator(".theme-gallery");
+  await gallery.getByRole("button", { name: "Paper hills", exact: true }).click();
+  const lake = gallery.getByRole("button", { name: "Moonlit lake", exact: true });
   await lake.hover();
   await expect(thumbnail).toHaveCSS("background-image", before);
   await expect(lake).toHaveCSS("outline-style", "solid");
   await lake.click();
   await expect(lake).toHaveAttribute("aria-pressed", "true");
+  await closeGallery(page);
   await page
     .getByRole("button", { name: "Library", exact: true })
     .first()

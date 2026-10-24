@@ -100,6 +100,10 @@ export type Preferences = {
   scenePreferences: Record<string, SceneAppearance>;
   backgroundOpacity: number;
   motion: boolean;
+  // Distant fireworks in the celebration places that have them.
+  fireworks: boolean;
+  // Reading time, days and celebrations that unlock places (see places.ts).
+  readingStats: ReadingStats;
   mist: boolean;
   petals: boolean;
   mountainFog: boolean;
@@ -313,6 +317,22 @@ export type SpeechResult = {
   // The audio's type when it is not WAV (a Studio take in FLAC).
   mime?: string;
 };
+// Cumulative and permanent: reading and listening time, local reading days,
+// time read during each celebration, and the places already earned.
+export type ReadingStats = {
+  activeSeconds: number;
+  readingDays: number;
+  lastReadingDay: string;
+  holidaySeconds: Record<string, number>;
+  unlocked: string[];
+};
+export const emptyReadingStats: ReadingStats = {
+  activeSeconds: 0,
+  readingDays: 0,
+  lastReadingDay: "",
+  holidaySeconds: {},
+  unlocked: [],
+};
 export const defaultPreferences: Preferences = {
   theme: "plum",
   surface: "dark",
@@ -325,6 +345,8 @@ export const defaultPreferences: Preferences = {
   scenePreferences: {},
   backgroundOpacity: 0.5,
   motion: true,
+  fireworks: true,
+  readingStats: emptyReadingStats,
   mist: true,
   petals: true,
   mountainFog: true,

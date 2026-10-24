@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { t } from "../i18n";
 import {
-  Check,
+  ChevronRight,
   FileText,
   Image,
   Moon,
@@ -11,10 +12,10 @@ import {
   Type,
 } from "lucide-react";
 import { Section } from "./Section";
+import { ThemeGallery } from "./ThemeGallery";
 import { themes } from "../themes";
 import {
   backgroundImage,
-  backgrounds,
   defaultSceneAppearance,
   effectLabels,
   getBackground,
@@ -23,7 +24,7 @@ import {
   sceneTime,
   seasons,
 } from "../backgrounds";
-import type { Preferences } from "../types";
+import type { BookMeta, Preferences } from "../types";
 import { systemName } from "../platform";
 export const readerFonts = [
   {
@@ -88,8 +89,11 @@ export function AppearancePanel({
   onChange,
   scope = "inspector",
   autoScale = 100,
+  books = [],
 }: {
   prefs: Preferences;
+  // Finished books count toward places to read.
+  books?: BookMeta[];
   onChange: (p: Partial<Preferences>) => void;
   scope?: "inspector" | "settings";
   // The size chosen for this window when the size is automatic.
@@ -104,6 +108,10 @@ export function AppearancePanel({
   const sceneName = season
     ? t(seasons.find((x) => x.id === season)!.name)
     : t(background.name);
+  const place = background.place;
+  const motionAvailable = background.effects.length > 0 || Boolean(place);
+  const [gallery, setGallery] = useState(false);
+  const art = backgroundImage(background);
   return (
     <div className="inspector-content appearance-panel">
       <Section
@@ -140,61 +148,46 @@ export function AppearancePanel({
             </button>
           ))}
         </div>
-        <div className="scene-options">
-          {[
-            backgrounds[0],
-            ...seasons.map((s) => getBackground(sceneFor(s.id, time))),
-            ...seasons.map((s) =>
-              getBackground(sceneFor(s.id, time, "garden")),
-            ),
-            getBackground("paper"),
-          ].map((s) => {
-            const art = backgroundImage(s);
-            const chosen = s.season
-              ? season === s.season && background.location === s.location
-              : prefs.scene === s.id;
-            return (
-              <button
-                key={s.id}
-                onClick={() =>
-                  onChange({ scene: s.id, backgroundMode: "manual" })
-                }
-                aria-pressed={chosen}
-                aria-label={t(s.name)}
-                title={t(s.name)}
-                className={
-                  "scene scene-" +
-                  (s.season || s.id) +
-                  (chosen ? " chosen" : "")
-                }
-              >
-                <span
-                  className={"scene-preview preview-" + s.id}
-                  style={
-                    art
-                      ? {
-                          backgroundImage: `url("${art.url}")`,
-                          filter: art.filter,
-                        }
-                      : undefined
-                  }
-                  aria-hidden="true"
-                />
-                {isDraftArt(s) && (
-                  <span className="draft-chip" aria-hidden="true">
-                    {t("Draft art")}
-                  </span>
-                )}
-                <span className="scene-label" aria-hidden="true">
-                  {s.season
-                    ? (s.location === "garden" ? t("Garden") + " · " : "") +
-                      t(seasons.find((x) => x.id === s.season)!.name)
-                    : t(s.name)}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <button
+          className="gallery-button"
+          aria-haspopup="dialog"
+          onClick={() => setGallery(true)}
+        >
+          <span
+            className={"gallery-button-art preview-" + background.id}
+            style={
+              art
+                ? { backgroundImage: `url("${art.url}")`, filter: art.filter }
+                : undefined
+            }
+            aria-hidden="true"
+          />
+          <span className="gallery-button-text">
+            <strong>{t("Scene and colors")}</strong>
+            <small>
+              {t(background.name)}
+              {theme ? " · " + t(theme.name) : ""}
+            </small>
+          </span>
+          {theme && (
+            <span
+              className="gallery-button-swatch"
+              style={{ background: theme.bg, borderColor: theme.accent }}
+              aria-hidden="true"
+            >
+              <span style={{ background: theme.accent }} />
+            </span>
+          )}
+          <ChevronRight size={16} aria-hidden="true" />
+        </button>
+        {gallery && (
+          <ThemeGallery
+            prefs={prefs}
+            books={books}
+            onChange={onChange}
+            onClose={() => setGallery(false)}
+          />
+        )}
         {isDraftArt(background) && (
           <p className="hint">
             {t("Temporary art. A painted version replaces it when added.")}
@@ -233,7 +226,7 @@ export function AppearancePanel({
         id={scope + "-motion"}
         title={t("Motion")}
         icon={<Sparkles size={15} />}
-        meta={prefs.motion && background.effects.length ? t("On") : t("Off")}
+        meta={prefs.motion && motionAvailable ? t("On") : t("Off")}
         defaultOpen={full}
       >
         <label
@@ -245,7 +238,7 @@ export function AppearancePanel({
           <input
             type="checkbox"
             checked={prefs.motion}
-            disabled={!background.effects.length}
+            disabled={!motionAvailable}
             onChange={(e) => onChange({ motion: e.target.checked })}
           />
           {t("Subtle background motion")}
@@ -268,12 +261,24 @@ export function AppearancePanel({
             ))}
           </div>
         )}
+        {place?.effects.some((e) => e.type === "fireworks") && prefs.motion && (
+          <div className="ambient-options">
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={prefs.fireworks}
+                onChange={(e) => onChange({ fireworks: e.target.checked })}
+              />
+              {t("Distant fireworks")}
+            </label>
+          </div>
+        )}
         <p className="hint">
-          {background.effects.length > 0
+          {motionAvailable
             ? t(
                 "Motion pauses when hidden and follows reduced-motion preferences.",
               )
-            : t("Background motion is available with the landscape scenes.")}
+            : t("Background motion is available with the landscape scenes and places.")}
         </p>
       </Section>
       <Section
@@ -589,30 +594,6 @@ export function AppearancePanel({
         meta={theme ? t(theme.name) : undefined}
         defaultOpen={full}
       >
-        <div
-          className="theme-swatches"
-          role="group"
-          aria-label={t("Theme colors")}
-        >
-          {themes.map((th) => (
-            <button
-              key={th.id}
-              title={t(th.name)}
-              aria-label={t(th.name)}
-              aria-pressed={prefs.theme === th.id}
-              className={prefs.theme === th.id ? "chosen" : ""}
-              onClick={() => onChange({ theme: th.id })}
-              style={{
-                background: th.bg,
-                color: th.accent,
-                borderColor: th.accent,
-              }}
-            >
-              <span style={{ background: th.accent }} />
-              {prefs.theme === th.id && <Check size={12} />}
-            </button>
-          ))}
-        </div>
         <label data-help={t("Colors for menus, panels and buttons.")}>
           {t("App theme")}
           <select

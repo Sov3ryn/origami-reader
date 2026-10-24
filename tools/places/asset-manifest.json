@@ -1,0 +1,284 @@
+{
+  "assets": [
+    {
+      "file": "assets/carnival.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2901939,
+      "sha256": "b94470d7053ff46ed731868a3fc893b9324137de192f89510cfd61a4c15f05bd"
+    },
+    {
+      "file": "assets/christmas.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2941176,
+      "sha256": "a8b5a84b7732b5f0b783a406a3a1543ae73715a269bbcd526ac06b32ae1cf9bb"
+    },
+    {
+      "file": "assets/dia-de-muertos.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2521926,
+      "sha256": "fdecc1f391b165670f2120639c5a6adaea7cf8d6320d1d7d087b3e1edf9caf77"
+    },
+    {
+      "file": "assets/diwali.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2429229,
+      "sha256": "644ed68560c6f95fb205e8e5bd73f67cfd3eaa564be81f5b7c25eedad8e9a792"
+    },
+    {
+      "file": "assets/earth-day.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 3326894,
+      "sha256": "cd1ed677297bdc574d45961693e6ef7a558727a06b64ccdb4ce9fe380c2a74a1"
+    },
+    {
+      "file": "assets/easter.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 3786353,
+      "sha256": "622bb7a75131ccea17fc5a6eff135a8fe398aaf885aba0ab1ecace99fa650f3e"
+    },
+    {
+      "file": "assets/eid.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 3150773,
+      "sha256": "508f3d6e536dbacffa4a5daa57ccfdd25fbb358fbbd2aa8a621099a6c23f315d"
+    },
+    {
+      "file": "assets/fox-retreat.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2911777,
+      "sha256": "fc2c90eeaef5c07fcad2f8eaf798cafbe6fefca0531990b71df5dbcb3d05a411"
+    },
+    {
+      "file": "assets/glasshouse.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 3531371,
+      "sha256": "055d50fb4c918b82bd3d51f802da179babf90e03c6133fb0b4f3c20b2ae0acd7"
+    },
+    {
+      "file": "assets/halloween.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2508018,
+      "sha256": "7b73141e77aa32a4da101aa8d469f343406bcfe5dfa75bf3e404df2b72852707"
+    },
+    {
+      "file": "assets/hanukkah.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2464615,
+      "sha256": "610a35a36ce86d09a6e6dc64595568333d068f119a7662e31666322ce5107657"
+    },
+    {
+      "file": "assets/harvest.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2858209,
+      "sha256": "33c8e6b8257ef9268d5c11975dfc5080fe53169897c4db40e9c66c207bc73ef0"
+    },
+    {
+      "file": "assets/impossible-library.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2878537,
+      "sha256": "c258a6b25a2ee7b2a7c78f77125c0461e9d9ed64e467c15601e04522025df71a"
+    },
+    {
+      "file": "assets/lantern-garden.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2959504,
+      "sha256": "1b0a93001752e98c9a3435fe7b2d2bb76238d470ce74c3c14f9a24a9a23d5cda"
+    },
+    {
+      "file": "assets/last-bloom.png",
+      "width": 1672,
+      "height": 940,
+      "alpha": false,
+      "size_bytes": 3384650,
+      "sha256": "3bab0c00ddf2b1879ac13d632030c702f0f6eb1333bc826904fad9d670bded5a"
+    },
+    {
+      "file": "assets/lunar-new-year.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2816199,
+      "sha256": "339ef05945ea2310ef3b70ae8606002b409114e0fcb67081483a5e60f0096281"
+    },
+    {
+      "file": "assets/midnight-express.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2183612,
+      "sha256": "8361e78b375898a8d7527a12e10366d71a972cae4153a4b5ec444c7958ae14ce"
+    },
+    {
+      "file": "assets/midsummer.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 3215391,
+      "sha256": "04a5b7de0555c3856aae0c7ad7f73d324d956194f310c96fc2c202eed6671f8c"
+    },
+    {
+      "file": "assets/national-day.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2595814,
+      "sha256": "b26809e50d221474d58a63c3ba1dc0e9e67c0e2bc010082ff80b19ed6f9ceb6a"
+    },
+    {
+      "file": "assets/new-year.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2617223,
+      "sha256": "a413345e4a2acb32e2d8ac9a3bbfa15573d27940d0726681e8924d6efea16240"
+    },
+    {
+      "file": "assets/nowruz.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 3392977,
+      "sha256": "2c6b7a50d711486c367e26196ce0840179e58efd7a9fccae20dd7db7298b5d7d"
+    },
+    {
+      "file": "assets/observatory.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2706120,
+      "sha256": "77dc5911453c727c13a694468d5099ff8e5c9bc59ef4d4621a46a5a5db544ab3"
+    },
+    {
+      "file": "assets/orbital-room.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2622313,
+      "sha256": "e37b8282a054fb4ac63eee630c8a0d4f0f5ad42098385fe620d96e908cd0f519"
+    },
+    {
+      "file": "assets/origami-valley.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2580853,
+      "sha256": "3f8f23e9b53736b16e0cfc3aaed1eff357ff472ef26094e7318f3556db3a64d3"
+    },
+    {
+      "file": "assets/rainy-bookshop.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2493573,
+      "sha256": "03127539fb77a3e5429d14d4637078df7f559d8fa522de843d4a0dd6a7987b1e"
+    },
+    {
+      "file": "assets/ramadan.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2976443,
+      "sha256": "a52161b2d19cb76f028981477a0cdacc2e5ba325e15c9eaedc47e45798bafab2"
+    },
+    {
+      "file": "assets/saint-jean.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2751021,
+      "sha256": "eda5fa3a43e2c1f1488f426e2acf26d5173ec055c84bd6a1bccc8621406d01b4"
+    },
+    {
+      "file": "assets/sprite-cat.png",
+      "width": 1536,
+      "height": 1024,
+      "alpha": true,
+      "size_bytes": 2122485,
+      "sha256": "4ccbe2b178995a3c74973b0b40027516fb53d74223b33dd208c997ec26f16e74"
+    },
+    {
+      "file": "assets/sprite-fox.png",
+      "width": 1536,
+      "height": 1024,
+      "alpha": true,
+      "size_bytes": 3156712,
+      "sha256": "5b963b9d580acfcbd97faee751be27b95a5039f64d9b8d5f157f9936842c5d84"
+    },
+    {
+      "file": "assets/sprite-rabbit.png",
+      "width": 1374,
+      "height": 1145,
+      "alpha": true,
+      "size_bytes": 1831341,
+      "sha256": "eae31df0d3475c90b89c4aa884099b87e81428308d184c7e1779fc1d1842f93d"
+    },
+    {
+      "file": "assets/sprite-robot.png",
+      "width": 1374,
+      "height": 1145,
+      "alpha": true,
+      "size_bytes": 1494427,
+      "sha256": "175c790b8e678510b8790b31e86e5fde5ce48bc2589405bc4b5e8d7d471ea871"
+    },
+    {
+      "file": "assets/sunken-archive.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2832123,
+      "sha256": "a2130e7f4a858788fa39ed360e1e06d8a69329df541c6a29a1e9018ee78060d0"
+    },
+    {
+      "file": "assets/tidal-library.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 3029453,
+      "sha256": "9f5f8f5d936fdb2082106e339a1973576c7d396fc627f47226b0f236adafe01c"
+    },
+    {
+      "file": "assets/valentine.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2394201,
+      "sha256": "f95c2588af2d7c9f59124446af2b9885ae553ad24b233f843856496b6676d30c"
+    },
+    {
+      "file": "assets/winter-solstice.png",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "size_bytes": 2874077,
+      "sha256": "602b28fd18bc0db0356df97691eaf545041f9c8bef40081d642269affac7489a"
+    }
+  ]
+}

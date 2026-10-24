@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { openSettings } from "./sections";
 import { expandSections } from "./sections";
-import { chooseScene } from "./scenes";
+import { chooseScene, closeGallery, openGallery } from "./scenes";
 
 for (const scene of [
   {
@@ -72,9 +72,13 @@ for (const scene of [
       .getByRole("button", { name: "Appearance settings", exact: true })
       .click();
     await expandSections(page);
+    await openGallery(page);
     await expect(
-      page.getByRole("button", { name: scene.name, exact: true }),
+      page
+        .locator(".theme-gallery")
+        .getByRole("button", { name: scene.name, exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
+    await closeGallery(page);
     await expect(page.locator(".background-art")).toHaveCSS("opacity", "0.58");
     await page.evaluate(() => {
       Object.defineProperty(document, "hidden", {
