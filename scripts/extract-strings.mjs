@@ -80,6 +80,11 @@ for (const file of files) {
   for (const pattern of dataFiles[rel] || [])
     for (const m of text.matchAll(pattern)) strings.add(unescape(m[1]).replace(/\\(["\\])/g, "$1"));
 }
+// Place names and their celebration or milestone names, from the generated catalog.
+for (const place of JSON.parse(readFileSync(join(src, "places", "places.json"), "utf8"))) {
+  strings.add(place.title);
+  strings.add(place.event);
+}
 // Values used as both data and display text.
 for (const s of [
   "All books", "Favorites", "Unsorted", "Trash", "All", "Books", "Documents",
