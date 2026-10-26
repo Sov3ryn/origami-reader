@@ -1,8 +1,10 @@
 import { backgrounds, defaultSceneAppearance } from "../../src/backgrounds";
 import { themes } from "../../src/themes";
 
+// Setup offers the lake seasons and Paper hills; gardens are retired and the
+// places to read are earned in the app.
 export const presets = backgrounds
-  .filter((scene) => scene.id !== "none")
+  .filter((scene) => scene.id !== "none" && !scene.place && scene.location !== "garden")
   .map((scene) => ({
     ...scene,
     name: scene.id === "lake" ? "Plum Nocturne" : scene.name,
@@ -40,15 +42,13 @@ export function presetTheme(id: string) {
 const SEASONS = ["spring", "summer", "autumn", "winter"] as const;
 const SEASON_NAMES: Record<string, string> = { spring: "Spring", summer: "Summer", autumn: "Autumn", winter: "Winter" };
 export type Place = { id: string; name: string; location: string; season: string; scenes: typeof presets };
-export const places: Place[] = (["lake", "garden"] as const).flatMap((location) =>
-  SEASONS.map((season) => ({
-    id: location === "lake" && season === "spring" ? "lake" : `${location}-${season}`,
-    name: `${location === "lake" ? "Lake" : "Garden"} \u00b7 ${SEASON_NAMES[season]}`,
-    location: location === "lake" ? "Lake" : "Garden",
-    season: SEASON_NAMES[season],
-    scenes: presets.filter((p) => (p.location === "garden" ? "garden" : "lake") === location && p.season === season),
-  })),
-).filter((place) => place.scenes.length);
+export const places: Place[] = SEASONS.map((season) => ({
+  id: season === "spring" ? "lake" : `lake-${season}`,
+  name: `Lake \u00b7 ${SEASON_NAMES[season]}`,
+  location: "Lake",
+  season: SEASON_NAMES[season],
+  scenes: presets.filter((p) => p.season === season),
+})).filter((place) => place.scenes.length);
 export const timeOf = (id: string) => getPreset(id).time || "night";
 export function sceneFor(place: Place, time: string) {
   return place.scenes.find((s) => s.time === time) || place.scenes[0];

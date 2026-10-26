@@ -40,15 +40,14 @@ it("recommendations point to downloadable models and use conservative unknown ha
   expect(recommendable.every((id) => modelCatalog.find((m) => m.id === id)?.download)).toBe(true);
   expect(modelCatalog.every((m) => m.downloadUrl === null)).toBe(true);
 });
-it("garden season changes stay in the garden and restore custom effects", () => {
+it("garden scenes keep their own settings and open on the lake at startup", () => {
   expect(counterpart("garden-winter-day")).toBe("garden-winter-night");
   const p = {
     ...switchBackground(defaultPreferences, "garden-spring-day"),
     backgroundMode: "seasonal" as const,
   };
-  expect(startupBackground(p, new Date(2026, 9, 15)).scene).toBe(
-    "garden-autumn-day",
-  );
+  // Gardens are retired: a saved garden opens on the lake for the current season.
+  expect(startupBackground(p, new Date(2026, 9, 15)).scene).toBe("autumn-day");
   const saved = { ...p, fountain: false, backgroundOpacity: 0.73 };
   const roundtrip = switchBackground(
     switchBackground(saved, "garden-summer-day"),
@@ -65,4 +64,10 @@ it("suggests a lighter reader that keeps the reading language", async () => {
   expect(lighterReader("qwen3-tts-0.6b", ["qwen3-tts-0.6b", "kitten-mini"], true)).toEqual({ id: "kitten-mini", installed: true });
   expect(lighterReader("qwen3-tts-0.6b", ["qwen3-tts-0.6b"], true)).toEqual({ id: "kokoro", installed: false });
   expect(lighterReader("kitten-micro", ["kitten-micro"], true)).toBeNull();
+});
+
+it("opens a saved garden scene as the lake of the same season and time", () => {
+  const saved = switchBackground(defaultPreferences, "garden-autumn-day");
+  const opened = startupBackground({ ...saved, timeMode: "manual" }, new Date(2026, 9, 26, 12));
+  expect(opened.scene).toBe("autumn-day");
 });

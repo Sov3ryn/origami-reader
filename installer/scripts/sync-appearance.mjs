@@ -14,6 +14,16 @@ for (const name of ["BackgroundScene", "FishRipples", "GardenEffects"]) {
     `// Synced by scripts/sync-appearance.mjs from the reader's visual components.\n${source}`,
   );
 }
+// Setup never shows the places to read, which are earned in the app, so their
+// renderer and artwork stay out of the installer.
+await writeFile(
+  "src/appearance/PlaceBackground.tsx",
+  `// Written by scripts/sync-appearance.mjs: setup does not show places to read.
+export function PlaceBackground(_props: { place: unknown; motion: boolean; fireworks: boolean }) {
+  return null;
+}
+`,
+);
 const styles = await readFile("../src/styles.css", "utf8");
 const sceneStart = styles.indexOf(".background-art {");
 const sceneEnd = styles.indexOf(".ambient-options {", sceneStart);
@@ -34,7 +44,11 @@ await writeFile(
 );
 // Replace, not merge, so retired scene files do not linger in the installer.
 await rm("public/backgrounds", { recursive: true, force: true });
-await cp("../public/backgrounds", "public/backgrounds", { recursive: true });
+// The garden scenes are retired, so their paintings are left out.
+await cp("../public/backgrounds", "public/backgrounds", {
+  recursive: true,
+  filter: (path) => !/garden-[^\/]*$/.test(path),
+});
 await cp("../public/ambient", "public/ambient", { recursive: true });
 await cp("../public/flags", "public/flags", { recursive: true });
 await cp("../public/moonlit-lake.webp", "public/moonlit-lake.webp");

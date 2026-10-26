@@ -441,10 +441,17 @@ export function toggleTimeOfDay(prefs: Preferences): Preferences {
 }
 
 export function startupBackground(
-  prefs: Preferences,
+  saved: Preferences,
   date = new Date(),
   random = Math.random,
 ): Preferences {
+  // The garden scenes are no longer offered; a saved garden opens as the lake
+  // scene of the same season and time of day.
+  const garden = getBackground(saved.scene);
+  const prefs =
+    garden.location === "garden" && garden.season && garden.time
+      ? switchBackground(saved, sceneFor(garden.season, garden.time))
+      : saved;
   const time = desiredTime(prefs, date) || sceneTime(prefs.scene);
   if (prefs.backgroundMode === "seasonal") {
     return switchBackground(

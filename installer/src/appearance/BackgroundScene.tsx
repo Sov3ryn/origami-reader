@@ -9,6 +9,7 @@ import {
 import type { Preferences } from "../../../src/types";
 import { GardenEffects } from "./GardenEffects";
 import { FishRipples } from "./FishRipples";
+import { PlaceBackground } from "./PlaceBackground";
 
 const petals = [
   {
@@ -196,6 +197,20 @@ export const BackgroundScene = memo(function BackgroundScene({
     void probe.decode?.().catch(() => {});
   }, [twinArt?.url]);
   if (scene.id === "none" || prefs.backgroundOpacity <= 0) return null;
+  if (scene.place)
+    return (
+      <div
+        className="background-art background-place"
+        style={{ opacity: prefs.backgroundOpacity }}
+        aria-hidden="true"
+      >
+        <PlaceBackground
+          place={scene.place}
+          motion={prefs.motion}
+          fireworks={prefs.fireworks}
+        />
+      </div>
+    );
   const active = new Set(enabledEffects(prefs));
   const stageEffects = [...active].some(
     (key) => key !== "petals" && key !== "leaves" && key !== "snow",

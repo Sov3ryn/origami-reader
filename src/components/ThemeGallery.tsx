@@ -7,7 +7,6 @@ import {
   backgroundImage,
   backgrounds,
   getBackground,
-  isDraftArt,
   seasons,
   type BackgroundDefinition,
 } from "../backgrounds";
@@ -15,22 +14,29 @@ import { places, placeSceneId, readingStats, unlockHint, type Place } from "../p
 import { bookFinished } from "../libraryFilters";
 import type { BookMeta, Preferences } from "../types";
 
+// Colour themes grouped by how bright their background is.
+const brightness = (hex: string) => {
+  const full = hex.length === 4 ? hex.replace(/[0-9a-f]/gi, (c) => c + c) : hex;
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(full.slice(i, i + 2), 16));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const colorGroups: [string, typeof themes][] = [
+  ["Dark", themes.filter((th) => !th.id.startsWith("contrast") && brightness(th.bg) < 128)],
+  ["Light", themes.filter((th) => !th.id.startsWith("contrast") && brightness(th.bg) >= 128)],
+  ["High contrast", themes.filter((th) => th.id.startsWith("contrast"))],
+];
+
 export type GalleryTab = "scenes" | "colors";
 
-// Landscapes in season order, day before night, then the garden, then the plain choices.
+// Landscapes in season order, day before night, then the plain choices.
 const landscapes: BackgroundDefinition[] = [
   getBackground("none"),
-  ...(["lake", "garden"] as const).flatMap((location) =>
-    seasons.flatMap((season) =>
-      (["day", "night"] as const).map(
-        (time) =>
-          backgrounds.find(
-            (b) =>
-              b.season === season.id &&
-              b.time === time &&
-              (b.location || "lake") === location,
-          )!,
-      ),
+  ...seasons.flatMap((season) =>
+    (["day", "night"] as const).map(
+      (time) =>
+        backgrounds.find(
+          (b) => b.season === season.id && b.time === time && !b.location,
+        )!,
     ),
   ),
   getBackground("paper"),
@@ -78,7 +84,7 @@ export function ThemeGallery({
     art: { url: string; filter?: string } | undefined,
     chosen: boolean,
     choose: () => void,
-    extra?: { locked?: Place; className?: string; draft?: boolean },
+    extra?: { locked?: Place; className?: string },
   ) => {
     const locked = extra?.locked;
     const hint = locked && unlockHint(locked, stats, finished);
@@ -116,11 +122,6 @@ export function ThemeGallery({
         {chosen && !locked && (
           <span className="gallery-check" aria-hidden="true">
             <Check size={13} />
-          </span>
-        )}
-        {extra?.draft && !locked && (
-          <span className="draft-chip" aria-hidden="true">
-            {t("Draft art")}
           </span>
         )}
         {hint && (
@@ -194,7 +195,7 @@ export function ThemeGallery({
                   backgroundImage(s),
                   prefs.scene === s.id,
                   () => onChange({ scene: s.id, backgroundMode: "manual" }),
-                  { className: "preview-" + s.id, draft: isDraftArt(s) },
+                  { className: "preview-" + s.id },
                 ),
               )}
             </div>
@@ -205,7 +206,7 @@ export function ThemeGallery({
               </small>
             </h3>
             <p className="hint">
-              {t("Reading, listening and finishing books unlock new places. Celebrations open during their dates, or later with enough reading.")}
+              {t("Reading, listening and finishing books unlock new places. Each celebration unlocks only when you read during its month.")}
             </p>
             <h4>{t("Celebrations")}</h4>
             <div className="gallery-grid">{group("holiday").map(placeTile)}</div>
@@ -215,24 +216,29 @@ export function ThemeGallery({
         ) : (
           <div className="gallery-body" role="tabpanel">
             <p className="hint">{t("Colors for menus, panels and buttons.")}</p>
-            <div className="gallery-grid color-grid">
-              {themes.map((th) => (
-                <button
-                  key={th.id}
-                  className={"color-tile" + (prefs.theme === th.id ? " chosen" : "")}
-                  aria-pressed={prefs.theme === th.id}
-                  onClick={() => onChange({ theme: th.id })}
-                  style={{ background: th.bg, color: th.ink, borderColor: th.line }}
-                >
-                  <span className="color-panel" style={{ background: th.panel, borderColor: th.line }} aria-hidden="true">
-                    <span style={{ background: th.accent }} />
-                    <span style={{ background: th.muted }} />
-                  </span>
-                  <strong>{t(th.name)}</strong>
-                  {prefs.theme === th.id && <Check size={14} style={{ color: th.accent }} aria-hidden="true" />}
-                </button>
-              ))}
-            </div>
+            {colorGroups.map(([title, list]) => (
+              <div key={title}>
+                <h4>{t(title)}</h4>
+                <div className="gallery-grid color-grid">
+                  {list.map((th) => (
+                    <button
+                      key={th.id}
+                      className={"color-tile" + (prefs.theme === th.id ? " chosen" : "")}
+                      aria-pressed={prefs.theme === th.id}
+                      onClick={() => onChange({ theme: th.id })}
+                      style={{ background: th.bg, color: th.ink, borderColor: th.line }}
+                    >
+                      <span className="color-panel" style={{ background: th.panel, borderColor: th.line }} aria-hidden="true">
+                        <span style={{ background: th.accent }} />
+                        <span style={{ background: th.muted }} />
+                      </span>
+                      <strong>{t(th.name)}</strong>
+                      {prefs.theme === th.id && <Check size={14} style={{ color: th.accent }} aria-hidden="true" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </section>

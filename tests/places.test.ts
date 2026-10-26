@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  celebrationMonth,
   celebrationsOn,
   localDay,
   places,
@@ -20,20 +21,24 @@ describe("places to read", () => {
     expect(scene.place?.title).toBe("The Christmas Eve Library");
     expect(scene.image).toBe("/places/christmas.webp");
   });
-  it("opens celebrations on their local dates", () => {
-    expect(on(2026, 12, 24)).toContain("christmas");
-    expect(on(2027, 1, 1)).toContain("new-year");
-    expect(on(2026, 12, 31)).toContain("new-year");
-    // Easter 2026 is 5 April; Mardi Gras is 47 days before.
-    expect(on(2026, 4, 5)).toContain("easter");
-    expect(on(2026, 2, 17)).toContain("carnival");
-    // Thanksgiving: 12 October 2026 in Canada, 26 November in the United States.
-    expect(on(2026, 10, 12)).toContain("harvest");
-    expect(on(2026, 11, 26)).toContain("harvest");
-    // A window that crosses the new year (Hanukkah from 24 December 2027).
-    expect(on(2028, 1, 1)).toContain("hanukkah");
-    expect(on(2026, 3, 1)).toContain("ramadan");
+  it("opens each celebration for its whole month", () => {
+    expect(on(2026, 12, 2)).toEqual(expect.arrayContaining(["christmas", "winter-solstice", "hanukkah"]));
+    expect(on(2027, 1, 20)).toContain("new-year");
+    expect(on(2026, 12, 31)).not.toContain("new-year");
+    // Easter 2026 is 5 April; Mardi Gras (17 February) is 47 days before.
+    expect(on(2026, 4, 28)).toContain("easter");
+    expect(on(2026, 2, 3)).toEqual(expect.arrayContaining(["carnival", "ramadan", "valentine", "lunar-new-year"]));
+    // Ramadan 2026 runs from 18 February into March, so both months count.
+    expect(on(2026, 3, 30)).toEqual(expect.arrayContaining(["ramadan", "eid", "nowruz"]));
+    // Thanksgiving in Canada (October) and the United States (November).
+    expect(on(2026, 10, 2)).toEqual(expect.arrayContaining(["harvest", "halloween"]));
+    expect(on(2026, 11, 20)).toEqual(expect.arrayContaining(["harvest", "dia-de-muertos", "diwali"]));
+    // Hanukkah 2027 starts on 24 December and ends in January 2028.
+    expect(on(2028, 1, 15)).toContain("hanukkah");
     expect(on(2026, 8, 10)).toEqual([]);
+    expect(celebrationMonth("ramadan", new Date(2026, 9, 26))).toEqual(new Date(2027, 1, 1));
+    expect(celebrationMonth("halloween", new Date(2026, 9, 26))).toEqual(new Date(2026, 9, 1));
+    expect(celebrationMonth("eid", new Date(2036, 0, 1))).toBeNull();
   });
   it("unlocks by reading time, days, books and celebration time, and never locks again", () => {
     const stats = readingStats({ ...emptyReadingStats, activeSeconds: 3600 });
@@ -42,11 +47,8 @@ describe("places to read", () => {
     expect(unlockedPlaces(readingStats({}), 1)).toContain("midnight-express");
     expect(unlockedPlaces(readingStats({ holidaySeconds: { halloween: 1200 } }), 0)).toEqual(["halloween"]);
     expect(unlockedPlaces(readingStats({ unlocked: ["glasshouse", "unknown"] }), 0)).toEqual(["glasshouse"]);
-    // The lifetime fallback opens a missed celebration.
-    const fallback = places.find((p) => p.id === "new-year")!.unlock;
-    expect(fallback.metric).toBe("holidaySeconds");
-    if (fallback.metric === "holidaySeconds")
-      expect(unlockedPlaces(readingStats({ activeSeconds: fallback.fallbackSeconds }), 0)).toContain("new-year");
+    // Celebrations have no other way in: reading time alone never opens them.
+    expect(unlockedPlaces(readingStats({ activeSeconds: 400 * 3600 }), 0)).not.toContain("new-year");
   });
   it("ignores damaged statistics", () => {
     expect(readingStats({ activeSeconds: -5, readingDays: "x", holidaySeconds: { a: NaN }, unlocked: "no" })).toEqual(emptyReadingStats);
@@ -60,6 +62,13 @@ describe("places to read", () => {
     });
     const train = places.find((p) => p.id === "midnight-express")!;
     expect(unlockHint(train, readingStats({}), 0).how).toBe("Finish your first book.");
+    const halloween = places.find((p) => p.id === "halloween")!;
+    expect(unlockHint(halloween, readingStats({ holidaySeconds: { halloween: 300 } }), 0, new Date(2026, 9, 26))).toEqual({
+      how: "Read or listen for 20 minutes in the month of Halloween.",
+      progress: "Open now, until the end of October 2026. So far: 5 min of 20 min.",
+    });
+    const christmas = places.find((p) => p.id === "christmas")!;
+    expect(unlockHint(christmas, readingStats({}), 0, new Date(2026, 9, 26)).progress).toBe("Opens in December 2026.");
     expect(localDay(new Date(2026, 0, 5))).toBe("2026-01-05");
   });
 });

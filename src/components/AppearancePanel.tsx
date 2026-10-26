@@ -19,7 +19,6 @@ import {
   defaultSceneAppearance,
   effectLabels,
   getBackground,
-  isDraftArt,
   sceneFor,
   sceneTime,
   seasons,
@@ -187,11 +186,6 @@ export function AppearancePanel({
             onChange={onChange}
             onClose={() => setGallery(false)}
           />
-        )}
-        {isDraftArt(background) && (
-          <p className="hint">
-            {t("Temporary art. A painted version replaces it when added.")}
-          </p>
         )}
         <label data-help={t("How strongly the scene shows behind the app.")}>
           {t("Background opacity")}{" "}
