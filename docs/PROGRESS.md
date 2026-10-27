@@ -789,3 +789,9 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - Checked in the browser with a synthetic voice at full and 30% volume: all four styles move, every bar responds, silence is flat; the style cycles on click and the setting removes and restores it. Real voices need the desktop app and were not heard. Locales complete (six new strings).
 - On the author picture for Grayson Bray Morris: no freely licensed photo or artwork exists (none on Wikimedia Commons or Wikidata, none on gbmj.net, whose own photos would be CC BY-SA 4.0); an invented likeness of a living author is not used, so the initials stay until the author provides a picture.
 
+## Beta 14, 27 October 2026
+
+- Released for Windows (Studio on): Origami-Reader-Setup-Beta-14.exe on the hub (SHA-256 b006a46c...) and a signed app update on origami-updates (the workers are unchanged since beta 13), with the sound visualizer and the Studio side panel fix.
+- Built as beta 13: the full kit refreshed in place, the online kit cut from it with beta 12's voice set (work/hub/voices-13-source; downloads identical to beta 13's), sealed and packed into one setup program. Only the reader, components.json and the sealed notices and source changed from beta 13.
+- Checked: the release build on a fresh data folder and the kit installed with the harness then opened (three modes, six starter books, the Studio home, 240 px side panels, the visualizer left of the play button, no page errors; components.json reads beta 14). Online: the latest update manifest matches the signed one byte for byte, the app file downloads, and the hub asset's SHA-256 matches.
+
