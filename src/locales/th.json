@@ -2994,5 +2994,11 @@
   "Strip": "แถบ",
   "Timeline zoom": "ซูมไทม์ไลน์",
   "Tracks": "แทร็ก",
-  "Zoom": "ซูม"
+  "Zoom": "ซูม",
+  "Bars": "แท่ง",
+  "Mirror": "กระจก",
+  "Pulse": "ชีพจร",
+  "Show the sound visualizer beside the play button": "แสดงภาพเสียงข้างปุ่มเล่น",
+  "Sound visualizer: {style}. Click for another style.": "ภาพเสียง: {style} คลิกเพื่อเปลี่ยนรูปแบบ",
+  "Wave": "คลื่น"
 }

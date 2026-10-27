@@ -40,6 +40,7 @@ const dataFiles = {
   "backgrounds.ts": [/\bname: "([^"]+)"/g],
   "binding.ts": [/\bname: "([^"]+)"/g],
   "components/AppearancePanel.tsx": [/\bname: "([^"]+)"/g],
+  "components/AudioVisualizer.tsx": [/\bname: "([^"]+)"/g],
   "components/Shortcuts.tsx": [/\baction: "([^"]+)"/g, /\bgroup: "([^"]+)"/g],
   "App.tsx": [/\blabel: "([^"]+)"/g],
   "comfort.ts": [/\bname: "([^"]+)"/g, /\bdescription:\s*"([^"]+)"/g],

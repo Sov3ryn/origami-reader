@@ -2994,5 +2994,11 @@
   "Strip": "条带",
   "Timeline zoom": "时间线缩放",
   "Tracks": "音轨",
-  "Zoom": "缩放"
+  "Zoom": "缩放",
+  "Bars": "柱状",
+  "Mirror": "镜像",
+  "Pulse": "脉冲",
+  "Show the sound visualizer beside the play button": "在播放按钮旁显示声音可视化",
+  "Sound visualizer: {style}. Click for another style.": "声音可视化：{style}。点击切换样式。",
+  "Wave": "波形"
 }

@@ -2994,5 +2994,11 @@
   "Strip": "স্ট্রিপ",
   "Timeline zoom": "টাইমলাইন জুম",
   "Tracks": "ট্র্যাক",
-  "Zoom": "জুম"
+  "Zoom": "জুম",
+  "Bars": "বার",
+  "Mirror": "আয়না",
+  "Pulse": "স্পন্দন",
+  "Show the sound visualizer beside the play button": "প্লে বোতামের পাশে শব্দ ভিজ্যুয়ালাইজার দেখান",
+  "Sound visualizer: {style}. Click for another style.": "শব্দ ভিজ্যুয়ালাইজার: {style}। অন্য ধরনের জন্য ক্লিক করুন।",
+  "Wave": "তরঙ্গ"
 }

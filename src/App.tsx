@@ -209,6 +209,8 @@ import {
 } from "./annotations";
 import * as store from "./storage";
 import { usePlayer } from "./usePlayer";
+import { primeMeter, setMeterEnabled } from "./audioMeter";
+import { AudioVisualizer } from "./components/AudioVisualizer";
 import {
   pageAtOffset,
   pageForParagraph,
@@ -577,6 +579,7 @@ export default function App() {
   // A reader too slow for this computer: suggest a lighter one, once per model.
   const [slowReader, setSlowReader] = useState("");
   const slowShown = useRef(new Set<string>());
+  setMeterEnabled(prefs.visualizer);
   const player = usePlayer(
     notify,
     (voice) => setPrefs((old) => ({ ...old, lastVoice: voice })),
@@ -1419,6 +1422,8 @@ export default function App() {
   }
   function togglePlayback() {
     if (!bookRef.current) return;
+    // The visualizer's audio context may only start from a click.
+    primeMeter();
     if (player.status === "idle") void startBook();
     else player.toggle();
   }
@@ -5533,6 +5538,14 @@ export default function App() {
                 />
                 {t("Suggest a lighter reader when reading aloud waits between sentences")}
               </label>
+              <label className="check-label">
+                <input
+                  type="checkbox"
+                  checked={prefs.visualizer}
+                  onChange={(e) => patchPrefs({ visualizer: e.target.checked })}
+                />
+                {t("Show the sound visualizer beside the play button")}
+              </label>
               <p className="hint">
                 {t(
                   "The first Play starts sooner. Changing books keeps the loaded voice. Closing Origami releases it.",
@@ -8045,6 +8058,13 @@ export default function App() {
               )}
             </div>
             <div className="player-center">
+              {prefs.visualizer && (
+                <AudioVisualizer
+                  playing={player.status === "playing"}
+                  style={prefs.visualizerStyle}
+                  onStyle={(visualizerStyle) => patchPrefs({ visualizerStyle })}
+                />
+              )}
               <div className="transport">
                 <IconButton
                   label={

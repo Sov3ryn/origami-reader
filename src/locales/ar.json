@@ -2994,5 +2994,11 @@
   "Strip": "شريط",
   "Timeline zoom": "تكبير الخط الزمني",
   "Tracks": "مسارات",
-  "Zoom": "تكبير"
+  "Zoom": "تكبير",
+  "Bars": "أعمدة",
+  "Mirror": "مرآة",
+  "Pulse": "نبض",
+  "Show the sound visualizer beside the play button": "إظهار مُصوِّر الصوت بجانب زر التشغيل",
+  "Sound visualizer: {style}. Click for another style.": "مُصوِّر الصوت: {style}. انقر لنمط آخر.",
+  "Wave": "موجة"
 }

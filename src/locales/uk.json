@@ -2994,5 +2994,11 @@
   "Strip": "Смуга",
   "Timeline zoom": "Масштаб шкали часу",
   "Tracks": "Доріжки",
-  "Zoom": "Масштаб"
+  "Zoom": "Масштаб",
+  "Bars": "Смуги",
+  "Mirror": "Дзеркало",
+  "Pulse": "Пульс",
+  "Show the sound visualizer beside the play button": "Показувати візуалізацію звуку поруч із кнопкою відтворення",
+  "Sound visualizer: {style}. Click for another style.": "Візуалізація звуку: {style}. Натисніть, щоб змінити стиль.",
+  "Wave": "Хвиля"
 }

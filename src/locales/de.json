@@ -2994,5 +2994,11 @@
   "Strip": "Streifen",
   "Timeline zoom": "Zeitleiste zoomen",
   "Tracks": "Spuren",
-  "Zoom": "Zoom"
+  "Zoom": "Zoom",
+  "Bars": "Balken",
+  "Mirror": "Spiegel",
+  "Pulse": "Puls",
+  "Show the sound visualizer beside the play button": "Klangvisualisierung neben der Wiedergabetaste anzeigen",
+  "Sound visualizer: {style}. Click for another style.": "Klangvisualisierung: {style}. Klicken für einen anderen Stil.",
+  "Wave": "Welle"
 }

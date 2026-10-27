@@ -2994,5 +2994,11 @@
   "Strip": "Pasek",
   "Timeline zoom": "Powiększenie osi czasu",
   "Tracks": "Ścieżki",
-  "Zoom": "Powiększenie"
+  "Zoom": "Powiększenie",
+  "Bars": "Słupki",
+  "Mirror": "Lustro",
+  "Pulse": "Puls",
+  "Show the sound visualizer beside the play button": "Pokazuj wizualizację dźwięku obok przycisku odtwarzania",
+  "Sound visualizer: {style}. Click for another style.": "Wizualizacja dźwięku: {style}. Kliknij, aby zmienić styl.",
+  "Wave": "Fala"
 }

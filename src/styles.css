@@ -8265,3 +8265,28 @@ html[data-hidden="true"] .garden-effects * {
 .sidebar .mode-header .mode-switch {
   margin: 0;
 }
+
+/* The sound visualizer beside the play button (AudioVisualizer.tsx): a click
+   moves to the next style. It takes the accent colour. */
+.audio-visualizer {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--accent);
+}
+.audio-visualizer:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.audio-visualizer canvas {
+  display: block;
+}
+@media (max-width: 900px) {
+  .audio-visualizer {
+    display: none;
+  }
+}

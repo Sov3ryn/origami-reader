@@ -2994,5 +2994,11 @@
   "Strip": "Dải",
   "Timeline zoom": "Thu phóng dòng thời gian",
   "Tracks": "Rãnh",
-  "Zoom": "Thu phóng"
+  "Zoom": "Thu phóng",
+  "Bars": "Cột",
+  "Mirror": "Gương",
+  "Pulse": "Nhịp",
+  "Show the sound visualizer beside the play button": "Hiện hiệu ứng âm thanh cạnh nút phát",
+  "Sound visualizer: {style}. Click for another style.": "Hiệu ứng âm thanh: {style}. Nhấp để đổi kiểu.",
+  "Wave": "Sóng"
 }

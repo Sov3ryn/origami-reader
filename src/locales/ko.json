@@ -2994,5 +2994,11 @@
   "Strip": "스트립",
   "Timeline zoom": "타임라인 확대",
   "Tracks": "트랙",
-  "Zoom": "확대"
+  "Zoom": "확대",
+  "Bars": "막대",
+  "Mirror": "미러",
+  "Pulse": "펄스",
+  "Show the sound visualizer beside the play button": "재생 버튼 옆에 사운드 시각화 표시",
+  "Sound visualizer: {style}. Click for another style.": "사운드 시각화: {style}. 클릭하면 다른 스타일로 바뀝니다.",
+  "Wave": "파형"
 }

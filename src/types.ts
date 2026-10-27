@@ -91,6 +91,8 @@ export type TextSelection = {
   end: number;
   text: string;
 };
+export type VisualizerStyle = "bars" | "wave" | "mirror" | "pulse";
+
 export type Preferences = {
   theme: string;
   surface: string;
@@ -170,6 +172,9 @@ export type Preferences = {
   voiceTemperature: number;
   // Suggest a lighter reader when reading aloud keeps waiting between sentences.
   speedHints: boolean;
+  // The sound visualizer beside the play button, and its style.
+  visualizer: boolean;
+  visualizerStyle: VisualizerStyle;
   // Interface language code; empty follows the operating system.
   uiLanguage: string;
   // "later" means the reader chose Maybe later once; it is asked one last time.
@@ -411,6 +416,8 @@ export const defaultPreferences: Preferences = {
   pronunciations: [],
   voiceTemperature: 0.9,
   speedHints: true,
+  visualizer: true,
+  visualizerStyle: "bars",
   uiLanguage: "",
   supportPrompt: "ask",
   supportPromptAfter: 0,

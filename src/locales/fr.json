@@ -3016,5 +3016,11 @@
   "Strip": "Bande",
   "Timeline zoom": "Zoom de la chronologie",
   "Tracks": "Pistes",
-  "Zoom": "Zoom"
+  "Zoom": "Zoom",
+  "Bars": "Barres",
+  "Mirror": "Miroir",
+  "Pulse": "Pulsation",
+  "Show the sound visualizer beside the play button": "Afficher le visualiseur sonore à côté du bouton de lecture",
+  "Sound visualizer: {style}. Click for another style.": "Visualiseur sonore : {style}. Cliquez pour un autre style.",
+  "Wave": "Onde"
 }

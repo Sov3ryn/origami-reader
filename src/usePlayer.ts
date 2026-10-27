@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { meterAudio } from "./audioMeter";
 import { invoke } from "@tauri-apps/api/core";
 import type { Production } from "./studio/production";
 import { studioUnits } from "./studioNarration";
@@ -418,6 +419,7 @@ export function usePlayer(
         );
         urls.current.add(url);
         const player = new Audio(url);
+        meterAudio(player);
         audio.current = player;
         player.volume = activePrefs.current!.volume * fadeScale.current;
         player.playbackRate = activePrefs.current!.speed;

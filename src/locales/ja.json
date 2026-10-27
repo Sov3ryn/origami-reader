@@ -2994,5 +2994,11 @@
   "Strip": "ストリップ",
   "Timeline zoom": "タイムラインの拡大",
   "Tracks": "トラック",
-  "Zoom": "拡大"
+  "Zoom": "拡大",
+  "Bars": "バー",
+  "Mirror": "ミラー",
+  "Pulse": "パルス",
+  "Show the sound visualizer beside the play button": "再生ボタンの横にサウンドビジュアライザーを表示",
+  "Sound visualizer: {style}. Click for another style.": "サウンドビジュアライザー: {style}。クリックで別のスタイルに切り替え。",
+  "Wave": "波形"
 }

@@ -2994,5 +2994,11 @@
   "Strip": "Faixa única",
   "Timeline zoom": "Zoom da linha do tempo",
   "Tracks": "Faixas",
-  "Zoom": "Zoom"
+  "Zoom": "Zoom",
+  "Bars": "Barras",
+  "Mirror": "Espelho",
+  "Pulse": "Pulso",
+  "Show the sound visualizer beside the play button": "Mostrar o visualizador de som ao lado do botão de reproduzir",
+  "Sound visualizer: {style}. Click for another style.": "Visualizador de som: {style}. Clique para outro estilo.",
+  "Wave": "Onda"
 }

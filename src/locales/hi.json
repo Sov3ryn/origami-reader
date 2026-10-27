@@ -2994,5 +2994,11 @@
   "Strip": "पट्टी",
   "Timeline zoom": "टाइमलाइन ज़ूम",
   "Tracks": "ट्रैक",
-  "Zoom": "ज़ूम"
+  "Zoom": "ज़ूम",
+  "Bars": "पट्टियाँ",
+  "Mirror": "दर्पण",
+  "Pulse": "स्पंदन",
+  "Show the sound visualizer beside the play button": "चलाएँ बटन के पास ध्वनि विज़ुअलाइज़र दिखाएँ",
+  "Sound visualizer: {style}. Click for another style.": "ध्वनि विज़ुअलाइज़र: {style}। दूसरी शैली के लिए क्लिक करें।",
+  "Wave": "तरंग"
 }

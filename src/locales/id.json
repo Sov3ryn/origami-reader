@@ -2994,5 +2994,11 @@
   "Strip": "Strip",
   "Timeline zoom": "Zoom linimasa",
   "Tracks": "Trek",
-  "Zoom": "Zoom"
+  "Zoom": "Zoom",
+  "Bars": "Batang",
+  "Mirror": "Cermin",
+  "Pulse": "Denyut",
+  "Show the sound visualizer beside the play button": "Tampilkan visualisasi suara di samping tombol putar",
+  "Sound visualizer: {style}. Click for another style.": "Visualisasi suara: {style}. Klik untuk gaya lain.",
+  "Wave": "Gelombang"
 }

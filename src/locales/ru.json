@@ -2994,5 +2994,11 @@
   "Strip": "Полоса",
   "Timeline zoom": "Масштаб шкалы времени",
   "Tracks": "Дорожки",
-  "Zoom": "Масштаб"
+  "Zoom": "Масштаб",
+  "Bars": "Полосы",
+  "Mirror": "Зеркало",
+  "Pulse": "Пульс",
+  "Show the sound visualizer beside the play button": "Показывать визуализацию звука рядом с кнопкой воспроизведения",
+  "Sound visualizer: {style}. Click for another style.": "Визуализация звука: {style}. Нажмите, чтобы сменить стиль.",
+  "Wave": "Волна"
 }
