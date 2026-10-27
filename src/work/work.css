@@ -61,10 +61,10 @@ body.resizing-panel {
   place-items: center;
   grid-template-columns: 1fr;
 }
+/* A fade only: the side panel stays in place when the mode changes. */
 @keyframes work-in {
   from {
     opacity: 0;
-    transform: scale(1.012);
   }
 }
 .app.work-active .background-art * {
@@ -176,7 +176,7 @@ body.resizing-panel {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-@container (max-width: 270px) {
+@container (max-width: 280px) {
   .mode-switch button {
     padding: 5px 8px;
   }
@@ -214,16 +214,6 @@ body.resizing-panel {
   border: 1px solid var(--line);
   box-shadow: var(--work-shadow);
   overflow: auto;
-}
-.work-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 4px 4px;
-}
-.work-brand img {
-  width: 26px;
-  height: 26px;
 }
 .work-search {
   justify-content: flex-start;
@@ -763,8 +753,11 @@ body.resizing-panel {
   padding: 18px clamp(20px, 6vw, 80px) 120px;
 }
 .note-sheet > * {
-  max-width: 760px;
+  max-width: var(--page-w, 760px);
   margin-inline: auto;
+}
+.note-page[data-page="full"] .note-sheet > * {
+  max-width: none;
 }
 .note-title {
   display: block;
@@ -2070,7 +2063,7 @@ body.resizing-panel {
 @media (max-width: 980px) {
   .work-mode,
   .work-mode.with-connections {
-    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-columns: var(--work-left, 220px) minmax(0, 1fr);
   }
   .panel-resizer {
     display: none;
@@ -2116,11 +2109,6 @@ body.resizing-panel {
     transition: none !important;
   }
 }
-.work-brand .mode-switch {
-  display: flex;
-  flex: 1 1 auto;
-  min-width: 0;
-}
 .connections-tabs .connections-close {
   flex: none;
   margin-left: 2px;
@@ -2129,4 +2117,68 @@ body.resizing-panel {
   color: #d56f6f;
   font-weight: 600;
   white-space: normal;
+}
+
+/* ===== The same shell as Read and Studio (27 October 2026) =====
+   Full-height columns with hairlines, over the blurred room. */
+.work-mode,
+.work-mode.with-connections {
+  gap: 0;
+  padding: 0;
+}
+.work-sidebar {
+  padding: var(--shell-pad, 22px 16px 18px);
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--shell-side, var(--work-glass));
+}
+.work-main {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--shell-main, var(--work-sheet));
+}
+.work-connections {
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--shell-side, var(--work-glass));
+}
+.work-nav-button {
+  padding: 10px 12px;
+  gap: 12px;
+}
+/* Resize handles: a line along the whole divider, as in Read. */
+.panel-resizer {
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  border-radius: 0;
+}
+.panel-resizer::after {
+  left: 2px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  border-radius: 0;
+}
+.work-menu {
+  border-radius: var(--menu-radius, 12px);
+  box-shadow: var(--menu-shadow, var(--work-shadow));
+}
+.work-menu button {
+  border-radius: 8px;
+}
+.work-menu button:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+@media (max-width: 980px) {
+  .work-connections {
+    right: 0;
+    top: 0;
+    bottom: 0;
+  }
 }

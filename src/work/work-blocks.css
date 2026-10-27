@@ -780,6 +780,64 @@
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18);
 }
 
+/* Page size chips: the writing column within the page. */
+.size-chip {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18);
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.22) var(--m), var(--panel) var(--m) calc(100% - var(--m)), rgb(0 0 0 / 0.22) 0);
+}
+.size-chip.narrow {
+  --m: 7px;
+}
+.size-chip.standard {
+  --m: 5px;
+}
+.size-chip.wide {
+  --m: 3px;
+}
+.size-chip.full {
+  --m: 0px;
+}
+
+/* The page and its margins: outside the page the sheet is shaded, so the
+   writing area and the page edge are clear. A grid item over the sheet keeps
+   still while the note scrolls. */
+.note-page {
+  /* The sheet's side padding (work.css); the page keeps most of it as its
+     own margin, and the rest shows as shade. */
+  --sheet-pad: clamp(20px, 6vw, 80px);
+  --page-edge: calc(min(var(--page-w, 760px) / 2, 50% - var(--sheet-pad)) + var(--sheet-pad) * 0.6);
+  --margin-shade: rgb(0 0 0 / 0.2);
+  --page-rule: color-mix(in srgb, var(--ink) 16%, transparent);
+}
+.note-page::after {
+  content: "";
+  grid-row: 2;
+  grid-column: 1;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    var(--margin-shade) calc(50% - var(--page-edge)),
+    var(--page-rule) 0 calc(50% - var(--page-edge) + 1px),
+    transparent 0 calc(50% + var(--page-edge) - 1px),
+    var(--page-rule) 0 calc(50% + var(--page-edge)),
+    var(--margin-shade) 0
+  );
+}
+.note-page[data-page="full"]::after {
+  display: none;
+}
+.note-page > .note-sheet {
+  grid-row: 2;
+  grid-column: 1;
+  /* Keeps the page centred under the shade whether or not it scrolls. */
+  scrollbar-gutter: stable both-edges;
+}
+
 /* Sticky notes */
 .note-sheet {
   position: relative;

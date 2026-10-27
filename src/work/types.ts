@@ -20,6 +20,8 @@ export type Subject = {
   created: number;
   // Exam date (YYYY-MM-DD): reviews are spread so every card is seen before it.
   exam?: string;
+  // Page width for its notes (papers.ts); none is standard.
+  pageSize?: string;
 };
 
 // Notes are stored as HTML: the editor's own format, so nothing is lost and
@@ -39,6 +41,8 @@ export type Note = {
   tags?: string[];
   // The paper this note is written on (papers.ts); none follows the theme.
   paper?: string;
+  // Page width (papers.ts); none follows the subject.
+  pageSize?: string;
   // Notes made from a highlight or card in a vault book are sealed too.
   vault?: string;
 };

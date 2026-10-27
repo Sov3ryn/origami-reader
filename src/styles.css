@@ -573,16 +573,22 @@ p {
   margin-top: 12px;
   font-size: var(--fs-small);
 }
+/* A floating panel, as in Work and Studio. */
 .sidebar {
   grid-column: 1;
   grid-row: 1;
-  background: color-mix(in srgb, var(--bg) 87%, transparent);
+  background: color-mix(in srgb, var(--panel) 78%, transparent);
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin: 12px 0 12px 12px;
+  box-shadow:
+    0 18px 50px -24px rgb(0 0 0 / 0.55),
+    0 2px 6px -2px rgb(0 0 0 / 0.25);
   min-width: 0;
   overflow-y: auto;
-  padding: 29px 17px 18px;
+  padding: 12px 10px 14px;
   gap: 0;
 }
 .collapsed {
@@ -615,8 +621,8 @@ p {
   font-size: 14px;
   border: 0;
   background: none;
-  padding: 13px 14px;
-  gap: 14px;
+  padding: 10px 12px;
+  gap: 12px;
 }
 .main-nav .active,
 .collections .active,
@@ -865,7 +871,7 @@ p {
   overflow: auto;
   flex: 1;
   min-height: 0;
-  padding: 31px 40px 45px;
+  padding: 22px 40px 45px;
   scrollbar-gutter: stable;
 }
 /* The library's rows wrap whenever their column runs out of room (the side
@@ -876,7 +882,13 @@ p {
   justify-content: space-between;
   align-items: center;
   gap: 14px 20px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+}
+/* Search sits in the heading row, between the title and the actions. */
+.heading-search {
+  flex: 1 1 280px;
+  max-width: 680px;
+  margin: 0 auto;
 }
 .page-heading > :first-child {
   min-width: 0;
@@ -889,9 +901,12 @@ p {
 .library-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 13px;
+  gap: 10px 13px;
   align-items: center;
-  margin-bottom: 17px;
+  margin-bottom: 26px;
+}
+.controls-spacer {
+  flex: 1;
 }
 .search-field {
   border: 1px solid var(--line);
@@ -952,14 +967,6 @@ p {
   width: 29px;
   height: 29px;
   flex: 0;
-}
-.filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  justify-content: space-between;
-  align-items: center;
-  margin: 4px 0 27px;
 }
 .chips {
   display: flex;
@@ -1038,8 +1045,14 @@ p {
   color: var(--muted);
 }
 .continue-info .book-progress {
-  max-width: 350px;
+  max-width: 560px;
   gap: 12px;
+}
+.continue-info .book-progress progress {
+  max-width: none;
+}
+.continue-info > .continue-stats {
+  font-size: var(--fs-caption);
 }
 .continue-open {
   background: var(--accent);
@@ -2711,34 +2724,36 @@ html[data-hidden="true"] .ambient-layer {
 /* Interface size. The reading page keeps its own text size. Fixed values per
    step: a zoom read from a custom property made every update re-lay out the
    whole book (about 240 ms instead of 18 ms in a long novel). */
-.app[data-ui-scale="90"] :is(.sidebar, .inspector, .player, .topbar, .ui-zoom) {
+.app[data-ui-scale="90"]
+  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom, .work-sidebar, .studio-nav, .studio-side, .studio-inspector, .studio-timeline-panel, .studio-home-body) {
   zoom: 0.9;
 }
-.app[data-ui-scale="95"] :is(.sidebar, .inspector, .player, .topbar, .ui-zoom) {
+.app[data-ui-scale="95"]
+  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom, .work-sidebar, .studio-nav, .studio-side, .studio-inspector, .studio-timeline-panel, .studio-home-body) {
   zoom: 0.95;
 }
 .app[data-ui-scale="105"]
-  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom) {
+  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom, .work-sidebar, .studio-nav, .studio-side, .studio-inspector, .studio-timeline-panel, .studio-home-body) {
   zoom: 1.05;
 }
 .app[data-ui-scale="110"]
-  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom) {
+  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom, .work-sidebar, .studio-nav, .studio-side, .studio-inspector, .studio-timeline-panel, .studio-home-body) {
   zoom: 1.1;
 }
 .app[data-ui-scale="115"]
-  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom) {
+  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom, .work-sidebar, .studio-nav, .studio-side, .studio-inspector, .studio-timeline-panel, .studio-home-body) {
   zoom: 1.15;
 }
 .app[data-ui-scale="120"]
-  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom) {
+  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom, .work-sidebar, .studio-nav, .studio-side, .studio-inspector, .studio-timeline-panel, .studio-home-body) {
   zoom: 1.2;
 }
 .app[data-ui-scale="125"]
-  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom) {
+  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom, .work-sidebar, .studio-nav, .studio-side, .studio-inspector, .studio-timeline-panel, .studio-home-body) {
   zoom: 1.25;
 }
 .app[data-ui-scale="130"]
-  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom) {
+  :is(.sidebar, .inspector, .player, .topbar, .ui-zoom, .work-sidebar, .studio-nav, .studio-side, .studio-inspector, .studio-timeline-panel, .studio-home-body) {
   zoom: 1.3;
 }
 .app {
@@ -6242,61 +6257,401 @@ html[data-hidden="true"] .previous-still {
   background: repeating-linear-gradient(90deg, #34343a 0 1px, #222227 1px 2px);
 }
 
-/* The closed book, turned a little so its spine and page block show. */
+/* The closed book: a volume resting on the table, cover up, its spine and the
+   tail of its pages toward the reader. Behind the cover (the leaf at z = 0)
+   the volume runs back: front board, page block, back board, all --thick
+   deep, which follows the book's length (binding.ts). */
+.book {
+  transform-origin: 75% 50%;
+}
 .book-spine-face,
-.book-block-top {
+.book-box > span {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
-.book-spine-face {
-  /* The cover's dominant color when it has an image, else the theme accent. */
-  --spine-base: var(
-    --spine,
-    color-mix(in srgb, var(--accent, #8e74c4) 50%, #2c2538)
-  );
-  left: calc(var(--page-w) - var(--thick));
-  top: 0;
-  width: var(--thick);
-  height: var(--page-h);
-  transform-origin: 100% 50%;
-  transform: rotateY(-90deg);
-  border-radius: 3px 0 0 3px;
-  background:
-    linear-gradient(
-      180deg,
-      transparent 9%,
-      rgba(214, 182, 112, 0.55) 9.4%,
-      transparent 10%,
-      transparent 90%,
-      rgba(214, 182, 112, 0.55) 90.4%,
-      transparent 91%
-    ),
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--spine-base) 62%, #000),
-      var(--spine-base) 45%,
-      color-mix(in srgb, var(--spine-base) 52%, #000)
-    );
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-.book-block-top {
+.book-box {
+  --board: clamp(2px, calc(var(--page-h) * 0.007), 5px);
+  --square: calc(var(--page-h) * 0.011);
+  --block: calc(var(--thick) - 2 * var(--board));
+  position: absolute;
   left: var(--page-w);
   top: 0;
-  width: calc(var(--page-w) - 4px);
-  height: var(--thick);
-  transform-origin: 50% 0;
-  transform: rotateX(90deg);
-  background: repeating-linear-gradient(0deg, #efe7d6 0 1px, #d3c9b4 1px 2px);
+  width: var(--page-w);
+  height: var(--page-h);
+  transform-style: preserve-3d;
+  pointer-events: none;
 }
-.book-block-edge {
+.book-spine-face {
+  /* Cloth in the cover's most prevalent color (a neutral cloth while it is
+     read); the title, bands and ornaments printed in ink or gilded. */
+  --spine-base: var(--spine, #3d3a4a);
+  --band: calc(var(--thick) * 0.3);
+  --foil: linear-gradient(
+    90deg,
+    var(--spine-lo),
+    var(--spine-hi) 42%,
+    var(--spine-mid) 62%,
+    var(--spine-lo)
+  );
+  /* A facet of the rounded back (placed by roundedSpine in BookView), shaded
+     from one side to the other so the facets read as one curve. */
+  top: 0;
+  height: var(--page-h);
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgb(0 0 0 / var(--shade-a, 0.3)), rgb(0 0 0 / var(--shade-b, 0.3))),
+    /* A soft sheen on the crown of the curve. */
+    radial-gradient(ellipse 60% 120% at 70% 50%, rgba(255, 255, 255, 0.07), transparent 70%),
+    /* The cloth's weave. */
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.07) 0 1px, transparent 1px 3px),
+    color-mix(in srgb, var(--spine-base) 80%, #000);
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.35);
+}
+/* Raised bands; gilded spines frame each one with two rules. */
+.spine-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--band);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.3),
+    rgba(255, 255, 255, 0.16) 42%,
+    rgba(255, 255, 255, 0.05) 60%,
+    rgba(0, 0, 0, 0.34)
+  );
+}
+.book-stage:not([data-spine="plain"]) .spine-band {
+  background:
+    var(--foil) 0 0 / 100% 1.5px no-repeat,
+    var(--foil) 0 100% / 100% 1.5px no-repeat,
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.3),
+      rgba(255, 255, 255, 0.16) 42%,
+      rgba(255, 255, 255, 0.05) 60%,
+      rgba(0, 0, 0, 0.34)
+    );
+}
+.spine-band.b1 {
+  top: 5%;
+}
+.spine-band.b2 {
+  top: calc(16% + var(--band));
+}
+.spine-band.b3 {
+  bottom: calc(16% + var(--band));
+}
+.spine-band.b4 {
+  bottom: 5%;
+}
+.spine-title {
+  position: absolute;
+  top: calc(16% + 2 * var(--band) + 3%);
+  bottom: calc(16% + 2 * var(--band) + 3%);
+  left: 0;
+  width: 100%;
+  writing-mode: vertical-rl;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font:
+    600 clamp(7px, calc(var(--facet) * 0.62), 17px) / var(--facet) Georgia,
+    serif;
+  letter-spacing: 0.08em;
+  color: transparent;
+  background: var(--foil);
+  background-clip: text;
+  -webkit-background-clip: text;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.55));
+}
+/* Ornaments in the panels between the bands: a fleuron above the title, the
+   crane below it. Only a gilded spine has the fleuron. */
+.spine-fleuron,
+.spine-crane {
+  position: absolute;
+  left: 50%;
+  width: min(calc(var(--facet) * 0.8), 22px);
+  height: min(calc(var(--facet) * 0.8), 22px);
+  background: var(--foil);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5));
+}
+.spine-fleuron {
+  top: calc(5% + var(--band) + (11% - min(calc(var(--facet) * 0.8), 22px)) / 2 + 0.5%);
+  transform: translateX(-50%);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 1 13 7 19 10 13 13 10 19 7 13 1 10 7 7Z'/%3E%3Ccircle cx='10' cy='10' r='2.2' fill='%23fff'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 1 13 7 19 10 13 13 10 19 7 13 1 10 7 7Z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.book-stage[data-spine="plain"] .spine-fleuron {
   display: none;
 }
+.spine-crane {
+  bottom: calc(5% + var(--band) + (11% - min(calc(var(--facet) * 0.8), 22px)) / 2 + 0.5%);
+  transform: translateX(-50%) rotate(90deg);
+  mask: url("/crane.png") center / contain no-repeat;
+  -webkit-mask: url("/crane.png") center / contain no-repeat;
+}
+
+/* The cover's gilded frame: two rules with a running ornament between them
+   and a rosette in each corner, as on a tooled leather binding. */
+.book-cover-gilt {
+  position: absolute;
+  inset: 4.5%;
+  display: none;
+  pointer-events: none;
+  background: linear-gradient(
+    125deg,
+    var(--cover-lo),
+    var(--cover-hi) 30%,
+    var(--cover-mid) 50%,
+    var(--cover-hi) 72%,
+    var(--cover-lo)
+  );
+  -webkit-mask-box-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90' fill='none' stroke='%23000'%3E%3Crect x='2' y='2' width='86' height='86' stroke-width='2.4'/%3E%3Crect x='26.5' y='26.5' width='37' height='37' stroke-width='1.4'/%3E%3Cg fill='%23000' stroke='none'%3E%3Cpath d='M45 8 50 14.5 45 21 40 14.5Z M45 69 50 75.5 45 82 40 75.5Z M8 45 14.5 40 21 45 14.5 50Z M69 45 75.5 40 82 45 75.5 50Z'/%3E%3Ccircle cx='33' cy='14.5' r='1.8'/%3E%3Ccircle cx='57' cy='14.5' r='1.8'/%3E%3Ccircle cx='33' cy='75.5' r='1.8'/%3E%3Ccircle cx='57' cy='75.5' r='1.8'/%3E%3Ccircle cx='14.5' cy='33' r='1.8'/%3E%3Ccircle cx='14.5' cy='57' r='1.8'/%3E%3Ccircle cx='75.5' cy='33' r='1.8'/%3E%3Ccircle cx='75.5' cy='57' r='1.8'/%3E%3C/g%3E%3Cg stroke-width='1.6'%3E%3Ccircle cx='14.5' cy='14.5' r='6'/%3E%3Ccircle cx='75.5' cy='14.5' r='6'/%3E%3Ccircle cx='14.5' cy='75.5' r='6'/%3E%3Ccircle cx='75.5' cy='75.5' r='6'/%3E%3C/g%3E%3Cg fill='%23000' stroke='none'%3E%3Ccircle cx='14.5' cy='14.5' r='2.4'/%3E%3Ccircle cx='75.5' cy='14.5' r='2.4'/%3E%3Ccircle cx='14.5' cy='75.5' r='2.4'/%3E%3Ccircle cx='75.5' cy='75.5' r='2.4'/%3E%3C/g%3E%3C/svg%3E")
+    30 / calc(var(--page-w) * 0.075) round;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.45));
+}
+.book-stage:not([data-cover="plain"]) .book-cover-gilt {
+  display: block;
+}
+
+/* The volume's other faces. Each starts at an edge of the cover and runs
+   back (rotated to -z), so none of them shows from the front. */
+.box-back {
+  inset: 0;
+  transform: translateZ(calc(-1 * var(--thick)));
+  border-radius: 2px 7px 7px 2px;
+  background: color-mix(in srgb, var(--spine, #3d3a4a) 70%, #000);
+}
+.box-edge {
+  background: color-mix(in srgb, var(--spine, #3d3a4a) 62%, #000);
+}
+.box-edge.tail,
+.box-edge.head {
+  left: 0;
+  width: var(--page-w);
+  height: var(--board);
+  transform-origin: 50% 0;
+}
+.box-edge.tail {
+  top: var(--page-h);
+}
+.box-edge.head {
+  top: 0;
+}
+.box-edge.fore {
+  left: var(--page-w);
+  top: 0;
+  width: var(--board);
+  height: var(--page-h);
+  transform-origin: 0 50%;
+}
+.box-edge.front.tail,
+.box-edge.front.head {
+  transform: rotateX(-90deg);
+}
+.box-edge.front.fore {
+  transform: rotateY(90deg);
+}
+.box-edge.back.tail,
+.box-edge.back.head {
+  transform: translateZ(calc(var(--board) - var(--thick))) rotateX(-90deg);
+}
+.box-edge.back.fore {
+  transform: translateZ(calc(var(--board) - var(--thick))) rotateY(90deg);
+}
+/* The page block, set in from the boards' edges by the squares. */
+.box-block {
+  background:
+    repeating-linear-gradient(var(--grain, 0deg), rgba(0, 0, 0, 0.09) 0 1px, transparent 1px 2.5px),
+    linear-gradient(
+      var(--sheen, 90deg),
+      var(--edge-lo),
+      var(--edge-hi) 22%,
+      var(--edge-mid) 48%,
+      var(--edge-hi) 72%,
+      var(--edge-lo)
+    );
+  overflow: hidden;
+}
+.box-block.tail,
+.box-block.head {
+  left: 0;
+  width: calc(var(--page-w) - var(--square));
+  height: var(--block);
+  transform-origin: 50% 0;
+  transform: translateZ(calc(-1 * var(--board))) rotateX(-90deg);
+}
+.box-block.tail {
+  top: calc(var(--page-h) - var(--square));
+}
+.box-block.head {
+  top: var(--square);
+}
+.box-block.fore {
+  --grain: 90deg;
+  --sheen: 180deg;
+  left: calc(var(--page-w) - var(--square));
+  top: var(--square);
+  width: var(--block);
+  height: calc(var(--page-h) - 2 * var(--square));
+  transform-origin: 0 50%;
+  transform: translateZ(calc(-1 * var(--board))) rotateY(90deg);
+}
+/* The shadow on the table, under the back board. */
+.box-shadow {
+  inset: 3%;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 calc(var(--page-w) * 0.12) calc(var(--page-w) * 0.05) rgba(0, 0, 0, 0.42),
+    0 0 6px 4px rgba(0, 0, 0, 0.5);
+  transform: translateZ(calc(-1 * var(--thick) - 2px)) translate(5%, 4%);
+}
+/* Where pages meet the boards the light does not reach: soft dark seams along
+   the page block's edges, and the faint unevenness of cut paper. */
+.box-block {
+  box-shadow:
+    inset 0 3px 4px -2px rgba(0, 0, 0, 0.4),
+    inset 0 -3px 4px -2px rgba(0, 0, 0, 0.4),
+    inset 6px 0 8px -4px rgba(0, 0, 0, 0.35);
+}
+.box-block::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(var(--grain, 0deg), transparent 0 7px, rgba(255, 255, 255, 0.12) 7px 8px, transparent 8px 13px, rgba(0, 0, 0, 0.05) 13px 14px);
+}
+/* The ends of the rounded spine: the cloth's edge, and the striped headband
+   over the rounded back of the pages. */
+.box-spine-end {
+  height: var(--thick);
+  transform-origin: 50% 0;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--spine, #3d3a4a) 55%, #000) 0 32%, transparent 32%),
+    repeating-linear-gradient(0deg, #9a3b32 0 2px, #efe4c8 2px 4px);
+}
+.box-spine-end.tail {
+  top: var(--page-h);
+  transform: rotateX(-90deg);
+}
+.box-spine-end.head {
+  top: 0;
+  transform: rotateX(-90deg);
+}
+
+/* Metal edges on the open book's page stacks too. */
+.book-stage:not([data-edges="plain"]) .book-stack {
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 2.5px),
+    linear-gradient(
+      180deg,
+      var(--edge-lo),
+      var(--edge-hi) 16%,
+      var(--edge-mid) 42%,
+      var(--edge-hi) 68%,
+      var(--edge-mid) 86%,
+      var(--edge-lo)
+    );
+}
+/* A glint of light runs along metal edges and foil while the book rests
+   closed. */
+.book-stage:not([data-edges="plain"]) .box-block::after,
+.book-stage:not([data-edges="plain"]) .book-stack::after,
+.book-stage:not([data-cover="plain"]) .book-cover-gilt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.7) 50%,
+      transparent 60%
+    )
+    120% 0 / 300% 100% no-repeat;
+}
+.book-stage:not([data-spine="plain"]) .spine-title,
+.book-stage:not([data-spine="plain"]) .spine-crane,
+.book-stage:not([data-spine="plain"]) .spine-fleuron {
+  --foil: linear-gradient(
+      170deg,
+      transparent 42%,
+      rgba(255, 255, 255, 0.85) 50%,
+      transparent 58%
+    )
+    0 120% / 100% 300% no-repeat,
+    linear-gradient(
+      90deg,
+      var(--spine-lo),
+      var(--spine-hi) 42%,
+      var(--spine-mid) 62%,
+      var(--spine-lo)
+    );
+}
+.book-stage.phase-closed:not([data-edges="plain"]) .box-block::after,
+.book-stage.phase-closed:not([data-cover="plain"]) .book-cover-gilt::after {
+  animation: edge-glint 7s ease-in-out 1.2s infinite;
+}
+.book-stage.phase-closed:not([data-spine="plain"]) .spine-title,
+.book-stage.phase-closed:not([data-spine="plain"]) .spine-crane,
+.book-stage.phase-closed:not([data-spine="plain"]) .spine-fleuron {
+  animation: foil-glint 7s ease-in-out 1s infinite;
+}
+@keyframes edge-glint {
+  0% {
+    background-position: 120% 0;
+  }
+  28%,
+  100% {
+    background-position: -20% 0;
+  }
+}
+@keyframes foil-glint {
+  0% {
+    background-position: 0 120%, 0 0;
+  }
+  28%,
+  100% {
+    background-position: 0 -20%, 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .book-stage .box-block::after,
+  .book-stage .book-cover-gilt::after,
+  .book-stage .spine-title,
+  .book-stage .spine-crane,
+  .book-stage .spine-fleuron {
+    animation: none !important;
+  }
+}
+/* The closed cover reads as a board: a lit top edge and a darker foot. */
+.phase-closed .book-cover-face,
+.phase-lifting .book-cover-face,
+.phase-opening .book-cover-face {
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.16),
+    inset -1.5px 0 0 rgba(255, 255, 255, 0.1),
+    inset 0 -2px 1px rgba(0, 0, 0, 0.3);
+}
+/* At rest on the table, turned so the spine and the tail of the pages face
+   the reader, as a book left lying on a desk. */
 .phase-closed .book {
-  transform: translateX(calc(var(--page-w) * -0.56)) rotateX(-6deg)
-    rotateY(28deg) rotateZ(-0.4deg);
+  transform: translateX(calc(var(--page-w) * -0.5)) translateY(4%) rotateX(54deg)
+    rotateZ(-36deg) scale(0.96);
   animation: book-arrive 1.05s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
+/* Picked up: it rises and squares up, held straight toward the reader... */
+.phase-lifting .book {
+  transform: translateX(calc(var(--page-w) * -0.5));
+  transition: transform 0.95s cubic-bezier(0.35, 0.05, 0.2, 1);
+}
+/* ...then slides to the middle as the cover opens. */
 .phase-opening .book {
   transform: none;
   transition: transform 1.25s cubic-bezier(0.45, 0.05, 0.25, 1);
@@ -6313,28 +6668,34 @@ html[data-hidden="true"] .previous-still {
 }
 @keyframes book-arrive {
   from {
-    transform: translateX(calc(var(--page-w) * -0.56)) translateY(70px)
-      rotateX(-16deg) rotateY(44deg) scale(0.9);
+    transform: translateX(calc(var(--page-w) * -0.5)) translateY(16%)
+      rotateX(58deg) rotateZ(-48deg) scale(0.9);
   }
 }
 .phase-closed .book-spine-face,
-.phase-closed .book-block-top {
+.phase-closed .book-box > span,
+.phase-lifting .book-spine-face,
+.phase-lifting .book-box > span {
   opacity: 1;
 }
+/* Squared up, the table shadow goes. */
+.phase-lifting .box-shadow {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
 .phase-opening .book-spine-face,
-.phase-opening .book-block-top {
+.phase-opening .book-box > span {
   opacity: 0;
   transition: opacity 0.7s ease 0.35s;
 }
-.phase-closed .book-stack.left,
+.phase-closed .book-stack,
+.phase-lifting .book-stack,
 .phase-opening .book-stack.left {
   opacity: 0;
 }
-.phase-closed .book-stack.right {
-  opacity: 0.9;
-}
-.phase-closed .book::before {
-  left: 45%;
+.phase-closed .book::before,
+.phase-lifting .book::before {
+  opacity: 0;
 }
 
 /* Turning by hand: outer margins and corners. */
@@ -6542,9 +6903,57 @@ html[data-hidden="true"] .previous-still {
   white-space: nowrap;
   align-self: center;
 }
-.sidebar-beta {
-  align-self: flex-start;
-  margin: -14px 0 8px 52px;
+/* The top of the side panel in Read, Work and Studio (ModeHeader.tsx). */
+.mode-header {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 16px;
+}
+.mode-brand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.mode-brand-home {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  flex: 1;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 10px;
+  background: none !important;
+  color: var(--ink);
+}
+.mode-brand-home img {
+  flex: none;
+  width: 32px;
+  height: 32px;
+}
+.mode-brand-name {
+  font:
+    22px/1 Georgia,
+    serif;
+}
+.mode-brand-text {
+  display: grid;
+  justify-items: start;
+  gap: 3px;
+  min-width: 0;
+}
+.mode-brand .beta-badge {
+  margin: 0;
+  padding: 0 6px;
+  font-size: 8.5px;
+}
+.mode-header .mode-switch {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  container-type: inline-size;
 }
 .beta-notice {
   border: 1px solid color-mix(in srgb, #f2c879 45%, var(--line));
@@ -6562,8 +6971,8 @@ html[data-hidden="true"] .previous-still {
   line-height: 1.5;
 }
 
-/* Closing the book: the cover swings shut, then the book turns to show its
-   spine and waits for a click. */
+/* Closing the book: the cover swings shut, then the book is laid back down on
+   the table and waits for a click. */
 .phase-closing .book-stack.left {
   opacity: 0;
 }
@@ -6575,7 +6984,7 @@ html[data-hidden="true"] .previous-still {
   transition: transform 1.1s cubic-bezier(0.3, 0.1, 0.2, 1);
 }
 .book-stage.held.phase-closed .book-spine-face,
-.book-stage.held.phase-closed .book-block-top {
+.book-stage.held.phase-closed .book-box > span {
   transition: opacity 0.7s ease 0.3s;
 }
 .book-cover-hit {
@@ -7528,10 +7937,331 @@ html[data-hidden="true"] .garden-effects * {
 .color-panel span:last-child {
   width: 25%;
 }
+/* Page edge finishes, each shown on a small closed book seen from its
+   fore-edge. */
+.edge-grid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.edge-tile {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 18px 10px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+.edge-tile strong {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  margin-top: 8px;
+}
+.edge-tile small {
+  color: var(--muted);
+  font-size: var(--fs-caption);
+}
+.edge-tile.chosen,
+.edge-tile:not(.locked):hover {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.edge-tile.locked {
+  cursor: help;
+}
+.edge-tile.locked .edge-book {
+  filter: brightness(0.12) saturate(0.3);
+}
+.edge-tile.locked:hover .gallery-hint,
+.edge-tile.locked:focus-visible .gallery-hint {
+  opacity: 1;
+}
+.edge-book {
+  display: flex;
+  width: 120px;
+  height: 56px;
+  border-radius: 5px 3px 3px 5px;
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 3px),
+    color-mix(in srgb, var(--accent) 30%, #231f2b);
+  box-shadow:
+    0 7px 14px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.edge-spine {
+  position: relative;
+  width: 15px;
+  border-radius: 5px 0 0 5px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.45),
+    rgba(255, 255, 255, 0.14) 40%,
+    rgba(0, 0, 0, 0.35)
+  );
+}
+.edge-spine::before,
+.edge-spine::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  height: 1.5px;
+  background: linear-gradient(90deg, var(--edge-lo), var(--edge-hi), var(--edge-lo));
+}
+.edge-spine::before {
+  top: 9px;
+}
+.edge-spine::after {
+  bottom: 9px;
+}
+.edge-pages {
+  position: relative;
+  flex: 1;
+  margin: 5px 4px 5px 0;
+  overflow: hidden;
+  border-radius: 0 2px 2px 0;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.13) 0 1px, transparent 1px 2.5px),
+    linear-gradient(
+      90deg,
+      var(--edge-lo),
+      var(--edge-hi) 25%,
+      var(--edge-mid) 50%,
+      var(--edge-hi) 75%,
+      var(--edge-lo)
+    );
+}
+.edge-pages::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.75) 50%, transparent 60%)
+    130% 0 / 300% 100% no-repeat;
+  transition: background-position 0.9s ease;
+}
+.edge-tile:not(.locked):hover .edge-pages::after {
+  background-position: -30% 0;
+}
+/* The Binding and bookmarks window (BindingMenu.tsx): each row shows its part
+   on the small book, the other parts left plain. */
+.binding-row {
+  margin-top: 18px;
+}
+.binding-row h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 2px;
+}
+.binding-row h3 .text-button {
+  font-weight: 400;
+}
+.edge-cover {
+  display: none;
+}
+.edge-book.edges .edge-spine::before,
+.edge-book.edges .edge-spine::after {
+  background: rgba(255, 255, 255, 0.22);
+}
+.edge-book.spine .edge-spine {
+  width: 26px;
+}
+.edge-book.spine .edge-pages {
+  background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 2.5px), #e9e1cf;
+}
+.edge-book.spine .edge-pages::after {
+  display: none;
+}
+.edge-book.cover {
+  position: relative;
+  display: block;
+  width: 62px;
+  height: 86px;
+  margin-top: -14px;
+  margin-bottom: -16px;
+}
+.edge-book.cover .edge-spine,
+.edge-book.cover .edge-pages {
+  display: none;
+}
+.edge-book.cover .edge-cover {
+  display: block;
+  position: absolute;
+  inset: 6px;
+  border: 2px solid transparent;
+  border-image: linear-gradient(135deg, var(--edge-lo), var(--edge-hi) 35%, var(--edge-mid) 55%, var(--edge-hi) 75%, var(--edge-lo)) 1;
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--accent) 30%, #231f2b), inset 0 0 0 4px var(--edge-mid);
+}
+.binding-cover:first-child .edge-cover {
+  display: none;
+}
+.ribbon-choices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+.ribbon-choice {
+  width: 18px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px 2px 0 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.22), transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%, rgba(0, 0, 0, 0.22)),
+    var(--ribbon);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 84%, 0 100%);
+}
+.ribbon-choice[aria-checked="true"] {
+  height: 44px;
+}
+.ribbon-choice.same {
+  width: auto;
+  height: auto;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: none;
+  clip-path: none;
+  font-size: var(--fs-small);
+}
+.ribbon-choice.same[aria-checked="true"] {
+  height: auto;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .edge-pages::after {
+    transition: none;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .gallery-button,
   .gallery-art,
   .gallery-hint {
     transition: none;
   }
+}
+
+/* ===== One shell for Read, Work and Studio (27 October 2026) =====
+   Every mode is the same room: a full-height side panel with a hairline, the
+   main column over the scene, and in Read the inspector and the player with
+   hairlines of their own. No floating panels, no rounded shells. Work and
+   Studio read these tokens from their own stylesheets. */
+:root {
+  --shell-side: color-mix(in srgb, var(--bg) 94%, transparent);
+  --shell-main: color-mix(in srgb, var(--bg) 74%, transparent);
+  --shell-pad: 22px 16px 18px;
+  --menu-radius: 12px;
+  --menu-shadow: 0 18px 44px #0008;
+}
+.sidebar {
+  margin: 0;
+  padding: var(--shell-pad);
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--shell-side);
+}
+.center {
+  background: var(--shell-main);
+}
+.inspector {
+  background: var(--shell-side);
+}
+.player {
+  background: color-mix(in srgb, var(--bg) 97%, transparent);
+}
+/* The tool at the end of the name row (hide the panel) in Work and Studio. */
+.mode-brand > .icon-button,
+.mode-brand > .icon-only {
+  margin-left: auto;
+  opacity: 0.65;
+}
+.mode-brand > .icon-button:hover,
+.mode-brand > .icon-only:hover {
+  opacity: 1;
+}
+/* Resize handles: one look in every mode, a line along the whole divider. */
+.resize-handle {
+  top: 0;
+  bottom: 86px;
+  width: 7px;
+  background: none;
+}
+.resize-handle::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 150ms;
+}
+.resize-handle:hover {
+  background: none;
+}
+.resize-handle:hover::after,
+.resize-handle:active::after {
+  opacity: 0.7;
+}
+.left-resize {
+  left: calc(var(--left-width) - 4px);
+}
+.right-resize {
+  right: calc(var(--right-width) - 4px);
+}
+/* The library: the title, one toolbar (search, sort, view, Quick Read,
+   Import, view options), then the shelf tabs with Select all. */
+.library-heading {
+  margin-bottom: 12px;
+}
+.library-controls {
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.library-controls .library-search {
+  flex: 1 1 200px;
+}
+.library-controls .heading-actions {
+  flex: none;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+.library-controls > button,
+.library-controls .heading-actions button {
+  white-space: nowrap;
+}
+.library-shelves {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 13px;
+  margin-bottom: 26px;
+}
+/* Menus: one surface. */
+.book-menu-popup,
+.popover-panel,
+.language-menu,
+.theme-menu {
+  border-radius: var(--menu-radius);
+  box-shadow: var(--menu-shadow);
+}
+.book-menu-popup button,
+.language-menu button {
+  border-radius: 8px;
+}
+/* The side panel's header is the same in every mode: Studio's buttons take
+   the font of their own panel, so the switch keeps the app's size. */
+.studio-mode .mode-switch button {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.sidebar .mode-header .mode-switch {
+  margin: 0;
 }

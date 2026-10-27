@@ -437,6 +437,9 @@ fn studio_render(app: tauri::AppHandle, job: State<StudioJob>, id: String, chapt
                     problem = why;
                     continue;
                 }
+                // The lines being voiced now, so the editor can show work in progress
+                // on a slow computer before the batch is saved.
+                let _ = app.emit("studio-batch", serde_json::json!({"id": id, "units": batch.iter().map(|u| u["id"].clone()).collect::<Vec<_>>()}));
                 let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
                 let items: Vec<Value> = batch
                     .iter()

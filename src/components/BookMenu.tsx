@@ -2,6 +2,7 @@ import { t } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import {
   AudioLines,
+  BookMarked,
   BookOpen,
   Check,
   Ellipsis,
@@ -21,6 +22,8 @@ export type BookMenuActions = {
   open: (book: BookMeta) => void;
   favorite: (book: BookMeta) => void;
   editCover: (book: BookMeta) => void;
+  // The 3D book's binding and the bookmarks (BindingMenu).
+  binding: (book: BookMeta) => void;
   uniqueVoice: (book: BookMeta, unique: boolean) => void;
   startOver: (book: BookMeta) => void;
   trash: (book: BookMeta) => void;
@@ -174,6 +177,10 @@ export function BookMenu({
               >
                 <ImagePlus size={15} />
                 {t("Change cover")}
+              </button>
+              <button role="menuitem" onClick={() => run(() => actions.binding(book))}>
+                <BookMarked size={15} />
+                {t("Binding and bookmarks")}
               </button>
               <button
                 role="menuitem"

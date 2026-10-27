@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { listen } from "@tauri-apps/api/event";
 import {
   ArrowLeft,
+  AudioLines,
   Check,
   ChevronRight,
   Download,
@@ -9,23 +10,27 @@ import {
   Lock,
   Music,
   Package,
-  PanelLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
   PanelRight,
-  Pause,
   Play,
   RotateCcw,
-  SkipBack,
-  SkipForward,
-  Sparkles,
+  SlidersHorizontal,
   Square,
   Trash2,
   Undo2,
   Wand2,
+  Search,
+  X,
   Ear,
 } from "lucide-react";
 import { t } from "../i18n";
+import { Cover, IconButton } from "../components/Primitives";
 import type { Book, Preferences, Voice } from "../types";
 import { CastPanel } from "./CastPanel";
+import { Timeline } from "./Timeline";
+import { Wave } from "./Wave";
+import { JobBar, scopeLabel, scopeUnits, ScopePicker, type Scope } from "./JobScope";
 import { WordsPanel } from "./WordsPanel";
 import { repronounce, type Pronunciation } from "./pronounce";
 import { asrReady } from "./recording";
@@ -65,6 +70,7 @@ import {
 import { usePlayback } from "./usePlayback";
 import { ExportDialog } from "./ExportDialog";
 import { PanelResizer, rememberWidth, rememberedWidth } from "../work/PanelResizer";
+import type { SideWidth } from "../components/ModeHeader";
 import { useMedia } from "../useMedia";
 
 type Filter = "all" | "review" | "pending" | "speaker";
@@ -75,7 +81,8 @@ export function ProductionView({
   book,
   voices,
   prefs,
-  modeSwitch,
+  modeHeader,
+  side,
   onBack,
   onChange,
   onDelete,
@@ -84,7 +91,8 @@ export function ProductionView({
   book: Book | null;
   voices: Voice[];
   prefs: Preferences;
-  modeSwitch: ReactNode;
+  modeHeader: (tools?: ReactNode) => ReactNode;
+  side: SideWidth;
   onBack: () => void;
   onChange: (p: Production) => void;
   onDelete: () => Promise<void>;
@@ -124,8 +132,27 @@ export function ProductionView({
   const [filter, setFilter] = useState<Filter>("all");
   const [left, setLeft] = useState(true);
   const [leftTab, setLeftTab] = useState<"chapters" | "cast" | "words">("chapters");
+  const [chapterQuery, setChapterQuery] = useState("");
+  // The inspector's tabs, as in Read: the chosen line, or the production.
+  const [inspectorTab, setInspectorTab] = useState<"line" | "production">("production");
+  useEffect(() => {
+    if (selected) setInspectorTab("line");
+  }, [selected]);
   const [analysing, setAnalysing] = useState(false);
   const [analysisNote, setAnalysisNote] = useState("");
+  // The analysis as it runs: its step and how far it is (0 to 1).
+  const [analysisStep, setAnalysisStep] = useState<{ step: string; value: number } | null>(null);
+  // How much of the book the next job covers (JobScope.tsx), shared by
+  // Generate and Find the characters.
+  const [scope, setScope] = useState<Scope>(() => ({ kind: "chapter", from: chapters[0]?.[0] ?? 0, to: chapters.at(-1)?.[0] ?? 0 }));
+  // The running job: its lines with the take each had at the start (a line is
+  // done once its take changes), when it began, what it covers, and the lines
+  // being voiced now.
+  const run = useRef<{ takes: Map<string, string | undefined>; label: string } | null>(null);
+  const [jobStart, setJobStart] = useState(0);
+  const [voicing, setVoicing] = useState<string[]>([]);
+  // The whole production's count, for a job started before this view opened.
+  const [overall, setOverall] = useState<{ done: number; total: number } | null>(null);
   const stopRequested = useRef(false);
   const [right, setRight] = useState(true);
   // Narrow windows: the panels slide over the script, one at a time, closed to start with.
@@ -135,9 +162,8 @@ export function ProductionView({
     setLeft(!narrow);
     setRight(!narrow);
   }, [narrow]);
-  const [leftWidth, setLeftWidth] = useState(() => rememberedWidth("origami.studioLeftWidth", 250));
+  const leftWidth = side.width;
   const [rightWidth, setRightWidth] = useState(() => rememberedWidth("origami.studioRightWidth", 330));
-  useEffect(() => rememberWidth("origami.studioLeftWidth", leftWidth), [leftWidth]);
   useEffect(() => rememberWidth("origami.studioRightWidth", rightWidth), [rightWidth]);
   const [rendering, setRendering] = useState(false);
   const [progressNote, setProgressNote] = useState("");
@@ -179,7 +205,10 @@ export function ProductionView({
     if (alive.current) onChange(p);
   }
   useEffect(() => {
-    void renderRunning().then(setRendering);
+    void renderRunning().then((busy) => {
+      setRendering(busy);
+      if (busy) setJobStart(Date.now());
+    });
     void transcriptionModels().then(setCheckModels).catch(() => setCheckModels([]));
     void asrReady().then(setParakeet).catch(() => setParakeet(false));
     const off = [
@@ -187,12 +216,17 @@ export function ProductionView({
         if (e.payload.id !== info.id) return;
         const now = Date.now();
         if (!started.current) started.current = { at: now, done: e.payload.done };
+        setOverall({ done: e.payload.done, total: e.payload.total });
         const s = started.current;
         const rate = (e.payload.done - s.done) / Math.max(1, (now - s.at) / 1000);
         const left = e.payload.total - e.payload.done;
         const eta = rate > 0 ? t(" · about {time} left", { time: clock(left / rate) }) : "";
         setProgressNote(t("{done} of {total} lines", { done: String(e.payload.done), total: String(e.payload.total) }) + eta);
         void reload();
+      }),
+      listen<{ id: string; units: string[] }>("studio-batch", (e) => {
+        if (e.payload.id !== info.id) return;
+        setVoicing(e.payload.units);
       }),
       listen<CheckProgress>("studio-check-progress", (e) => {
         if (e.payload.id !== info.id) return;
@@ -216,6 +250,8 @@ export function ProductionView({
         if (e.payload.id !== info.id) return;
         setRendering(false);
         started.current = null;
+        run.current = null;
+        setVoicing([]);
         setProgressNote("");
         const missing = e.payload.missing || [];
         const names = missing.map((n) => n || t("Narrator")).join(", ");
@@ -235,8 +271,12 @@ export function ProductionView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [info.id]);
 
-  async function render(options: { chapter?: number; units?: string[] } = {}) {
+  async function render(options: { chapter?: number; units?: string[]; label?: string } = {}) {
     setStatus("");
+    const ids = options.units || units.filter((u) => u.status === "pending" && (options.chapter === undefined || u.chapter === options.chapter)).map((u) => u.id);
+    run.current = { takes: new Map(ids.map((id) => [id, units.find((u) => u.id === id)?.take])), label: options.label || (ids.length === 1 ? t("One line") : chapterName(chapter)) };
+    setJobStart(Date.now());
+    setVoicing([]);
     try {
       await startRender(info.id, options.chapter, options.units);
       setRendering(true);
@@ -246,6 +286,17 @@ export function ProductionView({
       setStatus(String(e));
     }
   }
+  // Generates the pending lines in the chosen scope: a page, a chapter, chapters or the book.
+  function generate() {
+    const ids = scopeUnits(units, scope, { chapter, selected }).filter((u) => u.status === "pending").map((u) => u.id);
+    if (!ids.length) return setStatus(t("Every line here already has audio."));
+    void render({ units: ids, label: scopeLabel(scope, chapterName, chapter) });
+  }
+  const scopePending = useMemo(() => scopeUnits(units, scope, { chapter, selected }).some((u) => u.status === "pending"), [units, scope, chapter, selected]);
+  // How far the running job is, from the lines whose take changed since it began.
+  const runDone = run.current ? [...run.current.takes].filter(([id, take]) => units.find((u) => u.id === id)?.take !== take).length : 0;
+  const runTotal = run.current?.takes.size || 0;
+  const voicingText = voicing.length ? units.find((u) => u.id === voicing[0])?.text : undefined;
   // Listens to every generated line of the chapter with the local transcription model
   // and compares the words with the text; mismatches join "To review".
   async function checkChapter() {
@@ -293,20 +344,44 @@ export function ProductionView({
   async function runAnalysis() {
     if (!book) return setStatus(t("The book is no longer in the library."));
     if (rendering) return setStatus(t("Stop rendering before finding the characters."));
+    // Only the paragraphs in the scope are read; the rest keep what an earlier
+    // analysis found. Blank paragraphs keep every index in place.
+    const whole = scope.kind === "all";
+    const covered = new Set(scopeUnits(units, scope, { chapter, selected }).map((u) => u.paragraph));
+    if (!whole && !covered.size) return;
+    const inScope = (i: number) => whole || covered.has(i);
     setAnalysing(true);
+    setJobStart(Date.now());
+    setAnalysisStep(null);
     stopRequested.current = false;
     setStatus("");
     try {
-      const paragraphs = book.paragraphs.map((p) => p.text);
+      const paragraphs = book.paragraphs.map((p, i) => (inScope(i) ? p.text : ""));
       // A script names its speakers itself; anything else goes to the analysis model.
-      const result = scriptAnalysis(paragraphs) || (await analyse(paragraphs, info.language || "en", (step, value) => setAnalysisNote(`${t(step)} ${Math.round(value * 100)}%`), () => stopRequested.current));
+      const result =
+        scriptAnalysis(paragraphs) ||
+        (await analyse(
+          paragraphs,
+          info.language || "en",
+          (step, value) => {
+            setAnalysisNote(`${t(step)} ${Math.round(value * 100)}%`);
+            setAnalysisStep({ step, value });
+          },
+          () => stopRequested.current,
+        ));
       if (!alive.current || stopRequested.current) throw new Error("cancelled");
       // The production as saved now: lines edited or approved during the analysis are kept.
       const fresh = await readProduction(info.id);
       const known = new Map((fresh.info.cast || []).map((c) => [c.id, c]));
-      const draft = castUnits(book, prefs, result.speech, result.speakers, [], fresh.units);
+      // Lines outside the scope stay as they are, in their place.
+      const merge = (cut: ProductionUnit[]) =>
+        whole ? cut : [...fresh.units.filter((u) => !inScope(u.paragraph)), ...cut.filter((u) => inScope(u.paragraph))].sort((a, b) => a.paragraph - b.paragraph);
+      const draft = merge(castUnits(book, prefs, result.speech, result.speakers, [], fresh.units));
       const counts = lineCounts(draft);
-      const speaking = result.cast.filter((c) => counts.get(c.id));
+      // Characters found before stay while they still have lines.
+      const found = new Map(result.cast.map((c) => [c.id, c]));
+      for (const c of fresh.info.cast || []) if (!found.has(c.id)) found.set(c.id, { id: c.id, name: c.name, aliases: c.aliases, gender: c.gender, speaks: true });
+      const speaking = [...found.values()].filter((c) => counts.get(c.id));
       const voicesFor = suggestVoices(
         speaking.map((c) => ({ id: c.id, gender: c.gender, lines: counts.get(c.id) })),
         voices,
@@ -323,13 +398,13 @@ export function ProductionView({
         color: known.get(c.id)?.color || castColor(i),
         lines: counts.get(c.id),
       }));
-      const next = castUnits(book, prefs, result.speech, result.speakers, cast, fresh.units);
+      const next = merge(castUnits(book, prefs, result.speech, result.speakers, cast, fresh.units));
       if (!alive.current) return;
       await replaceProductionUnits(info.id, next);
       const nextInfo = {
         ...fresh.info,
         cast,
-        analysis: { model: "", date: Date.now(), speech: result.speech.length, uncertain: next.filter(uncertainSpeaker).length },
+        analysis: { model: "", date: Date.now(), speech: new Set(next.filter((u) => u.speech).map((u) => u.speech)).size, uncertain: next.filter(uncertainSpeaker).length },
         updated: Date.now(),
       };
       await saveProductionInfo(nextInfo);
@@ -344,6 +419,7 @@ export function ProductionView({
       if (alive.current) {
         setAnalysing(false);
         setAnalysisNote("");
+        setAnalysisStep(null);
       }
       void stopAnalysis().catch(() => undefined);
     }
@@ -379,6 +455,7 @@ export function ProductionView({
       if (alive.current) {
         setAnalysing(false);
         setAnalysisNote("");
+        setAnalysisStep(null);
       }
     }
   }
@@ -492,27 +569,32 @@ export function ProductionView({
   const shown = chapterUnits.filter(
     (u) => filter === "all" || (filter === "review" ? issues.has(u.id) : filter === "speaker" ? uncertainSpeaker(u) : !u.take || u.status === "pending"),
   );
-  const paragraphs = useMemo(() => {
-    const groups: { paragraph: number; heading: boolean; units: ProductionUnit[] }[] = [];
+  // The script as blocks: each run of one speaker inside a paragraph, with
+  // who speaks it, its state and its length beside it.
+  const blocks = useMemo(() => {
+    const groups: { paragraph: number; heading: boolean; speaker: string; units: ProductionUnit[] }[] = [];
     for (const u of shown) {
       const last = groups.at(-1);
-      if (last && last.paragraph === u.paragraph) last.units.push(u);
-      else groups.push({ paragraph: u.paragraph, heading: u.heading, units: [u] });
+      const speaker = u.speaker || "";
+      if (last && last.paragraph === u.paragraph && last.speaker === speaker && !u.heading && !last.heading) last.units.push(u);
+      else groups.push({ paragraph: u.paragraph, heading: u.heading, speaker, units: [u] });
     }
     return groups;
   }, [shown]);
-  const chapterLength = spokenLength(production, chapterUnits);
-  const elapsed = (() => {
-    let s = 0;
-    for (let i = 0; i < chapterUnits.length; i++) {
-      const u = chapterUnits[i];
-      if (u.id === playback.current) return s + playback.position;
-      const take = chosenTake(production, u);
-      if (take) s += take.duration + (i + 1 < chapterUnits.length ? 0.4 : 0);
-    }
-    return 0;
-  })();
+  const blockState = (list: ProductionUnit[]) =>
+    list.some((u) => issues.has(u.id))
+      ? (["flagged", t("Worth a listen")] as const)
+      : list.some((u) => u.status === "failed")
+        ? (["failed", t("Needs a new take")] as const)
+        : list.some((u) => !u.take || u.status === "pending")
+          ? (["pending", t("Not generated")] as const)
+          : list.every((u) => u.status === "approved")
+            ? (["approved", t("Approved")] as const)
+            : (["rendered", t("Generated")] as const);
+  const narratorVoice = voices.find((v) => v.id === info.voice)?.name || info.voice;
   const chapterIndex = chapters.findIndex(([c]) => c === chapter);
+  // The chapters panel can be filtered by name.
+  const chapterFilter = chapterQuery.trim().toLowerCase();
 
   return (
     <div
@@ -520,79 +602,43 @@ export function ProductionView({
       style={{ "--studio-left": `${leftWidth}px`, "--studio-right": `${rightWidth}px` } as React.CSSProperties}
     >
       {left && (
-        <PanelResizer side="left" width={leftWidth} min={180} max={420} fallback={250} inset={{ edge: 0, gap: 0 }} label={t("Resize the chapters panel")} onChange={setLeftWidth} />
+        <PanelResizer side="left" width={leftWidth} min={side.min} max={side.max} fallback={side.fallback} inset={{ edge: 0, gap: 0 }} label={t("Resize the chapters panel")} onChange={side.onChange} />
       )}
       {right && (
         <PanelResizer side="right" width={rightWidth} min={260} max={560} fallback={330} inset={{ edge: 0, gap: 0 }} label={t("Resize the inspector")} onChange={setRightWidth} />
       )}
-      <header className="studio-bar-top">
-        {modeSwitch}
-        <button className="icon-only" onClick={onBack} aria-label={t("All productions")} data-tip={t("All productions")}>
-          <ArrowLeft size={17} />
-        </button>
-        <div className="studio-title">
-          <strong>{info.title}</strong>
-          <span>{info.author}</span>
-        </div>
-        <span className="studio-spacer" />
-        {rendering || checking ? (
-          <span className="studio-pill busy" role="status">
-            <span className="studio-spinner" aria-hidden="true" />
-            {progressNote || t("Rendering")}
-          </span>
-        ) : status ? (
-          <span className="studio-pill" role="status">
-            {status}
-          </span>
-        ) : null}
-        {checking ? (
-          <button onClick={() => void cancelCheck()}>
-            <Square size={14} /> {t("Stop")}
-          </button>
-        ) : rendering ? (
-          <button onClick={() => void cancelRender()}>
-            <Square size={14} /> {t("Stop")}
-          </button>
-        ) : (
-          <div className="studio-split">
-            <button onClick={() => void render({ chapter })} disabled={analysing || !chapterUnits.some((u) => u.status === "pending")}>
-              <Sparkles size={15} /> {t("Generate chapter")}
-            </button>
-            <button className="primary" onClick={() => void render()} disabled={analysing || !counts.pending}>
-              <Wand2 size={15} /> {t("Generate all")}
-            </button>
-            <button
-              className="icon-only"
-              onClick={() => void checkChapter()}
-              disabled={!chapterUnits.some((u) => u.take && u.status !== "pending")}
-              aria-label={t("Check this chapter by listening to it")}
-              data-tip={checkModels.length ? t("Check this chapter by listening to it") : t("Needs a transcription model (Settings, Work mode, Voice notes)")}
-            >
-              <Ear size={16} />
-            </button>
-          </div>
-        )}
-        <button onClick={() => setExporting(true)} disabled={!counts.rendered}>
-          <Download size={15} /> {t("Export")}
-        </button>
-        <button className="icon-only" onClick={() => setLeft(!left)} aria-label={t("Chapters panel")} aria-pressed={left} data-tip={t("Chapters panel")}>
-          <PanelLeft size={17} />
-        </button>
-        <button className="icon-only" onClick={() => setRight(!right)} aria-label={t("Inspector panel")} aria-pressed={right} data-tip={t("Inspector panel")}>
-          <PanelRight size={17} />
-        </button>
-      </header>
-
       {left && (
         <nav className="studio-side" aria-label={leftTab === "cast" ? t("Cast") : t("Chapters")}>
-          <div className="studio-tabs" role="tablist">
-            <button role="tab" aria-selected={leftTab === "chapters"} onClick={() => setLeftTab("chapters")}>
+          {modeHeader()}
+          {/* Back to the productions, the book and its progress, as Read shows an open book. */}
+          <button className="back-library" onClick={onBack}>
+            <ArrowLeft size={16} />
+            {t("Productions")}
+          </button>
+          <div className="reader-book">
+            {book ? <Cover book={book.meta} small /> : <span className="studio-nav-cover" />}
+            <div className="reader-book-text">
+              <strong>{info.title}</strong>
+              <span>{info.author}</span>
+            </div>
+          </div>
+          <div className="reader-progress studio-side-progress">
+            <span className="studio-meter" aria-hidden="true">
+              <i className="approved" style={{ width: `${(counts.approved / Math.max(1, units.length)) * 100}%` }} />
+              <i style={{ width: `${((counts.rendered - counts.approved) / Math.max(1, units.length)) * 100}%` }} />
+            </span>
+            <span>
+              {t("{done} of {total} lines generated", { done: String(counts.rendered), total: String(units.length) })} · {clock(spokenLength(production, units))}
+            </span>
+          </div>
+          <div className="segmented studio-tabs" role="tablist">
+            <button role="tab" aria-selected={leftTab === "chapters"} className={leftTab === "chapters" ? "active" : ""} onClick={() => setLeftTab("chapters")}>
               {t("Chapters")} <span className="muted">{chapters.length}</span>
             </button>
-            <button role="tab" aria-selected={leftTab === "cast"} onClick={() => setLeftTab("cast")}>
+            <button role="tab" aria-selected={leftTab === "cast"} className={leftTab === "cast" ? "active" : ""} onClick={() => setLeftTab("cast")}>
               {t("Cast")} <span className="muted">{(info.cast || []).length || ""}</span>
             </button>
-            <button role="tab" aria-selected={leftTab === "words"} onClick={() => setLeftTab("words")}>
+            <button role="tab" aria-selected={leftTab === "words"} className={leftTab === "words" ? "active" : ""} onClick={() => setLeftTab("words")}>
               {t("Words")}
             </button>
           </div>
@@ -605,6 +651,7 @@ export function ProductionView({
               voices={voices}
               busy={analysing}
               progress={analysisNote}
+              scope={<ScopePicker scope={scope} chapters={chapters.map(([c]) => c)} chapterName={chapterName} onChange={setScope} label={t("What to read")} />}
               onAnalyse={() => (analysing ? stopAnalysing() : void runAnalysis())}
               onVoice={(c, v) => void setCharacterVoice(c, v)}
               onMerge={(a, b) => void mergeCharacters(a, b)}
@@ -612,10 +659,16 @@ export function ProductionView({
               onMood={(c, mood) => moodVoice(c, mood)}
             />
           ) : (
+          <>
+          <label className="search-field small-search studio-chapter-find">
+            <Search size={14} />
+            <input aria-label={t("Find a chapter")} placeholder={t("Find a chapter")} value={chapterQuery} onChange={(e) => setChapterQuery(e.target.value)} />
+          </label>
           <ol className="studio-chapter-list">
-            {chapters.map(([c, n]) => (
-              <li key={c}>
+            {chapters.map(([c, n], i) => (
+              <li key={c} hidden={Boolean(chapterFilter) && !chapterName(c).toLowerCase().includes(chapterFilter)}>
                 <button aria-current={c === chapter} onClick={() => setChapter(c)}>
+                  <span className="number">{i + 1}</span>
                   <span className="name">{chapterName(c)}</span>
                   <span className="studio-meter" aria-hidden="true">
                     <i className="approved" style={{ width: `${(n.approved / n.units.length) * 100}%` }} />
@@ -635,13 +688,99 @@ export function ProductionView({
               </li>
             ))}
           </ol>
+          </>
           )}
         </nav>
       )}
+      {/* The desk: the top bar, the script, the inspector and the player in
+          one panel, as the main panel in Read and Work. */}
+      <div className={"studio-desk" + (right ? "" : " no-right")}>
+      <header className="topbar studio-topbar">
+        <div className="header-left">
+          <IconButton label={left ? t("Collapse navigation") : t("Expand navigation")} onClick={() => setLeft(!left)}>
+            {left ? <PanelLeftClose size={19} /> : <PanelLeftOpen size={19} />}
+          </IconButton>
+          <span className="breadcrumb">
+            <button onClick={onBack}>{t("Productions")}</button>
+            <ChevronRight size={13} />
+            <span>{info.title}</span>
+            <ChevronRight size={13} />
+            <span className="current">{chapterName(chapter)}</span>
+          </span>
+        </div>
+        <div className="header-actions">
+          {checking ? (
+            <span className="studio-pill busy" role="status">
+              <span className="studio-spinner" aria-hidden="true" />
+              {progressNote || t("Rendering")}
+            </span>
+          ) : status && !rendering && !analysing ? (
+            <span className="studio-pill" role="status">
+              {status}
+            </span>
+          ) : null}
+          {checking ? (
+            <button onClick={() => void cancelCheck()}>
+              <Square size={14} /> {t("Stop")}
+            </button>
+          ) : rendering ? null : (
+            <div className="studio-split">
+              <ScopePicker scope={scope} chapters={chapters.map(([c]) => c)} chapterName={chapterName} onChange={setScope} label={t("What to generate")} />
+              <button className="primary" onClick={generate} disabled={analysing || !scopePending}>
+                <Wand2 size={15} /> {t("Generate")}
+              </button>
+            </div>
+          )}
+          <button
+            className="icon-button"
+            onClick={() => void checkChapter()}
+            disabled={checking || !chapterUnits.some((u) => u.take && u.status !== "pending")}
+            aria-label={t("Check this chapter by listening to it")}
+            data-tip={checkModels.length ? t("Check this chapter by listening to it") : t("Needs a transcription model (Settings, Work mode, Voice notes)")}
+          >
+            <Ear size={18} />
+          </button>
+          <button onClick={() => setExporting(true)} disabled={!counts.rendered}>
+            <Download size={15} /> {t("Export")}
+          </button>
+          <IconButton label={right ? t("Collapse inspector") : t("Expand inspector")} onClick={() => setRight(!right)}>
+            <PanelRight size={19} />
+          </IconButton>
+        </div>
+      </header>
+
 
       <main className="studio-doc" ref={script}>
         <div className="studio-doc-head">
-          <h2>{chapterName(chapter)}</h2>
+          {rendering && !run.current && (
+            <JobBar
+              title={t("Rendering")}
+              value={overall ? overall.done / Math.max(1, overall.total) : null}
+              detail={overall ? t("{done} of {total} lines", { done: String(overall.done), total: String(overall.total) }) : undefined}
+              now={voicingText && t("Voicing: {line}", { line: voicingText.slice(0, 120) })}
+              started={jobStart || Date.now()}
+              onStop={() => void cancelRender()}
+            />
+          )}
+          {rendering && run.current && (
+            <JobBar
+              title={t("Generating voices: {scope}", { scope: run.current.label })}
+              value={runTotal ? runDone / runTotal : null}
+              detail={t("{done} of {total} lines", { done: String(runDone), total: String(runTotal) })}
+              now={voicingText && t("Voicing: {line}", { line: voicingText.slice(0, 120) })}
+              started={jobStart}
+              onStop={() => void cancelRender()}
+            />
+          )}
+          {analysing && (
+            <JobBar
+              title={t("Finding who speaks: {scope}", { scope: scopeLabel(scope, chapterName, chapter) })}
+              value={analysisStep ? Math.min(1, analysisStep.value) : null}
+              detail={analysisStep ? t(analysisStep.step) : undefined}
+              started={jobStart}
+              onStop={stopAnalysing}
+            />
+          )}
           <div className="studio-chips" role="radiogroup" aria-label={t("Show")}>
             {(
               [
@@ -656,39 +795,76 @@ export function ProductionView({
               </button>
             ))}
           </div>
+          <span className="studio-spacer" />
+          <span className="studio-narrator" data-tip={t("Narrator")}>
+            <span className="studio-avatar" aria-hidden="true">
+              {t("Narrator").slice(0, 1)}
+            </span>
+            {narratorVoice}
+          </span>
         </div>
         <article className="studio-page">
-          {paragraphs.map((p) => {
-            const Tag = p.heading ? "h3" : "p";
+          {blocks.map((block) => {
+            const Tag = block.heading ? "h3" : "p";
+            const who = block.speaker ? castById.get(block.speaker) : undefined;
+            const [state, stateLabel] = blockState(block.units);
+            const length = spokenLength(production, block.units);
             return (
-              <Tag key={p.paragraph + ":" + p.units[0].id}>
-                {p.units.map((u) => (
-                  <span
-                    key={u.id}
-                    data-unit={u.id}
-                    className={[
-                      "studio-line",
-                      u.take && u.status !== "pending" ? "has-take" : "no-take",
-                      u.status,
-                      issues.has(u.id) ? "flagged" : "",
-                      selected === u.id ? "selected" : "",
-                      playback.current === u.id && playback.playing ? "speaking" : "",
-                      u.speaker ? "voiced" : "",
-                      uncertainSpeaker(u) ? "unsure" : "",
-                    ].join(" ")}
-                    style={u.speaker && castById.get(u.speaker) ? ({ "--who": castById.get(u.speaker)!.color } as React.CSSProperties) : undefined}
-                    title={u.speaker ? castById.get(u.speaker)?.name : undefined}
-                    onClick={() => setSelected(u.id)}
-                    onDoubleClick={() => playback.play(u.id)}
+              <div
+                key={block.paragraph + ":" + block.units[0].id}
+                className={"studio-block" + (block.heading ? " heading" : "") + (block.units.some((u) => u.id === selected) ? " sel" : "")}
+                style={who ? ({ "--who": who.color } as React.CSSProperties) : undefined}
+              >
+                <span className="studio-block-who">
+                  {!block.heading && (
+                    <>
+                      <span className="studio-avatar" aria-hidden="true">
+                        {(who?.name || t("Narrator")).slice(0, 1)}
+                      </span>
+                      <span className="name">{who?.name || t("Narrator")}</span>
+                    </>
+                  )}
+                </span>
+                <Tag className="studio-block-text">
+                  {block.units.map((u) => (
+                    <span
+                      key={u.id}
+                      data-unit={u.id}
+                      className={[
+                        "studio-line",
+                        u.take && u.status !== "pending" ? "has-take" : "no-take",
+                        u.status,
+                        issues.has(u.id) ? "flagged" : "",
+                        selected === u.id ? "selected" : "",
+                        playback.current === u.id && playback.playing ? "speaking" : "",
+                        voicing.includes(u.id) ? "voicing" : "",
+                        uncertainSpeaker(u) ? "unsure" : "",
+                      ].join(" ")}
+                      onClick={() => setSelected(u.id)}
+                      onDoubleClick={() => playback.play(u.id)}
+                    >
+                      {u.text}{" "}
+                      {u.status === "approved" && <Lock className="studio-lock" size={11} aria-label={t("Approved")} />}
+                    </span>
+                  ))}
+                </Tag>
+                <span className="studio-block-meta">
+                  <span className={"studio-state " + state}>{stateLabel}</span>
+                  <span className="time">{length ? clock(length) : ""}</span>
+                  <button
+                    className="icon-button"
+                    aria-label={t("Play")}
+                    data-tip={t("Play")}
+                    disabled={!block.units.some((u) => u.take)}
+                    onClick={() => playback.play(block.units[0].id)}
                   >
-                    {u.text}
-                    {u.status === "approved" && <Lock className="studio-lock" size={11} aria-label={t("Approved")} />}
-                  </span>
-                ))}
-              </Tag>
+                    <Play size={13} fill="currentColor" />
+                  </button>
+                </span>
+              </div>
             );
           })}
-          {!paragraphs.length && (
+          {!blocks.length && (
             <p className="muted">
               {!chapterUnits.length
                 ? t("This production has no lines.")
@@ -704,7 +880,28 @@ export function ProductionView({
 
       {right && (
         <aside className="studio-inspector" aria-label={t("Inspector")}>
-          {unit ? (
+          <div className="inspector-header">
+            <div className="inspector-tabs" role="tablist" aria-label={t("Inspector tabs")}>
+              {(
+                [
+                  ["line", t("Line"), <AudioLines size={18} key="i" />],
+                  ["production", t("Production"), <SlidersHorizontal size={18} key="i" />],
+                ] as const
+              ).map(([id, label, icon]) => (
+                <button key={id} role="tab" aria-selected={inspectorTab === id} className={inspectorTab === id ? "active" : ""} onClick={() => setInspectorTab(id)}>
+                  {icon}
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+            <IconButton label={t("Close inspector")} onClick={() => setRight(false)}>
+              <X size={16} />
+            </IconButton>
+          </div>
+          <div className="inspector-scroll">
+          {inspectorTab === "line" && !unit ? (
+            <p className="studio-hint studio-empty">{t("Choose a line in the script to hear its takes, change its text or who says it.")}</p>
+          ) : inspectorTab === "line" && unit ? (
             <LineInspector
               key={unit.id}
               production={production}
@@ -746,62 +943,28 @@ export function ProductionView({
               }}
             />
           )}
+          </div>
         </aside>
       )}
 
-      <footer className="studio-player">
-        <div className="studio-transport">
-          <button className="icon-only" disabled={chapterIndex <= 0} onClick={() => setChapter(chapters[chapterIndex - 1][0])} aria-label={t("Previous chapter")} data-tip={t("Previous chapter")}>
-            <SkipBack size={16} />
-          </button>
-          <button
-            className="studio-play"
-            onClick={() => playback.toggle(selected || chapterUnits[0]?.id || "")}
-            aria-label={playback.playing ? t("Pause") : t("Play")}
-            data-tip={t("Play or pause (Space)")}
-            disabled={!chapterUnits.some((u) => u.take)}
-          >
-            {playback.playing ? <Pause size={18} /> : <Play size={18} />}
-          </button>
-          <button className="icon-only" disabled={chapterIndex >= chapters.length - 1} onClick={() => setChapter(chapters[chapterIndex + 1][0])} aria-label={t("Next chapter")} data-tip={t("Next chapter")}>
-            <SkipForward size={16} />
-          </button>
-        </div>
-        <div className="studio-timeline">
-          <div className="studio-now">
-            <span>{chapterName(chapter)}</span>
-            <span className="muted">
-              {clock(elapsed)} / {clock(chapterLength)}
-            </span>
-          </div>
-          <div className="studio-strip" aria-hidden="true">
-            {chapterUnits.map((u) => {
-              const take = chosenTake(production, u);
-              return (
-                <i
-                  key={u.id}
-                  className={[u.status, take ? "" : "empty", issues.has(u.id) ? "flagged" : "", u.id === playback.current ? "now" : "", u.id === selected ? "sel" : ""].join(" ")}
-                  style={{ flexGrow: take ? take.duration : Math.max(1, u.text.length / 15) }}
-                  onClick={() => {
-                    setSelected(u.id);
-                    script.current?.querySelector(`[data-unit="${u.id}"]`)?.scrollIntoView({ block: "center" });
-                  }}
-                />
-              );
-            })}
-          </div>
-        </div>
-        <label className="studio-speed">
-          <span className="sr-only">{t("Playback speed")}</span>
-          <select value={playback.rate} onChange={(e) => playback.setRate(Number(e.target.value))}>
-            {[0.8, 1, 1.15, 1.3, 1.5].map((r) => (
-              <option key={r} value={r}>
-                {r}x
-              </option>
-            ))}
-          </select>
-        </label>
-      </footer>
+      <Timeline
+        production={production}
+        units={chapterUnits}
+        cast={info.cast || []}
+        issues={issues}
+        selected={selected}
+        playback={playback}
+        chapterName={chapterName(chapter)}
+        canPrev={chapterIndex > 0}
+        canNext={chapterIndex < chapters.length - 1}
+        onPrev={() => setChapter(chapters[chapterIndex - 1][0])}
+        onNext={() => setChapter(chapters[chapterIndex + 1][0])}
+        onSelect={(id) => {
+          setSelected(id);
+          script.current?.querySelector(`[data-unit="${id}"]`)?.scrollIntoView({ block: "center" });
+        }}
+      />
+      </div>
 
       {exporting && <ExportDialog production={production} book={book} titles={titles} onClose={() => setExporting(false)} />}
     </div>
@@ -897,7 +1060,12 @@ function LineInspector({
           )}
         </div>
       )}
-      <LineVoice production={production} unit={unit} cast={cast} voices={voices} onVoice={onVoice} disabled={rendering} />
+      <div className="studio-voice-card" style={unit.speaker ? ({ "--who": cast.find((c) => c.id === unit.speaker)?.color } as React.CSSProperties) : undefined}>
+        <span className="studio-avatar" aria-hidden="true">
+          {(cast.find((c) => c.id === unit.speaker)?.name || t("Narrator")).slice(0, 1)}
+        </span>
+        <LineVoice production={production} unit={unit} cast={cast} voices={voices} onVoice={onVoice} disabled={rendering} />
+      </div>
       <label className="studio-field">
         <span>{t("Spoken text")}</span>
         <textarea
@@ -961,17 +1129,6 @@ function LineInspector({
         </div>
       )}
 
-      <div className="studio-row">
-        <button onClick={onRegenerate} disabled={rendering || unit.status === "approved"} data-tip={t("New take (R)")}>
-          <RotateCcw size={14} /> {unit.take ? t("Regenerate") : t("Generate")}
-        </button>
-        <button className={unit.status === "approved" ? "primary" : ""} onClick={onApprove} disabled={!unit.take} data-tip={t("Approve and lock (A)")}>
-          <Check size={14} /> {unit.status === "approved" ? t("Approved") : t("Approve")}
-        </button>
-        <button className="icon-only" onClick={onNext} aria-label={t("Next line to review (N)")} data-tip={t("Next line to review (N)")}>
-          <ChevronRight size={16} />
-        </button>
-      </div>
 
       <div className="studio-panel-head">
         <span>{t("Takes")}</span>
@@ -984,6 +1141,7 @@ function LineInspector({
               <button className="icon-only" onClick={() => onPlayTake(take)} aria-label={t("Play take {n}", { n: String(takes.length - n) })}>
                 <Play size={14} />
               </button>
+              <Wave production={production.info.id} take={take} bars={36} />
               <span className="studio-take-name">
                 {t("Take {n}", { n: String(takes.length - n) })}
                 <small>
@@ -1006,6 +1164,17 @@ function LineInspector({
       ) : (
         <p className="muted">{t("No takes yet.")}</p>
       )}
+      <div className="studio-row studio-actions">
+        <button onClick={onRegenerate} disabled={rendering || unit.status === "approved"} data-tip={t("New take (R)")}>
+          <RotateCcw size={14} /> {unit.take ? t("Regenerate") : t("Generate")}
+        </button>
+        <button className={unit.status === "approved" ? "primary" : ""} onClick={onApprove} disabled={!unit.take} data-tip={t("Approve and lock (A)")}>
+          <Check size={14} /> {unit.status === "approved" ? t("Approved") : t("Approve")}
+        </button>
+        <button className="icon-only" onClick={onNext} aria-label={t("Next line to review (N)")} data-tip={t("Next line to review (N)")}>
+          <ChevronRight size={16} />
+        </button>
+      </div>
     </div>
   );
 }
@@ -1042,9 +1211,6 @@ function Overview({
   const total = units.length;
   return (
     <div className="studio-panel">
-      <div className="studio-panel-head">
-        <span>{t("Production")}</span>
-      </div>
       <label className="studio-field">
         <span>{t("Narrator")}</span>
         <select value={info.voice} onChange={(e) => onVoice(e.target.value)}>

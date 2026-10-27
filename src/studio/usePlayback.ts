@@ -6,7 +6,7 @@ import { chosenTake, gapAfter, takeAudio, takeMime, type Production, type Produc
 const cache = new Map<string, string>();
 const order: string[] = [];
 
-async function takeUrl(production: string, take: Take) {
+export async function takeUrl(production: string, take: Take) {
   const key = `${production}/${take.file}`;
   const found = cache.get(key);
   if (found) return found;

@@ -116,6 +116,7 @@ import { PictureContext, PicturePage } from "./PictureCards";
 import { maskOrder, newPictureSet, pictureTitle, syncPictureCards, type PictureSet } from "./pictures";
 import { useNoteReader } from "./useNoteReader";
 import { daysToExam, examCards, exportCardSet, importCardSet } from "./practice";
+import { pageSizeOf, pageSizes, pageWidths, type PageSize } from "./papers";
 import { StickyLayer, newSticky, type StickyNote } from "./stickies/Stickies";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { VaultMenu } from "./VaultMenu";
@@ -155,6 +156,7 @@ import {
   type WorkData,
   type WorkItem,
 } from "./types";
+import type { SideWidth } from "../components/ModeHeader";
 import "./work.css";
 import "./work-refine.css";
 import "./work-theme.css";
@@ -225,7 +227,8 @@ export function WorkMode({
   connectionsModel,
   language,
   dataVersion,
-  modeSwitch,
+  modeHeader,
+  side,
   onOpenPassage,
   onImportBooks,
   onSettings,
@@ -257,7 +260,10 @@ export function WorkMode({
   connectionsModel: string;
   language: string;
   dataVersion: number;
-  modeSwitch: React.ReactNode;
+  // The side panel's top, shared with the other modes (ModeHeader).
+  modeHeader: (tools?: React.ReactNode) => React.ReactNode;
+  // The side panel's width, shared with Read and Studio.
+  side: SideWidth;
   onOpenPassage: (bookId: string, paragraphId?: string) => void;
   onImportBooks: (files: File[]) => void;
   // Opens Settings, Work mode (to add the Connections model).
@@ -327,10 +333,16 @@ export function WorkMode({
   const [linkForMe, setLinkForMe] = useState(false);
   // Both side columns fold away on their own, and stay as they were left.
   const [sidebarOpen, setSidebarOpen] = useState(() => remembered("origami.workSidebar", true));
+  // The More menu opens above its button, placed on the window so the
+  // scrolling side panel cannot cut it off.
+  const moreRef = useRef<HTMLDivElement>(null);
+  const menuPlace = (): React.CSSProperties | undefined => {
+    const r = moreRef.current?.getBoundingClientRect();
+    return r ? { position: "fixed", left: r.left, right: "auto", bottom: window.innerHeight - r.top + 6 } : undefined;
+  };
   // Side panel widths, dragged by their edges and kept on this computer.
-  const [leftWidth, setLeftWidth] = useState(() => rememberedWidth("origami.workLeftWidth", 252));
+  const leftWidth = side.width;
   const [rightWidth, setRightWidth] = useState(() => rememberedWidth("origami.workRightWidth", 320));
-  useEffect(() => rememberWidth("origami.workLeftWidth", leftWidth), [leftWidth]);
   useEffect(() => rememberWidth("origami.workRightWidth", rightWidth), [rightWidth]);
   const [connectionsOpen, setConnectionsOpen] = useState(() => remembered("origami.workConnections", true));
   // Work mode's own width, to keep the note column usable (see NOTE_MIN).
@@ -555,6 +567,7 @@ export function WorkMode({
       next.cover === note.cover &&
       next.pinned === note.pinned &&
       next.paper === note.paper &&
+      next.pageSize === note.pageSize &&
       (next.tags || []).join() === (note.tags || []).join()
     )
       return;
@@ -1785,7 +1798,7 @@ export function WorkMode({
   const NOTE_MIN = 420;
   const room = workWidth ? workWidth - 24 - (sidebarOpen ? 12 : 0) - (showConnections ? 12 : 0) - NOTE_MIN : Infinity;
   const rightShown = showConnections ? Math.max(260, Math.min(rightWidth, room - (sidebarOpen ? 200 : 0))) : 0;
-  const leftShown = sidebarOpen ? Math.max(200, Math.min(leftWidth, room - rightShown)) : 0;
+  const leftShown = sidebarOpen ? Math.max(side.min, Math.min(leftWidth, room - rightShown)) : 0;
 
   return (
     <div
@@ -1803,19 +1816,17 @@ export function WorkMode({
       }
     >
       {sidebarOpen && (
-        <PanelResizer side="left" width={leftShown} min={200} max={Math.max(200, Math.min(440, room - rightShown))} fallback={252} inset={{ edge: 12, gap: 6 }} label={t("Resize the sidebar")} onChange={setLeftWidth} />
+        <PanelResizer side="left" width={leftShown} min={side.min} max={Math.max(side.min, Math.min(side.max, room - rightShown))} fallback={side.fallback} inset={{ edge: 0, gap: 0 }} label={t("Resize the sidebar")} onChange={side.onChange} />
       )}
       {showConnections && (
-        <PanelResizer side="right" width={rightShown} min={260} max={Math.max(260, Math.min(620, room - leftShown))} fallback={320} inset={{ edge: 12, gap: 6 }} label={t("Resize the side panel")} onChange={setRightWidth} />
+        <PanelResizer side="right" width={rightShown} min={260} max={Math.max(260, Math.min(620, room - leftShown))} fallback={320} inset={{ edge: 0, gap: 0 }} label={t("Resize the side panel")} onChange={setRightWidth} />
       )}
       <nav className="work-sidebar" aria-label={t("Work navigation")} hidden={!sidebarOpen}>
-        <div className="work-brand">
-          <img src="/crane.png" alt="" />
-          {modeSwitch}
+        {modeHeader(
           <button className="icon-only sidebar-toggle" data-tip={t("Hide sidebar")} data-keys={shortcuts.sidebar} onClick={() => setSidebarOpen(false)}>
             <PanelLeftClose size={16} />
-          </button>
-        </div>
+          </button>,
+        )}
         <WorkspaceSwitcher
           workspaces={workspaces}
           active={ws}
@@ -2021,12 +2032,12 @@ export function WorkMode({
           <button className="new-sheet" data-tip={t("New board")} data-keys={shortcuts.newBoard} aria-label={t("New board")} onClick={() => void createBoard()}>
             <Presentation size={16} />
           </button>
-          <div className="work-more">
+          <div className="work-more" ref={moreRef}>
             <button className="icon-only" aria-label={t("More")} aria-expanded={menu} onClick={() => setMenu(!menu)}>
               <MoreHorizontal size={17} />
             </button>
             {menu && (
-              <div className="work-menu" role="menu" onMouseLeave={() => setMenu(false)}>
+              <div className="work-menu" role="menu" style={menuPlace()} onMouseLeave={() => setMenu(false)}>
                 <button role="menuitem" onClick={() => (setMenu(false), void createPlan())}>
                   <DraftingCompass size={15} />
                   {t("New plan (precise drawing)")}
@@ -2201,6 +2212,10 @@ export function WorkMode({
             onOpenSheet={(id) => setView({ kind: "sheet", id })}
             onNewSheet={() => void createSheet({ subjectId: view.id })}
             onExam={(exam) => void put([{ ...subjectOf(view.id)!, exam: exam || undefined }])}
+            onPageSize={(size) => {
+              const { pageSize: _s, ...rest } = subjectOf(view.id)!;
+              void put([size === "standard" ? rest : { ...rest, pageSize: size }]);
+            }}
             onPractise={() => practise(cards.filter((c) => c.subjectId === view.id), subjectOf(view.id)!.name)}
             onShare={() => shareCards(cards.filter((c) => c.subjectId === view.id), subjectOf(view.id)!.name)}
             cardCount={cards.filter((c) => c.subjectId === view.id).length}
@@ -2295,7 +2310,11 @@ export function WorkMode({
                 onOpenInReader={onOpenPassage}
               />
             )}
-            <section className="note-page">
+            <section
+              className="note-page"
+              data-page={pageSizeOf(current, subjectOf(current.subjectId))}
+              style={{ ["--page-w" as string]: (pageWidths[pageSizeOf(current, subjectOf(current.subjectId))] || 0) + "px" }}
+            >
               <header className="note-head">
                 <div className="note-crumbs">
                   <select
@@ -2357,6 +2376,7 @@ export function WorkMode({
                 />
                 <NoteHeader
                   note={current}
+                  subjectSize={current.subjectId ? pageSizeOf({}, subjectOf(current.subjectId)) : undefined}
                   words={noteText(current.html).split(/\s+/).filter(Boolean).length}
                   onChange={(patch) => changeNote(current.id, patch)}
                 >
@@ -3030,6 +3050,7 @@ function SubjectPage({
   onOpenSheet,
   onNewSheet,
   onExam,
+  onPageSize,
   onPractise,
   onShare,
   cardCount,
@@ -3039,6 +3060,7 @@ function SubjectPage({
   parents: Subject[];
   onParent: (parent: string) => void;
   onExam: (date: string) => void;
+  onPageSize: (size: PageSize) => void;
   onPractise: () => void;
   onShare: () => void;
   cardCount: number;
@@ -3090,6 +3112,19 @@ function SubjectPage({
             {parents.map((p) => (
               <option key={p.id} value={p.id}>
                 {t("Inside {name}", { name: p.name })}
+              </option>
+            ))}
+          </select>
+          <select
+            className="subject-parent"
+            value={pageSizeOf({}, subject)}
+            aria-label={t("Page size")}
+            data-tip={t("Page width for this subject's notes")}
+            onChange={(e) => onPageSize(e.target.value as PageSize)}
+          >
+            {pageSizes().map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
               </option>
             ))}
           </select>

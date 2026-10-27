@@ -35,6 +35,7 @@ import { playPageTurn } from "../pageSound";
 import { languageName } from "../bookLanguage";
 import { isUnknownAuthor } from "../authorPack";
 import { coverColor } from "../coverColor";
+import { bookThickness, edgeFinish, presetCoverImages, presetSpines, type Binding } from "../binding";
 
 export type BookNav = {
   turn: (direction: 1 | -1) => void;
@@ -48,6 +49,47 @@ const COVER = -2;
 const NONE = -1;
 const TURN_MS = 860;
 const OPEN_MS = 1700;
+/** A rounded spine as three flat facets on an arc bulging out from the joints
+ * (seen end on, the back of a hardcover is a shallow curve, not a box). Gives
+ * each facet's width, centre, turn and the shading at its two sides, and the
+ * end-cap outline for the head and tail. */
+function roundedSpine(thick: number) {
+  const reach = (40 * Math.PI) / 180;
+  const r = thick / 2 / Math.sin(reach);
+  const cx = r * Math.cos(reach);
+  const bulge = r - cx;
+  // Lit from above the table: the side by the front cover, which faces up,
+  // is brightest, the side by the back cover darkest.
+  const shade = (a: number) => 0.5 - (0.38 * (a + reach)) / (2 * reach);
+  const cuts = [-reach, -reach / 2, reach / 2, reach];
+  const facets = cuts.slice(0, 3).map((a, i) => {
+    const b = cuts[i + 1];
+    const mid = (a + b) / 2;
+    const half = (b - a) / 2;
+    const chord = r * Math.cos(half);
+    return {
+      // A hair wider, so no seam shows between facets.
+      width: 2 * r * Math.sin(half) + 0.8,
+      x: cx - chord * Math.cos(mid),
+      z: -thick / 2 + chord * Math.sin(mid),
+      turn: ((mid - Math.PI / 2) * 180) / Math.PI,
+      shadeA: shade(a),
+      shadeB: shade(b),
+    };
+  });
+  // The cap lies in the head or tail plane: x across, depth down the element.
+  const points: string[] = [];
+  for (let i = 0; i <= 16; i++) {
+    const a = -reach + (2 * reach * i) / 16;
+    const x = cx - r * Math.cos(a) + bulge + 1;
+    const y = -(-thick / 2 + r * Math.sin(a));
+    points.push(`${x.toFixed(1)}px ${y.toFixed(1)}px`);
+  }
+  points.push(`${(bulge + 3).toFixed(1)}px 0px`, `${(bulge + 3).toFixed(1)}px ${thick}px`);
+  return { facets, bulge, cap: `polygon(${points.join(", ")})` };
+}
+// The closed book rises from the table and squares up before the cover opens.
+const LIFT_MS = 950;
 const GAP = 48;
 // Page proportions of a trade paperback, which also match the covers.
 const ASPECT = 0.7;
@@ -195,6 +237,7 @@ export function BookView({
   fontName,
   opening,
   sound,
+  binding,
   interfaceLanguage,
   navRef,
 }: {
@@ -214,6 +257,8 @@ export function BookView({
   fontName: string;
   opening: boolean;
   sound: boolean;
+  // Page edges, spine and cover of the 3D book (binding.ts).
+  binding: Binding;
   interfaceLanguage: string;
   navRef: MutableRefObject<BookNav | null>;
 }) {
@@ -316,27 +361,34 @@ export function BookView({
     [measured, signature, sections],
   );
 
-  // The spine takes the cover art's dominant color.
+  // The spine cloth takes the cover's most prevalent color.
   const [spine, setSpine] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
-    setSpine(null);
-    if (book.meta.coverImage)
-      void coverColor(book.meta.coverImage).then((c) => live && setSpine(c));
+    const art = book.meta.coverImage || presetCoverImages[book.meta.cover];
+    setSpine(art ? null : presetSpines[book.meta.cover] || null);
+    if (art) void coverColor(art).then((c) => live && setSpine(c));
     return () => {
       live = false;
     };
-  }, [book.meta.coverImage]);
+  }, [book.meta.coverImage, book.meta.cover]);
+  // The metal (or paper and ink) of each part, and the volume's thickness.
+  const finishes = { edges: edgeFinish(binding.edges), spine: edgeFinish(binding.spine), cover: edgeFinish(binding.cover) };
+  const thickness = bookThickness(book.meta.wordCount);
   // Where the reader is: a spread, and the opening sequence if it plays.
-  const playOpening = opening && position === 0 && !reducedMotion();
+  // Every time a book opens it starts closed on the table, then rises and
+  // opens at the saved page (or the bookmark it was opened from).
+  const playOpening = opening && !reducedMotion();
+  // A book never read yet waits for the reader to open it.
+  const firstOpening = playOpening && position === 0;
   const [phase, setPhase] = useState<
-    "closed" | "opening" | "title" | "ready" | "closing"
+    "closed" | "lifting" | "opening" | "title" | "ready" | "closing"
   >(playOpening ? "closed" : "ready");
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
   // Waits on the closed cover for a click: a new book until the reader opens
   // it, and a book the reader closed.
-  const [held, setHeld] = useState(playOpening);
+  const [held, setHeld] = useState(firstOpening);
   // Closed by the reader (shown turned, without the arrival animation).
   const [shut, setShut] = useState(false);
   const [spread, setSpread] = useState<number | null>(playOpening ? 0 : null);
@@ -518,29 +570,39 @@ export function BookView({
 
   // The opening: a moment on the closed book, the cover swings open to the
   // title page, then the first chapter.
+  const lift = useRef(0);
+  useEffect(() => () => clearTimeout(lift.current), []);
   const openCover = useCallback(() => {
     setHeld(false);
     setShut(false);
-    setPhase("opening");
-    if (sound) playPageTurn(0.16);
-    setTurn((current) => (current ? { ...current, hold: false } : current));
+    setPhase("lifting");
+    clearTimeout(lift.current);
+    lift.current = window.setTimeout(() => {
+      setPhase("opening");
+      if (sound) playPageTurn(0.16);
+      setTurn((current) => (current ? { ...current, hold: false } : current));
+    }, LIFT_MS);
   }, [sound]);
   useEffect(() => {
     if (phase !== "closed" || held) return;
-    const timer = setTimeout(openCover, 1100);
+    const timer = setTimeout(openCover, 1250);
     return () => clearTimeout(timer);
   }, [phase, held, openCover]);
   useEffect(() => {
     if (phase !== "title" || !pagination || turn) return;
-    const timer = setTimeout(() => {
-      setPhase("ready");
-      const target = pagination.spreadOfParagraph(position);
-      if (target <= 1) beginTurn(1);
-      else {
-        setFade((f) => f + 1);
-        setSpread(target);
-      }
-    }, 1500);
+    const target = pagination.spreadOfParagraph(position);
+    // A new book lingers on its title page; a continued one goes on to its page.
+    const timer = setTimeout(
+      () => {
+        setPhase("ready");
+        if (target <= 1) beginTurn(1);
+        else {
+          setFade((f) => f + 1);
+          setSpread(target);
+        }
+      },
+      target <= 1 ? 1500 : 450,
+    );
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, pagination, turn, beginTurn]);
@@ -572,6 +634,7 @@ export function BookView({
     } else shut();
   }, [phase, pagination, sound]);
   const skipOpening = useCallback(() => {
+    clearTimeout(lift.current);
     cancelAnimationFrame(frame.current);
     busy.current = false;
     setTurn(null);
@@ -606,6 +669,7 @@ export function BookView({
       // Going to a passage (contents, a note) while the book is closed or
       // opening opens it straight onto that passage.
       if (phaseRef.current !== "ready") {
+        clearTimeout(lift.current);
         cancelAnimationFrame(frame.current);
         busy.current = false;
         setTurn(null);
@@ -784,6 +848,7 @@ export function BookView({
           >
             <Cover book={book.meta} />
           </div>
+          <span className="book-cover-gilt" />
           <span className="book-cover-hinge" />
           <span className="book-cover-gloss" />
         </div>
@@ -910,7 +975,7 @@ export function BookView({
   const k = spread ?? 0;
   const left = turn
     ? turn.underLeft
-    : phase === "closed" || phase === "opening"
+    : phase === "closed" || phase === "lifting" || phase === "opening"
       ? NONE
       : 2 * k;
   const right = turn ? turn.underRight : 2 * k + 1;
@@ -918,6 +983,8 @@ export function BookView({
     pagination && spread !== null
       ? Math.min(1, spread / Math.max(1, spreads - 1))
       : 0;
+  const stackDepth = geometry ? Math.max(4, Math.min(26, geometry.pageH * thickness * 0.4)) : 12;
+  const spineArc = useMemo(() => (geometry ? roundedSpine(Math.round(geometry.pageH * thickness)) : null), [geometry, thickness]);
   const style = (
     geometry
       ? {
@@ -929,9 +996,22 @@ export function BookView({
           "--pad-top": geometry.padTop + "px",
           "--pad-inner": geometry.padInner + "px",
           "--pad-outer": geometry.padOuter + "px",
-          "--stack-left": (2 + done * 12).toFixed(1) + "px",
-          "--stack-right": (2 + (1 - done) * 12).toFixed(1) + "px",
+          // Thicker volumes have deeper page stacks on both sides when open.
+          "--thick": Math.round(geometry.pageH * thickness) + "px",
+          "--stack-left": (2 + done * stackDepth).toFixed(1) + "px",
+          "--stack-right": (2 + (1 - done) * stackDepth).toFixed(1) + "px",
           ...(spine ? { "--spine": spine } : {}),
+          ...Object.fromEntries(
+            (["edges", "spine", "cover"] as const).flatMap((part) => {
+              const f = finishes[part];
+              const name = part === "edges" ? "edge" : part;
+              return [
+                ["--" + name + "-hi", f.hi],
+                ["--" + name + "-mid", f.mid],
+                ["--" + name + "-lo", f.lo],
+              ];
+            }),
+          ),
         }
       : {}
   ) as CSSProperties;
@@ -952,6 +1032,9 @@ export function BookView({
       }}
       className={"book-stage phase-" + phase + (shut ? " held" : "")}
       data-surface={/surface-(\w+)/.exec(pageClass)?.[1]}
+      data-edges={finishes.edges.id}
+      data-spine={finishes.spine.id}
+      data-cover={finishes.cover.id}
       style={style}
       onWheel={(e) => {
         if (phase !== "ready" || e.ctrlKey) return;
@@ -972,9 +1055,60 @@ export function BookView({
         >
           <span className="book-stack left" aria-hidden="true" />
           <span className="book-stack right" aria-hidden="true" />
-          <span className="book-spine-face" aria-hidden="true" />
-          <span className="book-block-top" aria-hidden="true" />
-          <span className="book-block-edge" aria-hidden="true" />
+          {/* The rest of the closed volume behind the cover: the back board,
+              the boards' edges, the page block's head, tail and fore-edge,
+              and its shadow on the table. */}
+          <div className="book-box" aria-hidden="true">
+            <span className="box-shadow" />
+            <span className="box-back" />
+            <span className="box-edge front tail" />
+            <span className="box-edge front head" />
+            <span className="box-edge front fore" />
+            <span className="box-edge back tail" />
+            <span className="box-edge back head" />
+            <span className="box-edge back fore" />
+            <span className="box-block tail" />
+            <span className="box-block head" />
+            <span className="box-block fore" />
+            {/* A rounded cloth spine in the cover's color, in three facets
+                lit across the curve, with raised bands; the middle facet
+                carries the title, a fleuron and the crane. At each end, the
+                headband over the rounded back of the pages. */}
+            {spineArc?.facets.map((f, i) => (
+              <span
+                key={i}
+                className={"book-spine-face" + (i === 1 ? " crown" : "")}
+                style={{
+                  width: f.width + "px",
+                  left: -f.width / 2 + "px",
+                  transform: `translate3d(${f.x.toFixed(2)}px, 0, ${f.z.toFixed(2)}px) rotateY(${f.turn.toFixed(2)}deg)`,
+                  ["--facet" as string]: f.width.toFixed(1) + "px",
+                  ["--shade-a" as string]: f.shadeA.toFixed(3),
+                  ["--shade-b" as string]: f.shadeB.toFixed(3),
+                }}
+              >
+                <span className="spine-band b1" />
+                <span className="spine-band b2" />
+                <span className="spine-band b3" />
+                <span className="spine-band b4" />
+                {i === 1 && (
+                  <>
+                    <span className="spine-fleuron" />
+                    <span className="spine-title">{book.meta.title}</span>
+                    <span className="spine-crane" />
+                  </>
+                )}
+              </span>
+            ))}
+            {spineArc &&
+              (["head", "tail"] as const).map((end) => (
+                <span
+                  key={end}
+                  className={"box-spine-end " + end}
+                  style={{ left: -spineArc.bulge - 1 + "px", width: spineArc.bulge + 3 + "px", clipPath: spineArc.cap }}
+                />
+              ))}
+          </div>
           {sheet(left, "left", true)}
           {sheet(right, "right", true)}
           <span className="book-cast left" aria-hidden="true" />

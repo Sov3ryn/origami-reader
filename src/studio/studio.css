@@ -151,15 +151,141 @@
   }
 }
 
-/* Home */
+/* Home: a side panel and a page, floating like Work mode's. */
 .studio-home {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+}
+.studio-nav,
+.studio-main {
+  min-height: 0;
+  border-radius: 14px;
+  background: var(--studio-glass);
+  border: 1px solid var(--line);
+  box-shadow:
+    0 18px 50px -24px rgb(0 0 0 / 0.55),
+    0 2px 6px -2px rgb(0 0 0 / 0.25);
+}
+.studio-nav {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  overflow: auto;
+  padding: 12px 10px;
+}
+.studio-nav > .mode-header {
+  margin: 0;
+}
+.studio-nav-group {
+  display: grid;
+  gap: 2px;
+}
+.studio-nav-label {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px 4px;
+  color: var(--muted);
+  font-size: var(--fs-caption, 12px);
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.studio-nav .studio-hint {
+  padding: 0 8px;
+}
+.studio-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.studio-nav-list button,
+.studio-nav-tool {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 7px 8px;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--ink);
+}
+.studio-nav-list button:hover,
+.studio-nav-tool:hover:not(:disabled) {
+  background: var(--studio-soft);
+}
+.studio-nav-tool svg {
+  color: var(--muted);
+}
+.studio-nav-cover {
+  flex: none;
+  width: 26px;
+  height: 38px;
+  border-radius: 3px;
+  background: var(--studio-soft) center / cover no-repeat;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+}
+.studio-nav-text {
+  display: grid;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.studio-nav-text strong {
+  font-size: var(--fs-small, 13px);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.studio-nav-text .studio-progress {
+  margin: 0;
+  height: 3px;
+}
+.studio-nav-new {
+  justify-content: center;
+  width: 100%;
+}
+.studio-main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.studio-page-head {
+  padding: 28px 32px 4px;
+}
+.studio-page-head .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.studio-page-head h1 {
+  margin: 4px 0 2px;
+  font-family: var(--reader-font, Georgia, serif) !important;
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.studio-main > .studio-error,
+.studio-main > .studio-notice {
+  margin: 8px 32px 0;
 }
 .studio-home-body {
   flex: 1;
   overflow: auto;
-  padding: 22px 26px 40px;
+  padding: 16px 32px 40px;
+}
+@media (max-width: 760px) {
+  .studio-home {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .studio-nav {
+    max-height: 38vh;
+  }
 }
 .studio-welcome {
   max-width: 880px;
@@ -284,8 +410,9 @@
   display: grid;
   grid-template-columns: var(--studio-left, 250px) minmax(0, 1fr) var(--studio-right, 330px);
   grid-template-rows: auto minmax(0, 1fr) auto;
+  /* The side panel runs full height, with the modes at its top as in Read and Work. */
   grid-template-areas:
-    "top top top"
+    "side top top"
     "side doc inspector"
     "player player player";
 }
@@ -299,6 +426,42 @@
 .studio-editor > .panel-resizer {
   top: 56px;
   bottom: 64px;
+}
+.studio-editor > .panel-resizer.left {
+  top: 0;
+}
+.studio-side > .mode-header {
+  margin: 12px 12px 6px;
+}
+.studio-back {
+  align-self: flex-start;
+  margin: 0 8px;
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: var(--fs-small, 13px);
+}
+.studio-back:hover {
+  color: var(--ink);
+  background: var(--studio-soft);
+}
+.studio-book {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 12px;
+  min-width: 0;
+}
+.studio-book > span:last-child {
+  display: grid;
+  min-width: 0;
+}
+.studio-book strong,
+.studio-book .muted {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .studio-editor.no-left.no-right {
   grid-template-columns: 0 minmax(0, 1fr) 0;
@@ -1470,4 +1633,1110 @@
   .studio-bar-top .studio-spacer {
     display: none;
   }
+}
+
+/* What a job covers (JobScope.tsx): a page, a chapter, chapters or the book. */
+.studio-scope {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.studio-scope select {
+  max-width: 190px;
+  padding: 6px 8px;
+  font-size: var(--fs-small, 13px);
+}
+/* A running job, at the top of the script: what it does, a bar that keeps
+   moving while the first result is awaited, time spent and left, and the line
+   being voiced. */
+.studio-job {
+  flex: 1 1 100%;
+  order: -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--studio-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+.studio-job-body {
+  display: grid;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.studio-job-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+.studio-job-line strong {
+  font-size: var(--fs-small, 13px);
+}
+.studio-job-line .muted,
+.studio-job-now {
+  font-size: var(--fs-caption, 12px);
+}
+.studio-job-now {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.studio-job-track {
+  position: relative;
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--studio-soft);
+}
+.studio-job-track i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 400ms ease;
+}
+/* A light runs along the bar, so a long batch still shows work. */
+.studio-job-track::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ink) 28%, transparent), transparent) -40% 0 / 40% 100% no-repeat;
+  animation: studio-job-run 1.8s ease-in-out infinite;
+}
+@keyframes studio-job-run {
+  to {
+    background-position: 140% 0;
+  }
+}
+.studio-line.voicing {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--accent) 70%, transparent);
+  animation: studio-voicing 1.6s ease-in-out infinite;
+}
+@keyframes studio-voicing {
+  50% {
+    background: color-mix(in srgb, var(--accent) 24%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-job-track::after,
+  .studio-line.voicing {
+    animation: none;
+  }
+}
+
+/* ===== Studio in Read's own layout (27 October 2026) =====
+   Home is laid out as the library (side navigation, top bar, title, one
+   toolbar, a Continue card, a grid), the editor as an open book (side panel
+   with the book and its contents, top bar with a breadcrumb, the script, an
+   inspector with tabs, the player along the bottom). Studio uses Read's
+   classes for those parts; the rules here only place them and draw what is
+   Studio's own (the script, the takes, the job bars). */
+.studio-mode {
+  background: color-mix(in srgb, var(--bg) 52%, transparent);
+  backdrop-filter: blur(26px) saturate(1.15) brightness(0.86);
+  font-family: inherit;
+}
+.studio-mode button {
+  font-family: inherit;
+}
+
+/* --- Side panels: Read's sidebar --- */
+.studio-nav,
+.studio-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--shell-pad, 22px 16px 18px);
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--shell-side, color-mix(in srgb, var(--bg) 94%, transparent));
+}
+.studio-nav > .mode-header,
+.studio-side > .mode-header {
+  margin: 0 0 16px;
+}
+.studio-nav .main-nav button {
+  width: 100%;
+}
+.studio-nav .sidebar-sections {
+  margin-top: 18px;
+}
+.studio-nav .panel-section {
+  border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--panel) 45%, transparent);
+  padding: 0 4px;
+}
+.studio-nav .panel-section-heading button {
+  padding: 10px 8px;
+  font-size: var(--fs-small);
+}
+.studio-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 6px;
+  display: grid;
+  gap: 1px;
+}
+.studio-nav-list button,
+.studio-nav-tools button {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  text-align: left;
+  color: var(--ink);
+  font-size: var(--fs-small);
+}
+.studio-nav-list button:hover,
+.studio-nav-tools button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.studio-nav-tools {
+  display: grid;
+  gap: 1px;
+  padding: 0 0 6px;
+}
+.studio-nav-tools svg {
+  color: var(--muted);
+  flex: none;
+}
+.studio-nav-cover {
+  width: 24px;
+  height: 34px;
+}
+.studio-side .back-library {
+  align-self: flex-start;
+}
+.studio-side .reader-book {
+  margin: 14px 4px 10px;
+}
+.studio-side-progress .studio-meter {
+  height: 4px;
+}
+.studio-side .studio-tabs {
+  display: flex;
+  margin: 12px 0 8px;
+  padding: 3px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+}
+.studio-side .studio-tabs button {
+  flex: 1;
+  gap: 5px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: var(--fs-caption);
+  color: var(--muted);
+  text-transform: none;
+  box-shadow: none;
+}
+.studio-side .studio-tabs button.active {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 20%, var(--panel));
+}
+/* Contents, as Read's: number, title, then time and flags under a thin meter. */
+.studio-chapter-list {
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+.studio-chapter-list button {
+  display: grid !important;
+  grid-template-columns: 26px minmax(0, 1fr);
+  grid-template-areas:
+    "num name"
+    ". meter"
+    ". meta";
+  gap: 4px 6px !important;
+  padding: 7px 8px 8px 4px !important;
+  margin: 0 0 1px;
+  border-radius: 7px;
+  font-size: var(--fs-body);
+}
+.studio-chapter-list button:hover {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.studio-chapter-list button[aria-current="true"] {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: inset 2px 0 var(--accent);
+}
+.studio-chapter-list .number {
+  grid-area: num;
+  justify-self: end;
+  align-self: center;
+  font-size: var(--fs-caption);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.studio-chapter-list .name {
+  grid-area: name;
+  font-size: var(--fs-body);
+  line-height: 1.35;
+}
+.studio-chapter-list .studio-meter {
+  grid-area: meter;
+}
+.studio-chapter-list .meta {
+  grid-area: meta;
+}
+
+/* --- Home: the library's page --- */
+.studio-home {
+  gap: 0;
+  padding: 0;
+  grid-template-columns: var(--studio-left, 240px) minmax(0, 1fr);
+}
+.studio-home.no-nav {
+  grid-template-columns: minmax(0, 1fr);
+}
+.studio-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--shell-main, color-mix(in srgb, var(--bg) 74%, transparent));
+}
+.studio-home-body {
+  display: block;
+  padding: 22px 40px 45px;
+}
+.studio-home-body > .studio-error,
+.studio-home-body > .studio-notice {
+  margin: 0 0 14px;
+}
+.studio-home > .panel-resizer {
+  top: 0;
+  bottom: 0;
+}
+.continue-card.studio-welcome {
+  display: block;
+  max-width: none;
+  margin: 0;
+  padding: 20px 22px 22px;
+}
+.studio-welcome > p {
+  margin: 0 0 16px;
+  max-width: 70ch;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.studio-welcome-steps {
+  margin: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.studio-welcome-steps li {
+  background: color-mix(in srgb, var(--panel) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+.studio-home .continue-card .cover,
+.studio-home .studio-card .cover {
+  flex: none;
+}
+.studio-home .studio-tag {
+  margin-top: 2px;
+}
+.studio-cards {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+.studio-card {
+  gap: 16px !important;
+  padding: 14px !important;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel) 72%, transparent);
+}
+.studio-card-body strong {
+  font: 400 19px/1.25 Georgia, serif;
+}
+.studio-card .studio-progress {
+  margin-top: 8px;
+  height: 4px;
+}
+
+/* --- Editor: the side panel, then the desk (bar, script, inspector, player) --- */
+.studio-editor,
+.studio-editor.no-left,
+.studio-editor.no-right,
+.studio-editor.no-left.no-right {
+  padding: 0;
+  gap: 0;
+  grid-template-columns: var(--studio-left, 240px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "side desk";
+}
+.studio-editor.no-left,
+.studio-editor.no-left.no-right {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "desk";
+}
+.studio-editor > .panel-resizer,
+.studio-editor > .panel-resizer.left {
+  top: 0;
+  bottom: 0;
+}
+.studio-side {
+  grid-area: side;
+}
+.studio-desk {
+  grid-area: desk;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  grid-template-columns: minmax(0, 1fr) var(--studio-right, 330px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "top inspector"
+    "doc inspector"
+    "player player";
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--shell-main, color-mix(in srgb, var(--bg) 74%, transparent));
+}
+.studio-desk.no-right {
+  grid-template-columns: minmax(0, 1fr) 0;
+}
+.studio-desk.no-right > .studio-inspector {
+  display: none;
+}
+/* The bar: Read's top bar, actions on the right. */
+.studio-topbar {
+  grid-area: top;
+  min-width: 0;
+}
+.studio-topbar .header-left {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.studio-topbar .header-actions {
+  flex: none;
+  gap: 8px;
+}
+.studio-topbar .breadcrumb .current {
+  color: var(--ink);
+}
+.studio-topbar .breadcrumb > button:hover {
+  color: var(--ink);
+}
+.studio-topbar .studio-split {
+  gap: 8px;
+}
+.studio-topbar .icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* The script: a page, no card. */
+.studio-doc {
+  grid-area: doc;
+  padding: 0 40px 80px;
+}
+.studio-doc-head {
+  max-width: none;
+  margin: 0 -40px;
+  padding: 22px max(40px, calc((100% - 720px) / 2 + 40px)) 14px;
+  background: linear-gradient(color-mix(in srgb, var(--bg) 88%, transparent) 75%, transparent);
+  align-items: flex-end;
+}
+.studio-doc-head h2 {
+  font: 400 26px/1.2 Georgia, serif;
+  margin: 0;
+}
+.studio-chips {
+  padding: 3px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  border: 1px solid var(--line);
+}
+.studio-chips button {
+  border-radius: 6px !important;
+  padding: 5px 11px;
+  font-size: var(--fs-caption);
+}
+.studio-chips button[aria-checked="true"] {
+  background: color-mix(in srgb, var(--accent) 20%, var(--panel));
+  box-shadow: none;
+}
+.studio-page {
+  max-width: 720px;
+  margin: 6px auto 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-family: var(--reader-font, Georgia, serif);
+  font-size: 1.1rem;
+  line-height: 1.9;
+}
+.studio-page p {
+  margin: 0 0 1.1em;
+}
+.studio-page h3 {
+  margin: 0.4em 0 1.1em;
+  font-size: 1.35em;
+  font-weight: 400;
+}
+.studio-line.selected {
+  outline: 0;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+/* Who speaks, at the start of each run of one speaker's lines. */
+.studio-line[data-speaker]::before {
+  content: attr(data-speaker);
+  display: inline-block;
+  vertical-align: 2px;
+  margin: 0 8px 0 0;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font: 600 11px/1.6 "Inter", "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--who, var(--muted)) 18%, transparent);
+  color: color-mix(in srgb, var(--who, var(--muted)) 65%, var(--ink));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--who, var(--muted)) 30%, transparent);
+}
+/* The inspector: Read's, with its tabs. */
+.studio-inspector {
+  grid-area: inspector;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-left: 1px solid var(--line);
+  background: var(--shell-side, color-mix(in srgb, var(--bg) 94%, transparent));
+}
+.studio-inspector .inspector-tabs button {
+  align-items: center;
+}
+.studio-inspector .inspector-scroll {
+  overflow: auto;
+  flex: 1;
+}
+.studio-panel {
+  gap: 14px;
+  padding: 16px 18px 28px;
+}
+.studio-panel-head {
+  margin: 4px 0 -4px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  color: var(--ink);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.studio-panel > .studio-panel-head:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.studio-empty {
+  margin: 0;
+  padding: 22px 18px;
+}
+/* The player: Read's, with the line strip as its seek bar. */
+.studio-mode .studio-player {
+  grid-area: player;
+  display: grid;
+  grid-template-columns: minmax(48px, 1fr) minmax(0, 760px) minmax(max-content, 1fr);
+  align-items: center;
+  gap: 24px;
+  min-height: 86px;
+  padding: 10px 26px;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 97%, transparent);
+}
+.studio-player .now-playing {
+  justify-self: start;
+  min-width: 0;
+  overflow: hidden;
+}
+.studio-player .player-center {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  min-width: 0;
+}
+.studio-player .seek-control {
+  max-width: none;
+}
+.studio-player .play-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% !important;
+}
+.studio-player .playback-options {
+  justify-self: end;
+}
+.studio-player .player-center,
+.studio-player .seek-control {
+  min-width: 0;
+}
+.studio-strip {
+  height: 18px;
+  align-items: stretch;
+  overflow: hidden;
+}
+.studio-strip i {
+  min-width: 0;
+  border-radius: 1.5px;
+}
+
+/* Dialogs as the app's other dialogs. */
+.studio-dialog-backdrop {
+  background: #00000090;
+}
+.studio-dialog {
+  border-radius: 14px;
+  box-shadow: 0 15px 75px #00000066;
+}
+@media (max-width: 1200px) {
+  .studio-player .now-playing {
+    display: none;
+  }
+  .studio-mode .studio-player {
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+}
+@media (max-width: 1100px) {
+  .studio-welcome-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .studio-home > .panel-resizer {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  .studio-home {
+    grid-template-columns: 1fr;
+  }
+}
+/* The strip is a child of Read's seek control, whose rows are spaced out. */
+.studio-player .seek-control > .studio-strip {
+  gap: 1px;
+  margin: 0;
+  justify-content: flex-start;
+}
+.studio-home .continue-open {
+  margin-left: auto;
+}
+/* The cast as a list in the side panel, not a stack of boxes. */
+.studio-side .studio-cast {
+  padding: 4px 0 14px;
+  overflow: visible;
+}
+.studio-side .studio-cast-list {
+  gap: 0;
+}
+.studio-side .studio-cast-row {
+  padding: 9px 4px;
+  border-radius: 0;
+  background: none;
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+.studio-side .studio-cast-row:first-child {
+  border-top: 0;
+}
+.studio-side .studio-cast-name strong {
+  font: 400 15px/1.3 Georgia, serif;
+}
+
+/* ===== Studio A: script blocks, inspector and timeline (27 October 2026) ===== */
+/* The tools row over the script: filters, then the narrator. */
+.studio-doc-head {
+  align-items: center;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+}
+.studio-doc-head .studio-spacer {
+  flex: 1;
+}
+.studio-narrator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: var(--fs-small);
+  color: var(--ink);
+}
+.studio-avatar {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--who, var(--muted));
+  color: var(--bg);
+  font: 600 11px/1 Inter, "Segoe UI", system-ui, sans-serif;
+}
+/* The script: blocks with who speaks at the left, state and length at the right. */
+.studio-page {
+  max-width: 980px;
+  margin-top: 14px;
+}
+.studio-block {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) 118px;
+  gap: 16px;
+  align-items: start;
+  padding: 10px 12px;
+  margin: 0 -12px 2px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+.studio-block:hover {
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+}
+.studio-block.sel {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+.studio-block-who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 3px;
+  font: 500 var(--fs-small) / 1.3 Inter, "Segoe UI", system-ui, sans-serif;
+  color: color-mix(in srgb, var(--who, var(--muted)) 55%, var(--ink));
+}
+.studio-block-who .name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.studio-block-text {
+  margin: 0 !important;
+}
+.studio-block.heading .studio-block-text {
+  font-size: 1.3em;
+  text-align: left;
+}
+.studio-block-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px 6px;
+  padding-top: 2px;
+  font: var(--fs-caption) / 1.3 Inter, "Segoe UI", system-ui, sans-serif;
+  color: var(--muted);
+}
+.studio-block-meta .time {
+  font-variant-numeric: tabular-nums;
+}
+.studio-block-meta .icon-button {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.studio-state {
+  font: 600 11px/1.5 Inter, "Segoe UI", system-ui, sans-serif;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--muted);
+}
+.studio-state.approved {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: color-mix(in srgb, var(--accent) 75%, var(--ink));
+}
+.studio-state.rendered {
+  background: color-mix(in srgb, var(--studio-good) 16%, transparent);
+  color: color-mix(in srgb, var(--studio-good) 80%, var(--ink));
+}
+.studio-state.flagged,
+.studio-state.failed {
+  background: color-mix(in srgb, var(--studio-warn) 18%, transparent);
+  color: color-mix(in srgb, var(--studio-warn) 85%, var(--ink));
+}
+/* Lines inside a block: quiet until chosen or playing. */
+.studio-block .studio-line.voiced {
+  color: inherit;
+  background: none;
+}
+.studio-line.no-take {
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
+}
+/* The inspector: a voice card, takes with waveforms, actions kept at the bottom. */
+.studio-voice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 60%, transparent);
+}
+.studio-voice-card .studio-avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 13px;
+}
+.studio-voice-card .studio-field {
+  flex: 1;
+  min-width: 0;
+}
+.studio-takes li {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+}
+.studio-takes li.chosen {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.studio-wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 22px;
+  min-width: 0;
+  overflow: hidden;
+}
+.studio-wave i {
+  flex: 1 1 0;
+  min-width: 1px;
+  max-width: 3px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--muted) 70%, transparent);
+}
+.studio-takes li.chosen .studio-wave i {
+  background: var(--accent);
+}
+.studio-actions {
+  position: sticky;
+  bottom: 0;
+  margin: 4px -18px -28px;
+  padding: 12px 18px 16px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  background: var(--shell-side, var(--bg));
+}
+.studio-actions > button:not(.icon-only) {
+  flex: 1;
+  justify-content: center;
+}
+/* The chapters panel: a search above the list. */
+.studio-chapter-find {
+  margin: 0 0 8px;
+}
+.studio-chapter-list li[hidden] {
+  display: none;
+}
+
+/* The timeline along the bottom: tracks or a strip, the same transport. */
+.studio-timeline-panel {
+  grid-area: player;
+  --tl-label: 150px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 97%, transparent);
+}
+.tl-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 6px 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+.studio-timeline-panel.strip .tl-bar {
+  border-bottom: 0;
+}
+.tl-bar .transport {
+  gap: 6px;
+}
+.tl-bar .play-button {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% !important;
+}
+.tl-time {
+  font: 500 13px Inter, "Segoe UI", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tl-time span,
+.tl-where {
+  color: var(--muted);
+}
+.tl-where {
+  font-size: var(--fs-caption);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.tl-spacer {
+  flex: 1;
+}
+.tl-zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-caption);
+  color: var(--muted);
+  margin: 0;
+}
+.tl-zoom input {
+  width: 110px;
+  accent-color: var(--accent);
+}
+.tl-views {
+  flex: none;
+}
+.tl-views button {
+  padding: 5px 12px;
+}
+.studio-timeline-panel .studio-speed select {
+  border: 0;
+  background: none;
+  padding: 3px;
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+/* Strip: one row of lines, as in the guided design. */
+.tl-strip {
+  display: flex;
+  gap: 1px;
+  height: 16px;
+  margin: 0 18px 14px;
+  overflow: hidden;
+}
+.tl-strip .clip {
+  flex-basis: 0;
+  min-width: 0;
+  border-radius: 1.5px;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--who, var(--accent)) 45%, transparent);
+}
+/* Tracks: a lane per voice under a ruler, scrolling sideways when zoomed. */
+.tl-scroll {
+  overflow: auto;
+  max-height: 200px;
+}
+.tl-inner {
+  position: relative;
+  min-width: 100%;
+}
+.tl-row {
+  display: grid;
+  grid-template-columns: var(--tl-label) minmax(0, 1fr);
+  height: 30px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+}
+.tl-ruler {
+  height: 22px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.tl-label {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  font-size: var(--fs-caption);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  background: color-mix(in srgb, var(--bg) 97%, var(--panel));
+}
+.tl-label i {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--who);
+}
+.tl-lane {
+  position: relative;
+  min-width: 0;
+}
+.tl-tick {
+  position: absolute;
+  top: 4px;
+  padding-left: 4px;
+  border-left: 1px solid color-mix(in srgb, var(--line) 90%, transparent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tl-lane .clip {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--who) 70%, transparent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--who) 26%, transparent);
+  cursor: pointer;
+}
+.tl-lane .clip.approved {
+  background: color-mix(in srgb, var(--who) 55%, transparent);
+}
+.tl-lane .clip.empty {
+  background: none;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--muted) 45%, transparent);
+}
+.tl-strip .clip.empty {
+  background: color-mix(in srgb, var(--muted) 18%, transparent);
+}
+.tl-lane .clip.flagged,
+.tl-strip .clip.flagged {
+  background: color-mix(in srgb, var(--studio-warn) 55%, transparent);
+  border-color: var(--studio-warn);
+}
+.tl-lane .clip.sel,
+.tl-strip .clip.sel {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+  z-index: 1;
+}
+.tl-lane .clip.now,
+.tl-strip .clip.now {
+  background: var(--ink);
+}
+.tl-lane .clip.bed {
+  cursor: default;
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--muted) 22%, transparent) 0 3px, transparent 3px 6px);
+}
+.tl-head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+  pointer-events: none;
+  z-index: 3;
+}
+@media (max-width: 1200px) {
+  .studio-block {
+    grid-template-columns: 110px minmax(0, 1fr) 96px;
+  }
+  .tl-where {
+    display: none;
+  }
+}
+/* Labels are columns in the app; these two hold a row. */
+.tl-zoom,
+.studio-chapter-find {
+  flex-direction: row;
+  align-items: center;
+}
+.studio-chapter-find input {
+  padding: 8px 0;
+}
+/* Chapter rows on one line: number, title, then time and flags; the meter under the title. */
+.studio-chapter-list button {
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "num name meta"
+    ". meter meter";
+}
+.studio-chapter-list .meta {
+  gap: 8px;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+.studio-chapter-list .name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Home in the A style: the page's actions beside the title, chapter bars on
+   the Continue card, the cast on each production. */
+.studio-heading {
+  margin-bottom: 14px;
+}
+.studio-heading .heading-actions button {
+  white-space: nowrap;
+}
+.studio-chapter-bars {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  height: 34px;
+  max-width: 640px;
+  margin: 4px 0 2px;
+}
+.studio-chapter-bars i {
+  flex: 1 1 0;
+  min-width: 1px;
+  max-width: 10px;
+  display: flex;
+  flex-direction: column-reverse;
+  border-radius: 2px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+}
+.studio-chapter-bars b {
+  display: block;
+  background: var(--accent);
+}
+.studio-chapter-bars s {
+  display: block;
+  text-decoration: none;
+  background: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.studio-cast-faces {
+  display: flex;
+  margin-top: 2px;
+}
+.studio-cast-faces .studio-avatar {
+  width: 22px;
+  height: 22px;
+  margin-left: -6px;
+  font-size: 10px;
+  box-shadow: 0 0 0 2px var(--panel);
+}
+.studio-cast-faces .studio-avatar:first-child {
+  margin-left: 0;
+}
+.studio-cards {
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
 }

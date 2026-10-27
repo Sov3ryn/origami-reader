@@ -39,6 +39,12 @@ export function HoverTips({ root }: { root: React.RefObject<HTMLElement | null> 
     const el = root.current;
     if (!el) return;
     let current: HTMLElement | null = null;
+    // A tip waits for the pointer to move: a panel that opens or re-renders
+    // under a resting pointer (switching modes, say) does not show one.
+    let armed = false;
+    const arm = () => {
+      armed = true;
+    };
     const show = (target: HTMLElement, delay: number) => {
       window.clearTimeout(timer.current);
       current = target;
@@ -58,6 +64,7 @@ export function HoverTips({ root }: { root: React.RefObject<HTMLElement | null> 
     const hide = () => {
       window.clearTimeout(timer.current);
       current = null;
+      armed = false;
       setTip(null);
     };
     // Plain title tooltips and icon buttons join in: the title moves into
@@ -76,6 +83,7 @@ export function HoverTips({ root }: { root: React.RefObject<HTMLElement | null> 
       return target;
     };
     const over = (e: Event) => {
+      if (!armed) return;
       const target = adopt(e.target as HTMLElement);
       if (target === current) return;
       if (target && el.contains(target)) show(target, 420);
@@ -85,6 +93,7 @@ export function HoverTips({ root }: { root: React.RefObject<HTMLElement | null> 
       const target = adopt(e.target as HTMLElement);
       if (target?.matches(":focus-visible")) show(target, 200);
     };
+    el.addEventListener("mousemove", arm);
     el.addEventListener("mouseover", over);
     el.addEventListener("focusin", focus);
     el.addEventListener("focusout", hide);
@@ -92,6 +101,7 @@ export function HoverTips({ root }: { root: React.RefObject<HTMLElement | null> 
     el.addEventListener("mouseleave", hide);
     window.addEventListener("scroll", hide, true);
     return () => {
+      el.removeEventListener("mousemove", arm);
       el.removeEventListener("mouseover", over);
       el.removeEventListener("focusin", focus);
       el.removeEventListener("focusout", hide);

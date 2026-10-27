@@ -1,3 +1,4 @@
+import type { Binding } from "./binding";
 export type Page = "library" | "reader" | "bookmarks" | "voices" | "settings";
 export type InspectorTab =
   "selection" | "notes" | "voice" | "appearance" | "document";
@@ -34,6 +35,8 @@ export type BookMeta = {
   // Kept for books that use their own voice; others follow the shared voice.
   voice: string;
   uniqueVoice?: boolean;
+  // This book's own binding in book mode (binding.ts), over the one for all books.
+  binding?: Partial<Binding>;
   // Reading comfort settings used only for this book.
   comfort?: Partial<
     Pick<
@@ -126,6 +129,12 @@ export type Preferences = {
   bookOpening: boolean;
   bookSound: boolean;
   bookTypeset: boolean;
+  // The 3D book's page edges, spine and cover for all books (binding.ts);
+  // a book can have its own (BookMeta.binding).
+  binding: Partial<Binding>;
+  // The ribbon colour of new bookmarks (an annotation colour id); empty uses
+  // the highlight colour.
+  ribbonColor: string;
   pageGap: number;
   readingProgress: "pages" | "paragraphs" | "percentage";
   leftOpen: boolean;
@@ -363,16 +372,20 @@ export const defaultPreferences: Preferences = {
   fontSize: 21,
   lineHeight: 1.8,
   pageWidth: 850,
-  readingMode: "continuous",
+  // The 3D book makes the first impression; small windows fall back to the
+  // usual layout, and the reader can change it in the text menu.
+  readingMode: "book",
   bookOpening: true,
   bookSound: false,
+  binding: {},
+  ribbonColor: "",
   bookTypeset: true,
   pageGap: 32,
   readingProgress: "pages",
   leftOpen: true,
   rightOpen: false,
   inspector: "appearance",
-  leftWidth: 218,
+  leftWidth: 240,
   rightWidth: 310,
   speed: 1,
   volume: 0.8,

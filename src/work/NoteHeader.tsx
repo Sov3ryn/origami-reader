@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ImagePlus, NotebookText, Pin, PinOff, Plus, SmilePlus, Tag, X } from "lucide-react";
-import { papers } from "./papers";
+import { ImagePlus, NotebookText, RulerDimensionLine, Pin, PinOff, Plus, SmilePlus, Tag, X } from "lucide-react";
+import { pageSizeOf, pageSizes, papers, type PageSize } from "./papers";
 import { t } from "../i18n";
 import type { Note } from "./types";
 
@@ -23,16 +23,19 @@ const icons = [
 export function NoteHeader({
   note,
   words,
+  subjectSize,
   onChange,
   children,
 }: {
   note: Note;
+  // The subject's page size, which the note follows unless it has its own.
+  subjectSize?: PageSize;
   words: number;
   onChange: (patch: Partial<Note>) => void;
   // The title field, placed between the icon and the details.
   children: React.ReactNode;
 }) {
-  const [picker, setPicker] = useState<"icon" | "cover" | "paper" | null>(null);
+  const [picker, setPicker] = useState<"icon" | "cover" | "paper" | "size" | null>(null);
   const [tagDraft, setTagDraft] = useState<string | null>(null);
   const tags = note.tags || [];
   const addTag = (raw: string) => {
@@ -70,6 +73,10 @@ export function NoteHeader({
         <button onClick={() => setPicker(picker === "paper" ? null : "paper")}>
           <NotebookText size={14} />
           {note.paper && note.paper !== "default" ? papers().find((p) => p.id === note.paper)?.label || t("Paper") : t("Paper")}
+        </button>
+        <button onClick={() => setPicker(picker === "size" ? null : "size")}>
+          <RulerDimensionLine size={14} />
+          {pageSizes().find((p) => p.id === pageSizeOf(note, { pageSize: subjectSize }))?.label}
         </button>
         <button onClick={() => onChange({ pinned: !note.pinned })}>
           {note.pinned ? <PinOff size={14} /> : <Pin size={14} />}
@@ -117,6 +124,37 @@ export function NoteHeader({
               }}
             >
               <span className="paper-chip" style={{ background: p.swatch }} />
+              {p.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {picker === "size" && (
+        <div className="note-picker papers" role="listbox" aria-label={t("Page size")}>
+          {subjectSize && (
+            <button
+              role="option"
+              aria-selected={!note.pageSize}
+              onClick={() => {
+                onChange({ pageSize: undefined });
+                setPicker(null);
+              }}
+            >
+              {t("Same as subject ({size})", { size: pageSizes().find((p) => p.id === subjectSize)!.label })}
+            </button>
+          )}
+          {pageSizes().map((p) => (
+            <button
+              key={p.id}
+              role="option"
+              aria-selected={subjectSize ? note.pageSize === p.id : pageSizeOf(note) === p.id}
+              onClick={() => {
+                // Without a subject, standard is the default and is not stored.
+                onChange({ pageSize: !subjectSize && p.id === "standard" ? undefined : p.id });
+                setPicker(null);
+              }}
+            >
+              <span className={"size-chip " + p.id} />
               {p.label}
             </button>
           ))}

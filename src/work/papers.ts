@@ -21,3 +21,18 @@ export const boardPaper: Record<PaperId, { bg: string; grid: boolean }> = {
   dots: { bg: "#fbfbf7", grid: true },
   blueprint: { bg: "#1f4e8c", grid: true },
 };
+
+// Page width for notes: set on a subject for all its notes, or on one note.
+export type PageSize = "narrow" | "standard" | "wide" | "full";
+export const pageSizes = (): { id: PageSize; label: string }[] => [
+  { id: "narrow", label: t("Narrow") },
+  { id: "standard", label: t("Standard") },
+  { id: "wide", label: t("Wide") },
+  { id: "full", label: t("Full width") },
+];
+// Width of the writing column in pixels; full width has none.
+export const pageWidths: Record<PageSize, number | null> = { narrow: 600, standard: 760, wide: 980, full: null };
+const isSize = (v: unknown): v is PageSize => typeof v === "string" && Object.hasOwn(pageWidths, v);
+export function pageSizeOf(note: { pageSize?: string }, subject?: { pageSize?: string }): PageSize {
+  return isSize(note.pageSize) ? note.pageSize : isSize(subject?.pageSize) ? subject.pageSize : "standard";
+}

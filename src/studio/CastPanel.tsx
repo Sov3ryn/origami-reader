@@ -15,6 +15,7 @@ export function CastPanel({
   voices,
   busy,
   progress,
+  scope,
   onAnalyse,
   onVoice,
   onMerge,
@@ -29,6 +30,8 @@ export function CastPanel({
   voices: Voice[];
   busy: boolean;
   progress: string;
+  // Which part of the book to read (a ScopePicker).
+  scope?: React.ReactNode;
   onAnalyse: () => void;
   onVoice: (character: string, voice: string) => void;
   onMerge: (from: string, into: string) => void;
@@ -97,9 +100,12 @@ export function CastPanel({
             </p>
           </>
         ) : (
-          <button className={info.analysis ? "" : "primary"} onClick={onAnalyse} disabled={!status?.ready && !script}>
-            <Sparkles size={14} /> {info.analysis ? t("Analyse again") : t("Find the characters")}
-          </button>
+          <div className="studio-row">
+            {scope}
+            <button className={info.analysis ? "" : "primary"} onClick={onAnalyse} disabled={!status?.ready && !script}>
+              <Sparkles size={14} /> {info.analysis ? t("Analyse again") : t("Find the characters")}
+            </button>
+          </div>
         )}
         {status && !status.ready && !script && (
           <>

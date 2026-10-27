@@ -38,6 +38,7 @@ const patterns = [
 const dataFiles = {
   "themes.ts": [/\bname: "([^"]+)"/g, /\blabel: "([^"]+)"/g],
   "backgrounds.ts": [/\bname: "([^"]+)"/g],
+  "binding.ts": [/\bname: "([^"]+)"/g],
   "components/AppearancePanel.tsx": [/\bname: "([^"]+)"/g],
   "components/Shortcuts.tsx": [/\baction: "([^"]+)"/g, /\bgroup: "([^"]+)"/g],
   "App.tsx": [/\blabel: "([^"]+)"/g],

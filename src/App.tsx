@@ -2,6 +2,9 @@ import { VoiceStudio } from "./components/VoiceStudio";
 import { VoiceLibrary, previewLine } from "./components/VoiceLibrary";
 import { LibraryRoom } from "./components/LibraryRoom";
 import { LibraryThemePicker } from "./components/LibraryThemePicker";
+// The 3D library rooms are set aside until a better version is ready: the
+// picker is hidden and every library shows the classic shelves.
+const LIBRARY_ROOMS = false;
 import { libraryTheme } from "./libraryThemes";
 import { ModelManager } from "./components/ModelManager";
 import { detectLanguage, loadLanguage, t } from "./i18n";
@@ -98,6 +101,7 @@ import {
 import {
   BookOpen,
   BookHeart,
+  BookMarked,
   Bookmark,
   AudioLines,
   Settings2,
@@ -215,7 +219,10 @@ import {
 } from "./readingPages";
 import { droppedFiles } from "./dropFiles";
 import { WorkMode, type Handoff } from "./work/WorkMode";
-import { ModeSwitch, nextMode, type AppMode } from "./work/ModeSwitch";
+import { nextMode, type AppMode } from "./work/ModeSwitch";
+import { ModeHeader, type SideWidth } from "./components/ModeHeader";
+import { bindingOf } from "./binding";
+import { BindingMenu } from "./components/BindingMenu";
 import { StudioMode } from "./studio/StudioMode";
 import { listProductions, readProduction, type ProductionInfo } from "./studio/production";
 import { HoverTips } from "./work/HoverTips";
@@ -318,6 +325,8 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [quick, setQuick] = useState(false);
+  // The Binding and bookmarks window, for one book or for all books.
+  const [bindingMenu, setBindingMenu] = useState<{ bookId?: string } | null>(null);
   const [quickText, setQuickText] = useState("");
   const [quickTitle, setQuickTitle] = useState("Untitled text");
   const [undo, setUndo] = useState<BookMeta[] | null>(null);
@@ -723,6 +732,20 @@ export default function App() {
   }, []);
   const uiScale = prefs.uiScaleAuto ? autoScale : prefs.uiScale;
   const theme = themes.find((x) => x.id === prefs.theme) || themes[0];
+  // One side panel width for Read, Work and Studio, saved unscaled and shown
+  // at the interface size.
+  const SIDE_MIN = 180;
+  const SIDE_MAX = 400;
+  const sideWidth: SideWidth = {
+    width: (prefs.leftWidth * uiScale) / 100,
+    min: (SIDE_MIN * uiScale) / 100,
+    max: (SIDE_MAX * uiScale) / 100,
+    fallback: (defaultPreferences.leftWidth * uiScale) / 100,
+    onChange: (width) =>
+      patchPrefs({
+        leftWidth: Math.round(Math.max(SIDE_MIN, Math.min(SIDE_MAX, (width * 100) / uiScale))),
+      }),
+  };
   // Only the reader has the inspector; Library, Bookmarks, Voices and
   // Settings are full-width pages.
   const inspectorAvailable = page === "reader";
@@ -1646,6 +1669,7 @@ export default function App() {
     favorite: (b) =>
       void updateMeta({ ...b, favorite: !b.favorite }).catch(error),
     editCover: (b) => void editCover(b).catch(error),
+    binding: (b) => setBindingMenu({ bookId: b.id }),
     uniqueVoice: (b, unique) => void setUniqueVoice(b, unique).catch(error),
     trash: (b) => void moveToTrash(new Set([b.id])).catch(error),
     restore: (b) => void restore([b]).catch(error),
@@ -2233,7 +2257,8 @@ export default function App() {
     options: { target?: TextSelection; color?: string } = {},
   ) {
     if (!book) return;
-    const color = options.color || colorRef.current;
+    // A bookmark's ribbon takes its own colour when one is chosen.
+    const color = options.color || (kind === "bookmark" && prefs.ribbonColor) || colorRef.current;
     const location = currentPosition ? rememberReadingLocation() : null;
     const currentParagraph = location
       ? book.paragraphs.find((p) => p.id === location.paragraphId)
@@ -2763,9 +2788,9 @@ export default function App() {
     const move = (e: PointerEvent) =>
       patchPrefs({
         [side === "left" ? "leftWidth" : "rightWidth"]: Math.max(
-          side === "left" ? 180 : 280,
+          side === "left" ? SIDE_MIN : 280,
           Math.min(
-            side === "left" ? 330 : 430,
+            side === "left" ? SIDE_MAX : 430,
             initial +
               ((e.clientX - start) * (side === "left" ? 1 : -1) * 100) /
                 uiScale,
@@ -2782,7 +2807,7 @@ export default function App() {
   // The library theme; room themes replace the grid and the background.
   const currentLibraryTheme = libraryTheme(prefs.libraryTheme);
   const roomTheme =
-    currentLibraryTheme.kind === "room" ? currentLibraryTheme : null;
+    LIBRARY_ROOMS && currentLibraryTheme.kind === "room" ? currentLibraryTheme : null;
   // Vault books show only inside their open vault, never on other shelves.
   const shelf: Shelf = prefs.libraryShelf || "stories";
   const shelfName = (s: Shelf) => (s === "documents" ? t("Documents") : t("Stories"));
@@ -3851,6 +3876,10 @@ export default function App() {
           >
             <ImageIcon size={15} />
             {t("Change cover")}
+          </button>
+          <button onClick={() => setBindingMenu({ bookId: meta.id })}>
+            <BookMarked size={15} />
+            {t("Binding and bookmarks")}
           </button>
           <label>
             {t("Cover text")}
@@ -5011,6 +5040,7 @@ export default function App() {
             scope="settings"
             books={books}
           />
+          {LIBRARY_ROOMS && (
           <div className="inspector-content">
             <Section id="settings-library-theme" title={t("Library theme")}>
               <p className="hint">
@@ -5025,6 +5055,7 @@ export default function App() {
               />
             </Section>
           </div>
+          )}
         </div>
       );
     if (category === "listening")
@@ -5850,7 +5881,8 @@ export default function App() {
             books={books.filter((b) => !b.deleted && !b.vault)}
             voices={voices}
             prefs={prefs}
-            modeSwitch={<ModeSwitch mode="studio" onChange={switchMode} />}
+            modeHeader={(tools) => <ModeHeader mode="studio" onChange={switchMode} tools={tools} />}
+            side={sideWidth}
           />
           <WorkMode
             open={prefs.workMode}
@@ -5863,7 +5895,8 @@ export default function App() {
             connectionsModel={prefs.connectionsModel}
             language={prefs.uiLanguage}
             dataVersion={workVersion}
-            modeSwitch={<ModeSwitch mode="work" onChange={switchMode} />}
+            modeHeader={(tools) => <ModeHeader mode="work" onChange={switchMode} tools={tools} />}
+            side={sideWidth}
             onOpenPassage={(bookId, paragraphId) => {
               void openPassageFromWork(bookId, paragraphId);
             }}
@@ -5897,6 +5930,15 @@ export default function App() {
             }}
             notify={notify}
           />
+          {bindingMenu && (
+            <BindingMenu
+              prefs={prefs}
+              book={books.find((b) => b.id === bindingMenu.bookId)}
+              onPrefs={patchPrefs}
+              onBook={(meta) => void updateMeta(meta).catch(error)}
+              onClose={() => setBindingMenu(null)}
+            />
+          )}
           {dragging && (
             <div className="drop-overlay" aria-hidden="true">
               <Upload size={34} />
@@ -5923,24 +5965,14 @@ export default function App() {
             aria-hidden={!navigationOpen || otherMode}
             inert={!navigationOpen || otherMode}
           >
-            {!(page === "reader" && book) && (
-              <button
-                className="brand"
-                onClick={() => {
-                  setPage("library");
-                  setQuery("");
-                }}
-              >
-                <img src="/crane.png" alt="" />
-                {t("Origami")}
-              </button>
-            )}
-            {PRIVATE_BETA && !(page === "reader" && book) && (
-              <span className="beta-badge sidebar-beta">
-                {t("Private beta")}
-              </span>
-            )}
-            <ModeSwitch mode="read" onChange={switchMode} />
+            <ModeHeader
+              mode="read"
+              onChange={switchMode}
+              onHome={() => {
+                setPage("library");
+                setQuery("");
+              }}
+            />
             {page === "reader" && book ? (
               <>
                 <button
@@ -6574,7 +6606,7 @@ export default function App() {
                 : "")
             }
           >
-            <header className="topbar">
+            <header className={"topbar" + (page === "library" ? " library-top" : "")}>
               <div className="header-left">
                 <IconButton
                   label={
@@ -6701,6 +6733,14 @@ export default function App() {
                     <Sun size={18} />
                   )}
                 </IconButton>
+                {page === "reader" && book && (
+                  <IconButton
+                    label={t("Binding and bookmarks")}
+                    onClick={() => setBindingMenu({ bookId: book.meta.id })}
+                  >
+                    <BookMarked size={18} />
+                  </IconButton>
+                )}
                 <IconButton
                   label={t("Keyboard shortcuts (?)")}
                   onClick={() => setShowShortcuts(true)}
@@ -6751,18 +6791,7 @@ export default function App() {
               >
                 {page === "library" && (
                   <>
-                    <div className="page-heading">
-                      <div>
-                        <span className="eyebrow shelf-eyebrow">
-                          {shelfIcon(shelf, 14)}
-                          {shelf === "stories"
-                            ? visible.length === 1
-                              ? t("1 story")
-                              : t("{count} stories", { count: visible.length })
-                            : visible.length === 1
-                              ? t("1 document")
-                              : t("{count} documents", { count: visible.length })}
-                        </span>
+                    <div className="page-heading library-heading">
                         <h1 ref={focusTitle}>
                           {collection === "All books"
                             ? shelfName(shelf)
@@ -6771,37 +6800,9 @@ export default function App() {
                                   ?.name ?? t("Vault"))
                               : collection}
                         </h1>
-                      </div>
-                      <div className="heading-actions">
-                        {vaultView && (
-                          <button
-                            onClick={() => {
-                              setCollection("All books");
-                              void lockVaults(vaultView).catch(error);
-                            }}
-                          >
-                            <Lock size={17} />
-                            {t("Lock vault")}
-                          </button>
-                        )}
-                        <button onClick={() => setQuick(true)}>
-                          <Plus size={17} />
-                          {t("Quick Read")}
-                        </button>
-                        <button
-                          className="primary"
-                          onClick={() => fileInput.current?.click()}
-                          disabled={busy}
-                        >
-                          {busy ? (
-                            <LoaderCircle className="spin" size={17} />
-                          ) : (
-                            <Upload size={17} />
-                          )}
-                          {t("Import")}
-                        </button>
-                      </div>
                     </div>
+                    {/* One toolbar: search, sort and view, then the page's
+                        actions and the view options at the end. */}
                     <div className="library-controls">
                       <div className="search-field library-search">
                         <Search size={18} />
@@ -6853,18 +6854,49 @@ export default function App() {
                           <List size={17} />
                         </IconButton>
                       </div>
-                      <Popover
-                        label={t("Library theme")}
-                        icon={<LibraryBig size={17} />}
-                        panelClassName="theme-menu"
-                      >
-                        <LibraryThemePicker
-                          compact
-                          value={currentLibraryTheme.id}
-                          night={sceneTime(prefs.scene) === "night"}
-                          onChange={(id) => patchPrefs({ libraryTheme: id })}
-                        />
-                      </Popover>
+                      <div className="heading-actions">
+                        {vaultView && (
+                          <button
+                            onClick={() => {
+                              setCollection("All books");
+                              void lockVaults(vaultView).catch(error);
+                            }}
+                          >
+                            <Lock size={17} />
+                            {t("Lock vault")}
+                          </button>
+                        )}
+                        <button onClick={() => setQuick(true)}>
+                          <Plus size={17} />
+                          {t("Quick Read")}
+                        </button>
+                        <button
+                          className="primary"
+                          onClick={() => fileInput.current?.click()}
+                          disabled={busy}
+                        >
+                          {busy ? (
+                            <LoaderCircle className="spin" size={17} />
+                          ) : (
+                            <Upload size={17} />
+                          )}
+                          {t("Import")}
+                        </button>
+                      </div>
+                      {LIBRARY_ROOMS && (
+                        <Popover
+                          label={t("Library theme")}
+                          icon={<LibraryBig size={17} />}
+                          panelClassName="theme-menu"
+                        >
+                          <LibraryThemePicker
+                            compact
+                            value={currentLibraryTheme.id}
+                            night={sceneTime(prefs.scene) === "night"}
+                            onChange={(id) => patchPrefs({ libraryTheme: id })}
+                          />
+                        </Popover>
+                      )}
                       <Popover
                         label={t("View options")}
                         icon={<SlidersHorizontal size={17} />}
@@ -6982,7 +7014,7 @@ export default function App() {
 
                       </Popover>
                     </div>
-                    <div className="filter-row">
+                    <div className="library-shelves">
                       <div className="chips">
                         {(["stories", "documents"] as const).map((s) => (
                           <button
@@ -6998,6 +7030,7 @@ export default function App() {
                           </button>
                         ))}
                       </div>
+                      <span className="controls-spacer" />
                       <button
                         className="text-button"
                         onClick={() =>
@@ -7172,6 +7205,32 @@ export default function App() {
                                       100,
                                   )}
                                   %
+                                </span>
+                                <span className="continue-stats">
+                                  {[
+                                    t("{time} left", {
+                                      time: formatDuration(
+                                        listeningMinutes(
+                                          Math.round(
+                                            latest.wordCount *
+                                              (1 -
+                                                latest.position /
+                                                  Math.max(1, latest.paragraphCount - 1)),
+                                          ),
+                                          prefs.speed,
+                                        ),
+                                      ),
+                                    }),
+                                    latest.opened > 0 &&
+                                      t("Last opened {date}", {
+                                        date: new Date(latest.opened).toLocaleDateString(prefs.uiLanguage || undefined, {
+                                          month: "long",
+                                          day: "numeric",
+                                        }),
+                                      }),
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" · ")}
                                 </span>
                               </span>
                               <span className="continue-open">
@@ -7563,6 +7622,7 @@ export default function App() {
                           )}
                           opening={prefs.bookOpening}
                           sound={prefs.bookSound}
+                          binding={bindingOf(prefs.binding, book.meta.binding)}
                           interfaceLanguage={prefs.uiLanguage}
                           navRef={bookNav}
                         />
