@@ -1053,16 +1053,16 @@ export default function App() {
                   <BookOpen />
                   <div>
                     <strong>{t("Origami Reader")}</strong>
-                    <small>{t("Library, reading, notes and bookmarks")}</small>
+                    <small>{t("Library, reading aloud, Work mode notes and study")}</small>
                   </div>
                   <span className="pill">{t("Included")}</span>
                 </div>
-                <div className="component future">
+                <div className="component">
                   <Layers3 />
                   <div>
                     <strong>{t("Studio")}</strong>
                     <small>
-                      {t("Character casting and multi-voice storytelling")}
+                      {t("Audiobooks with a cast of voices, a timeline and exports")}
                     </small>
                   </div>
                   <span className="pill">{t("Included")}</span>
@@ -1859,7 +1859,7 @@ export default function App() {
         <p>
           {native
             ? t(
-                "Includes Origami Reader, {packagedVoices} voices, Qwen speech and optional DreamShaper image generation. This beta supports fresh per-user installations. Updates and Studio are not implemented yet.",
+                "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.",
                 { packagedVoices: packagedVoices },
               )
             : t("This preview contains no application payload.")}

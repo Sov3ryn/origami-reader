@@ -3000,5 +3000,8 @@
   "Pulse": "Nabız",
   "Show the sound visualizer beside the play button": "Oynat düğmesinin yanında ses görselleştiriciyi göster",
   "Sound visualizer: {style}. Click for another style.": "Ses görselleştirici: {style}. Başka bir stil için tıklayın.",
-  "Wave": "Dalga"
+  "Wave": "Dalga",
+  "Audiobooks with a cast of voices, a timeline and exports": "Ses kadrosu, zaman çizelgesi ve dışa aktarma ile sesli kitaplar",
+  "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Okuma, Çalışma ve Stüdyo modlarıyla Origami Reader, {packagedVoices} ses, Qwen konuşma ve isteğe bağlı görsel oluşturma içerir. Kurulum önceki bir betayı kitaplığınızı ve notlarınızı koruyarak değiştirebilir; sonrasında Origami kendini Ayarlar'dan günceller.",
+  "Library, reading aloud, Work mode notes and study": "Kitaplık, sesli okuma, Çalışma modunda notlar ve çalışma"
 }

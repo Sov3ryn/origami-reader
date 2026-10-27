@@ -464,6 +464,18 @@
   }
  },
  "starter-count-monte-cristo": {
+  "ar": {
+   "file": "ar/count-monte-cristo.epub",
+   "sha256": "0f3a44f7f4b58ecb75b9e986abc4627f6b0d64b5591a0a6bcfed99213a18cecb",
+   "title": "الكونت دي مونت كريستو",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "bn": {
+   "file": "bn/count-monte-cristo.epub",
+   "sha256": "76469a6dd480a8358168ec5e80529f19e5b886acfbec66db29655f0f4dd7199a",
+   "title": "মন্তে ক্রিস্তোর কাউন্ট",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
   "de": {
    "file": "de/count-monte-cristo.epub",
    "sha256": "f4453ecf04fd7330eaef85088c6339192c09ba537eca36f35e46fa40351e69fb",
@@ -480,6 +492,12 @@
    "file": "fr/count-monte-cristo.epub",
    "sha256": "0e4b5de4d54eab33326baa690d1ce7a7dc793fced7a2028f53d99ddcf5b9262d",
    "title": "Le Comte de Monte-Cristo",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "hi": {
+   "file": "hi/count-monte-cristo.epub",
+   "sha256": "39583dcc3b08fbb818d3f0e1f4bc943a2890736c7f6e586efad788253f491b75",
+   "title": "मोंते क्रिस्तो के काउंट",
    "translation": "AI translation from the English starter edition, first edition; independent review pending"
   },
   "id": {
@@ -524,10 +542,28 @@
    "title": "O Conde de Monte Cristo",
    "translation": "AI translation from the English starter edition, first edition; independent review pending"
   },
+  "ru": {
+   "file": "ru/count-monte-cristo.epub",
+   "sha256": "9fe134f1a6ca02e51631f899f0cba0aacdbf39db2028906b12c4b019838b1fe5",
+   "title": "Граф Монте-Кристо",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
   "th": {
    "file": "th/count-monte-cristo.epub",
    "sha256": "8bd30e7b474ef18e7ca2272f6efc3c2885f4b9eaaa2b731aa7f50d2578a6146d",
    "title": "เคานต์แห่งมอนเต คริสโต",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "tr": {
+   "file": "tr/count-monte-cristo.epub",
+   "sha256": "27dc93c27ab8c00951ce52610126d94d2a5f670f790a0a5c943aba669c3c6521",
+   "title": "Monte Kristo Kontu",
+   "translation": "AI translation from the English starter edition, first edition; independent review pending"
+  },
+  "uk": {
+   "file": "uk/count-monte-cristo.epub",
+   "sha256": "5948939c374249b42138e6982df857134d2f78fede49816195d1d58f125bf8ee",
+   "title": "Граф Монте-Крісто",
    "translation": "AI translation from the English starter edition, first edition; independent review pending"
   },
   "vi": {

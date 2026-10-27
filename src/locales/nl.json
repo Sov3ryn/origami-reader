@@ -3000,5 +3000,8 @@
   "Pulse": "Puls",
   "Show the sound visualizer beside the play button": "Geluidsvisualisatie naast de afspeelknop tonen",
   "Sound visualizer: {style}. Click for another style.": "Geluidsvisualisatie: {style}. Klik voor een andere stijl.",
-  "Wave": "Golf"
+  "Wave": "Golf",
+  "Audiobooks with a cast of voices, a timeline and exports": "Luisterboeken met een cast van stemmen, een tijdlijn en export",
+  "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Bevat Origami Reader met Lezen, Werken en Studio, {packagedVoices} stemmen, Qwen-spraak en optioneel beeldgeneratie. De installatie kan een eerdere bèta vervangen en houdt je bibliotheek en notities; daarna werkt Origami zichzelf bij via Instellingen.",
+  "Library, reading aloud, Work mode notes and study": "Bibliotheek, voorlezen, notities en studeren in de werkmodus"
 }

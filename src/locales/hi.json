@@ -3000,5 +3000,8 @@
   "Pulse": "स्पंदन",
   "Show the sound visualizer beside the play button": "चलाएँ बटन के पास ध्वनि विज़ुअलाइज़र दिखाएँ",
   "Sound visualizer: {style}. Click for another style.": "ध्वनि विज़ुअलाइज़र: {style}। दूसरी शैली के लिए क्लिक करें।",
-  "Wave": "तरंग"
+  "Wave": "तरंग",
+  "Audiobooks with a cast of voices, a timeline and exports": "आवाज़ों की टोली, टाइमलाइन और निर्यात के साथ ऑडियोबुक",
+  "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "इसमें पढ़ें, काम और स्टूडियो मोड वाला Origami Reader, {packagedVoices} आवाज़ें, Qwen वाणी और वैकल्पिक चित्र निर्माण शामिल हैं। सेटअप पिछले बीटा को बदल सकता है और आपकी लाइब्रेरी व नोट्स रखता है; उसके बाद Origami सेटिंग्स से अपने आप अपडेट होता है।",
+  "Library, reading aloud, Work mode notes and study": "लाइब्रेरी, ज़ोर से पढ़ना, वर्क मोड के नोट्स और अध्ययन"
 }

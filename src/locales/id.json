@@ -3000,5 +3000,8 @@
   "Pulse": "Denyut",
   "Show the sound visualizer beside the play button": "Tampilkan visualisasi suara di samping tombol putar",
   "Sound visualizer: {style}. Click for another style.": "Visualisasi suara: {style}. Klik untuk gaya lain.",
-  "Wave": "Gelombang"
+  "Wave": "Gelombang",
+  "Audiobooks with a cast of voices, a timeline and exports": "Buku audio dengan pemeran suara, linimasa, dan ekspor",
+  "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Berisi Origami Reader dengan mode Baca, Kerja, dan Studio, {packagedVoices} suara, suara Qwen, dan pembuatan gambar opsional. Penyiapan dapat menggantikan beta sebelumnya dan menyimpan pustaka serta catatan Anda; setelah itu, Origami memperbarui dirinya dari Pengaturan.",
+  "Library, reading aloud, Work mode notes and study": "Pustaka, membaca dengan suara, catatan dan belajar di mode Kerja"
 }

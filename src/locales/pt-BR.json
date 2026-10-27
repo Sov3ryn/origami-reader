@@ -3000,5 +3000,8 @@
   "Pulse": "Pulso",
   "Show the sound visualizer beside the play button": "Mostrar o visualizador de som ao lado do botão de reproduzir",
   "Sound visualizer: {style}. Click for another style.": "Visualizador de som: {style}. Clique para outro estilo.",
-  "Wave": "Onda"
+  "Wave": "Onda",
+  "Audiobooks with a cast of voices, a timeline and exports": "Audiolivros com um elenco de vozes, linha do tempo e exportação",
+  "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Inclui o Origami Reader com Leitura, Trabalho e Studio, {packagedVoices} vozes, fala Qwen e geração de imagens opcional. A instalação pode substituir um beta anterior e mantém sua biblioteca e suas notas; depois, o Origami se atualiza sozinho pelas Configurações.",
+  "Library, reading aloud, Work mode notes and study": "Biblioteca, leitura em voz alta, notas e estudos no modo Trabalho"
 }

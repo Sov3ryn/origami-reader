@@ -8,11 +8,9 @@ export const platforms: { id: Platform; name: string }[] = [
 ];
 // Catalog metadata only. No recordings, model weights or application payloads are included.
 export const languages = [
-  { id: "en", name: "English", native: "English", count: 31, glyph: "Aa" },
+  // The voice packs published for now: English and French.
+  { id: "en", name: "English", native: "English", count: 30, glyph: "Aa" },
   { id: "fr", name: "French", native: "Français", count: 20, glyph: "Fr" },
-  { id: "ko", name: "Korean", native: "한국어", count: 10, glyph: "한" },
-  { id: "hi", name: "Hindi", native: "हिन्दी", count: 10, glyph: "अ" },
-  { id: "es", name: "Spanish", native: "Español", count: 3, glyph: "Ñ" },
 ];
 export function packageLanguages(files: { group: string; path: string }[]) {
   return languages.flatMap((language) => {

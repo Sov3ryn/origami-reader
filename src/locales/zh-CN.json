@@ -3000,5 +3000,8 @@
   "Pulse": "脉冲",
   "Show the sound visualizer beside the play button": "在播放按钮旁显示声音可视化",
   "Sound visualizer: {style}. Click for another style.": "声音可视化：{style}。点击切换样式。",
-  "Wave": "波形"
+  "Wave": "波形",
+  "Audiobooks with a cast of voices, a timeline and exports": "带有声音阵容、时间线和导出功能的有声书",
+  "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "包含具备阅读、工作和工作室模式的 Origami Reader、{packagedVoices} 种声音、Qwen 语音以及可选的图片生成。安装程序可替换早期测试版，并保留你的书库和笔记；之后 Origami 会在设置中自行更新。",
+  "Library, reading aloud, Work mode notes and study": "书库、朗读、工作模式中的笔记与学习"
 }

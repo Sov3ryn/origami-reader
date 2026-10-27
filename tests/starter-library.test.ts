@@ -171,7 +171,8 @@ describe("translated starter books", () => {
     expect(starterTranslation("starter-pride-prejudice", "fr-CA")?.file).toBe("fr/pride-prejudice.epub");
     expect(starterTranslation("starter-pride-prejudice", "en")).toBeUndefined();
     expect(starterTranslation("starter-pride-prejudice", "")).toBeUndefined();
-    // Monte Cristo is not translated into every language yet.
-    expect(starterTranslation("starter-count-monte-cristo", "ar")).toBeUndefined();
+    // All six books exist in all 19 translated languages.
+    expect(starterTranslation("starter-count-monte-cristo", "ar")?.file).toBe("ar/count-monte-cristo.epub");
+    expect(starterTranslation("starter-count-monte-cristo", "xx")).toBeUndefined();
   });
 });
