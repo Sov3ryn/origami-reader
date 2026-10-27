@@ -16,6 +16,9 @@ import {
   Play,
   RotateCcw,
   SlidersHorizontal,
+  ListOrdered,
+  Users,
+  SpellCheck2,
   Square,
   Trash2,
   Undo2,
@@ -593,6 +596,11 @@ export function ProductionView({
             : (["rendered", t("Generated")] as const);
   const narratorVoice = voices.find((v) => v.id === info.voice)?.name || info.voice;
   const chapterIndex = chapters.findIndex(([c]) => c === chapter);
+  const sideTabs = [
+    ["chapters", t("Chapters"), <ListOrdered size={17} key="i" />, chapters.length],
+    ["cast", t("Cast"), <Users size={17} key="i" />, (info.cast || []).length],
+    ["words", t("Pronunciation"), <SpellCheck2 size={17} key="i" />, (info.pronunciations || []).length],
+  ] as const;
   // The chapters panel can be filtered by name.
   const chapterFilter = chapterQuery.trim().toLowerCase();
 
@@ -615,6 +623,8 @@ export function ProductionView({
             <ArrowLeft size={16} />
             {t("Productions")}
           </button>
+          {/* The book and its progress in one card. */}
+          <div className="studio-book-card">
           <div className="reader-book">
             {book ? <Cover book={book.meta} small /> : <span className="studio-nav-cover" />}
             <div className="reader-book-text">
@@ -631,17 +641,28 @@ export function ProductionView({
               {t("{done} of {total} lines generated", { done: String(counts.rendered), total: String(units.length) })} · {clock(spokenLength(production, units))}
             </span>
           </div>
-          <div className="segmented studio-tabs" role="tablist">
-            <button role="tab" aria-selected={leftTab === "chapters"} className={leftTab === "chapters" ? "active" : ""} onClick={() => setLeftTab("chapters")}>
-              {t("Chapters")} <span className="muted">{chapters.length}</span>
-            </button>
-            <button role="tab" aria-selected={leftTab === "cast"} className={leftTab === "cast" ? "active" : ""} onClick={() => setLeftTab("cast")}>
-              {t("Cast")} <span className="muted">{(info.cast || []).length || ""}</span>
-            </button>
-            <button role="tab" aria-selected={leftTab === "words"} className={leftTab === "words" ? "active" : ""} onClick={() => setLeftTab("words")}>
-              {t("Words")}
-            </button>
           </div>
+          {/* Three icon tabs with their counts, and the open one's name on its own
+              line below, so the longest names in any language have the panel's width. */}
+          <div className="studio-side-tabs" role="tablist">
+            {sideTabs.map(([id, label, icon, count]) => (
+              <button
+                key={id}
+                role="tab"
+                aria-selected={leftTab === id}
+                aria-label={count ? `${label} (${count})` : label}
+                className={leftTab === id ? "active" : ""}
+                onClick={() => setLeftTab(id)}
+                data-tip={count ? `${label} (${count})` : label}
+              >
+                <span className="tab-icon" aria-hidden="true">
+                  {icon}
+                  {count > 0 && <b>{count > 999 ? "999+" : count}</b>}
+                </span>
+              </button>
+            ))}
+          </div>
+          <h3 className="studio-side-title">{sideTabs.find(([id]) => id === leftTab)?.[1]}</h3>
           {leftTab === "words" ? (
             <WordsPanel production={production} onApply={(p) => void pronounce(p)} onJump={jumpTo} />
           ) : leftTab === "cast" ? (

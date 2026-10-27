@@ -2740,3 +2740,83 @@
 .studio-cards {
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
 }
+/* The side panel's top: the book and its progress in one card, then icon tabs
+   as the inspector's, which fit every language. */
+.studio-book-card {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 14px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--panel) 45%, transparent);
+}
+.studio-book-card .reader-book {
+  margin: 0;
+  min-width: 0;
+}
+.studio-book-card .reader-progress {
+  margin: 0;
+}
+.studio-book-card .reader-progress span:last-child {
+  line-height: 1.4;
+}
+/* Tabs: three equal icons with their counts; the open tab's name below them. */
+.studio-side-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  margin: 0;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+}
+.studio-side-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+}
+.studio-side-tabs button:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.studio-side-tabs button.active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, var(--panel));
+}
+.studio-side-tabs .tab-icon {
+  position: relative;
+  display: inline-flex;
+}
+.studio-side-tabs .tab-icon b {
+  position: absolute;
+  top: -7px;
+  left: calc(100% - 4px);
+  min-width: 15px;
+  padding: 0 4px;
+  border-radius: 999px;
+  box-sizing: border-box;
+  background: color-mix(in srgb, var(--accent) 24%, var(--panel));
+  color: var(--ink);
+  font: 600 9.5px/15px Inter, "Segoe UI", system-ui, sans-serif;
+  text-align: center;
+}
+.studio-side-title {
+  margin: 14px 4px 8px;
+  font: 600 var(--fs-small) / 1.3 Inter, "Segoe UI", system-ui, sans-serif;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.studio-book-card .reader-book-text span {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
