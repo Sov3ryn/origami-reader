@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "इस विषय के नोट्स के लिए पेज की चौड़ाई",
   "Same as subject ({size})": "विषय जैसा ({size})",
   "Wide": "चौड़ा",
-  "A thank-you for donating to Origami Reader.": "Origami Reader को दान देने के लिए धन्यवाद।",
   "Copper": "तांबा",
-  "For supporters": "समर्थकों के लिए",
   "Gold": "सुनहरा",
   "Gunmetal": "गनमेटल",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "बुक मोड में 3D किताब के पन्नों पर धातु के किनारे, रीढ़ पर मेल खाती फ़ॉइल के साथ।",
-  "More finishes will come with achievements.": "उपलब्धियों के साथ और फ़िनिश आएँगे।",
   "Page edges": "पन्नों के किनारे",
   "Plain": "सादा",
   "Rose gold": "रोज़ गोल्ड",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "आवाज़ों की टोली, टाइमलाइन और निर्यात के साथ ऑडियोबुक",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "इसमें पढ़ें, काम और स्टूडियो मोड वाला Origami Reader, {packagedVoices} आवाज़ें, Qwen वाणी और वैकल्पिक चित्र निर्माण शामिल हैं। सेटअप पिछले बीटा को बदल सकता है और आपकी लाइब्रेरी व नोट्स रखता है; उसके बाद Origami सेटिंग्स से अपने आप अपडेट होता है।",
   "Library, reading aloud, Work mode notes and study": "लाइब्रेरी, ज़ोर से पढ़ना, वर्क मोड के नोट्स और अध्ययन",
-  "Illustration, not a likeness of the author": "चित्रण, लेखक की छवि नहीं"
+  "Illustration, not a likeness of the author": "चित्रण, लेखक की छवि नहीं",
+  "{name} (locked)": "{name} (लॉक)",
+  "{name}, locked. {how} {progress}": "{name}, लॉक। {how} {progress}",
+  "Celebrations so far: {count}.": "अब तक उत्सव: {count}।",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Origami का उपयोग करके हर थीम, जगह, जिल्द और बुकमार्क मुफ़्त में अनलॉक किया जा सकता है। विकास में सहयोग करने से सब तुरंत अनलॉक हो जाते हैं। आपकी उपलब्धियाँ पहले की तरह आगे बढ़ती रहती हैं।",
+  "Unlock {count} celebration places by reading during their months.": "उत्सवों के महीनों में पढ़कर {count} उत्सव जगहें अनलॉक करें।",
+  "Unlock a celebration place by reading during its month.": "उत्सव के महीने में पढ़कर एक उत्सव जगह अनलॉक करें।",
+  "Dark": "गहरे",
+  "Light": "हल्के"
 }

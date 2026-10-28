@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "この科目のノートのページ幅",
   "Same as subject ({size})": "科目と同じ（{size}）",
   "Wide": "広い",
-  "A thank-you for donating to Origami Reader.": "Origami Reader への寄付へのお礼です。",
   "Copper": "カッパー",
-  "For supporters": "サポーター向け",
   "Gold": "ゴールド",
   "Gunmetal": "ガンメタル",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "ブックモードの3Dの本のページの小口をメタリックにし、背にも同じ箔押しをします。",
-  "More finishes will come with achievements.": "ほかの仕上げは実績とともに追加されます。",
   "Page edges": "小口",
   "Plain": "標準",
   "Rose gold": "ローズゴールド",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "声のキャスト、タイムライン、書き出しを備えたオーディオブック",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "読書・ワーク・スタジオの各モードを備えた Origami Reader、{packagedVoices} 種類の声、Qwen 音声、任意の画像生成を含みます。セットアップは以前のベータを置き換え、ライブラリとメモを保持します。その後は Origami が設定から自動で更新します。",
   "Library, reading aloud, Work mode notes and study": "ライブラリ、読み上げ、ワークモードのメモと学習",
-  "Illustration, not a likeness of the author": "イラストです。著者の肖像ではありません"
+  "Illustration, not a likeness of the author": "イラストです。著者の肖像ではありません",
+  "{name} (locked)": "{name}（ロック中）",
+  "{name}, locked. {how} {progress}": "{name}、ロック中。{how}{progress}",
+  "Celebrations so far: {count}.": "これまでの行事：{count}。",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "テーマ、場所、装丁、しおりはすべて、Origami を使うことで無料で解放できます。開発を支援すると、すべてがすぐに解放されます。実績はこれまでどおり進みます。",
+  "Unlock {count} celebration places by reading during their months.": "行事の月に読んで、行事の場所を {count} か所解放する。",
+  "Unlock a celebration place by reading during its month.": "行事の月に読んで、行事の場所を 1 か所解放する。",
+  "Dark": "ダーク",
+  "Light": "ライト"
 }

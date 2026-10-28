@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "Lebar halaman untuk catatan mata pelajaran ini",
   "Same as subject ({size})": "Sama dengan mata pelajaran ({size})",
   "Wide": "Lebar",
-  "A thank-you for donating to Origami Reader.": "Ucapan terima kasih karena berdonasi untuk Origami Reader.",
   "Copper": "Tembaga",
-  "For supporters": "Untuk pendukung",
   "Gold": "Emas",
   "Gunmetal": "Gunmetal",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "Tepi metalik pada halaman buku 3D di mode buku, dengan foil serasi di punggung buku.",
-  "More finishes will come with achievements.": "Lebih banyak hasil akhir akan hadir bersama pencapaian.",
   "Page edges": "Tepi halaman",
   "Plain": "Polos",
   "Rose gold": "Emas mawar",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "Buku audio dengan pemeran suara, linimasa, dan ekspor",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Berisi Origami Reader dengan mode Baca, Kerja, dan Studio, {packagedVoices} suara, suara Qwen, dan pembuatan gambar opsional. Penyiapan dapat menggantikan beta sebelumnya dan menyimpan pustaka serta catatan Anda; setelah itu, Origami memperbarui dirinya dari Pengaturan.",
   "Library, reading aloud, Work mode notes and study": "Pustaka, membaca dengan suara, catatan dan belajar di mode Kerja",
-  "Illustration, not a likeness of the author": "Ilustrasi, bukan potret penulis"
+  "Illustration, not a likeness of the author": "Ilustrasi, bukan potret penulis",
+  "{name} (locked)": "{name} (terkunci)",
+  "{name}, locked. {how} {progress}": "{name}, terkunci. {how} {progress}",
+  "Celebrations so far: {count}.": "Perayaan sejauh ini: {count}.",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Setiap tema, tempat, jilid, dan penanda buku bisa dibuka gratis dengan menggunakan Origami. Mendukung pengembangan membuka semuanya seketika. Pencapaian Anda tetap berjalan seperti biasa.",
+  "Unlock {count} celebration places by reading during their months.": "Buka {count} tempat perayaan dengan membaca pada bulan-bulannya.",
+  "Unlock a celebration place by reading during its month.": "Buka satu tempat perayaan dengan membaca pada bulannya.",
+  "Dark": "Gelap",
+  "Light": "Terang"
 }

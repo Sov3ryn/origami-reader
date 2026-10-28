@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "이 과목 노트의 페이지 너비",
   "Same as subject ({size})": "과목과 같게 ({size})",
   "Wide": "넓게",
-  "A thank-you for donating to Origami Reader.": "Origami Reader에 기부해 주신 분께 드리는 감사의 선물입니다.",
   "Copper": "구리",
-  "For supporters": "후원자 전용",
   "Gold": "금색",
   "Gunmetal": "건메탈",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "책 모드에서 3D 책 페이지의 금속 마감 가장자리와 책등의 어울리는 박입니다.",
-  "More finishes will come with achievements.": "업적과 함께 더 많은 마감이 추가됩니다.",
   "Page edges": "페이지 가장자리",
   "Plain": "기본",
   "Rose gold": "로즈 골드",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "목소리 배역, 타임라인, 내보내기를 갖춘 오디오북",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "읽기·작업·스튜디오 모드를 갖춘 Origami Reader, 목소리 {packagedVoices}개, Qwen 음성, 선택 사항인 이미지 생성이 포함됩니다. 설치는 이전 베타를 대체하면서 서재와 메모를 유지하며, 이후 Origami는 설정에서 스스로 업데이트합니다.",
   "Library, reading aloud, Work mode notes and study": "서재, 소리 내어 읽기, 작업 모드의 메모와 학습",
-  "Illustration, not a likeness of the author": "일러스트이며 작가의 실제 모습이 아닙니다"
+  "Illustration, not a likeness of the author": "일러스트이며 작가의 실제 모습이 아닙니다",
+  "{name} (locked)": "{name} (잠김)",
+  "{name}, locked. {how} {progress}": "{name}, 잠김. {how} {progress}",
+  "Celebrations so far: {count}.": "지금까지 기념일: {count}.",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "모든 테마, 장소, 장정, 책갈피는 Origami를 사용하면 무료로 잠금 해제할 수 있습니다. 개발을 후원하면 모두 바로 잠금 해제됩니다. 업적은 평소처럼 계속 쌓입니다.",
+  "Unlock {count} celebration places by reading during their months.": "기념일이 있는 달에 읽어 기념일 장소 {count}곳을 잠금 해제하세요.",
+  "Unlock a celebration place by reading during its month.": "기념일이 있는 달에 읽어 기념일 장소 한 곳을 잠금 해제하세요.",
+  "Dark": "어두운 테마",
+  "Light": "밝은 테마"
 }

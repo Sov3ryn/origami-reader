@@ -1,6 +1,6 @@
 // The binding of the 3D book in book mode: page edges, spine and cover, each
 // plain or gilded with a metal finish. Set for all books, and changed per
-// book. Gold is a thank-you for donations; the others are open to everyone.
+// book. Plain is open to everyone; the metals are earned (see rewards.ts).
 export type FinishId = "plain" | "silver" | "gunmetal" | "rose-gold" | "copper" | "gold";
 export type EdgeFinish = {
   id: FinishId;
@@ -9,7 +9,6 @@ export type EdgeFinish = {
   hi: string;
   mid: string;
   lo: string;
-  supporter?: true;
 };
 export const edgeFinishes: EdgeFinish[] = [
   { id: "plain", name: "Plain", hi: "#f3ecdd", mid: "#ddd3bf", lo: "#b9ad96" },
@@ -17,17 +16,13 @@ export const edgeFinishes: EdgeFinish[] = [
   { id: "gunmetal", name: "Gunmetal", hi: "#b4bac2", mid: "#5d646e", lo: "#262a30" },
   { id: "rose-gold", name: "Rose gold", hi: "#fbe0d6", mid: "#d49c8b", lo: "#87564a" },
   { id: "copper", name: "Copper", hi: "#f7c193", mid: "#c37a48", lo: "#6a3a1d" },
-  { id: "gold", name: "Gold", hi: "#fff3b8", mid: "#d6a83a", lo: "#7a5413", supporter: true },
+  { id: "gold", name: "Gold", hi: "#fff3b8", mid: "#d6a83a", lo: "#7a5413" },
 ];
 
-// Donations are not linked to the app yet, so supporter finishes can only be
-// previewed in development builds.
-export const isSupporter = () => import.meta.env.DEV;
-
-// The finish to draw: one that is not available falls back to plain.
-export function edgeFinish(id: string | undefined, supporter = isSupporter()): EdgeFinish {
-  const finish = edgeFinishes.find((f) => f.id === id);
-  return finish && (!finish.supporter || supporter) ? finish : edgeFinishes[0];
+// The finish to draw: an unknown one falls back to plain. Locks apply only
+// when choosing, so a finish already on a book keeps being drawn.
+export function edgeFinish(id: string | undefined): EdgeFinish {
+  return edgeFinishes.find((f) => f.id === id) || edgeFinishes[0];
 }
 
 // Where the gilding goes. Page edges are plain paper or a metal; the spine's
@@ -36,8 +31,8 @@ export type BindingPart = "edges" | "spine" | "cover";
 export type Binding = Record<BindingPart, FinishId>;
 export const defaultBinding: Binding = { edges: "plain", spine: "plain", cover: "plain" };
 /** The binding a book is drawn with: its own choices over the default for all books. */
-export function bindingOf(all: Partial<Binding> | undefined, book?: Partial<Binding>, supporter = isSupporter()): Binding {
-  const pick = (part: BindingPart) => edgeFinish(book?.[part] ?? all?.[part] ?? defaultBinding[part], supporter).id;
+export function bindingOf(all: Partial<Binding> | undefined, book?: Partial<Binding>): Binding {
+  const pick = (part: BindingPart) => edgeFinish(book?.[part] ?? all?.[part] ?? defaultBinding[part]).id;
   return { edges: pick("edges"), spine: pick("spine"), cover: pick("cover") };
 }
 

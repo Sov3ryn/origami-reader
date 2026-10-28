@@ -8290,3 +8290,38 @@ html[data-hidden="true"] .garden-effects * {
     display: none;
   }
 }
+
+/* Earned looks: locked themes and ribbons stay visible but dimmed, and say
+   how to earn them. The note says that supporting only makes it immediate. */
+.unlock-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0 0 14px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  color: var(--muted);
+  font-size: var(--fs-small);
+  line-height: 1.45;
+}
+.unlock-note svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--accent);
+}
+.color-tile.locked {
+  cursor: help;
+}
+.color-tile.locked > :not(.gallery-hint) {
+  opacity: 0.42;
+}
+.color-tile.locked:hover .gallery-hint,
+.color-tile.locked:focus-visible .gallery-hint {
+  opacity: 1;
+}
+.ribbon-choice.locked {
+  opacity: 0.28;
+  cursor: help;
+}

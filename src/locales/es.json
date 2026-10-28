@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "Ancho de página para las notas de esta materia",
   "Same as subject ({size})": "Igual que la materia ({size})",
   "Wide": "Ancha",
-  "A thank-you for donating to Origami Reader.": "Un agradecimiento por donar a Origami Reader.",
   "Copper": "Cobre",
-  "For supporters": "Para quienes apoyan",
   "Gold": "Oro",
   "Gunmetal": "Gris metálico",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "Cantos metálicos en las páginas del libro 3D en el modo libro, con estampado a juego en el lomo.",
-  "More finishes will come with achievements.": "Llegarán más acabados con los logros.",
   "Page edges": "Cantos de las páginas",
   "Plain": "Sencillo",
   "Rose gold": "Oro rosa",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "Audiolibros con un reparto de voces, una línea de tiempo y exportación",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Incluye Origami Reader con Lectura, Trabajo y Studio, {packagedVoices} voces, voz de Qwen y generación de imágenes opcional. La instalación puede sustituir una beta anterior y conserva tu biblioteca y tus notas; después, Origami se actualiza solo desde Ajustes.",
   "Library, reading aloud, Work mode notes and study": "Biblioteca, lectura en voz alta, notas y estudio en el modo Trabajo",
-  "Illustration, not a likeness of the author": "Ilustración, no un retrato del autor"
+  "Illustration, not a likeness of the author": "Ilustración, no un retrato del autor",
+  "{name} (locked)": "{name} (bloqueado)",
+  "{name}, locked. {how} {progress}": "{name}, bloqueado. {how} {progress}",
+  "Celebrations so far: {count}.": "Celebraciones hasta ahora: {count}.",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Cada tema, lugar, encuadernación y marcapáginas se puede desbloquear gratis usando Origami. Apoyar el desarrollo los desbloquea todos al instante. Tus logros siguen avanzando como siempre.",
+  "Unlock {count} celebration places by reading during their months.": "Desbloquea {count} lugares de celebración leyendo durante sus meses.",
+  "Unlock a celebration place by reading during its month.": "Desbloquea un lugar de celebración leyendo durante su mes.",
+  "Dark": "Oscuros",
+  "Light": "Claros"
 }

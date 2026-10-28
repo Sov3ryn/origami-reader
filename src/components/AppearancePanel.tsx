@@ -14,6 +14,8 @@ import {
 import { Section } from "./Section";
 import { ThemeGallery } from "./ThemeGallery";
 import { themes } from "../themes";
+import { readingStats } from "../places";
+import { isOpen } from "../rewards";
 import {
   backgroundImage,
   defaultSceneAppearance,
@@ -595,11 +597,14 @@ export function AppearancePanel({
             value={prefs.theme}
             onChange={(e) => onChange({ theme: e.target.value })}
           >
-            {themes.map((th) => (
-              <option key={th.id} value={th.id}>
-                {t(th.name)}
-              </option>
-            ))}
+            {themes.map((th) => {
+              const locked = th.id !== prefs.theme && !isOpen("theme", th.id, readingStats(prefs.readingStats));
+              return (
+                <option key={th.id} value={th.id} disabled={locked}>
+                  {locked ? t("{name} (locked)", { name: t(th.name) }) : t(th.name)}
+                </option>
+              );
+            })}
           </select>
         </label>
         <label data-help={t("Makes menus and panels larger or smaller.")}>

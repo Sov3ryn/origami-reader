@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "এই বিষয়ের নোটের পৃষ্ঠার প্রস্থ",
   "Same as subject ({size})": "বিষয়ের মতো ({size})",
   "Wide": "চওড়া",
-  "A thank-you for donating to Origami Reader.": "Origami Reader-এ দান করার জন্য একটি ধন্যবাদ।",
   "Copper": "তামা",
-  "For supporters": "সমর্থকদের জন্য",
   "Gold": "সোনালি",
   "Gunmetal": "গানমেটাল",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "বুক মোডে ত্রিমাত্রিক বইয়ের পাতায় ধাতব কিনারা, মেরুদণ্ডে মানানসই ফয়েল সহ।",
-  "More finishes will come with achievements.": "অর্জনের সঙ্গে আরও ফিনিশ আসবে।",
   "Page edges": "পাতার কিনারা",
   "Plain": "সাধারণ",
   "Rose gold": "রোজ গোল্ড",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "কণ্ঠের দল, টাইমলাইন ও এক্সপোর্টসহ অডিওবুক",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Origami Reader-এ আছে পড়া, কাজ ও স্টুডিও মোড, {packagedVoices}টি কণ্ঠ, Qwen স্পিচ এবং ঐচ্ছিক ছবি তৈরি। সেটআপ আগের বেটা বদলে দিতে পারে এবং আপনার লাইব্রেরি ও নোট রেখে দেয়; এরপর Origami সেটিংস থেকে নিজেকে হালনাগাদ করে।",
   "Library, reading aloud, Work mode notes and study": "লাইব্রেরি, জোরে পড়া, ওয়ার্ক মোডের নোট ও পড়াশোনা",
-  "Illustration, not a likeness of the author": "চিত্রণ, লেখকের প্রতিকৃতি নয়"
+  "Illustration, not a likeness of the author": "চিত্রণ, লেখকের প্রতিকৃতি নয়",
+  "{name} (locked)": "{name} (লক করা)",
+  "{name}, locked. {how} {progress}": "{name}, লক করা। {how} {progress}",
+  "Celebrations so far: {count}.": "এখন পর্যন্ত উৎসব: {count}।",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Origami ব্যবহার করেই প্রতিটি থিম, জায়গা, বাঁধাই ও বুকমার্ক বিনামূল্যে আনলক করা যায়। উন্নয়নে সহায়তা করলে সবগুলো সঙ্গে সঙ্গে আনলক হয়। আপনার অর্জন আগের মতোই এগোতে থাকে।",
+  "Unlock {count} celebration places by reading during their months.": "উৎসবের মাসে পড়ে {count}টি উৎসবের জায়গা আনলক করুন।",
+  "Unlock a celebration place by reading during its month.": "উৎসবের মাসে পড়ে একটি উৎসবের জায়গা আনলক করুন।",
+  "Dark": "গাঢ়",
+  "Light": "হালকা"
 }

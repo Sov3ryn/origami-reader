@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, LockKeyhole, Palette, X } from "lucide-react";
+import { Check, Heart, LockKeyhole, Palette, X } from "lucide-react";
 import { t } from "../i18n";
 import { themes } from "../themes";
 import {
@@ -12,6 +12,7 @@ import {
 } from "../backgrounds";
 import { places, placeSceneId, readingStats, unlockHint, type Place } from "../places";
 import { bookFinished } from "../libraryFilters";
+import { isOpen, placeOpen, placesOpen, rewardHint } from "../rewards";
 import type { BookMeta, Preferences } from "../types";
 
 // Colour themes grouped by how bright their background is.
@@ -27,6 +28,21 @@ const colorGroups: [string, typeof themes][] = [
 ];
 
 export type GalleryTab = "scenes" | "colors";
+
+// Shown wherever themes and other looks are chosen: everything can be earned,
+// and supporting only makes it immediate.
+export function UnlockNote() {
+  return (
+    <p className="unlock-note">
+      <Heart size={14} aria-hidden="true" />
+      <span>
+        {t(
+          "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.",
+        )}
+      </span>
+    </p>
+  );
+}
 
 // Landscapes in season order, day before night, then the plain choices.
 const landscapes: BackgroundDefinition[] = [
@@ -141,10 +157,10 @@ export function ThemeGallery({
       { url: place.image },
       prefs.scene === placeSceneId(place.id),
       () => onChange({ scene: placeSceneId(place.id), backgroundMode: "manual" }),
-      { locked: stats.unlocked.includes(place.id) ? undefined : place },
+      { locked: placeOpen(place.id, stats) ? undefined : place },
     );
   const group = (category: Place["category"]) => places.filter((p) => p.category === category);
-  const open = stats.unlocked.length;
+  const open = placesOpen(stats);
   const content = (
     <div
       className="modal-scrim gallery-scrim"
@@ -185,6 +201,7 @@ export function ThemeGallery({
         </header>
         {tab === "scenes" ? (
           <div className="gallery-body" role="tabpanel">
+            <UnlockNote />
             <h3>{t("Landscapes")}</h3>
             <div className="gallery-grid">
               {landscapes.map((s) =>
@@ -215,27 +232,42 @@ export function ThemeGallery({
           </div>
         ) : (
           <div className="gallery-body" role="tabpanel">
+            <UnlockNote />
             <p className="hint">{t("Colors for menus, panels and buttons.")}</p>
             {colorGroups.map(([title, list]) => (
               <div key={title}>
-                <h4>{t(title)}</h4>
+                <h4>{title === "Dark" ? t("Dark") : title === "Light" ? t("Light") : t("High contrast")}</h4>
                 <div className="gallery-grid color-grid">
-                  {list.map((th) => (
-                    <button
-                      key={th.id}
-                      className={"color-tile" + (prefs.theme === th.id ? " chosen" : "")}
-                      aria-pressed={prefs.theme === th.id}
-                      onClick={() => onChange({ theme: th.id })}
-                      style={{ background: th.bg, color: th.ink, borderColor: th.line }}
-                    >
-                      <span className="color-panel" style={{ background: th.panel, borderColor: th.line }} aria-hidden="true">
-                        <span style={{ background: th.accent }} />
-                        <span style={{ background: th.muted }} />
-                      </span>
-                      <strong>{t(th.name)}</strong>
-                      {prefs.theme === th.id && <Check size={14} style={{ color: th.accent }} aria-hidden="true" />}
-                    </button>
-                  ))}
+                  {list.map((th) => {
+                    const chosen = prefs.theme === th.id;
+                    const locked = !chosen && !isOpen("theme", th.id, stats);
+                    const hint = locked ? rewardHint("theme", th.id, stats, finished) : null;
+                    return (
+                      <button
+                        key={th.id}
+                        className={"color-tile" + (chosen ? " chosen" : "") + (locked ? " locked" : "")}
+                        aria-pressed={locked ? undefined : chosen}
+                        aria-disabled={locked ? true : undefined}
+                        aria-describedby={hint ? "theme-hint-" + th.id : undefined}
+                        onClick={() => !locked && onChange({ theme: th.id })}
+                        style={{ background: th.bg, color: th.ink, borderColor: th.line }}
+                      >
+                        <span className="color-panel" style={{ background: th.panel, borderColor: th.line }} aria-hidden="true">
+                          <span style={{ background: th.accent }} />
+                          <span style={{ background: th.muted }} />
+                        </span>
+                        <strong>{t(th.name)}</strong>
+                        {chosen && <Check size={14} style={{ color: th.accent }} aria-hidden="true" />}
+                        {locked && <LockKeyhole size={14} aria-hidden="true" />}
+                        {hint && (
+                          <span className="gallery-hint" id={"theme-hint-" + th.id} role="tooltip">
+                            <strong>{hint.how}</strong>
+                            <span>{hint.progress}</span>
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ))}

@@ -5947,6 +5947,7 @@ export default function App() {
             <BindingMenu
               prefs={prefs}
               book={books.find((b) => b.id === bindingMenu.bookId)}
+              finishedBooks={finishedBooks}
               onPrefs={patchPrefs}
               onBook={(meta) => void updateMeta(meta).catch(error)}
               onClose={() => setBindingMenu(null)}

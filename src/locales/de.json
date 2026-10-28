@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "Seitenbreite für die Notizen dieses Fachs",
   "Same as subject ({size})": "Wie das Fach ({size})",
   "Wide": "Breit",
-  "A thank-you for donating to Origami Reader.": "Ein Dankeschön für Spenden an Origami Reader.",
   "Copper": "Kupfer",
-  "For supporters": "Für Unterstützer",
   "Gold": "Gold",
   "Gunmetal": "Gunmetal",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "Metallische Seitenränder für das 3D-Buch im Buchmodus, mit passender Prägung auf dem Buchrücken.",
-  "More finishes will come with achievements.": "Weitere Veredelungen kommen mit Erfolgen.",
   "Page edges": "Farbschnitt",
   "Plain": "Schlicht",
   "Rose gold": "Roségold",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "Hörbücher mit einer Besetzung aus Stimmen, Zeitleiste und Export",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Enthält Origami Reader mit Lesen, Arbeiten und Studio, {packagedVoices} Stimmen, Qwen-Sprachausgabe und optionale Bilderzeugung. Die Einrichtung kann eine frühere Beta ersetzen und behält Bibliothek und Notizen; danach aktualisiert sich Origami selbst über die Einstellungen.",
   "Library, reading aloud, Work mode notes and study": "Bibliothek, Vorlesen, Notizen und Lernen im Arbeitsmodus",
-  "Illustration, not a likeness of the author": "Illustration, kein Bildnis des Autors"
+  "Illustration, not a likeness of the author": "Illustration, kein Bildnis des Autors",
+  "{name} (locked)": "{name} (gesperrt)",
+  "{name}, locked. {how} {progress}": "{name}, gesperrt. {how} {progress}",
+  "Celebrations so far: {count}.": "Bisherige Feste: {count}.",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Jedes Farbschema, jeder Ort, jeder Einband und jedes Lesezeichen lässt sich kostenlos durch die Nutzung von Origami freischalten. Wer die Entwicklung unterstützt, schaltet sofort alles frei. Deine Erfolge zählen trotzdem weiter.",
+  "Unlock {count} celebration places by reading during their months.": "Schalte {count} Festorte frei, indem du in ihren Monaten liest.",
+  "Unlock a celebration place by reading during its month.": "Schalte einen Festort frei, indem du in seinem Monat liest.",
+  "Dark": "Dunkel",
+  "Light": "Hell"
 }

@@ -2962,13 +2962,10 @@
   "Page width for this subject's notes": "Largeur de page pour les notes de cette matière",
   "Same as subject ({size})": "Comme la matière ({size})",
   "Wide": "Large",
-  "A thank-you for donating to Origami Reader.": "Un remerciement pour les dons à Origami Reader.",
   "Copper": "Cuivre",
-  "For supporters": "Pour les donateurs",
   "Gold": "Or",
   "Gunmetal": "Gris acier",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "Tranches métallisées pour les pages du livre en 3D en mode livre, avec une dorure assortie sur le dos.",
-  "More finishes will come with achievements.": "D’autres finitions viendront avec les succès.",
   "Page edges": "Tranches",
   "Plain": "Simple",
   "Rose gold": "Or rose",
@@ -3026,5 +3023,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "Livres audio avec une distribution de voix, une chronologie et l’exportation",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Comprend Origami Reader avec Lecture, Travail et Studio, {packagedVoices} voix, la synthèse vocale Qwen et la génération d’images en option. L’installation peut remplacer une bêta précédente en conservant votre bibliothèque et vos notes ; ensuite, Origami se met à jour lui-même depuis les Paramètres.",
   "Library, reading aloud, Work mode notes and study": "Bibliothèque, lecture à voix haute, notes et révisions en mode Travail",
-  "Illustration, not a likeness of the author": "Illustration, pas un portrait de l’auteur"
+  "Illustration, not a likeness of the author": "Illustration, pas un portrait de l’auteur",
+  "{name} (locked)": "{name} (verrouillé)",
+  "{name}, locked. {how} {progress}": "{name}, verrouillé. {how} {progress}",
+  "Celebrations so far: {count}.": "Fêtes jusqu’ici : {count}.",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Chaque thème, lieu, reliure et signet se débloque gratuitement en utilisant Origami. Soutenir le développement les débloque tous immédiatement. Vos succès continuent de progresser comme d’habitude.",
+  "Unlock {count} celebration places by reading during their months.": "Débloquez {count} lieux de fête en lisant pendant leur mois.",
+  "Unlock a celebration place by reading during its month.": "Débloquez un lieu de fête en lisant pendant son mois.",
+  "Dark": "Sombres",
+  "Light": "Clairs"
 }

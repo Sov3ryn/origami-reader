@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "Độ rộng trang cho ghi chú của môn này",
   "Same as subject ({size})": "Như môn học ({size})",
   "Wide": "Rộng",
-  "A thank-you for donating to Origami Reader.": "Lời cảm ơn dành cho người ủng hộ Origami Reader.",
   "Copper": "Đồng",
-  "For supporters": "Dành cho người ủng hộ",
   "Gold": "Vàng",
   "Gunmetal": "Xám kim loại",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "Mép trang kim loại cho sách 3D ở chế độ sách, kèm ép nhũ cùng màu trên gáy sách.",
-  "More finishes will come with achievements.": "Sẽ có thêm kiểu hoàn thiện cùng các thành tích.",
   "Page edges": "Mép trang",
   "Plain": "Trơn",
   "Rose gold": "Vàng hồng",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "Sách nói với dàn giọng đọc, dòng thời gian và xuất tệp",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Gồm Origami Reader với chế độ Đọc, Làm việc và Studio, {packagedVoices} giọng đọc, giọng nói Qwen và tạo hình ảnh tùy chọn. Trình cài đặt có thể thay bản beta trước mà vẫn giữ thư viện và ghi chú của bạn; sau đó, Origami tự cập nhật từ Cài đặt.",
   "Library, reading aloud, Work mode notes and study": "Thư viện, đọc thành tiếng, ghi chú và học tập ở chế độ Làm việc",
-  "Illustration, not a likeness of the author": "Hình minh họa, không phải chân dung tác giả"
+  "Illustration, not a likeness of the author": "Hình minh họa, không phải chân dung tác giả",
+  "{name} (locked)": "{name} (đã khóa)",
+  "{name}, locked. {how} {progress}": "{name}, đã khóa. {how} {progress}",
+  "Celebrations so far: {count}.": "Lễ hội đến nay: {count}.",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Mọi chủ đề, địa điểm, kiểu đóng sách và dấu trang đều có thể mở khóa miễn phí khi dùng Origami. Ủng hộ phát triển sẽ mở khóa tất cả ngay lập tức. Thành tích của bạn vẫn tiến triển như bình thường.",
+  "Unlock {count} celebration places by reading during their months.": "Mở khóa {count} địa điểm lễ hội bằng cách đọc trong tháng của chúng.",
+  "Unlock a celebration place by reading during its month.": "Mở khóa một địa điểm lễ hội bằng cách đọc trong tháng của nó.",
+  "Dark": "Tối",
+  "Light": "Sáng"
 }

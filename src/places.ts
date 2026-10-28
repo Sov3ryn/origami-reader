@@ -48,7 +48,11 @@ export function readingStats(value: unknown): ReadingStats {
     lastReadingDay: typeof v.lastReadingDay === "string" ? v.lastReadingDay : "",
     holidaySeconds: holidays,
     unlocked: Array.isArray(v.unlocked)
-      ? v.unlocked.filter((id) => places.some((p) => p.id === id))
+      ? v.unlocked.filter(
+          (id) =>
+            typeof id === "string" &&
+            (places.some((p) => p.id === id) || /^(theme|finish|ribbon):[a-z-]+$/.test(id)),
+        )
       : [],
   };
 }
@@ -141,14 +145,17 @@ function earned(place: Place, stats: ReadingStats, completedBooks: number) {
   const u = place.unlock;
   if (u.metric === "holidaySeconds")
     return (stats.holidaySeconds[u.holidayId] || 0) >= u.value;
-  const have = u.metric === "activeSeconds" ? stats.activeSeconds : u.metric === "completedBooks" ? completedBooks : stats.readingDays;
-  return have >= u.value;
+  return goalProgress(u.metric, stats, completedBooks) >= u.value;
 }
-// Earned places never lock again, even if a finished book is deleted.
+// Earned places never lock again, even if a finished book is deleted. Other
+// earned ids (themes, finishes, ribbons) are kept after the places.
 export function unlockedPlaces(stats: ReadingStats, completedBooks: number): string[] {
   const ids = new Set(stats.unlocked);
   for (const p of places) if (earned(p, stats, completedBooks)) ids.add(p.id);
-  return places.filter((p) => ids.has(p.id)).map((p) => p.id);
+  return [
+    ...places.filter((p) => ids.has(p.id)).map((p) => p.id),
+    ...stats.unlocked.filter((id) => !places.some((p) => p.id === id)),
+  ];
 }
 
 const hours = (seconds: number) => {
@@ -171,18 +178,45 @@ export function unlockHint(place: Place, stats: ReadingStats, completedBooks: nu
           : t("Opens in {month}.", { month: name! }),
     };
   }
-  if (u.metric === "activeSeconds")
+  return requirementHint(u.metric, u.value, stats, completedBooks);
+}
+
+// A goal counted in reading time, reading days, finished books or earned
+// celebration places, with how far along the reader is. Places and the
+// themes, finishes and ribbons in rewards.ts share these goals.
+export type GoalMetric = "activeSeconds" | "completedBooks" | "distinctReadingDays" | "celebrations";
+export function celebrationsEarned(stats: ReadingStats) {
+  return places.filter((p) => p.category === "holiday" && stats.unlocked.includes(p.id)).length;
+}
+export function goalProgress(metric: GoalMetric, stats: ReadingStats, completedBooks: number) {
+  return metric === "activeSeconds"
+    ? stats.activeSeconds
+    : metric === "completedBooks"
+      ? completedBooks
+      : metric === "celebrations"
+        ? celebrationsEarned(stats)
+        : stats.readingDays;
+}
+export function requirementHint(metric: GoalMetric, value: number, stats: ReadingStats, completedBooks: number): { how: string; progress: string } {
+  if (metric === "activeSeconds")
     return {
-      how: t("Read or listen for {total} in all.", { total: hours(u.value) }),
+      how: t("Read or listen for {total} in all.", { total: hours(value) }),
       progress: t("So far: {done}.", { done: hours(stats.activeSeconds) }),
     };
-  if (u.metric === "completedBooks")
+  if (metric === "completedBooks")
     return {
-      how: u.value === 1 ? t("Finish your first book.") : t("Finish {count} books.", { count: u.value }),
+      how: value === 1 ? t("Finish your first book.") : t("Finish {count} books.", { count: value }),
       progress: t("Finished so far: {count}.", { count: completedBooks }),
     };
+  if (metric === "celebrations")
+    return {
+      how: value === 1
+        ? t("Unlock a celebration place by reading during its month.")
+        : t("Unlock {count} celebration places by reading during their months.", { count: value }),
+      progress: t("Celebrations so far: {count}.", { count: celebrationsEarned(stats) }),
+    };
   return {
-    how: t("Read on {count} different days.", { count: u.value }),
+    how: t("Read on {count} different days.", { count: value }),
     progress: t("Days so far: {count}.", { count: stats.readingDays }),
   };
 }

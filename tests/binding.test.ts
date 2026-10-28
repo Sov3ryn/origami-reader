@@ -2,25 +2,21 @@ import { describe, expect, it } from "vitest";
 import { bindingOf, bookThickness, edgeFinish, edgeFinishes } from "../src/binding";
 
 describe("book binding", () => {
-  it("draws the chosen finish when it is open to everyone", () => {
-    expect(edgeFinish("silver", false).id).toBe("silver");
-    expect(edgeFinish("rose-gold", false).id).toBe("rose-gold");
-  });
-  it("keeps gold for supporters", () => {
-    expect(edgeFinish("gold", false).id).toBe("plain");
-    expect(edgeFinish("gold", true).id).toBe("gold");
-    expect(edgeFinishes.filter((f) => f.supporter).map((f) => f.id)).toEqual(["gold"]);
+  it("draws the chosen finish, earned or not, since locks apply when choosing", () => {
+    expect(edgeFinish("silver").id).toBe("silver");
+    expect(edgeFinish("gold").id).toBe("gold");
+    expect(edgeFinishes.map((f) => f.id)).toContain("rose-gold");
   });
   it("falls back to plain for unknown or missing values", () => {
-    expect(edgeFinish(undefined, true).id).toBe("plain");
-    expect(edgeFinish("platinum", true).id).toBe("plain");
+    expect(edgeFinish(undefined).id).toBe("plain");
+    expect(edgeFinish("platinum").id).toBe("plain");
   });
   it("lets a book override the binding for all books, part by part", () => {
     const all = { edges: "silver", spine: "copper", cover: "plain" } as const;
-    expect(bindingOf(all, undefined, false)).toEqual(all);
-    expect(bindingOf(all, { cover: "rose-gold" }, false)).toEqual({ edges: "silver", spine: "copper", cover: "rose-gold" });
-    expect(bindingOf(all, { spine: "gold" }, false).spine).toBe("plain");
-    expect(bindingOf(undefined, undefined, false)).toEqual({ edges: "plain", spine: "plain", cover: "plain" });
+    expect(bindingOf(all)).toEqual(all);
+    expect(bindingOf(all, { cover: "rose-gold" })).toEqual({ edges: "silver", spine: "copper", cover: "rose-gold" });
+    expect(bindingOf(all, { spine: "gold" }).spine).toBe("gold");
+    expect(bindingOf(undefined)).toEqual({ edges: "plain", spine: "plain", cover: "plain" });
   });
   it("makes longer books thicker, within a booklet and a brick", () => {
     expect(bookThickness(4000)).toBeCloseTo(0.025);

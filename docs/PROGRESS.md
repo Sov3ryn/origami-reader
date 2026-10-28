@@ -807,3 +807,14 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 
 - The author card for Grayson's Book of Stories now shows an illustration instead of initials: a writer seen from behind at a desk by a polder window, made with ChatGPT from details on the author's own site (Southern river childhood, home in the Haarlemmermeer, translation and mathematics, their cat drawing). It is a 192 px crop in public/authors, recorded in docs/ASSETS.md.
 - No physical description of the author is published, so the picture shows no face and the card credits it in every language as "Illustration, not a likeness of the author".
+
+## Earned looks: themes, finishes and ribbons, 28 October 2026
+
+- Nothing cosmetic is sold. Every colour theme, binding finish and bookmark ribbon is earned by using Origami, like the places, and supporting development unlocks them all (places included) at once while achievements keep counting. src/rewards.ts holds the ladder.
+- Open from the start: Plum, Graphite, White paper, Parchment and both high contrast themes, plain edges and ink, and ribbons that follow the highlight colour. Papers (light, night, texture off) and the lake scenes stay open.
+- The rest come in 17 steps, a little harder than the place milestones: reading time from 2 h to 150 h, reading days from 3 to 45, finished books from 2 to 12, and 1 or 3 celebration places. Themes come in dark and light pairs, ribbons in threes; Silver at 5 h, Copper at 4 books, Gunmetal at 20 days, Rose gold at 3 celebrations and Gold at 150 h.
+- Earned items never lock again, and whatever is chosen when updating (theme, finishes for all books, ribbon) is kept for good. Locks apply only when choosing, so a finish already on a book keeps being drawn.
+- Scene and colors (both tabs) and Binding and bookmarks show the note "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual." Locked themes are dimmed with a padlock and say their goal and progress on hover; locked finishes likewise; locked ribbons say it in their tooltip; the App theme list marks them locked.
+- Donations are still not linked to the app, so supporter unlocks only show in development builds. There, localStorage "origami.devLocks" = "1" shows the locks as a new reader sees them.
+- Also fixed: the Dark and Light headings of the colour themes were never translated.
+- Tests: tests/rewards.test.ts (every item has one goal or is free, unlocking, keeping chosen items, supporters, hints); binding tests updated. Full suite passes. Checked in the development app in French with locks on: the note, locked themes with hints, locked finishes, ribbon tooltips and the theme list (28 of 36 locked for a profile with 3 reading days).

@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "此科目笔记的页面宽度",
   "Same as subject ({size})": "与科目相同（{size}）",
   "Wide": "宽",
-  "A thank-you for donating to Origami Reader.": "感谢您为 Origami Reader 捐款。",
   "Copper": "铜色",
-  "For supporters": "支持者专属",
   "Gold": "金色",
   "Gunmetal": "枪灰色",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "书本模式中 3D 书页的金属书口，书脊上配有相同的烫印。",
-  "More finishes will come with achievements.": "更多款式将随成就推出。",
   "Page edges": "书口",
   "Plain": "素色",
   "Rose gold": "玫瑰金",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "带有声音阵容、时间线和导出功能的有声书",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "包含具备阅读、工作和工作室模式的 Origami Reader、{packagedVoices} 种声音、Qwen 语音以及可选的图片生成。安装程序可替换早期测试版，并保留你的书库和笔记；之后 Origami 会在设置中自行更新。",
   "Library, reading aloud, Work mode notes and study": "书库、朗读、工作模式中的笔记与学习",
-  "Illustration, not a likeness of the author": "插图，并非作者肖像"
+  "Illustration, not a likeness of the author": "插图，并非作者肖像",
+  "{name} (locked)": "{name}（未解锁）",
+  "{name}, locked. {how} {progress}": "{name}，未解锁。{how}{progress}",
+  "Celebrations so far: {count}.": "目前的节日：{count}。",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "每个主题、场景、装帧和书签都可以通过使用 Origami 免费解锁。支持开发可立即解锁全部内容。你的成就仍会照常累积。",
+  "Unlock {count} celebration places by reading during their months.": "在节日所在的月份阅读，解锁 {count} 个节日场景。",
+  "Unlock a celebration place by reading during its month.": "在节日所在的月份阅读，解锁一个节日场景。",
+  "Dark": "深色",
+  "Light": "浅色"
 }

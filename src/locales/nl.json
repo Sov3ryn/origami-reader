@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "Paginabreedte voor de notities van dit vak",
   "Same as subject ({size})": "Zoals het vak ({size})",
   "Wide": "Breed",
-  "A thank-you for donating to Origami Reader.": "Een bedankje voor donaties aan Origami Reader.",
   "Copper": "Koper",
-  "For supporters": "Voor supporters",
   "Gold": "Goud",
   "Gunmetal": "Gunmetal",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "Metalen randen aan de pagina's van het 3D-boek in boekmodus, met bijpassend folie op de rug.",
-  "More finishes will come with achievements.": "Meer afwerkingen komen met prestaties.",
   "Page edges": "Paginaranden",
   "Plain": "Effen",
   "Rose gold": "Roségoud",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "Luisterboeken met een cast van stemmen, een tijdlijn en export",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Bevat Origami Reader met Lezen, Werken en Studio, {packagedVoices} stemmen, Qwen-spraak en optioneel beeldgeneratie. De installatie kan een eerdere bèta vervangen en houdt je bibliotheek en notities; daarna werkt Origami zichzelf bij via Instellingen.",
   "Library, reading aloud, Work mode notes and study": "Bibliotheek, voorlezen, notities en studeren in de werkmodus",
-  "Illustration, not a likeness of the author": "Illustratie, geen portret van de auteur"
+  "Illustration, not a likeness of the author": "Illustratie, geen portret van de auteur",
+  "{name} (locked)": "{name} (vergrendeld)",
+  "{name}, locked. {how} {progress}": "{name}, vergrendeld. {how} {progress}",
+  "Celebrations so far: {count}.": "Feesten tot nu toe: {count}.",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Elk thema, elke plek, band en bladwijzer is gratis te ontgrendelen door Origami te gebruiken. Wie de ontwikkeling steunt, ontgrendelt ze allemaal meteen. Je prestaties tellen gewoon door.",
+  "Unlock {count} celebration places by reading during their months.": "Ontgrendel {count} feestplekken door in hun maanden te lezen.",
+  "Unlock a celebration place by reading during its month.": "Ontgrendel een feestplek door in de maand ervan te lezen.",
+  "Dark": "Donker",
+  "Light": "Licht"
 }

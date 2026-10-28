@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "Ширина сторінки для нотаток цього предмета",
   "Same as subject ({size})": "Як у предмета ({size})",
   "Wide": "Широка",
-  "A thank-you for donating to Origami Reader.": "Подяка за пожертву на Origami Reader.",
   "Copper": "Мідь",
-  "For supporters": "Для тих, хто підтримує",
   "Gold": "Золото",
   "Gunmetal": "Збройовий метал",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "Металевий обріз сторінок об'ємної книги в режимі книги й таке саме тиснення на корінці.",
-  "More finishes will come with achievements.": "Інші оздоблення з'являться разом із досягненнями.",
   "Page edges": "Обріз сторінок",
   "Plain": "Простий",
   "Rose gold": "Рожеве золото",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "Аудіокниги з акторським складом голосів, шкалою часу й експортом",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Містить Origami Reader із режимами «Читання», «Робота» і «Студія», {packagedVoices} голосів, мовлення Qwen і створення зображень за бажанням. Інсталятор може замінити попередню бету, зберігши бібліотеку й нотатки; далі Origami оновлюється сам у «Налаштуваннях».",
   "Library, reading aloud, Work mode notes and study": "Бібліотека, читання вголос, нотатки й навчання в режимі «Робота»",
-  "Illustration, not a likeness of the author": "Ілюстрація, а не портрет автора"
+  "Illustration, not a likeness of the author": "Ілюстрація, а не портрет автора",
+  "{name} (locked)": "{name} (закрито)",
+  "{name}, locked. {how} {progress}": "{name}, закрито. {how} {progress}",
+  "Celebrations so far: {count}.": "Свят поки що: {count}.",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Кожну тему, місце, палітурку й закладку можна відкрити безкоштовно, просто користуючись Origami. Підтримка розробки відкриває все одразу. Ваші досягнення при цьому зростають як завжди.",
+  "Unlock {count} celebration places by reading during their months.": "Відкрийте місця свят ({count}), читаючи в їхні місяці.",
+  "Unlock a celebration place by reading during its month.": "Відкрийте місце свята, читаючи в його місяць.",
+  "Dark": "Темні",
+  "Light": "Світлі"
 }

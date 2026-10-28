@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "ความกว้างหน้าสำหรับบันทึกของวิชานี้",
   "Same as subject ({size})": "ตามวิชา ({size})",
   "Wide": "กว้าง",
-  "A thank-you for donating to Origami Reader.": "คำขอบคุณสำหรับผู้บริจาคให้ Origami Reader",
   "Copper": "ทองแดง",
-  "For supporters": "สำหรับผู้สนับสนุน",
   "Gold": "ทอง",
   "Gunmetal": "กันเมทัล",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "ขอบหน้ากระดาษแบบโลหะของหนังสือ 3 มิติในโหมดหนังสือ พร้อมฟอยล์เข้าชุดบนสันหนังสือ",
-  "More finishes will come with achievements.": "จะมีแบบอื่นเพิ่มเติมพร้อมความสำเร็จ",
   "Page edges": "ขอบหน้ากระดาษ",
   "Plain": "เรียบ",
   "Rose gold": "โรสโกลด์",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "หนังสือเสียงพร้อมนักพากย์หลายเสียง ไทม์ไลน์ และการส่งออก",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "มี Origami Reader พร้อมโหมดอ่าน ทำงาน และสตูดิโอ เสียง {packagedVoices} เสียง เสียงพูด Qwen และการสร้างภาพแบบเลือกได้ ตัวติดตั้งสามารถแทนที่เบต้าก่อนหน้าโดยเก็บคลังหนังสือและบันทึกของคุณไว้ หลังจากนั้น Origami จะอัปเดตตัวเองจากการตั้งค่า",
   "Library, reading aloud, Work mode notes and study": "คลังหนังสือ การอ่านออกเสียง บันทึกและการเรียนในโหมดทำงาน",
-  "Illustration, not a likeness of the author": "ภาพประกอบ ไม่ใช่ภาพเหมือนของผู้เขียน"
+  "Illustration, not a likeness of the author": "ภาพประกอบ ไม่ใช่ภาพเหมือนของผู้เขียน",
+  "{name} (locked)": "{name} (ล็อกอยู่)",
+  "{name}, locked. {how} {progress}": "{name} ล็อกอยู่ {how} {progress}",
+  "Celebrations so far: {count}.": "เทศกาลที่ได้แล้ว: {count}",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "ธีม สถานที่ การเข้าเล่ม และที่คั่นหนังสือทุกแบบปลดล็อกได้ฟรีด้วยการใช้ Origami การสนับสนุนการพัฒนาจะปลดล็อกทั้งหมดทันที และความสำเร็จของคุณยังคืบหน้าตามปกติ",
+  "Unlock {count} celebration places by reading during their months.": "ปลดล็อกสถานที่เทศกาล {count} แห่งด้วยการอ่านในเดือนของเทศกาลนั้น",
+  "Unlock a celebration place by reading during its month.": "ปลดล็อกสถานที่เทศกาลหนึ่งแห่งด้วยการอ่านในเดือนของเทศกาลนั้น",
+  "Dark": "โทนมืด",
+  "Light": "โทนสว่าง"
 }

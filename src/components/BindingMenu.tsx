@@ -3,7 +3,10 @@ import { createPortal } from "react-dom";
 import { BookMarked, Check, LockKeyhole, X } from "lucide-react";
 import { t } from "../i18n";
 import { annotationColors } from "../themes";
-import { bindingOf, edgeFinishes, isSupporter, type BindingPart, type FinishId } from "../binding";
+import { bindingOf, edgeFinishes, type BindingPart, type FinishId } from "../binding";
+import { readingStats } from "../places";
+import { isOpen, rewardHint } from "../rewards";
+import { UnlockNote } from "./ThemeGallery";
 import type { BookMeta, Preferences } from "../types";
 
 // The 3D book's binding (page edges, spine and cover gilding) and the
@@ -12,12 +15,15 @@ import type { BookMeta, Preferences } from "../types";
 export function BindingMenu({
   prefs,
   book,
+  finishedBooks,
   onPrefs,
   onBook,
   onClose,
 }: {
   prefs: Preferences;
   book?: BookMeta;
+  // Finished books count toward unlocking finishes and ribbons.
+  finishedBooks: number;
   onPrefs: (patch: Partial<Preferences>) => void;
   onBook: (meta: BookMeta) => void;
   onClose: () => void;
@@ -28,7 +34,7 @@ export function BindingMenu({
   useEffect(() => {
     dialog.current?.querySelector<HTMLElement>("[aria-pressed='true'], button")?.focus();
   }, []);
-  const supporter = isSupporter();
+  const stats = readingStats(prefs.readingStats);
   const forBook = scope === "book" && book;
   const shown = bindingOf(prefs.binding, forBook ? book.binding : undefined);
   const choose = (part: BindingPart, id: FinishId | undefined) => {
@@ -77,6 +83,7 @@ export function BindingMenu({
           </button>
         </header>
         <div className="gallery-body">
+          <UnlockNote />
           <p className="hint">
             {forBook
               ? t("How {title} looks in book mode. Parts left as for all books follow those choices.", { title: book.title })
@@ -97,8 +104,9 @@ export function BindingMenu({
                 <p className="hint">{hint}</p>
                 <div className="gallery-grid edge-grid">
                   {edgeFinishes.map((f) => {
-                    const locked = f.supporter && !supporter;
                     const chosen = shown[part] === f.id;
+                    const locked = !chosen && !isOpen("finish", f.id, stats);
+                    const hint = locked ? rewardHint("finish", f.id, stats, finishedBooks) : null;
                     return (
                       <button
                         key={f.id}
@@ -115,7 +123,6 @@ export function BindingMenu({
                           <span className="edge-pages" />
                         </span>
                         <strong>{f.id === "plain" ? (part === "edges" ? t("Plain") : t("Ink")) : t(f.name)}</strong>
-                        {f.supporter && <small>{t("For supporters")}</small>}
                         {locked && (
                           <span className="gallery-lock" aria-hidden="true">
                             <LockKeyhole size={16} />
@@ -126,10 +133,10 @@ export function BindingMenu({
                             <Check size={13} />
                           </span>
                         )}
-                        {locked && (
+                        {hint && (
                           <span className="gallery-hint" id={`binding-hint-${part}-${f.id}`} role="tooltip">
-                            <strong>{t("A thank-you for donating to Origami Reader.")}</strong>
-                            <span>{t("More finishes will come with achievements.")}</span>
+                            <strong>{hint.how}</strong>
+                            <span>{hint.progress}</span>
                           </span>
                         )}
                       </button>
@@ -146,18 +153,24 @@ export function BindingMenu({
               <button role="radio" aria-checked={!prefs.ribbonColor} className="ribbon-choice same" onClick={() => onPrefs({ ribbonColor: "" })}>
                 {t("Highlight colour")}
               </button>
-              {annotationColors.map((c) => (
-                <button
-                  key={c.id}
-                  role="radio"
-                  aria-checked={prefs.ribbonColor === c.id}
-                  aria-label={t(c.label)}
-                  data-tip={t(c.label)}
-                  className="ribbon-choice"
-                  style={{ ["--ribbon" as string]: c.value }}
-                  onClick={() => onPrefs({ ribbonColor: c.id })}
-                />
-              ))}
+              {annotationColors.map((c) => {
+                const chosen = prefs.ribbonColor === c.id;
+                const hint = !chosen && !isOpen("ribbon", c.id, stats) ? rewardHint("ribbon", c.id, stats, finishedBooks) : null;
+                const tip = hint ? t("{name}, locked. {how} {progress}", { name: t(c.label), how: hint.how, progress: hint.progress }) : t(c.label);
+                return (
+                  <button
+                    key={c.id}
+                    role="radio"
+                    aria-checked={chosen}
+                    aria-disabled={hint ? true : undefined}
+                    aria-label={tip}
+                    data-tip={tip}
+                    className={"ribbon-choice" + (hint ? " locked" : "")}
+                    style={{ ["--ribbon" as string]: c.value }}
+                    onClick={() => !hint && onPrefs({ ribbonColor: c.id })}
+                  />
+                );
+              })}
             </div>
           </div>
         </div>

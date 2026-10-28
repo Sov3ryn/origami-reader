@@ -2940,13 +2940,10 @@
   "Page width for this subject's notes": "Bu dersin notları için sayfa genişliği",
   "Same as subject ({size})": "Dersle aynı ({size})",
   "Wide": "Geniş",
-  "A thank-you for donating to Origami Reader.": "Origami Reader'a bağış yapanlara bir teşekkür.",
   "Copper": "Bakır",
-  "For supporters": "Destekçiler için",
   "Gold": "Altın",
   "Gunmetal": "Füme metal",
   "Metal edges on the pages of the 3D book in book mode, with matching foil on its spine.": "Kitap modunda 3B kitabın sayfalarına metalik kenarlar ve sırtında uyumlu yaldız.",
-  "More finishes will come with achievements.": "Başarımlarla daha fazla kaplama gelecek.",
   "Page edges": "Sayfa kenarları",
   "Plain": "Sade",
   "Rose gold": "Pembe altın",
@@ -3004,5 +3001,13 @@
   "Audiobooks with a cast of voices, a timeline and exports": "Ses kadrosu, zaman çizelgesi ve dışa aktarma ile sesli kitaplar",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Okuma, Çalışma ve Stüdyo modlarıyla Origami Reader, {packagedVoices} ses, Qwen konuşma ve isteğe bağlı görsel oluşturma içerir. Kurulum önceki bir betayı kitaplığınızı ve notlarınızı koruyarak değiştirebilir; sonrasında Origami kendini Ayarlar'dan günceller.",
   "Library, reading aloud, Work mode notes and study": "Kitaplık, sesli okuma, Çalışma modunda notlar ve çalışma",
-  "Illustration, not a likeness of the author": "Çizim, yazarın portresi değildir"
+  "Illustration, not a likeness of the author": "Çizim, yazarın portresi değildir",
+  "{name} (locked)": "{name} (kilitli)",
+  "{name}, locked. {how} {progress}": "{name}, kilitli. {how} {progress}",
+  "Celebrations so far: {count}.": "Şimdiye kadarki kutlamalar: {count}.",
+  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Her tema, mekân, cilt ve yer imi Origami kullanılarak ücretsiz açılabilir. Geliştirmeyi desteklemek hepsini hemen açar. Başarılarınız her zamanki gibi ilerlemeye devam eder.",
+  "Unlock {count} celebration places by reading during their months.": "Aylarında okuyarak {count} kutlama mekânının kilidini açın.",
+  "Unlock a celebration place by reading during its month.": "Ayında okuyarak bir kutlama mekânının kilidini açın.",
+  "Dark": "Koyu",
+  "Light": "Açık"
 }

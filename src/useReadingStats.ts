@@ -1,5 +1,6 @@
 import { useEffect, useRef, type Dispatch, type SetStateAction } from "react";
-import { celebrationsOn, localDay, readingStats, unlockedPlaces } from "./places";
+import { celebrationsOn, localDay, readingStats } from "./places";
+import { unlockedAll } from "./rewards";
 import type { Preferences } from "./types";
 
 const TICK = 5_000;
@@ -7,7 +8,7 @@ const IDLE = 120_000;
 const SAVE_EVERY = 60;
 
 /*
- * Counts reading and listening time for places. A second counts while a book
+ * Counts reading and listening time for places, themes, finishes and ribbons. A second counts while a book
  * is open in Read mode and either the voice is reading or the window is in
  * view with some input in the last two minutes, so idle time and reading with
  * narration at once are not counted twice. Time is added to the settings
@@ -43,7 +44,7 @@ export function useReadingStats(
           for (const id of celebrationsOn(now))
             stats.holidaySeconds[id] = (stats.holidaySeconds[id] || 0) + seconds;
         }
-        const unlocked = unlockedPlaces(stats, books.current);
+        const unlocked = unlockedAll(stats, books.current, prefs);
         if (!seconds && unlocked.length === stats.unlocked.length) return prefs;
         return { ...prefs, readingStats: { ...stats, unlocked } };
       });
@@ -75,12 +76,13 @@ export function useReadingStats(
       if (pending.current >= 1) commit();
     };
   }, [ready, setPrefs]);
-  // Finishing a book can unlock a place straight away.
+  // Finishing a book can unlock a place or a theme straight away. On start,
+  // the theme, finishes and ribbon already chosen are kept for good.
   useEffect(() => {
     if (!ready) return;
     setPrefs((prefs) => {
       const stats = readingStats(prefs.readingStats);
-      const unlocked = unlockedPlaces(stats, completedBooks);
+      const unlocked = unlockedAll(stats, completedBooks, prefs);
       return unlocked.length === stats.unlocked.length
         ? prefs
         : { ...prefs, readingStats: { ...stats, unlocked } };
