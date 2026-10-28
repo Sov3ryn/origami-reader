@@ -867,3 +867,18 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - Increased Gothic Window's moving mist, window-light contrast and river shimmer, and added a slow glow over its moon. Increased Lily Leaf's dew size, count and travel, with larger, more frequent flower glints.
 - Brass Feather and Ivy and Moon now use warm golden reflection cores and halos instead of near-white highlights. Other bookmark designs retain their existing appearance and timing.
 - Refreshed the standalone animation gallery and individual previews. The production web build and the four affected-design browser tests pass, including reduced-motion fallback and placement outside reading text.
+
+## Wolf and owl bookmarks, 28 October 2026
+
+- Added the approved Moonlit Wolf and Woodland Owl illustrations to the bookmark picker. Wolf unlocks after 16 hours of active reading/listening; Owl unlocks after 14 reading days. Both use the existing earned-look and supporter behavior. Added names in all 19 locales; the existing picker translates them through t().
+- AnimalBookmark uses the original PNGs as clipped SVG textures. The wolf breathes, swings its rear-attached tail and occasionally twitches an ear. The owl breathes, gently tilts its head and blinks with feather-textured lids. Paper and printed artwork stay fixed. The sleeping cat artwork, component and animation rules were not changed.
+- Both support the current animated/still picker, reduced-motion fallback, hidden/offscreen suspension and exact-sentence bookmark navigation. Alpha bounds preserve the two-thirds book-height sizing. No per-frame JavaScript or new external dependency is required.
+- A dedicated three-animal preview and individual wolf/owl previews are in outputs/Origami-Animated-Bookmarks. Source mockups and generation prompts remain in outputs/Origami-Animal-Bookmark-Mockups. No installer was packaged.
+- Validation: 12 bookmark/reward unit tests and all locale checks passed. The browser suite passed 18 checks initially; the existing close/reopen test failed once and passed on its isolated rerun without changing closing behavior. All five animal and close/reopen checks passed on the final targeted run.
+- Follow-up: expanded the wolf tail clip into the surrounding transparency so all gold edging moves with the fur. A pixel-coverage regression check verifies no visible tail pixels outside the paper are left in the stationary layer. Reviewed both swing extremes and refreshed the preview pages. The production web build passes.
+
+## Beta 17, 28 October 2026
+
+- Released for Windows (Studio on): Origami-Reader-Setup-Beta-17.exe on the hub (698 MB, SHA-256 4b0c14e7...) and a signed app update on origami-updates (189 MiB app file; workers unchanged). It carries the animated bookmarks (default, with Still and Plain ribbon as options, plus the moonlit wolf and woodland owl), the reader menu cleanup, automatic update checks on by default, the book-mode spread flicker fix and the smooth opening lift.
+- Built as before: refresh-windows.py over the full kit, make-online-windows.py with the published voice set (downloads identical to beta 16), launcher and single-file setup inline, sealed with the cargo registry.
+- Checked: the kit installs and components.json reads beta 17; a fresh profile has update checks on and the plum crane as its bookmark; all bookmark art loads; a new bookmark shows the animated plum crane beside the book, and the book stays on one spread over 90 frames; no page errors. The latest update manifest is beta 17's byte for byte (GitHub served beta 16's for a few seconds after publishing), the app file downloads and the hub asset's SHA-256 matches.
