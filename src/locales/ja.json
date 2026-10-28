@@ -3003,5 +3003,6 @@
   "Wave": "波形",
   "Audiobooks with a cast of voices, a timeline and exports": "声のキャスト、タイムライン、書き出しを備えたオーディオブック",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "読書・ワーク・スタジオの各モードを備えた Origami Reader、{packagedVoices} 種類の声、Qwen 音声、任意の画像生成を含みます。セットアップは以前のベータを置き換え、ライブラリとメモを保持します。その後は Origami が設定から自動で更新します。",
-  "Library, reading aloud, Work mode notes and study": "ライブラリ、読み上げ、ワークモードのメモと学習"
+  "Library, reading aloud, Work mode notes and study": "ライブラリ、読み上げ、ワークモードのメモと学習",
+  "Illustration, not a likeness of the author": "イラストです。著者の肖像ではありません"
 }

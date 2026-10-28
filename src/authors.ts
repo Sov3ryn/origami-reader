@@ -1,6 +1,7 @@
 // Short notes about the starter-library authors and books, shown on the
 // Continue reading card. Portraits are public-domain images bundled with the
-// app (see docs/ASSETS.md); living authors are shown with their initials.
+// app (see docs/ASSETS.md). Grayson Bray Morris, a living author, has an
+// illustration of a writer's desk instead, credited as not a likeness.
 import { useEffect, useState } from "react";
 import manifest from "../assets/starter-library/manifest.json";
 import { findAuthor, loadPack, loadPortrait, packNote } from "./authorPack";
@@ -114,6 +115,8 @@ function notes(): Record<string, AuthorNote> {
     "starter-grayson-stories": {
       name: "Grayson Bray Morris",
       years: "",
+      portrait: "/authors/grayson-bray-morris.webp",
+      portraitCredit: t("Illustration, not a likeness of the author"),
       bio: t(
         "Contemporary writer. This collection gathers sixteen of the author's short stories.",
       ),

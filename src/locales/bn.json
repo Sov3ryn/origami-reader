@@ -3003,5 +3003,6 @@
   "Wave": "তরঙ্গ",
   "Audiobooks with a cast of voices, a timeline and exports": "কণ্ঠের দল, টাইমলাইন ও এক্সপোর্টসহ অডিওবুক",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Origami Reader-এ আছে পড়া, কাজ ও স্টুডিও মোড, {packagedVoices}টি কণ্ঠ, Qwen স্পিচ এবং ঐচ্ছিক ছবি তৈরি। সেটআপ আগের বেটা বদলে দিতে পারে এবং আপনার লাইব্রেরি ও নোট রেখে দেয়; এরপর Origami সেটিংস থেকে নিজেকে হালনাগাদ করে।",
-  "Library, reading aloud, Work mode notes and study": "লাইব্রেরি, জোরে পড়া, ওয়ার্ক মোডের নোট ও পড়াশোনা"
+  "Library, reading aloud, Work mode notes and study": "লাইব্রেরি, জোরে পড়া, ওয়ার্ক মোডের নোট ও পড়াশোনা",
+  "Illustration, not a likeness of the author": "চিত্রণ, লেখকের প্রতিকৃতি নয়"
 }

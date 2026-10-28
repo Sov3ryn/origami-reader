@@ -3003,5 +3003,6 @@
   "Wave": "Fala",
   "Audiobooks with a cast of voices, a timeline and exports": "Audiobooki z obsadą głosów, osią czasu i eksportem",
   "Includes Origami Reader with Read, Work and Studio, {packagedVoices} voices, Qwen speech and optional picture generation. Setup can replace an earlier beta and keeps your library and notes; after that, Origami updates itself from Settings.": "Zawiera Origami Reader z trybami Czytanie, Praca i Studio, {packagedVoices} głosów, mowę Qwen i opcjonalne tworzenie obrazów. Instalator może zastąpić wcześniejszą betę, zachowując bibliotekę i notatki; potem Origami aktualizuje się sam z Ustawień.",
-  "Library, reading aloud, Work mode notes and study": "Biblioteka, czytanie na głos, notatki i nauka w trybie Praca"
+  "Library, reading aloud, Work mode notes and study": "Biblioteka, czytanie na głos, notatki i nauka w trybie Praca",
+  "Illustration, not a likeness of the author": "Ilustracja, nie wizerunek autora"
 }

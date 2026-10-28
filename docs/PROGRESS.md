@@ -802,3 +802,8 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - Released beta 15 for Windows: Origami-Reader-Setup-Beta-15.exe on the hub (SHA-256 300ed61d...) and a signed app update. Checked: the kit installed with Arabic starter books shows all six books in Arabic, Monte Cristo included, with no page errors; components.json reads beta 15; the latest update manifest is beta 15's and the app file downloads; the hub asset's SHA-256 matches.
 - The hub page (README) was rewritten for the three modes, Studio, the 3D book, bindings, places to read, the 36 colour themes, the sound visualizer, the languages (20 for the app and the starter books, English and French for voices) and the larger Qwen models; the install guide says all six books are translated and that voice packs are English and French for now.
 
+
+## Author picture for Grayson Bray Morris, 28 October 2026
+
+- The author card for Grayson's Book of Stories now shows an illustration instead of initials: a writer seen from behind at a desk by a polder window, made with ChatGPT from details on the author's own site (Southern river childhood, home in the Haarlemmermeer, translation and mathematics, their cat drawing). It is a 192 px crop in public/authors, recorded in docs/ASSETS.md.
+- No physical description of the author is published, so the picture shows no face and the card credits it in every language as "Illustration, not a likeness of the author".
