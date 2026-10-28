@@ -831,3 +831,10 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 ## Starter genre tags translated, 28 October 2026
 
 - The genre tags of the six starter books (Romance, Classic, Adventure and the others) were stored and shown in English in every language. They are now shown in the interface language on the library cards, the Continue reading card and the genre filter, which sorts by the shown names. Search finds a book by either name. Tags someone types are shown exactly as written. Ten tags, translated into all 19 languages; a test covers French and typed tags.
+
+## Beta 16, 28 October 2026
+
+- Released for Windows (Studio on): Origami-Reader-Setup-Beta-16.exe on the hub (687 MB, SHA-256 9880152a...) and a signed app update on origami-updates (194 MB app file; workers unchanged). It carries the illustrated bookmarks with sentence anchors, earned looks, the translated starter genre tags and the author illustration for Grayson Bray Morris.
+- Built as beta 13 to 15: refresh-windows.py over the full kit, make-online-windows.py with the published voice set (downloads identical to beta 15), launcher and single-file setup inline, sealed with the cargo registry.
+- Checked: the kit installed with French starter books shows all six in French; components.json reads beta 16; the bookmark artwork loads; with the interface in French the genre tags are translated; a new profile has 30 of 36 themes locked; no page errors. The latest update manifest is beta 16's byte for byte, the app file downloads and the hub asset's SHA-256 matches.
+- The 12 bookmark PNGs (about 20 MB) are bundled as delivered, so the reader and each update grow by that much; smaller copies would need their recorded alpha bounds redone.
