@@ -838,3 +838,32 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - Built as beta 13 to 15: refresh-windows.py over the full kit, make-online-windows.py with the published voice set (downloads identical to beta 15), launcher and single-file setup inline, sealed with the cargo registry.
 - Checked: the kit installed with French starter books shows all six in French; components.json reads beta 16; the bookmark artwork loads; with the interface in French the genre tags are translated; a new profile has 30 of 36 themes locked; no page errors. The latest update manifest is beta 16's byte for byte, the app file downloads and the hub asset's SHA-256 matches.
 - The 12 bookmark PNGs (about 20 MB) are bundled as delivered, so the reader and each update grow by that much; smaller copies would need their recorded alpha bounds redone.
+
+
+## Sleeping cat bookmark animation, 28 October 2026
+
+- Corrected the sleeping cat artwork: two tucked front paws, with the tail clearly emerging from the rear haunch and hanging outside the ribbon. Existing sleeping-cat bookmark IDs use the corrected illustration automatically, in both the picker and reader.
+- Added independent SVG/CSS motion using one shared texture: a 6.8-second breathing cycle, a 9.2-second gentle tail swing, and a brief ear twitch every 19 seconds. The ribbon, stars and text area stay still. The visible bookmark keeps its two-thirds book-height sizing.
+- Motion pauses when offscreen or the document is hidden. Tucked/returning bookmarks and reduced-motion users see the corrected still illustration. Failed image decoding also retains the still image. The existing earned-look goal is unchanged and no donor-only variant was added.
+- Checked the production web build and four browser tests covering sentence navigation, opening/closing, dimensions, independent tail motion, stationary paper, hidden/offscreen suspension, live reduced-motion changes, and decoding fallback. A standalone local preview is in outputs/Origami-Animated-Bookmarks. No installer was packaged.
+
+
+## Midnight moon animation and normal cat artwork, 28 October 2026
+
+- The canonical sleeping-cat-stars.png and the original transparent-bookmark gallery now use the corrected rear-attached tail too. The gallery links the versioned file to avoid displaying a cached older cat. App pickers, idle still artwork and reduced-motion fallback already use this corrected image. The previous artwork is preserved in work/bookmark-originals.
+- Midnight Moon now has an 8.6-second warm crescent glow and five staggered gold-star glints, using SVG/CSS over the existing texture. The leather, cord and printed artwork stay still. No extra bitmap or model is required. Its existing reading goal remains unchanged.
+- Both animated bookmarks share visibility, reduced-motion and decode-failure handling in useBookmarkMotion. Animation pauses offscreen or in a hidden document; the still artwork is shown while tucked inside the book or returning to it. No new UI labels were introduced.
+- Validation: five browser tests, including the cat regression checks and stationary moon artwork with varying illumination, plus the production web build. Matching SHA-256 checks confirm the normal cat copies are identical to the corrected source. Local preview: outputs/Origami-Animated-Bookmarks/Midnight moon preview.html. No installer was repackaged.
+
+## Full bookmark animation set, 28 October 2026
+
+- Added motion to the remaining ten illustrated bookmarks, completing all twelve designs. Plum Crane has a gold reflection; Lavender Garden has a moving tassel; Forest Gold has drifting fireflies; Crane and Blossoms has falling petals; Gothic Window has window lights, mist and river shimmer; Lily Leaf has dew and flower highlights; Brass Feather has a moving reflection; Crane Charm has a swinging pendant; Celestial Sword has cool blade reflections; Ivy and Moon has a swinging star and gold highlights.
+- DecorativeBookmark uses the existing transparent textures with individually aligned SVG clips, masks and CSS transform/opacity animations. No new bitmap, video, model, timer loop or per-frame JavaScript was added. Detached pieces move independently while the bookmark body remains fixed. Reflections are masked out of the original positions of moving parts to prevent ghost images.
+- All animations use the shared visibility and reduced-motion handling. Hidden/offscreen bookmarks pause, and tucked/returning bookmarks show their still artwork. The two-thirds book-height size, exact-sentence anchors and existing reward ladder remain unchanged. No new in-app labels or donor-only items were added.
+- Validation: production web build succeeded; all 15 physical-bookmark browser tests passed. The suite covers all twelve designs, live reduced-motion fallback, offscreen suspension, placement outside the text, exact-sentence navigation, and the existing cat/moon regression checks. Individual previews and a light/dark gallery are in outputs/Origami-Animated-Bookmarks/Animated bookmarks.html. No installer was repackaged.
+
+## Bookmark motion tuning, 28 October 2026
+
+- Increased Gothic Window's moving mist, window-light contrast and river shimmer, and added a slow glow over its moon. Increased Lily Leaf's dew size, count and travel, with larger, more frequent flower glints.
+- Brass Feather and Ivy and Moon now use warm golden reflection cores and halos instead of near-white highlights. Other bookmark designs retain their existing appearance and timing.
+- Refreshed the standalone animation gallery and individual previews. The production web build and the four affected-design browser tests pass, including reduced-motion fallback and placement outside reading text.

@@ -59,6 +59,7 @@ import {
 } from "./collections";
 import {
   AppearancePanel,
+  NarrationOptions,
   readerFontStack,
   readerFonts,
 } from "./components/AppearancePanel";
@@ -1065,6 +1066,12 @@ export default function App() {
             merged.libraryTheme = "mansion";
           // Update checks were off by default before beta 17: switch them on
           // once, then keep whatever the reader chooses.
+          // Plain ribbons were the default bookmark before beta 17: move to
+          // the animated default once, then keep whatever the reader chooses.
+          if (!saved.bookmarksAnimatedDefault) {
+            if (!saved.bookmarkDesign) merged.bookmarkDesign = defaultPreferences.bookmarkDesign;
+            merged.bookmarksAnimatedDefault = true;
+          }
           if (!saved.autoUpdateDefaultOn) {
             merged.autoUpdate = true;
             merged.autoUpdateDefaultOn = true;
@@ -2314,7 +2321,7 @@ export default function App() {
       end: p.end,
       quote: p.text,
       kind,
-      ...(kind === "bookmark" ? { design: prefs.bookmarkDesign || undefined } : {}),
+      ...(kind === "bookmark" ? { design: prefs.bookmarkDesign || undefined, still: (prefs.bookmarkDesign && prefs.bookmarkStill) || undefined } : {}),
       color,
       text: isNote ? draft : "",
       group: isNote ? noteGroup.trim() : "",
@@ -3149,8 +3156,8 @@ export default function App() {
               </div>
               {a.kind === "bookmark" && <details className="bookmark-edit">
                 <summary>{t("Bookmark appearance")}</summary>
-                <BookmarkAppearance value={a.design} prefs={prefs} finishedBooks={finishedBooks} onChange={(design) => {
-                  const next = { ...a, design: design || undefined };
+                <BookmarkAppearance value={a.design} still={a.still} prefs={prefs} finishedBooks={finishedBooks} onChange={(design, still) => {
+                  const next = { ...a, design: design || undefined, still: still || undefined };
                   void store.saveAnnotation(next).then(() => setAnnotations((old) => old.map((item) => item.id === a.id ? next : item))).catch(error);
                 }} />
               </details>}
@@ -5122,6 +5129,9 @@ export default function App() {
     if (category === "listening")
       return (
         <div className="inspector-content">
+          <Section id="settings-narration" title={t("While reading aloud")}>
+            <NarrationOptions prefs={prefs} onChange={patchPrefs} />
+          </Section>
           <Section id="settings-pauses" title={t("Pauses")}>
             {(
               [
@@ -8015,7 +8025,14 @@ export default function App() {
                     books={books}
                   />
                 ) : activeTab === "voice" ? (
-                  voicePanel()
+                  <>
+                    <div className="inspector-content narration-options">
+                      <Section id="inspector-narration" title={t("While reading aloud")} defaultOpen={false}>
+                        <NarrationOptions prefs={reading} onChange={patchReading} />
+                      </Section>
+                    </div>
+                    {voicePanel()}
+                  </>
                 ) : activeTab === "selection" ? (
                   selectionPanel()
                 ) : activeTab === "document" ? (

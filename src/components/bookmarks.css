@@ -25,3 +25,165 @@
 .physical-bookmark.beside { animation:bookmark-settle 600ms ease-out; }
 @keyframes bookmark-settle { from { opacity:0; filter:drop-shadow(7px 16px 8px #0003); } to { opacity:1; } }
 @media(prefers-reduced-motion:reduce) { .physical-bookmark { animation:none!important; transition:none!important; } }
+
+.sleeping-cat-art { overflow:visible; }
+.animal-bookmark-art { overflow:visible; }
+.animal-bookmark-animation { position:absolute; inset:0; width:100%; height:100%; overflow:visible; display:none; }
+.animal-bookmark-art[data-animated="true"] .animal-bookmark-animation { display:block; }
+.animal-bookmark-art[data-animated="true"] .animal-bookmark-still { visibility:hidden; }
+.animal-wolf-breath { transform-origin:500px 338px; animation:animal-wolf-breath 7.5s ease-in-out infinite; }
+.animal-wolf-tail { transform-origin:750px 300px; animation:animal-wolf-tail 10s ease-in-out infinite; }
+.animal-wolf-ear { transform-origin:320px 96px; animation:animal-wolf-ear 21s ease-in-out infinite; }
+.animal-owl-breath { transform-origin:520px 394px; animation:animal-owl-breath 6.4s ease-in-out infinite; }
+.animal-owl-head { transform-origin:480px 220px; animation:animal-owl-head 18s ease-in-out infinite; }
+.animal-owl-lid { transform:scaleY(0); animation:animal-owl-blink 12.7s linear infinite; }
+.animal-bookmark-art[data-paused="true"] *,
+.animal-bookmark-art[data-animated="false"] * { animation-play-state:paused!important; }
+@keyframes animal-wolf-breath { 0%,100% { transform:scale(1); } 48% { transform:scale(1.006,1.018); } }
+@keyframes animal-wolf-tail { 0%,100% { transform:rotate(0deg); } 25% { transform:rotate(2deg); } 75% { transform:rotate(-2deg); } }
+@keyframes animal-wolf-ear { 0%,61%,66%,100% { transform:rotate(0deg); } 62% { transform:rotate(-3deg); } 63% { transform:rotate(1deg); } 64% { transform:rotate(-1.5deg); } }
+@keyframes animal-owl-breath { 0%,100% { transform:scale(1); } 45% { transform:scale(1.008,1.014); } }
+@keyframes animal-owl-head { 0%,18%,100% { transform:rotate(0deg); } 36%,48% { transform:rotate(-2deg); } 70%,79% { transform:rotate(1.3deg); } }
+@keyframes animal-owl-blink { 0%,38%,43%,100% { transform:scaleY(0); } 39.5%,40.5% { transform:scaleY(1); } }
+@media(prefers-reduced-motion:reduce) {
+  .animal-bookmark-art .animal-bookmark-animation { display:none!important; }
+  .animal-bookmark-art .animal-bookmark-still { visibility:visible!important; }
+  .animal-bookmark-art * { animation:none!important; }
+}
+.sleeping-cat-animation { position:absolute; inset:0; width:100%; height:100%; overflow:visible; display:none; }
+.sleeping-cat-art[data-animated="true"] .sleeping-cat-animation { display:block; }
+.sleeping-cat-art[data-animated="true"] .sleeping-cat-still { visibility:hidden; }
+.sleeping-cat-breath { transform-origin:540px 350px; animation:cat-breath 6.8s ease-in-out infinite; }
+.sleeping-cat-tail { transform-origin:744px 260px; animation:cat-tail 9.2s ease-in-out infinite; }
+.sleeping-cat-ear { transform-origin:344px 185px; animation:cat-ear 19s linear infinite; }
+.sleeping-cat-art[data-paused="true"] g,
+.sleeping-cat-art[data-animated="false"] g { animation-play-state:paused; }
+@keyframes cat-breath {
+  0%,100% { transform:scale(1,1); }
+  46% { transform:scale(1.006,1.022); }
+}
+@keyframes cat-tail {
+  0%,100% { transform:rotate(0deg); }
+  25% { transform:rotate(2.5deg); }
+  75% { transform:rotate(-2.5deg); }
+}
+@keyframes cat-ear {
+  0%,68%,73%,100% { transform:rotate(0deg); }
+  69% { transform:rotate(-5deg); }
+  69.8% { transform:rotate(1.5deg); }
+  70.6% { transform:rotate(-2.5deg); }
+  72% { transform:rotate(0deg); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .sleeping-cat-art .sleeping-cat-animation { display:none!important; }
+  .sleeping-cat-art .sleeping-cat-still { visibility:visible!important; }
+  .sleeping-cat-art g { animation:none!important; }
+}
+
+.midnight-moon-animation { position:absolute; inset:0; width:100%; height:100%; display:none; }
+.midnight-moon-art[data-animated="true"] .midnight-moon-animation { display:block; }
+.midnight-moon-glow { opacity:.06; animation:midnight-moon-glow 8.6s ease-in-out infinite; }
+.midnight-star { opacity:0; animation:midnight-star 17s ease-in-out infinite; }
+.midnight-moon-art[data-paused="true"] g,
+.midnight-moon-art[data-animated="false"] g { animation-play-state:paused; }
+@keyframes midnight-moon-glow {
+  0%,100% { opacity:.06; }
+  50% { opacity:.48; }
+}
+@keyframes midnight-star {
+  0%,72%,100% { opacity:0; }
+  80% { opacity:.95; }
+  87% { opacity:.12; }
+  91% { opacity:.45; }
+  97% { opacity:0; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .midnight-moon-art .midnight-moon-animation { display:none!important; }
+  .midnight-moon-art g { animation:none!important; }
+}
+
+.decorative-bookmark-art { overflow:visible; }
+.decorative-bookmark-animation { position:absolute; inset:0; width:100%; height:100%; overflow:visible; display:none; }
+.decorative-bookmark-art[data-animated="true"] .decorative-bookmark-animation { display:block; }
+.decorative-bookmark-art[data-animated="true"] .decorative-part-still { visibility:hidden; }
+.bookmark-detail-swing { animation:bookmark-detail-swing 10s ease-in-out infinite; }
+.bookmark-detail-sheen { animation:bookmark-detail-sheen 16s ease-in-out infinite; }
+.bookmark-detail-glint { opacity:0; animation:midnight-star 19s ease-in-out infinite; }
+.bookmark-detail-firefly { opacity:0; animation:bookmark-detail-firefly 19s ease-in-out infinite; }
+.bookmark-detail-petal { opacity:0; animation:bookmark-detail-petal 22s linear infinite; }
+.bookmark-detail-mist { opacity:0; animation:bookmark-detail-mist 24s ease-in-out infinite; }
+.bookmark-detail-dew { opacity:0; animation:bookmark-detail-dew 18s ease-in-out infinite; }
+.bookmark-detail-lantern { animation:bookmark-detail-lantern 8s ease-in-out infinite; }
+.bookmark-detail-water { animation:bookmark-detail-water 11s ease-in-out infinite; }
+.bookmark-detail-aura { animation:bookmark-detail-aura 10s ease-in-out infinite; }
+.decorative-bookmark-art[data-design="sage-lily-leaf"] .bookmark-detail-glint { animation-name:bookmark-lily-glint; }
+.decorative-bookmark-art[data-paused="true"] *,
+.decorative-bookmark-art[data-animated="false"] * { animation-play-state:paused!important; }
+@keyframes bookmark-detail-swing {
+  0%,100% { transform:rotate(0deg); }
+  25% { transform:rotate(var(--swing-angle)); }
+  75% { transform:rotate(calc(var(--swing-angle) * -1)); }
+}
+@keyframes bookmark-detail-sheen {
+  0%,15% { transform:translate(-580px,-200px); opacity:0; }
+  24% { opacity:.65; }
+  50% { opacity:.65; }
+  62%,100% { transform:translate(1200px,400px); opacity:0; }
+}
+@keyframes bookmark-detail-firefly {
+  0%,100% { opacity:0; transform:translate(0,25px); }
+  25% { opacity:.8; }
+  50% { opacity:.25; transform:translate(var(--drift-x),-25px); }
+  70% { opacity:.9; }
+  90% { opacity:0; transform:translate(5px,-65px); }
+}
+@keyframes bookmark-detail-petal {
+  0%,100% { opacity:0; transform:translate(20px,-100px); }
+  12% { opacity:.8; }
+  48% { transform:translate(-20px,70px); }
+  78% { opacity:.65; }
+  94% { opacity:0; transform:translate(10px,260px); }
+}
+@keyframes bookmark-detail-mist {
+  0%,100% { opacity:0; transform:translate(-60px,12px); }
+  40% { opacity:.5; }
+  80% { opacity:.28; }
+  95% { opacity:0; transform:translate(120px,-22px); }
+}
+@keyframes bookmark-detail-dew {
+  0%,100% { opacity:0; transform:translateY(0); }
+  20%,45% { opacity:.95; }
+  85% { opacity:0; transform:translateY(135px); }
+}
+@keyframes bookmark-detail-lantern {
+  0%,100% { opacity:.18; }
+  22% { opacity:.95; }
+  33% { opacity:.4; }
+  48% { opacity:1; }
+  67% { opacity:.25; }
+  82% { opacity:.85; }
+}
+@keyframes bookmark-detail-water {
+  0%,100% { opacity:0; transform:translateY(-3px); }
+  45% { opacity:.95; }
+  90% { opacity:0; transform:translateY(12px); }
+}
+@keyframes bookmark-detail-aura {
+  0%,100% { opacity:.08; }
+  50% { opacity:.48; }
+}
+@keyframes bookmark-lily-glint {
+  0%,100% { opacity:.05; }
+  25% { opacity:.85; }
+  48% { opacity:.15; }
+  70% { opacity:.7; }
+  88% { opacity:.05; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .decorative-bookmark-art .decorative-bookmark-animation { display:none!important; }
+  .decorative-bookmark-art .decorative-part-still { visibility:visible!important; }
+  .decorative-bookmark-art * { animation:none!important; }
+}
+.bookmark-appearance { display:grid; gap:10px; }
+.bookmark-styles { justify-self:start; }
+.bookmark-designs > .hint { grid-column:1 / -1; margin:0; }

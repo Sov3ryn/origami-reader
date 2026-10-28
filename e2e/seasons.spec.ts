@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { openSettings } from "./sections";
 import { expandSections } from "./sections";
-import { chooseScene, closeGallery, openGallery } from "./scenes";
+import { chooseScene, chooseTheme, closeGallery, openGallery, savedTheme } from "./scenes";
 
 for (const scene of [
   {
@@ -140,17 +140,15 @@ test("each background restores its palette, opacity and effect switches across r
     .click();
   await expandSections(page);
   await chooseScene(page, "Spring morning");
-  await page.getByLabel("App theme", { exact: true }).selectOption("forest");
+  await chooseTheme(page, "forest");
   await page.getByLabel("Background opacity", { exact: true }).fill("73");
   await page.getByLabel("Windblown petals", { exact: true }).uncheck();
   await chooseScene(page, "Winter daylight");
-  await page.getByLabel("App theme", { exact: true }).selectOption("plum");
+  await chooseTheme(page, "plum");
   await page.getByLabel("Background opacity", { exact: true }).fill("36");
   await page.getByLabel("Subtle background motion", { exact: true }).uncheck();
   await chooseScene(page, "Spring morning");
-  await expect(page.getByLabel("App theme", { exact: true })).toHaveValue(
-    "forest",
-  );
+  await expect.poll(savedTheme(page)).toBe("forest");
   await expect(
     page.getByLabel("Background opacity", { exact: true }),
   ).toHaveValue("73");
@@ -167,13 +165,9 @@ test("each background restores its palette, opacity and effect switches across r
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
   await expandSections(page);
-  await expect(page.getByLabel("App theme", { exact: true })).toHaveValue(
-    "forest",
-  );
+  await expect.poll(savedTheme(page)).toBe("forest");
   await chooseScene(page, "Winter daylight");
-  await expect(page.getByLabel("App theme", { exact: true })).toHaveValue(
-    "plum",
-  );
+  await expect.poll(savedTheme(page)).toBe("plum");
   await expect(
     page.getByLabel("Background opacity", { exact: true }),
   ).toHaveValue("36");

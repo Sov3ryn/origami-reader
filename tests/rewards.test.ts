@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { edgeFinishes } from "../src/binding";
 import { emptyReadingStats, places, readingStats } from "../src/places";
 import {
+  freeBookmarks,
   freeFinishes,
   freeThemes,
   isOpen,
@@ -35,6 +36,10 @@ describe("earned themes, finishes and ribbons", () => {
     expect(isOpen("finish", "plain", fresh, false)).toBe(true);
     expect(isOpen("finish", "gold", fresh, false)).toBe(false);
     expect(isOpen("ribbon", "amber", fresh, false)).toBe(false);
+    // The default bookmark moves and is open to everyone.
+    expect(isOpen("bookmark", defaultPreferences.bookmarkDesign, fresh, false)).toBe(true);
+    expect(freeBookmarks).toContain(defaultPreferences.bookmarkDesign);
+    expect(requirementOf("bookmark", "plum-crane-ribbon")).toBeUndefined();
   });
   it("unlocks items as reading time, days and finished books add up", () => {
     const s = stats({ activeSeconds: hours(5), readingDays: 3 });

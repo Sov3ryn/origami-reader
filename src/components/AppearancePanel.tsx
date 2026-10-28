@@ -6,16 +6,12 @@ import {
   Image,
   Moon,
   Palette,
-  Sparkles,
   Sun,
-  SunMoon,
   Type,
 } from "lucide-react";
 import { Section } from "./Section";
 import { ThemeGallery } from "./ThemeGallery";
 import { themes } from "../themes";
-import { readingStats } from "../places";
-import { isOpen } from "../rewards";
 import {
   backgroundImage,
   defaultSceneAppearance,
@@ -211,20 +207,6 @@ export function AppearancePanel({
             <span>{t("Opaque")}</span>
           </span>
         </label>
-        <button
-          className="text-button scene-reset"
-          onClick={() => onChange(defaultSceneAppearance(prefs.scene))}
-        >
-          {t("Reset scene defaults")}
-        </button>
-      </Section>
-      <Section
-        id={scope + "-motion"}
-        title={t("Motion")}
-        icon={<Sparkles size={15} />}
-        meta={prefs.motion && motionAvailable ? t("On") : t("Off")}
-        defaultOpen={full}
-      >
         <label
           className="check-label"
           data-help={t(
@@ -276,7 +258,110 @@ export function AppearancePanel({
               )
             : t("Background motion is available with the landscape scenes and places.")}
         </p>
+        <label
+          data-help={t(
+            "Pick the scene yourself, follow the season, or get a random one at startup.",
+          )}
+        >
+          {t("Background selection")}
+          <select
+            aria-label={t("Background selection")}
+            value={prefs.backgroundMode}
+            onChange={(e) =>
+              onChange({
+                backgroundMode: e.target.value as Preferences["backgroundMode"],
+              })
+            }
+          >
+            <option value="manual">{t("Manual")}</option>
+            <option value="seasonal">{t("Current season")}</option>
+            <option value="random">{t("Random at startup")}</option>
+          </select>
+        </label>
+        {prefs.backgroundMode === "seasonal" && (
+          <label>
+            {t("Seasons in")}
+            <select
+              aria-label={t("Seasons in")}
+              value={prefs.seasonHemisphere}
+              onChange={(e) =>
+                onChange({
+                  seasonHemisphere: e.target
+                    .value as Preferences["seasonHemisphere"],
+                })
+              }
+            >
+              <option value="north">{t("Northern hemisphere")}</option>
+              <option value="south">{t("Southern hemisphere")}</option>
+            </select>
+          </label>
+        )}
+        {prefs.backgroundMode !== "manual" && (
+          <p className="hint">
+            {prefs.backgroundMode === "seasonal"
+              ? t(
+                  "Uses your local date. Seasons change in March, June, September and December.",
+                )
+              : t(
+                  "A different lake scene is chosen each time Origami opens, starting next launch.",
+                )}{" "}
+            {t("Choosing a scene switches back to Manual.")}
+          </p>
+        )}
+        <label
+          data-help={t(
+            "Switch day and night yourself, follow the system, or follow the clock.",
+          )}
+        >
+          {t("Time of day")}
+          <select
+            aria-label={t("Time of day")}
+            value={prefs.timeMode}
+            onChange={(e) =>
+              onChange({ timeMode: e.target.value as Preferences["timeMode"] })
+            }
+          >
+            <option value="manual">{t("Manual (Sun and Moon button)")}</option>
+            <option value="system">
+              {t("Follow {system} light or dark mode", { system: systemName })}
+            </option>
+            <option value="clock">{t("Follow local time")}</option>
+          </select>
+        </label>
+        {prefs.timeMode === "clock" && (
+          <div className="time-range">
+            <label>
+              {t("Day starts")}
+              <input
+                aria-label={t("Day starts")}
+                type="time"
+                value={prefs.dayStarts}
+                onChange={(e) =>
+                  e.target.value && onChange({ dayStarts: e.target.value })
+                }
+              />
+            </label>
+            <label>
+              {t("Night starts")}
+              <input
+                aria-label={t("Night starts")}
+                type="time"
+                value={prefs.nightStarts}
+                onChange={(e) =>
+                  e.target.value && onChange({ nightStarts: e.target.value })
+                }
+              />
+            </label>
+          </div>
+        )}
+        <button
+          className="text-button scene-reset"
+          onClick={() => onChange(defaultSceneAppearance(prefs.scene))}
+        >
+          {t("Reset scene defaults")}
+        </button>
       </Section>
+      {full && (
       <Section
         id={scope + "-text"}
         title={t("Text")}
@@ -401,45 +486,8 @@ export function AppearancePanel({
             {t("Hyphenate")}
           </label>
         </div>
-        <label data-help={t("Marks the sentence or paragraph being read.")}>
-          {t("Highlight while reading aloud")}
-          <select
-            aria-label={t("Highlight while reading aloud")}
-            value={prefs.highlight}
-            onChange={(e) =>
-              onChange({
-                highlight: e.target.value as Preferences["highlight"],
-              })
-            }
-          >
-            <option value="sentence">{t("Current sentence")}</option>
-            <option value="paragraph">{t("Current paragraph")}</option>
-            <option value="off">{t("No highlight")}</option>
-          </select>
-        </label>
-        <label
-          className="check-label"
-          data-help={t("Marks each word as it is read, on its own or inside the highlighted sentence.")}
-        >
-          <input
-            type="checkbox"
-            checked={prefs.wordHighlight}
-            onChange={(e) => onChange({ wordHighlight: e.target.checked })}
-          />
-          {t("Highlight each word")}
-        </label>
-        <label
-          className="check-label"
-          data-help={t("Scrolls the page to keep up with the voice.")}
-        >
-          <input
-            type="checkbox"
-            checked={prefs.follow}
-            onChange={(e) => onChange({ follow: e.target.checked })}
-          />
-          {t("Follow narration")}
-        </label>
       </Section>
+      )}
       <Section
         id={scope + "-page"}
         title={t("Page")}
@@ -523,6 +571,7 @@ export function AppearancePanel({
           />
           {t("Use full reading width")}
         </label>
+        {full && (
         <label
           data-help={t(
             "Scroll continuously, page by page, or scroll with page snapping.",
@@ -544,6 +593,7 @@ export function AppearancePanel({
             <option value="book">{t("Book, two pages side by side")}</option>
           </select>
         </label>
+        )}
         <label data-help={t("Gap between reading pages.")}>
           {t("Page spacing")}{" "}
           <output>
@@ -585,28 +635,11 @@ export function AppearancePanel({
       </Section>
       <Section
         id={scope + "-theme"}
-        title={t("Colors and size")}
+        title={t("Interface size")}
         icon={<Palette size={15} />}
-        meta={theme ? t(theme.name) : undefined}
+        meta={scale + "%"}
         defaultOpen={full}
       >
-        <label data-help={t("Colors for menus, panels and buttons.")}>
-          {t("App theme")}
-          <select
-            aria-label={t("App theme")}
-            value={prefs.theme}
-            onChange={(e) => onChange({ theme: e.target.value })}
-          >
-            {themes.map((th) => {
-              const locked = th.id !== prefs.theme && !isOpen("theme", th.id, readingStats(prefs.readingStats));
-              return (
-                <option key={th.id} value={th.id} disabled={locked}>
-                  {locked ? t("{name} (locked)", { name: t(th.name) }) : t(th.name)}
-                </option>
-              );
-            })}
-          </select>
-        </label>
         <label data-help={t("Makes menus and panels larger or smaller.")}>
           {t("Interface size")}{" "}
           <output>
@@ -642,118 +675,59 @@ export function AppearancePanel({
           {t("Fit interface to screen size")}
         </label>
       </Section>
-      <Section
-        id={scope + "-automatic"}
-        title={t("Automatic scene")}
-        icon={<SunMoon size={15} />}
-        meta={
-          prefs.backgroundMode === "seasonal"
-            ? t("Current season")
-            : prefs.backgroundMode === "random"
-              ? t("Random at startup")
-              : prefs.timeMode !== "manual"
-                ? t("Time of day")
-                : t("Off")
-        }
-        defaultOpen={full}
-      >
-        <label
-          data-help={t(
-            "Pick the scene yourself, follow the season, or get a random one at startup.",
-          )}
-        >
-          {t("Background selection")}
-          <select
-            aria-label={t("Background selection")}
-            value={prefs.backgroundMode}
-            onChange={(e) =>
-              onChange({
-                backgroundMode: e.target.value as Preferences["backgroundMode"],
-              })
-            }
-          >
-            <option value="manual">{t("Manual")}</option>
-            <option value="seasonal">{t("Current season")}</option>
-            <option value="random">{t("Random at startup")}</option>
-          </select>
-        </label>
-        {prefs.backgroundMode === "seasonal" && (
-          <label>
-            {t("Seasons in")}
+    </div>
+  );
+}
+
+// How the text follows a voice reading aloud: in the Voice tab and in
+// Settings, Listening.
+export function NarrationOptions({
+  prefs,
+  onChange,
+}: {
+  prefs: Preferences;
+  onChange: (p: Partial<Preferences>) => void;
+}) {
+  return (
+    <>
+          <label data-help={t("Marks the sentence or paragraph being read.")}>
+            {t("Highlight while reading aloud")}
             <select
-              aria-label={t("Seasons in")}
-              value={prefs.seasonHemisphere}
+              aria-label={t("Highlight while reading aloud")}
+              value={prefs.highlight}
               onChange={(e) =>
                 onChange({
-                  seasonHemisphere: e.target
-                    .value as Preferences["seasonHemisphere"],
+                  highlight: e.target.value as Preferences["highlight"],
                 })
               }
             >
-              <option value="north">{t("Northern hemisphere")}</option>
-              <option value="south">{t("Southern hemisphere")}</option>
+              <option value="sentence">{t("Current sentence")}</option>
+              <option value="paragraph">{t("Current paragraph")}</option>
+              <option value="off">{t("No highlight")}</option>
             </select>
           </label>
-        )}
-        {prefs.backgroundMode !== "manual" && (
-          <p className="hint">
-            {prefs.backgroundMode === "seasonal"
-              ? t(
-                  "Uses your local date. Seasons change in March, June, September and December.",
-                )
-              : t(
-                  "A different lake scene is chosen each time Origami opens, starting next launch.",
-                )}{" "}
-            {t("Choosing a scene switches back to Manual.")}
-          </p>
-        )}
-        <label
-          data-help={t(
-            "Switch day and night yourself, follow the system, or follow the clock.",
-          )}
-        >
-          {t("Time of day")}
-          <select
-            aria-label={t("Time of day")}
-            value={prefs.timeMode}
-            onChange={(e) =>
-              onChange({ timeMode: e.target.value as Preferences["timeMode"] })
-            }
+          <label
+            className="check-label"
+            data-help={t("Marks each word as it is read, on its own or inside the highlighted sentence.")}
           >
-            <option value="manual">{t("Manual (Sun and Moon button)")}</option>
-            <option value="system">
-              {t("Follow {system} light or dark mode", { system: systemName })}
-            </option>
-            <option value="clock">{t("Follow local time")}</option>
-          </select>
-        </label>
-        {prefs.timeMode === "clock" && (
-          <div className="time-range">
-            <label>
-              {t("Day starts")}
-              <input
-                aria-label={t("Day starts")}
-                type="time"
-                value={prefs.dayStarts}
-                onChange={(e) =>
-                  e.target.value && onChange({ dayStarts: e.target.value })
-                }
-              />
-            </label>
-            <label>
-              {t("Night starts")}
-              <input
-                aria-label={t("Night starts")}
-                type="time"
-                value={prefs.nightStarts}
-                onChange={(e) =>
-                  e.target.value && onChange({ nightStarts: e.target.value })
-                }
-              />
-            </label>
-          </div>
-        )}
-      </Section>
-    </div>
+            <input
+              type="checkbox"
+              checked={prefs.wordHighlight}
+              onChange={(e) => onChange({ wordHighlight: e.target.checked })}
+            />
+            {t("Highlight each word")}
+          </label>
+          <label
+            className="check-label"
+            data-help={t("Scrolls the page to keep up with the voice.")}
+          >
+            <input
+              type="checkbox"
+              checked={prefs.follow}
+              onChange={(e) => onChange({ follow: e.target.checked })}
+            />
+            {t("Follow narration")}
+          </label>
+    </>
   );
 }

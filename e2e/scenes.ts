@@ -39,3 +39,24 @@ export async function chooseScene(page: Page, name: string) {
   }
   await pickScene(page, name);
 }
+
+// Picks an app theme by id in the Color themes tab of the window.
+export async function chooseTheme(page: Page, id: string) {
+  const name = await page.evaluate(async (id) => {
+    const { themes } = await import("/src/themes.ts");
+    return themes.find((th) => th.id === id)!.name;
+  }, id);
+  await openGallery(page);
+  const gallery = page.locator(".theme-gallery");
+  await gallery.getByRole("tab", { name: "Color themes", exact: true }).click();
+  await gallery.getByRole("button", { name }).click();
+  await closeGallery(page);
+}
+// The app theme as saved, for expect.poll.
+export function savedTheme(page: Page) {
+  return () =>
+    page.evaluate(async () => {
+      const store = await import("/src/storage.ts");
+      return (await store.readSettings()).theme;
+    });
+}

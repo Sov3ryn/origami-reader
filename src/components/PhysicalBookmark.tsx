@@ -3,6 +3,10 @@ import type { Annotation } from "../types";
 import { bookmarkArt, bookmarkGeometry } from "../bookmarks";
 import { annotationColors } from "../themes";
 import { t } from "../i18n";
+import { SleepingCatBookmark } from "./SleepingCatBookmark";
+import { AnimalBookmark } from "./AnimalBookmark";
+import { MidnightMoonBookmark } from "./MidnightMoonBookmark";
+import { DecorativeBookmark, bookmarkMotionDetails } from "./DecorativeBookmark";
 import "./bookmarks.css";
 
 export function PhysicalBookmark({ mark, onOpen, state = "beside", depth = 0, onSettled }: {
@@ -14,6 +18,7 @@ export function PhysicalBookmark({ mark, onOpen, state = "beside", depth = 0, on
 }) {
   const art = bookmarkArt(mark.design);
   const geometry = bookmarkGeometry(mark.design);
+  const imageStyle = { left: `${geometry.left}%`, top: `${geometry.top}%`, width: `${geometry.width}%`, height: `${geometry.height}%` };
   const ref = useRef<HTMLButtonElement>(null);
   useLayoutEffect(() => {
     const pages = ref.current?.closest<HTMLElement>(".reading-pages");
@@ -44,6 +49,12 @@ export function PhysicalBookmark({ mark, onOpen, state = "beside", depth = 0, on
     onClick={(e) => { e.stopPropagation(); onOpen(); }}
     onWheel={(e) => e.stopPropagation()}
     onTransitionEnd={(e) => { if (e.target === e.currentTarget && e.propertyName === "transform") onSettled?.(); }}>
-    {art ? <span className="bookmark-art"><img src={art} alt="" draggable={false} style={{ left: `${geometry.left}%`, top: `${geometry.top}%`, width: `${geometry.width}%`, height: `${geometry.height}%` }} /></span> : <span className="bookmark-color-sample" aria-hidden="true" />}
+    {mark.still && art ? <span className="bookmark-art"><img src={art} alt="" draggable={false} style={imageStyle} /></span>
+      : mark.design === "sleeping-cat-stars" ? <SleepingCatBookmark active={state === "beside"} stillStyle={imageStyle} />
+      : mark.design === "moonlit-wolf" || mark.design === "woodland-owl" ? <AnimalBookmark design={mark.design} active={state === "beside"} stillStyle={imageStyle} />
+      : mark.design === "midnight-moon-leather" ? <MidnightMoonBookmark active={state === "beside"} stillStyle={imageStyle} />
+      : mark.design && bookmarkMotionDetails[mark.design] ? <DecorativeBookmark design={mark.design} active={state === "beside"} stillStyle={imageStyle} />
+      : art ? <span className="bookmark-art"><img src={art} alt="" draggable={false} style={imageStyle} /></span>
+      : <span className="bookmark-color-sample" aria-hidden="true" />}
   </button>;
 }

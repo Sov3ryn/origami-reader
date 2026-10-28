@@ -4,6 +4,7 @@ import {
   BookOpen,
   Minus,
   Plus,
+  Rows3,
   ScrollText,
   StickyNote,
 } from "lucide-react";
@@ -33,8 +34,9 @@ const focusTools = [
   { id: "paragraph", name: "Paragraph focus" },
 ] as const;
 
-// Reading comfort (Aa) in the top bar: presets, font, size, spacing, text
-// color, focus tools and paper, with a live sample. While a book is open the
+// Reading comfort (Aa) in the top bar: reading mode, presets, font, size,
+// spacing, text color and focus tools, with a live sample. Paper and scene
+// live in the Appearance tab. While a book is open the
 // settings can apply to all books or to that book only.
 export function TextMenu({
   prefs,
@@ -54,11 +56,11 @@ export function TextMenu({
 }) {
   const layouts = [
     { id: "continuous", name: t("Scroll"), icon: <ScrollText size={16} /> },
+    { id: "snap", name: t("Snap"), icon: <Rows3 size={16} /> },
     { id: "paged", name: t("Pages"), icon: <StickyNote size={16} /> },
     { id: "book", name: t("Book"), icon: <BookOpen size={16} /> },
   ] as const;
-  const layout =
-    prefs.readingMode === "snap" ? "continuous" : prefs.readingMode;
+  const layout = prefs.readingMode;
   const surface = surfaces.find((s) => s.id === prefs.surface) || surfaces[0];
   const preset = matchingPreset(prefs);
   return (
@@ -100,6 +102,7 @@ export function TextMenu({
             key={l.id}
             aria-pressed={layout === l.id}
             className={layout === l.id ? "active" : ""}
+            title={l.id === "snap" ? t("Scrolling with page snapping") : undefined}
             onClick={() => onChange({ readingMode: l.id })}
           >
             {l.icon}
@@ -271,6 +274,24 @@ export function TextMenu({
             onChange={(e) => onChange({ wordSpacing: +e.target.value })}
           />
         </label>
+        <div className="check-row">
+          <label className="check-label">
+            <input
+              type="checkbox"
+              checked={prefs.justify}
+              onChange={(e) => onChange({ justify: e.target.checked })}
+            />
+            {t("Justify text")}
+          </label>
+          <label className="check-label">
+            <input
+              type="checkbox"
+              checked={prefs.hyphenate}
+              onChange={(e) => onChange({ hyphenate: e.target.checked })}
+            />
+            {t("Hyphenate")}
+          </label>
+        </div>
       </Section>
       <Section id="comfort-focus" title={t("Focus and color")}>
         <div className="text-menu-row">
@@ -324,47 +345,6 @@ export function TextMenu({
             ))}
           </div>
         </div>
-      </Section>
-      <Section id="comfort-paper" title={t("Paper")} defaultOpen={false}>
-        <div className="paper-swatches" role="group" aria-label={t("Paper")}>
-          {surfaces.map((s) => (
-            <button
-              key={s.id}
-              aria-pressed={prefs.surface === s.id}
-              className={prefs.surface === s.id ? "active" : ""}
-              onClick={() => onChange({ surface: s.id })}
-            >
-              <span
-                className="paper-swatch"
-                style={{ background: s.swatch, color: s.ink }}
-                aria-hidden="true"
-              >
-                Aa
-              </span>
-              {t(s.name)}
-            </button>
-          ))}
-        </div>
-        <label className="check-label">
-          <input
-            type="checkbox"
-            checked={prefs.texture}
-            onChange={(e) => onChange({ texture: e.target.checked })}
-          />
-          {t("Paper texture")}
-        </label>
-        <label>
-          {t("Page brightness")} <output>{prefs.pageBrightness}%</output>
-          <input
-            aria-label={t("Page brightness")}
-            type="range"
-            min="50"
-            max="150"
-            step="5"
-            value={prefs.pageBrightness}
-            onChange={(e) => onChange({ pageBrightness: +e.target.value })}
-          />
-        </label>
       </Section>
       <button className="text-button text-menu-more" onClick={onMore}>
         {t("More appearance settings")}

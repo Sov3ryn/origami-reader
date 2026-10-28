@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { chooseTheme, savedTheme } from "./scenes";
 import { expandSections } from "./sections";
 import AxeBuilder from "@axe-core/playwright";
 import { zipSync, strToU8 } from "fflate";
@@ -17,14 +18,14 @@ test("library, inspector, night paper and palette persist", async ({
 }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Library", exact: true }),
+    page.getByRole("heading", { name: "Stories", exact: true }),
   ).toBeVisible();
   await page.screenshot({ path: "test-results/library.png", fullPage: true });
   await page
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
   await expandSections(page);
-  await page.getByLabel("App theme", { exact: true }).selectOption("forest");
+  await chooseTheme(page, "forest");
   await page.getByRole("button", { name: "Night", exact: true }).click();
   await page
     .getByRole("button", { name: "Library", exact: true })
@@ -50,15 +51,13 @@ test("library, inspector, night paper and palette persist", async ({
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
   await expandSections(page);
-  await expect(page.getByLabel("App theme", { exact: true })).toHaveValue(
-    "forest",
-  );
+  await expect.poll(savedTheme(page)).toBe("forest");
   await page.getByLabel("Paper texture", { exact: true }).uncheck();
   await expect(page.locator(".reading-page").first()).toHaveClass(
     /texture-off/,
   );
   await page.getByLabel("Paper texture", { exact: true }).check();
-  await page.getByLabel("App theme", { exact: true }).selectOption("plum");
+  await chooseTheme(page, "plum");
   await page.screenshot({
     path: "test-results/reader-night.png",
     fullPage: true,
@@ -100,8 +99,10 @@ test("notes keep stable anchors and drafts survive selection", async ({
       .locator(".annotation-card")
       .getByText("Keep this passage.", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("tab", { name: "Appearance", exact: true }).click();
-  await page.getByLabel("Text size", { exact: true }).fill("28");
+  await page.getByRole("button", { name: "Reading comfort", exact: true }).click();
+  for (let i = 0; i < 7; i++)
+    await page.getByRole("button", { name: "Larger text", exact: true }).click();
+  await page.keyboard.press("Escape");
   await expect(page.locator(".margin-tools button").first()).toBeVisible();
 });
 test("quick read and trash restore are durable", async ({ page }) => {
@@ -183,7 +184,7 @@ test("keyboard and accessibility checks on library and reader", async ({
 }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Library", exact: true }),
+    page.getByRole("heading", { name: "Stories", exact: true }),
   ).toBeVisible();
   let results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa"])

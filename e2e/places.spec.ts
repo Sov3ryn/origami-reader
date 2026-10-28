@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { closeGallery, openGallery } from "./scenes";
+import { closeGallery, openGallery, savedTheme } from "./scenes";
 import { expandSections } from "./sections";
 
 test("places stay dark until earned, explain how to unlock, then become scenes", async ({
@@ -22,7 +22,7 @@ test("places stay dark until earned, explain how to unlock, then become scenes",
   await gallery.getByRole("tab", { name: "Color themes", exact: true }).click();
   await gallery.getByRole("button", { name: "Forest Ink" }).click();
   await closeGallery(page);
-  await expect(page.getByLabel("App theme", { exact: true })).toHaveValue("forest");
+  await expect.poll(savedTheme(page)).toBe("forest");
 
   // One hour of reading unlocks the Rainy Bookshop.
   await page.evaluate(async () => {

@@ -31,6 +31,8 @@ function devLocks() {
 
 export const freeThemes = ["plum", "graphite", "white", "parchment", "contrast-dark", "contrast-light"];
 export const freeFinishes = ["plain"];
+// The default bookmark, so every reader starts with one that moves.
+export const freeBookmarks = ["plum-crane-ribbon"];
 
 const h = (n: number): Requirement => ({ metric: "activeSeconds", value: n * 3600 });
 const days = (n: number): Requirement => ({ metric: "distinctReadingDays", value: n });
@@ -40,12 +42,14 @@ const parties = (n: number): Requirement => ({ metric: "celebrations", value: n 
 // Each step: the goal, then the themes, finishes and ribbons it unlocks. Dark
 // and light themes come in pairs.
 export const ladder: [Requirement, string[], string[], string[], string[]?][] = [
-  [h(2), ["lake", "sage"], [], [], ["plum-crane-ribbon"]],
+  [h(2), ["lake", "sage"], [], []],
   [days(3), ["forest", "sky"], [], ["amber", "blue", "rose"], ["lavender-botanical-paper"]],
   [h(5), ["navy", "lavender"], ["silver"], [], ["midnight-moon-leather"]],
   [books(2), ["copper", "rose"], [], [], ["forest-gold-pennant"]],
   [days(10), ["nordic", "nordic-snow"], [], ["mint", "cyan", "slate"], ["origami-crane-blossoms"]],
   [h(12), ["indigo", "seafoam"], [], [], ["sleeping-cat-stars"]],
+  [h(16), [], [], [], ["moonlit-wolf"]],
+  [days(14), [], [], [], ["woodland-owl"]],
   [parties(1), ["coral", "apricot"], [], []],
   [books(4), [], ["copper"], ["orange", "red", "pink"], ["gothic-castle-window"]],
   [h(20), ["olive", "olive-paper"], [], [], ["sage-lily-leaf"]],

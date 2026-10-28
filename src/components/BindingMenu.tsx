@@ -151,7 +151,7 @@ export function BindingMenu({
           <div className="binding-row">
             <h3>{t("Bookmarks")}</h3>
             <p className="hint">{t("Appearance for new bookmarks. Existing bookmarks can be changed in Notes.")}</p>
-            <BookmarkAppearance value={prefs.bookmarkDesign} prefs={prefs} finishedBooks={finishedBooks} onChange={(bookmarkDesign) => onPrefs({ bookmarkDesign })} />
+            <BookmarkAppearance value={prefs.bookmarkDesign} still={prefs.bookmarkStill} prefs={prefs} finishedBooks={finishedBooks} onChange={(bookmarkDesign, bookmarkStill) => onPrefs({ bookmarkDesign, bookmarkStill })} />
             <p className="hint">{t("The ribbon colour of new bookmarks.")}</p>
             <div className="ribbon-choices" role="radiogroup" aria-label={t("Ribbon colour")}>
               <button role="radio" aria-checked={!prefs.ribbonColor} className="ribbon-choice same" onClick={() => onPrefs({ ribbonColor: "" })}>

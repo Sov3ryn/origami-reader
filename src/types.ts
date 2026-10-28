@@ -84,6 +84,8 @@ export type Annotation = {
   kind: "note" | "underline" | "bookmark" | "sticky";
   // Empty or absent keeps the original colored ribbon.
   design?: string;
+  // An illustrated design held still instead of moving.
+  still?: boolean;
   color: string;
   text: string;
   group: string;
@@ -141,7 +143,13 @@ export type Preferences = {
   // The ribbon colour of new bookmarks (an annotation colour id); empty uses
   // the highlight colour.
   ribbonColor: string;
+  // New bookmarks: an illustrated design (empty for a plain ribbon), moving
+  // unless bookmarkStill.
   bookmarkDesign: string;
+  bookmarkStill?: boolean;
+  // Set once copies saved with plain ribbons as the default were moved to the
+  // animated default, so a later choice of ribbon sticks.
+  bookmarksAnimatedDefault?: boolean;
   pageGap: number;
   readingProgress: "pages" | "paragraphs" | "percentage";
   leftOpen: boolean;
@@ -392,7 +400,8 @@ export const defaultPreferences: Preferences = {
   bookSound: false,
   binding: {},
   ribbonColor: "",
-  bookmarkDesign: "",
+  bookmarkDesign: "plum-crane-ribbon",
+  bookmarksAnimatedDefault: true,
   bookTypeset: true,
   pageGap: 32,
   readingProgress: "pages",

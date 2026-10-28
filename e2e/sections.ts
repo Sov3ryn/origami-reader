@@ -28,3 +28,13 @@ export async function openSettings(page: Page, category: string) {
     .getByRole("button", { name: category, exact: true })
     .click();
 }
+
+// Picks a reading mode in the Reading comfort (Aa) menu and closes it.
+export async function readingMode(page: Page, name: string) {
+  await page.getByRole("button", { name: "Reading comfort", exact: true }).click();
+  await page
+    .locator(".reading-layouts")
+    .getByRole("button", { name, exact: true })
+    .click();
+  await page.keyboard.press("Escape");
+}

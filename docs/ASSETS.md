@@ -35,3 +35,11 @@ The image manager exposes SD 1.5 + LCM, DreamShaper 8 LCM, SDXL-Lightning, and Z
 
 
 The 12 illustrations in public/bookmarks are the user-approved AI-generated transparent artwork from outputs/Origami-Bookmarks-Transparent, copied without image changes. src/bookmarks.ts records their visible alpha bounds so the reader can size the artwork independently of transparent margins. They are decorative bookmarks, with unlock goals in the existing rewards ladder.
+
+
+Sleeping cat correction, 28 October 2026: public/bookmarks/sleeping-cat-stars-v2.png is an AI-edited version of the approved sleeping-cat illustration, correcting the tail attachment to the rear haunch. It is used by the existing sleeping-cat-stars design ID. SleepingCatBookmark.tsx clips the same texture into paper, body, tail and ear pieces for CSS animation; no video or additional runtime model is used. The canonical sleeping-cat-stars.png is also corrected. The previous still image is preserved outside the bundle in work/bookmark-originals/sleeping-cat-stars-before-tail-fix.png.
+
+
+Midnight Moon animation, 28 October 2026: the original midnight-moon-leather.png remains unchanged. MidnightMoonBookmark.tsx aligns an SVG crescent halo and staggered star glints over the existing gold details. Both animated bookmarks reuse the original still artwork when reduced motion is requested.
+
+All twelve bookmark designs have lightweight animations as of 28 October 2026. The ten additional designs use DecorativeBookmark.tsx with the existing PNGs, SVG masks and clips, and CSS transform/opacity animation. Their original PNGs are unchanged. The lavender tassel, crane pendant and filigree star are isolated directly from the original transparent texture. Surface highlights, fireflies, petals, dew, mist and water glints are code-drawn overlays aligned to each illustration. All designs retain the original still artwork for reduced motion. No additional bitmap, model weights or external asset dependency is introduced.

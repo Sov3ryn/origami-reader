@@ -3,7 +3,7 @@ import { bookmarkDesigns, bookmarkLocation, bookmarkSentence } from "../src/book
 import { bookUnits } from "../src/usePlayer";
 import { defaultPreferences, type Book, type Annotation } from "../src/types";
 import { emptyReadingStats } from "../src/places";
-import { isOpen, requirementOf, unlockedAll } from "../src/rewards";
+import { freeBookmarks, isOpen, requirementOf, unlockedAll } from "../src/rewards";
 
 const text = "The house was silent when she arrived. A small cat slept beside the fire. Outside, the rain had stopped.";
 const start = text.indexOf("A small");
@@ -31,13 +31,15 @@ describe("physical bookmark anchors", () => {
     const edited = { ...book, paragraphs: [{ ...book.paragraphs[0], spokenEdits: [{ start, end: text.indexOf(" Outside"), text: "A little dog rested by the hearth." }] }, book.paragraphs[1]] };
     expect(bookUnits(edited, 0, defaultPreferences, start)[0].text).toMatch(/^A little dog/);
   });
-  it("gives every design an attainable goal and the same supporter shortcut", () => {
+  it("gives every design but the free default an attainable goal and the same supporter shortcut", () => {
     for (const [id] of bookmarkDesigns) {
-      expect(requirementOf("bookmark", id)).toBeDefined();
-      expect(isOpen("bookmark", id, emptyReadingStats, false)).toBe(false);
+      const free = freeBookmarks.includes(id);
+      expect(Boolean(requirementOf("bookmark", id))).toBe(!free);
+      expect(isOpen("bookmark", id, emptyReadingStats, false)).toBe(free);
       expect(isOpen("bookmark", id, emptyReadingStats, true)).toBe(true);
     }
     const unlocked = unlockedAll({ ...emptyReadingStats, activeSeconds: 60 * 3600, readingDays: 20 }, 6);
-    for (const [id] of bookmarkDesigns) expect(unlocked).toContain("bookmark:" + id);
+    for (const [id] of bookmarkDesigns)
+      if (!freeBookmarks.includes(id)) expect(unlocked).toContain("bookmark:" + id);
   });
 });

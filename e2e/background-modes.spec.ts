@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { expandSections } from "./sections";
-import { chooseScene } from "./scenes";
+import { chooseScene, savedTheme } from "./scenes";
 
 test("scene defaults match the chosen palettes and surfaces, and opacity increases to the right", async ({
   page,
@@ -18,9 +18,7 @@ test("scene defaults match the chosen palettes and surfaces, and opacity increas
     ["Winter daylight", "white", "Paper", "85"],
   ]) {
     await chooseScene(page, scene);
-    await expect(page.getByLabel("App theme", { exact: true })).toHaveValue(
-      theme,
-    );
+    await expect.poll(savedTheme(page)).toBe(theme);
     await expect(
       page.getByRole("button", { name: surface, exact: true }),
     ).toHaveClass("active");
@@ -121,8 +119,8 @@ test("random mode selects one different scene on each launch and keeps that scen
       /background-(lake|spring|summer|autumn|winter)(-day|-night)? time-(day|night)$/,
     );
     await page
-      .getByRole("slider", { name: "Text size", exact: true })
-      .fill("24");
+      .getByRole("slider", { name: "Page brightness", exact: true })
+      .fill("95");
     await expect(page.locator(".background-art")).toHaveClass(scene!);
     await page.waitForTimeout(150);
     previous = scene!;

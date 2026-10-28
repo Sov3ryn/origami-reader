@@ -8,6 +8,8 @@ export const bookmarkDesigns = [
   ["forest-gold-pennant", "Forest gold"],
   ["origami-crane-blossoms", "Crane and blossoms"],
   ["sleeping-cat-stars", "Sleeping cat"],
+  ["moonlit-wolf", "Moonlit wolf"],
+  ["woodland-owl", "Woodland owl"],
   ["gothic-castle-window", "Gothic window"],
   ["sage-lily-leaf", "Lily leaf"],
   ["brass-feather", "Brass feather"],
@@ -17,6 +19,7 @@ export const bookmarkDesigns = [
 ] as const;
 
 export function bookmarkArt(id?: string) {
+  if (id === "sleeping-cat-stars") return "/bookmarks/sleeping-cat-stars-v2.png";
   return bookmarkDesigns.some(([key]) => key === id) ? `/bookmarks/${id}.png` : undefined;
 }
 
@@ -33,12 +36,19 @@ const artBounds: Record<string, [number, number, number, number, number, number]
   "plum-crane-ribbon": [1024, 1536, 384, 56, 257, 1407],
   "sage-lily-leaf": [1024, 1536, 322, 22, 397, 1449],
   "silver-celestial-sword": [1024, 1536, 344, 22, 337, 1459],
-  "sleeping-cat-stars": [1024, 1536, 286, 28, 471, 1479],
+  "sleeping-cat-stars": [1024, 1536, 286, 26, 573, 1483],
+  "moonlit-wolf": [1024, 1536, 240, 7, 638, 1505],
+  "woodland-owl": [1024, 1536, 317, 12, 407, 1501],
 };
 
 export function bookmarkGeometry(id?: string) {
   const [width, height, x, y, w, h] = artBounds[id || ""] ?? [1, 10, 0, 0, 1, 10];
   return { ratio: w / h, left: -x / w * 100, top: -y / h * 100, width: width / w * 100, height: height / h * 100 };
+}
+
+export function bookmarkCanvas(id: string) {
+  const [width, height, x, y, w, h] = artBounds[id] ?? [1, 10, 0, 0, 1, 10];
+  return { width, height, viewBox: `${x} ${y} ${w} ${h}` };
 }
 
 // Old bookmarks with no character offset still resolve to the first sentence.

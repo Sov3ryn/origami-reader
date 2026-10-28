@@ -1,9 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
-import { expandSections } from "./sections";
+import { expandSections, readingMode } from "./sections";
 
 async function openFixture(page: Page) {
   await page.goto("/");
-  await page.getByRole("heading", { name: "Library", exact: true }).waitFor();
+  await page.getByRole("heading", { name: "Stories", exact: true }).waitFor();
   await page.evaluate(async () => {
     const docs = "/src/documents.ts",
       store = "/src/storage.ts";
@@ -128,16 +128,15 @@ test("reading mode, page gap and footer preferences persist; paged and snap navi
     .getByRole("button", { name: "Appearance settings", exact: true })
     .click();
   await expandSections(page);
-  const mode = page.getByLabel("Reading mode", { exact: true });
   const gap = page.getByLabel("Page spacing", { exact: true });
   const progress = page.getByLabel("Reading progress", { exact: true });
-  await expect(mode).toHaveValue("continuous");
+  await expect(page.locator(".reading-scroll")).toHaveClass(/mode-continuous/);
   await expect(progress).toHaveValue("pages");
   await gap.fill("160");
   await expect(page.locator(".reading-pages")).toHaveCSS("gap", "160px");
   await gap.fill("0");
   await expect(page.locator(".reading-pages")).toHaveCSS("gap", "0px");
-  await mode.selectOption("paged");
+  await readingMode(page, "Pages");
   await expect(page.locator(".reading-page")).toHaveCount(1);
   await page
     .getByRole("button", { name: "Next reading page", exact: true })
@@ -159,7 +158,7 @@ test("reading mode, page gap and footer preferences persist; paged and snap navi
     .click();
   await expandSections(page);
   await expect(gap).toHaveValue("0");
-  await mode.selectOption("snap");
+  await readingMode(page, "Snap");
   await expect(page.locator(".reading-scroll")).toHaveCSS(
     "scroll-snap-type",
     "y",
