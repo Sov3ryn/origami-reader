@@ -3009,5 +3009,15 @@
   "Unlock {count} celebration places by reading during their months.": "Desbloquea {count} lugares de celebración leyendo durante sus meses.",
   "Unlock a celebration place by reading during its month.": "Desbloquea un lugar de celebración leyendo durante su mes.",
   "Dark": "Oscuros",
-  "Light": "Claros"
+  "Light": "Claros",
+  "Gothic horror": "Terror gótico",
+  "Suspense": "Suspense",
+  "Science fiction": "Ciencia ficción",
+  "Adventure": "Aventura",
+  "Mystery": "Misterio",
+  "Romance": "Romance",
+  "Classic": "Clásico",
+  "Short stories": "Relatos",
+  "Speculative fiction": "Ficción especulativa",
+  "Historical": "Histórica"
 }

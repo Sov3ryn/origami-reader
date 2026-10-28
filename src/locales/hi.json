@@ -3009,5 +3009,15 @@
   "Unlock {count} celebration places by reading during their months.": "उत्सवों के महीनों में पढ़कर {count} उत्सव जगहें अनलॉक करें।",
   "Unlock a celebration place by reading during its month.": "उत्सव के महीने में पढ़कर एक उत्सव जगह अनलॉक करें।",
   "Dark": "गहरे",
-  "Light": "हल्के"
+  "Light": "हल्के",
+  "Gothic horror": "गॉथिक हॉरर",
+  "Suspense": "सस्पेंस",
+  "Science fiction": "विज्ञान कथा",
+  "Adventure": "रोमांच",
+  "Mystery": "रहस्य",
+  "Romance": "रोमांस",
+  "Classic": "क्लासिक",
+  "Short stories": "कहानियाँ",
+  "Speculative fiction": "काल्पनिक कथा",
+  "Historical": "ऐतिहासिक"
 }

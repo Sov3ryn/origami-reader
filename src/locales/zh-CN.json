@@ -3009,5 +3009,15 @@
   "Unlock {count} celebration places by reading during their months.": "在节日所在的月份阅读，解锁 {count} 个节日场景。",
   "Unlock a celebration place by reading during its month.": "在节日所在的月份阅读，解锁一个节日场景。",
   "Dark": "深色",
-  "Light": "浅色"
+  "Light": "浅色",
+  "Gothic horror": "哥特恐怖",
+  "Suspense": "悬疑",
+  "Science fiction": "科幻",
+  "Adventure": "冒险",
+  "Mystery": "推理",
+  "Romance": "爱情",
+  "Classic": "经典",
+  "Short stories": "短篇小说",
+  "Speculative fiction": "幻想小说",
+  "Historical": "历史"
 }

@@ -1,4 +1,5 @@
 import manifest from "../assets/starter-library/manifest.json";
+import { t } from "./i18n";
 import type { BookMeta } from "./types";
 const starterGenres: Record<string, string[]> = {
   "starter-dracula": ["Gothic horror", "Suspense"],
@@ -8,6 +9,25 @@ const starterGenres: Record<string, string[]> = {
   "starter-grayson-stories": ["Short stories", "Speculative fiction"],
   "starter-count-monte-cristo": ["Historical", "Adventure"],
 };
+// The starter tags are stored in English and shown in the interface
+// language. Tags someone types are shown exactly as written.
+function starterGenreLabels(): Record<string, string> {
+  return {
+    "Gothic horror": t("Gothic horror"),
+    "Suspense": t("Suspense"),
+    "Science fiction": t("Science fiction"),
+    "Adventure": t("Adventure"),
+    "Mystery": t("Mystery"),
+    "Romance": t("Romance"),
+    "Classic": t("Classic"),
+    "Short stories": t("Short stories"),
+    "Speculative fiction": t("Speculative fiction"),
+    "Historical": t("Historical"),
+  };
+}
+export function genreLabel(genre: string): string {
+  return starterGenreLabels()[genre] ?? genre;
+}
 export function bookGenres(book: BookMeta): string[] {
   if (book.genres) return book.genres;
   const edition = manifest.books.find(

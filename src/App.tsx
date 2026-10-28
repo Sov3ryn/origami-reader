@@ -24,7 +24,7 @@ import { CoverDialog } from "./components/CoverDialog";
 import { coverImage, coverPrompt, starterCover } from "./covers";
 import { useCovers } from "./useCovers";
 import { starterNotices } from "./starterLibrary";
-import { bookGenres, genreColor, normalizeGenres } from "./bookGenres";
+import { bookGenres, genreColor, genreLabel, normalizeGenres } from "./bookGenres";
 import { validateTrashDays } from "./trashRetention";
 import { bookVoice, startupVoice } from "./voiceCatalog";
 import { hardwareDefaults, recommendedSettings } from "./hardware";
@@ -2848,7 +2848,9 @@ export default function App() {
           " " +
           b.collection +
           " " +
-          bookGenres(b).join(" ")
+          bookGenres(b).join(" ") +
+          " " +
+          bookGenres(b).map(genreLabel).join(" ")
         )
           .toLowerCase()
           .includes(query.toLowerCase()),
@@ -6485,10 +6487,10 @@ export default function App() {
                               ),
                             ).values(),
                           ]
-                            .sort((a, b) => a.localeCompare(b))
+                            .sort((a, b) => genreLabel(a).localeCompare(genreLabel(b)))
                             .map((g) => (
                               <option key={g} value={g}>
-                                {g}
+                                {genreLabel(g)}
                               </option>
                             ))}
                         </select>
@@ -7204,7 +7206,7 @@ export default function App() {
                                         "genre-tag genre-" + genreColor(genre)
                                       }
                                     >
-                                      {genre}
+                                      {genreLabel(genre)}
                                     </span>
                                   ))}
                                 </span>
@@ -7409,7 +7411,7 @@ export default function App() {
                                         "genre-tag genre-" + genreColor(genre)
                                       }
                                     >
-                                      {genre}
+                                      {genreLabel(genre)}
                                     </span>
                                   ))}
                                 </div>

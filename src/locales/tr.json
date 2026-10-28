@@ -3009,5 +3009,15 @@
   "Unlock {count} celebration places by reading during their months.": "Aylarında okuyarak {count} kutlama mekânının kilidini açın.",
   "Unlock a celebration place by reading during its month.": "Ayında okuyarak bir kutlama mekânının kilidini açın.",
   "Dark": "Koyu",
-  "Light": "Açık"
+  "Light": "Açık",
+  "Gothic horror": "Gotik korku",
+  "Suspense": "Gerilim",
+  "Science fiction": "Bilimkurgu",
+  "Adventure": "Macera",
+  "Mystery": "Gizem",
+  "Romance": "Aşk",
+  "Classic": "Klasik",
+  "Short stories": "Öyküler",
+  "Speculative fiction": "Spekülatif kurgu",
+  "Historical": "Tarihî"
 }

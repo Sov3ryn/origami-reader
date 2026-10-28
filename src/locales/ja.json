@@ -3009,5 +3009,15 @@
   "Unlock {count} celebration places by reading during their months.": "行事の月に読んで、行事の場所を {count} か所解放する。",
   "Unlock a celebration place by reading during its month.": "行事の月に読んで、行事の場所を 1 か所解放する。",
   "Dark": "ダーク",
-  "Light": "ライト"
+  "Light": "ライト",
+  "Gothic horror": "ゴシックホラー",
+  "Suspense": "サスペンス",
+  "Science fiction": "SF",
+  "Adventure": "冒険",
+  "Mystery": "ミステリー",
+  "Romance": "恋愛",
+  "Classic": "古典",
+  "Short stories": "短編集",
+  "Speculative fiction": "スペキュレイティブ・フィクション",
+  "Historical": "歴史"
 }

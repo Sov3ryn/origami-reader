@@ -6,7 +6,8 @@ import {
 } from "../src/libraryFilters";
 import { defaultPreferences, type BookMeta } from "../src/types";
 import { hasCoverText } from "../src/components/Primitives";
-import { normalizeGenres } from "../src/bookGenres";
+import { genreLabel, normalizeGenres } from "../src/bookGenres";
+import { loadLanguage } from "../src/i18n";
 const base = {
   id: "b",
   title: "Book",
@@ -107,4 +108,14 @@ it("cover overlays default to generated art and obey both global and document sw
     true,
   );
   expect(hasCoverText({ ...base, coverText: "hide" }, true)).toBe(false);
+});
+
+it("shows starter genre tags in the interface language and typed tags as written", async () => {
+  await loadLanguage("fr");
+  expect(genreLabel("Romance")).toBe("Romance");
+  expect(genreLabel("Gothic horror")).toBe("Horreur gothique");
+  expect(genreLabel("Adventure")).toBe("Aventure");
+  expect(genreLabel("Cozy fantasy")).toBe("Cozy fantasy");
+  await loadLanguage("en");
+  expect(genreLabel("Adventure")).toBe("Adventure");
 });

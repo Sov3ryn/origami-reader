@@ -3009,5 +3009,15 @@
   "Unlock {count} celebration places by reading during their months.": "Откройте места праздников ({count}), читая в их месяцы.",
   "Unlock a celebration place by reading during its month.": "Откройте место праздника, читая в его месяц.",
   "Dark": "Тёмные",
-  "Light": "Светлые"
+  "Light": "Светлые",
+  "Gothic horror": "Готический ужас",
+  "Suspense": "Саспенс",
+  "Science fiction": "Научная фантастика",
+  "Adventure": "Приключения",
+  "Mystery": "Детектив",
+  "Romance": "Роман о любви",
+  "Classic": "Классика",
+  "Short stories": "Рассказы",
+  "Speculative fiction": "Фантастика",
+  "Historical": "Исторический"
 }

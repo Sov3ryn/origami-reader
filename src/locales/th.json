@@ -3009,5 +3009,15 @@
   "Unlock {count} celebration places by reading during their months.": "ปลดล็อกสถานที่เทศกาล {count} แห่งด้วยการอ่านในเดือนของเทศกาลนั้น",
   "Unlock a celebration place by reading during its month.": "ปลดล็อกสถานที่เทศกาลหนึ่งแห่งด้วยการอ่านในเดือนของเทศกาลนั้น",
   "Dark": "โทนมืด",
-  "Light": "โทนสว่าง"
+  "Light": "โทนสว่าง",
+  "Gothic horror": "สยองขวัญกอทิก",
+  "Suspense": "ระทึกขวัญ",
+  "Science fiction": "นิยายวิทยาศาสตร์",
+  "Adventure": "ผจญภัย",
+  "Mystery": "ลึกลับ",
+  "Romance": "โรแมนซ์",
+  "Classic": "คลาสสิก",
+  "Short stories": "เรื่องสั้น",
+  "Speculative fiction": "นิยายแนวคาดการณ์",
+  "Historical": "อิงประวัติศาสตร์"
 }

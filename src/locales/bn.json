@@ -3009,5 +3009,15 @@
   "Unlock {count} celebration places by reading during their months.": "উৎসবের মাসে পড়ে {count}টি উৎসবের জায়গা আনলক করুন।",
   "Unlock a celebration place by reading during its month.": "উৎসবের মাসে পড়ে একটি উৎসবের জায়গা আনলক করুন।",
   "Dark": "গাঢ়",
-  "Light": "হালকা"
+  "Light": "হালকা",
+  "Gothic horror": "গথিক হরর",
+  "Suspense": "রহস্য-উত্তেজনা",
+  "Science fiction": "বিজ্ঞান কল্পকাহিনি",
+  "Adventure": "অভিযান",
+  "Mystery": "রহস্য",
+  "Romance": "রোমান্স",
+  "Classic": "ধ্রুপদী",
+  "Short stories": "ছোটগল্প",
+  "Speculative fiction": "কল্পকাহিনি",
+  "Historical": "ঐতিহাসিক"
 }

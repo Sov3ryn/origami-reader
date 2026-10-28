@@ -3009,5 +3009,15 @@
   "Unlock {count} celebration places by reading during their months.": "기념일이 있는 달에 읽어 기념일 장소 {count}곳을 잠금 해제하세요.",
   "Unlock a celebration place by reading during its month.": "기념일이 있는 달에 읽어 기념일 장소 한 곳을 잠금 해제하세요.",
   "Dark": "어두운 테마",
-  "Light": "밝은 테마"
+  "Light": "밝은 테마",
+  "Gothic horror": "고딕 호러",
+  "Suspense": "서스펜스",
+  "Science fiction": "SF",
+  "Adventure": "모험",
+  "Mystery": "미스터리",
+  "Romance": "로맨스",
+  "Classic": "고전",
+  "Short stories": "단편집",
+  "Speculative fiction": "사변 소설",
+  "Historical": "역사"
 }

@@ -818,3 +818,7 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - Donations are still not linked to the app, so supporter unlocks only show in development builds. There, localStorage "origami.devLocks" = "1" shows the locks as a new reader sees them.
 - Also fixed: the Dark and Light headings of the colour themes were never translated.
 - Tests: tests/rewards.test.ts (every item has one goal or is free, unlocking, keeping chosen items, supporters, hints); binding tests updated. Full suite passes. Checked in the development app in French with locks on: the note, locked themes with hints, locked finishes, ribbon tooltips and the theme list (28 of 36 locked for a profile with 3 reading days).
+
+## Starter genre tags translated, 28 October 2026
+
+- The genre tags of the six starter books (Romance, Classic, Adventure and the others) were stored and shown in English in every language. They are now shown in the interface language on the library cards, the Continue reading card and the genre filter, which sorts by the shown names. Search finds a book by either name. Tags someone types are shown exactly as written. Ten tags, translated into all 19 languages; a test covers French and typed tags.

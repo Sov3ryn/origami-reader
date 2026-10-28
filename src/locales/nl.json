@@ -3009,5 +3009,15 @@
   "Unlock {count} celebration places by reading during their months.": "Ontgrendel {count} feestplekken door in hun maanden te lezen.",
   "Unlock a celebration place by reading during its month.": "Ontgrendel een feestplek door in de maand ervan te lezen.",
   "Dark": "Donker",
-  "Light": "Licht"
+  "Light": "Licht",
+  "Gothic horror": "Gotische horror",
+  "Suspense": "Spanning",
+  "Science fiction": "Sciencefiction",
+  "Adventure": "Avontuur",
+  "Mystery": "Mysterie",
+  "Romance": "Romantiek",
+  "Classic": "Klassieker",
+  "Short stories": "Korte verhalen",
+  "Speculative fiction": "Speculatieve fictie",
+  "Historical": "Historisch"
 }

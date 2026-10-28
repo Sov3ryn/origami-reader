@@ -3009,5 +3009,15 @@
   "Unlock {count} celebration places by reading during their months.": "افتح {count} من أماكن الاحتفالات بالقراءة خلال أشهرها.",
   "Unlock a celebration place by reading during its month.": "افتح مكان احتفال بالقراءة خلال شهره.",
   "Dark": "داكنة",
-  "Light": "فاتحة"
+  "Light": "فاتحة",
+  "Gothic horror": "رعب قوطي",
+  "Suspense": "تشويق",
+  "Science fiction": "خيال علمي",
+  "Adventure": "مغامرة",
+  "Mystery": "غموض",
+  "Romance": "رومانسية",
+  "Classic": "كلاسيكي",
+  "Short stories": "قصص قصيرة",
+  "Speculative fiction": "خيال تأملي",
+  "Historical": "تاريخي"
 }
