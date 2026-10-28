@@ -8,6 +8,8 @@ import { readingStats } from "../places";
 import { isOpen, rewardHint } from "../rewards";
 import { UnlockNote } from "./ThemeGallery";
 import type { BookMeta, Preferences } from "../types";
+import { BookmarkAppearance } from "./BookmarkAppearance";
+import "./bookmarks.css";
 
 // The 3D book's binding (page edges, spine and cover gilding) and the
 // bookmarks, in their own window apart from the app's theme. With a book, its
@@ -148,6 +150,8 @@ export function BindingMenu({
           })}
           <div className="binding-row">
             <h3>{t("Bookmarks")}</h3>
+            <p className="hint">{t("Appearance for new bookmarks. Existing bookmarks can be changed in Notes.")}</p>
+            <BookmarkAppearance value={prefs.bookmarkDesign} prefs={prefs} finishedBooks={finishedBooks} onChange={(bookmarkDesign) => onPrefs({ bookmarkDesign })} />
             <p className="hint">{t("The ribbon colour of new bookmarks.")}</p>
             <div className="ribbon-choices" role="radiogroup" aria-label={t("Ribbon colour")}>
               <button role="radio" aria-checked={!prefs.ribbonColor} className="ribbon-choice same" onClick={() => onPrefs({ ribbonColor: "" })}>

@@ -67,6 +67,24 @@ afterEach(async () => {
 });
 
 describe("preloaded voice lifetime", () => {
+  it("starts synthesis at a bookmarked sentence and continues to the next paragraph", async () => {
+    vi.mocked(storage.synthesize).mockResolvedValue({ audio: "AA==", rate: 24000, duration: 1 });
+    const text = "This sentence has already been read. The sleeping cat opened one eye. Then she heard a knock at the door.";
+    const marked = {
+      meta: { id: "marked", voice: "voice", uniqueVoice: true },
+      paragraphs: [
+        { id: "p", text, kind: "paragraph", chapter: 1 },
+        { id: "q", text: "She stood up and walked across the room.", kind: "paragraph", chapter: 1 },
+      ],
+    } as Book;
+    await act(async () => {
+      await player.start(marked, 0, instant, vi.fn(), undefined, false, 0, text.indexOf("The sleeping"));
+    });
+    const spoken = vi.mocked(storage.synthesize).mock.calls.map(([text]) => text).join(" ");
+    expect(spoken).toMatch(/^The sleeping cat/);
+    expect(spoken).not.toContain("already been read");
+    expect(spoken).toContain("walked across the room");
+  });
   it("uses saved edits and heading numbers for normal and selected playback, and skips deleted speech", async () => {
     vi.mocked(storage.synthesize).mockResolvedValue({
       audio: "AA==",

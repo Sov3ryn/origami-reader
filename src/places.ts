@@ -51,7 +51,7 @@ export function readingStats(value: unknown): ReadingStats {
       ? v.unlocked.filter(
           (id) =>
             typeof id === "string" &&
-            (places.some((p) => p.id === id) || /^(theme|finish|ribbon):[a-z-]+$/.test(id)),
+            (places.some((p) => p.id === id) || /^(theme|finish|ribbon|bookmark):[a-z0-9-]+$/.test(id)),
         )
       : [],
   };

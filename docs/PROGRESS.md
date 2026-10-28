@@ -819,6 +819,15 @@ Follows docs/UX-REVIEW-2026-10-13.md.
 - Also fixed: the Dark and Light headings of the colour themes were never translated.
 - Tests: tests/rewards.test.ts (every item has one goal or is free, unlocking, keeping chosen items, supporters, hints); binding tests updated. Full suite passes. Checked in the development app in French with locks on: the note, locked themes with hints, locked finishes, ribbon tooltips and the theme list (28 of 36 locked for a profile with 3 reading days).
 
+
+## Physical bookmarks and sentence anchors, 28 October 2026
+
+- Added the 12 approved transparent bookmark illustrations to Binding and bookmarks, alongside the normal colored marker. Each saved bookmark can also change its appearance in the annotation list. All illustrations have reading goals on the existing rewards ladder, with the same supporter shortcut. No donor-only items were added; the existing donation-linking limitation remains.
+- A bookmark records the enclosing sentence. Opening it selects that sentence, including sentences midway through a paragraph spanning several pages, and Play starts there and continues. Legacy markers start at their saved sentence or the first sentence if no offset exists. Spoken replacements are retained. Play waits for the book opening and bookmark withdrawal.
+- The active bookmark starts inside the 3D book, withdraws beside it, and returns before closing. Its depth follows its position through the volume. It also sits outside the text in the ordinary reader. Visible artwork is two-thirds of the book height, with transparent PNG margins accounted for and space reserved beside the book. Continuous reading uses two-thirds of the visible sheet height. Original artwork is unchanged.
+- Reduced motion skips the bookmark movement. Separate idle artwork animation, such as the cat tail, remains future work; this pass animates placement and withdrawal. New labels are translated in all 19 locale files.
+- Validation: production web build, 45 targeted tests for bookmarks, playback, rewards and layout, plus browser checks for exact sentence navigation, opening/closing, proportional size, clear text margins and reduced motion. Locale completeness check passes. No desktop installer or release was packaged.
+
 ## Starter genre tags translated, 28 October 2026
 
 - The genre tags of the six starter books (Romance, Classic, Adventure and the others) were stored and shown in English in every language. They are now shown in the interface language on the library cards, the Continue reading card and the genre filter, which sorts by the shown names. Search finds a book by either name. Tags someone types are shown exactly as written. Ten tags, translated into all 19 languages; a test covers French and typed tags.

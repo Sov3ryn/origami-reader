@@ -62,6 +62,10 @@ describe("earned themes, finishes and ribbons", () => {
     expect(isOpen("theme", "aurora", later, false)).toBe(true);
     expect(unlockedAll(later, 0)).toContain("theme:aurora");
   });
+  it("keeps every kind of earned id when progress is read back", () => {
+    const ids = ["theme:lake", "finish:silver", "ribbon:amber", "bookmark:plum-crane-ribbon", "elsewhere:x"];
+    expect(readingStats({ ...stats(), unlocked: ids }).unlocked).toEqual(ids.slice(0, 4));
+  });
   it("opens everything for supporters, places included", () => {
     const fresh = stats();
     expect(isOpen("finish", "gold", fresh, true)).toBe(true);

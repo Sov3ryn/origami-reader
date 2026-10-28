@@ -225,6 +225,9 @@ import { nextMode, type AppMode } from "./work/ModeSwitch";
 import { ModeHeader, type SideWidth } from "./components/ModeHeader";
 import { bindingOf } from "./binding";
 import { BindingMenu } from "./components/BindingMenu";
+import { BookmarkAppearance } from "./components/BookmarkAppearance";
+import { PhysicalBookmark } from "./components/PhysicalBookmark";
+import { bookmarkLocation, bookmarkSentence } from "./bookmarks";
 import { StudioMode } from "./studio/StudioMode";
 import { listProductions, readProduction, type ProductionInfo } from "./studio/production";
 import { HoverTips } from "./work/HoverTips";
@@ -625,7 +628,12 @@ export default function App() {
     prefs.skipAuthorYear,
     prefs.pronunciations,
   ]);
-  const sentenceMark = prefs.highlight === "sentence" ? spokenRange : null;
+  const savedSentence = book && book.meta.positionOffset !== undefined
+    ? { paragraph: book.meta.position, ...bookmarkSentence(book.paragraphs[book.meta.position]?.text || "", book.meta.positionOffset) }
+    : null;
+  const sentenceMark = player.status === "idle" ? savedSentence : prefs.highlight === "sentence" ? spokenRange : null;
+  const physicalBookmark = book ? annotations.find((a) => a.kind === "bookmark" && a.bookId === book.meta.id && a.id === book.meta.bookmarkId)
+    ?? annotations.filter((a) => a.kind === "bookmark" && a.bookId === book.meta.id).sort((a,b) => b.created - a.created)[0] : undefined;
   // A Studio production of the open book, which can read it aloud with its cast.
   const [bookProduction, setBookProduction] = useState<ProductionInfo | null>(null);
   const openBookId = book?.meta.id;
@@ -1604,7 +1612,11 @@ export default function App() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [books]);
-  async function updateMeta(meta: BookMeta) {
+  async function updateMeta(meta: BookMeta, preserveOffset = false) {
+    const previous = bookRef.current;
+    if (!preserveOffset && previous?.meta.id === meta.id && previous.meta.position !== meta.position && meta.positionOffset === previous.meta.positionOffset)
+      meta = { ...meta, positionOffset: undefined };
+    if (previous?.meta.id === meta.id) bookRef.current = { ...previous, meta };
     setBooks((old) => old.map((b) => (b.id === meta.id ? meta : b)));
     setBook((old) => (old?.meta.id === meta.id ? { ...old, meta } : old));
     await store.saveMeta(meta);
@@ -1864,8 +1876,9 @@ export default function App() {
     setFocusMode(false);
     const b = await store.readBook(id);
     b.meta.opened = Date.now();
-    if (position !== undefined) b.meta.position = position;
+    if (position !== undefined) { b.meta.position = position; b.meta.positionOffset = undefined; }
     await store.saveMeta(b.meta);
+    bookRef.current = b;
     setBook(b);
     const pages = readingPages(b.paragraphs);
     const startPage = pageForParagraph(pages, b.meta.position);
@@ -2268,13 +2281,22 @@ export default function App() {
     const currentParagraph = location
       ? book.paragraphs.find((p) => p.id === location.paragraphId)
       : book.paragraphs[book.meta.position];
-    const p = options.target ||
+    let p = options.target ||
       (!currentPosition && selection) || {
         paragraphId: currentParagraph?.id || book.paragraphs[0].id,
         start: 0,
         end: 0,
         text: currentParagraph?.text || "",
       };
+    if (kind === "bookmark") {
+      const spoken = currentPosition && spokenRange ? book.paragraphs[spokenRange.paragraph] : undefined;
+      const source = spoken || book.paragraphs.find((q) => q.id === p.paragraphId);
+      if (source) {
+        const offset = spoken ? spokenRange!.start : currentPosition ? book.meta.positionOffset ?? p.start : p.start;
+        const range = bookmarkSentence(source.text, offset);
+        p = { paragraphId: source.id, ...range, text: source.text.slice(range.start, range.end) };
+      }
+    }
     // Only a note uses the draft and the note being edited: a bookmark or an
     // underline is always new and leaves the draft as it is.
     const isNote = kind === "note";
@@ -2286,6 +2308,7 @@ export default function App() {
       end: p.end,
       quote: p.text,
       kind,
+      ...(kind === "bookmark" ? { design: prefs.bookmarkDesign || undefined } : {}),
       color,
       text: isNote ? draft : "",
       group: isNote ? noteGroup.trim() : "",
@@ -2297,6 +2320,7 @@ export default function App() {
       : a;
     await store.saveAnnotation(item);
     setAnnotations((old) => [item, ...old.filter((n) => n.id !== item.id)]);
+    if (kind === "bookmark") await updateMeta({ ...bookRef.current!.meta, bookmarkId: item.id });
     if (isNote) {
       setDraft("");
       setEditing(null);
@@ -2440,18 +2464,28 @@ export default function App() {
       }
       // In the book already open, go to the passage without reopening it
       // (reopening stopped reading aloud and read the book again).
-      if (page === "reader" && bookRef.current?.meta.id === a.bookId) revealPassage(pos);
+      if (page === "reader" && bookRef.current?.meta.id === a.bookId) {
+        if (a.kind === "bookmark") await player.stop();
+        else revealPassage(pos);
+      }
       else if (!(await openBook(a.bookId, pos))) return;
+      if (a.kind === "bookmark") {
+        const target = bookmarkLocation(b, a)!;
+        resumeVoice.current = false;
+        await updateMeta({ ...bookRef.current!.meta, position: pos, positionOffset: target.start, bookmarkId: a.id }, true);
+        setSelection(null);
+        setReaderPage(pageForParagraph(readingPages(b.paragraphs), pos));
+      }
       if (!returnRef.current && origin) {
         returnRef.current = origin;
         setReturnAnchor(origin);
       }
       requestAnimationFrame(() =>
-        requestAnimationFrame(() =>
-          document
-            .getElementById("passage-" + a.paragraphId)
-            ?.scrollIntoView({ block: "center", behavior: "instant" }),
-        ),
+        requestAnimationFrame(() => {
+          const passage = document.getElementById("passage-" + a.paragraphId);
+          const target = a.kind === "bookmark" ? passage?.querySelector(".sentence-mark") ?? passage : passage;
+          target?.scrollIntoView({ block: "center", behavior: "instant" });
+        }),
       );
     } finally {
       jumpRef.current = false;
@@ -2547,6 +2581,7 @@ export default function App() {
       void updateMeta({
         ...current.meta,
         position: bookPages[next].start,
+        positionOffset: undefined,
       }).catch(error);
     }
     requestAnimationFrame(() => {
@@ -2755,6 +2790,9 @@ export default function App() {
   }
   async function startBook() {
     if (book) {
+      const id = book.meta.id;
+      if (bookActive && bookNav.current && !(await bookNav.current.ready())) return;
+      if (bookRef.current?.meta.id !== id) return;
       await covers.cancel();
       await voiceBarrier.current;
       const current = bookRef.current!;
@@ -2767,6 +2805,8 @@ export default function App() {
         positionChanged,
         undefined,
         resume,
+        0,
+        current.meta.positionOffset ?? 0,
       );
     }
   }
@@ -2774,6 +2814,7 @@ export default function App() {
     await covers.cancel();
     await voiceBarrier.current;
     resumeVoice.current = false;
+    if (bookRef.current) await updateMeta({ ...bookRef.current.meta, position, positionOffset: undefined });
     if (bookRef.current)
       await player.start(
         bookRef.current,
@@ -3100,6 +3141,13 @@ export default function App() {
                   <Trash2 size={14} />
                 </IconButton>
               </div>
+              {a.kind === "bookmark" && <details className="bookmark-edit">
+                <summary>{t("Bookmark appearance")}</summary>
+                <BookmarkAppearance value={a.design} prefs={prefs} finishedBooks={finishedBooks} onChange={(design) => {
+                  const next = { ...a, design: design || undefined };
+                  void store.saveAnnotation(next).then(() => setAnnotations((old) => old.map((item) => item.id === a.id ? next : item))).catch(error);
+                }} />
+              </details>}
               {(a.kind === "note" || a.kind === "sticky") && a.text && (
                 <p className="note-text">{a.text}</p>
               )}
@@ -7603,17 +7651,21 @@ export default function App() {
                           rootRef={article}
                           book={book}
                           position={book.meta.position}
+                          positionOffset={book.meta.positionOffset}
+                          bookmark={physicalBookmark}
+                          onBookmark={(mark) => void jumpAnnotation(mark).catch(error)}
                           playing={player.status !== "idle"}
                           onPosition={(n) => {
                             const current = bookRef.current;
                             if (
                               current &&
                               playbackStatusRef.current === "idle" &&
-                              current.meta.position !== n
+                              (current.meta.position !== n || current.meta.positionOffset !== undefined)
                             )
                               void updateMeta({
                                 ...current.meta,
                                 position: n,
+                                positionOffset: undefined,
                               }).catch(error);
                           }}
                           annotationsByParagraph={annotationsByParagraph}
@@ -7647,11 +7699,13 @@ export default function App() {
                           ref={article}
                           className={
                             "reading-pages" +
+                            (physicalBookmark ? " has-physical-bookmark" : "") +
                             (prefs.pageGap === 0 ? " seamless-pages" : "") +
                             (virtualPages ? " virtual-pages" : "")
                           }
                           aria-label={t("Reading pages")}
                         >
+                          {physicalBookmark && <div className="page-bookmark-dock"><PhysicalBookmark key={physicalBookmark.id} mark={physicalBookmark} onOpen={() => void jumpAnnotation(physicalBookmark).catch(error)} /></div>}
                           {spacers.top > 0 && (
                             <div
                               className="page-spacer"

@@ -21,6 +21,8 @@ export type BookMeta = {
   added: number;
   opened: number;
   position: number;
+  positionOffset?: number;
+  bookmarkId?: string;
   paragraphCount: number;
   wordCount: number;
   collection: string;
@@ -80,6 +82,8 @@ export type Annotation = {
   quote: string;
   // "sticky": a sticky note in the margin beside the passage.
   kind: "note" | "underline" | "bookmark" | "sticky";
+  // Empty or absent keeps the original colored ribbon.
+  design?: string;
   color: string;
   text: string;
   group: string;
@@ -137,6 +141,7 @@ export type Preferences = {
   // The ribbon colour of new bookmarks (an annotation colour id); empty uses
   // the highlight colour.
   ribbonColor: string;
+  bookmarkDesign: string;
   pageGap: number;
   readingProgress: "pages" | "paragraphs" | "percentage";
   leftOpen: boolean;
@@ -384,6 +389,7 @@ export const defaultPreferences: Preferences = {
   bookSound: false,
   binding: {},
   ribbonColor: "",
+  bookmarkDesign: "",
   bookTypeset: true,
   pageGap: 32,
   readingProgress: "pages",

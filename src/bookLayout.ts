@@ -219,6 +219,7 @@ export function measureSection(
   paragraphs: Paragraph[],
   section: BookSection,
   stride: number,
+  anchor?: { paragraph: number; offset: number; onPage: (page: number) => void },
 ): SectionMeasure {
   const flow = document.createElement("div");
   flow.className = "book-flow" + (section.opener ? " opener" : "");
@@ -260,6 +261,17 @@ export function measureSection(
         pages,
         Math.floor((last.left - origin + 1) / stride) + 1,
       );
+  }
+  if (anchor) {
+    const text = flow.children[anchor.paragraph - section.start]?.firstChild?.firstChild;
+    if (text?.nodeType === Node.TEXT_NODE && text.textContent?.length) {
+      const range = document.createRange();
+      const at = Math.max(0, Math.min(text.textContent.length - 1, anchor.offset));
+      range.setStart(text, at);
+      range.setEnd(text, at + 1);
+      const rect = range.getClientRects()[0];
+      if (rect) anchor.onPage(Math.max(0, Math.floor((rect.left - origin + 1) / stride)));
+    }
   }
   host.replaceChildren();
   return { pages, starts, tops };

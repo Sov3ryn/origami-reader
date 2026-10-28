@@ -16,11 +16,14 @@ import {
   type RefObject,
 } from "react";
 import { Book as BookIcon } from "lucide-react";
+import { PhysicalBookmark } from "./PhysicalBookmark";
+import { bookmarkLocation, bookmarkGeometry } from "../bookmarks";
 import { t } from "../i18n";
 import type { Annotation, Book, Paragraph } from "../types";
 import { annotationColors } from "../themes";
 import {
   BookPagination,
+  FRONT_PAGES,
   bookSections,
   dropCap,
   firstAfterHeading,
@@ -38,6 +41,7 @@ import { coverColor } from "../coverColor";
 import { bookThickness, edgeFinish, presetCoverImages, presetSpines, type Binding } from "../binding";
 
 export type BookNav = {
+  ready: () => Promise<boolean>;
   turn: (direction: 1 | -1) => void;
   show: (paragraph: number) => void;
   edge: (end: boolean) => void;
@@ -224,6 +228,9 @@ export function BookView({
   rootRef,
   book,
   position,
+  positionOffset = 0,
+  bookmark,
+  onBookmark,
   playing,
   onPosition,
   annotationsByParagraph,
@@ -244,6 +251,9 @@ export function BookView({
   rootRef: RefObject<HTMLElement | null>;
   book: Book;
   position: number;
+  positionOffset?: number;
+  bookmark?: Annotation;
+  onBookmark: (mark: Annotation) => void;
   playing: boolean;
   onPosition: (paragraph: number) => void;
   annotationsByParagraph: Map<string, Annotation[]>;
@@ -282,7 +292,7 @@ export function BookView({
   const geometry = useMemo<Geometry | null>(() => {
     if (!box.w || !box.h) return null;
     const pageH = Math.floor(
-      Math.min(box.h - 110, (box.w - 150) / 2 / ASPECT, 1150),
+      Math.min(box.h - 110, (box.w - 150) / (2 * ASPECT + (bookmark ? 4 / 3 * (bookmarkGeometry(bookmark.design).ratio + 0.1) : 0)), 1150),
     );
     if (pageH < 360) return null;
     const pageW = Math.floor(pageH * ASPECT);
@@ -301,7 +311,7 @@ export function BookView({
       padInner,
       padOuter,
     };
-  }, [box.w, box.h, fontSize, lineHeight]);
+  }, [box.w, box.h, fontSize, lineHeight, !!bookmark, bookmark?.design]);
   const stride = geometry ? geometry.textW + GAP : 1;
 
   const sections = useMemo(
@@ -379,6 +389,31 @@ export function BookView({
   // Every time a book opens it starts closed on the table, then rises and
   // opens at the saved page (or the bookmark it was opened from).
   const playOpening = opening && !reducedMotion();
+  const pageAt = useCallback((paragraph: number, offset: number) => {
+    if (!pagination) return FRONT_PAGES;
+    let content = pagination.contentPageOf(paragraph);
+    if (offset > 0 && measureHost.current) {
+      const section = sections[pagination.sectionOfParagraph(paragraph)];
+      measureSection(measureHost.current, book.paragraphs, section, stride, {
+        paragraph, offset, onPage: (local) => { content = pagination.contentPageOf(section.start) + local; },
+      });
+    }
+    return content + FRONT_PAGES;
+  }, [pagination, sections, book.paragraphs, stride]);
+  const positionSpread = useMemo(() => Math.floor(pageAt(position, positionOffset) / 2), [pageAt, position, positionOffset]);
+  const bookmarkPage = useMemo(() => {
+    const location = bookmark && bookmarkLocation(book, bookmark);
+    return location ? pageAt(location.paragraph, location.start) : FRONT_PAGES;
+  }, [pageAt, bookmark, book.paragraphs]);
+  const [bookmarkBeside, setBookmarkBeside] = useState(!playOpening);
+  const [stowing, setStowing] = useState(false);
+  const stowTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const readyWaiters = useRef<Array<(ready: boolean) => void>>([]);
+  const readyForSpeech = useRef(false);
+  useEffect(() => () => {
+    clearTimeout(stowTimer.current);
+    readyWaiters.current.splice(0).forEach((resolve) => resolve(false));
+  }, []);
   // A book never read yet waits for the reader to open it.
   const firstOpening = playOpening && position === 0;
   const [phase, setPhase] = useState<
@@ -386,6 +421,20 @@ export function BookView({
   >(playOpening ? "closed" : "ready");
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
+  useEffect(() => {
+    if (phase !== "ready") { setBookmarkBeside(false); return; }
+    const timer = setTimeout(() => setBookmarkBeside(true), reducedMotion() ? 0 : 180);
+    return () => clearTimeout(timer);
+  }, [phase, bookmark?.id]);
+  useEffect(() => {
+    readyForSpeech.current = false;
+    if (phase !== "ready" || stowing || (bookmark && !bookmarkBeside)) return;
+    const timer = setTimeout(() => {
+      readyForSpeech.current = true;
+      readyWaiters.current.splice(0).forEach((resolve) => resolve(true));
+    }, bookmark && !reducedMotion() ? 780 : 0);
+    return () => clearTimeout(timer);
+  }, [phase, stowing, bookmarkBeside, bookmark?.id]);
   // Waits on the closed cover for a click: a new book until the reader opens
   // it, and a book the reader closed.
   const [held, setHeld] = useState(firstOpening);
@@ -573,6 +622,7 @@ export function BookView({
   const lift = useRef(0);
   useEffect(() => () => clearTimeout(lift.current), []);
   const openCover = useCallback(() => {
+    if (reducedMotion()) { setHeld(false); setShut(false); setTurn(null); setPhase("ready"); setSpread(positionSpread); return; }
     setHeld(false);
     setShut(false);
     setPhase("lifting");
@@ -582,7 +632,7 @@ export function BookView({
       if (sound) playPageTurn(0.16);
       setTurn((current) => (current ? { ...current, hold: false } : current));
     }, LIFT_MS);
-  }, [sound]);
+  }, [sound, positionSpread]);
   useEffect(() => {
     if (phase !== "closed" || held) return;
     const timer = setTimeout(openCover, 1250);
@@ -590,7 +640,7 @@ export function BookView({
   }, [phase, held, openCover]);
   useEffect(() => {
     if (phase !== "title" || !pagination || turn) return;
-    const target = pagination.spreadOfParagraph(position);
+    const target = positionSpread;
     // A new book lingers on its title page; a continued one goes on to its page.
     const timer = setTimeout(
       () => {
@@ -605,10 +655,10 @@ export function BookView({
     );
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, pagination, turn, beginTurn]);
+  }, [phase, pagination, turn, beginTurn, positionSpread]);
   // Back to the closed book: to the title spread, then the cover swings shut.
   const closeBook = useCallback(() => {
-    if (phase !== "ready" || busy.current || !pagination || reducedMotion())
+    if (phase !== "ready" || busy.current || !pagination || stowing)
       return;
     const shut = () => {
       busy.current = true;
@@ -626,26 +676,37 @@ export function BookView({
     };
     // Closing is not reading: the title spread must not become the saved
     // position, so the phase changes before the spread does.
-    setPhase("closing");
-    if (spreadRef.current !== 0) {
-      setFade((f) => f + 1);
-      setSpread(0);
-      setTimeout(shut, 380);
-    } else shut();
-  }, [phase, pagination, sound]);
+    const finish = () => {
+      setStowing(false);
+      if (reducedMotion()) {
+        setPhase("closed"); setHeld(true); setShut(true); setSpread(0);
+        setTurn({ direction: 1, front: COVER, back: 0, underLeft: NONE, underRight: 1, target: 0, drag: false, hold: true });
+        return;
+      }
+      setPhase("closing");
+      if (spreadRef.current !== 0) {
+        setFade((f) => f + 1); setSpread(0);
+        stowTimer.current = setTimeout(shut, 380);
+      } else shut();
+    };
+    if (bookmark && !reducedMotion()) {
+      setStowing(true); setBookmarkBeside(false);
+      stowTimer.current = setTimeout(finish, 780);
+    } else finish();
+  }, [phase, pagination, sound, bookmark, stowing]);
   const skipOpening = useCallback(() => {
     clearTimeout(lift.current);
     cancelAnimationFrame(frame.current);
     busy.current = false;
     setTurn(null);
     setPhase("ready");
-    setSpread(pagination ? pagination.spreadOfParagraph(position) : null);
-  }, [pagination, position]);
+    setSpread(pagination ? positionSpread : null);
+  }, [pagination, positionSpread]);
   // Without a position yet (no opening), go to the saved passage.
   useEffect(() => {
     if (phase === "ready" && spread === null && pagination)
-      setSpread(pagination.spreadOfParagraph(position));
-  }, [phase, spread, pagination, position]);
+      setSpread(positionSpread);
+  }, [phase, spread, pagination, positionSpread]);
 
   // Turning saves the reading position (not while narration leads).
   useEffect(() => {
@@ -653,7 +714,7 @@ export function BookView({
     const paragraph = pagination.paragraphAtSpread(spread);
     anchor.current = paragraph;
     if (playing) return;
-    if (pagination.spreadOfParagraph(position) === spread) return;
+    if (positionSpread === spread) return;
     reported.current = paragraph;
     onPosition(paragraph);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -665,7 +726,7 @@ export function BookView({
         anchor.current = paragraph;
         return;
       }
-      const target = pagination.spreadOfParagraph(paragraph);
+      const target = paragraph === position ? positionSpread : pagination.spreadOfParagraph(paragraph);
       // Going to a passage (contents, a note) while the book is closed or
       // opening opens it straight onto that passage.
       if (phaseRef.current !== "ready") {
@@ -701,14 +762,14 @@ export function BookView({
       setFade((f) => f + 1);
       setSpread(target);
     },
-    [pagination, beginTurn],
+    [pagination, beginTurn, position, positionSpread],
   );
   useEffect(() => {
     if (phase !== "ready" || reported.current === position) return;
     reported.current = -1;
     if (!playing || follow) show(position);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [position, phase]);
+  }, [position, positionOffset, positionSpread, phase]);
   useEffect(() => {
     // Narration that starts on the closed book opens it onto the passage read.
     if (playing && follow && speaking >= 0) show(speaking);
@@ -727,6 +788,11 @@ export function BookView({
   }, [sentence, follow, playing, beginTurn]);
 
   navRef.current = {
+    ready: () => {
+      if (phase === "ready" && !stowing && readyForSpeech.current) return Promise.resolve(true);
+      if (held) openCover();
+      return new Promise((resolve) => readyWaiters.current.push(resolve));
+    },
     turn: (direction) => {
       if (phase === "closed" && held) openCover();
       else if (phase !== "ready") skipOpening();
@@ -934,7 +1000,7 @@ export function BookView({
             <div className={"book-folio" + (opener ? " centered" : "")}>
               {kind.index + 1}
             </div>
-            {ribbon && (
+            {ribbon && !bookmark && (
               <span
                 className="book-ribbon"
                 style={{ ["--ribbon" as string]: ribbon }}
@@ -1055,6 +1121,9 @@ export function BookView({
         >
           <span className="book-stack left" aria-hidden="true" />
           <span className="book-stack right" aria-hidden="true" />
+          {bookmark && <PhysicalBookmark mark={bookmark} onOpen={() => onBookmark(bookmark)}
+            state={bookmarkBeside && !stowing ? "beside" : stowing ? "returning" : "inside"}
+            depth={-geometry.pageH * thickness * bookmarkPage / Math.max(1, pagination?.totalPages ?? 1)} />}
           {/* The rest of the closed volume behind the cover: the back board,
               the boards' edges, the page block's head, tail and fore-edge,
               and its shadow on the table. */}
@@ -1140,7 +1209,7 @@ export function BookView({
               <button
                 className={"book-hot left" + (k <= 0 ? " closes" : "")}
                 aria-label={k <= 0 ? t("Close the book") : t("Previous page")}
-                disabled={k <= 0 && reducedMotion()}
+                disabled={stowing}
                 onPointerDown={(e) => hotDown(-1, e)}
                 onPointerMove={hotMove}
                 onPointerUp={hotUp}
@@ -1149,7 +1218,7 @@ export function BookView({
               <button
                 className="book-hot right"
                 aria-label={t("Next page")}
-                disabled={k >= spreads - 1}
+                disabled={stowing || k >= spreads - 1}
                 onPointerDown={(e) => hotDown(1, e)}
                 onPointerMove={hotMove}
                 onPointerUp={hotUp}

@@ -23,7 +23,7 @@ export function paragraphText(
   marks: Annotation[],
   spoken: SentenceMark | null,
 ) {
-  const underlines = marks.filter((n) => n.end > n.start);
+  const underlines = marks.filter((n) => n.kind !== "bookmark" && n.end > n.start);
   if (!underlines.length && !spoken) return p.text;
   const cuts = [
     ...new Set([

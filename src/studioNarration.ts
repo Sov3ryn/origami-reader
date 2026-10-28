@@ -5,9 +5,10 @@
 import type { Book } from "./types";
 import type { Production } from "./studio/production";
 import type { Unit } from "./usePlayer";
+import { bookmarkSentence } from "./bookmarks";
 
 /** The production's lines from paragraph `from` on, as player units. */
-export function studioUnits(book: Book, production: Production, from: number): Unit[] {
+export function studioUnits(book: Book, production: Production, from: number, characterOffset = 0): Unit[] {
   const takes = new Map(production.takes.map((t) => [t.id, t]));
   const out: Unit[] = [];
   let paragraph = -1;
@@ -26,6 +27,14 @@ export function studioUnits(book: Book, production: Production, from: number): U
     const range = at >= 0 ? { start: at, end: at + shown.length } : undefined;
     if (range) cursor = range.end;
     const take = u.take ? takes.get(u.take) : undefined;
+    const start = u.paragraph === from && characterOffset > 0 ? bookmarkSentence(p.text, characterOffset).start : 0;
+    if (range && range.end <= start) continue;
+    // A saved take cannot begin inside its audio. Speak the remaining source
+    // with the same cast voice, then resume complete takes on following lines.
+    if (range && range.start < start) {
+      out.push({ text: p.text.slice(start, range.end), paragraph: u.paragraph, first: -1, last: -1, range: { start, end: range.end }, voice: u.voice || production.info.voice });
+      continue;
+    }
     out.push({
       text: u.text,
       paragraph: u.paragraph,

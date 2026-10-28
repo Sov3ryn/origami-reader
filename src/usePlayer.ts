@@ -12,6 +12,8 @@ import {
   textLanguage,
 } from "./documents";
 import { spokenText } from "./spokenText";
+import { bookmarkSentence } from "./bookmarks";
+import { sentenceRanges, spokenSentenceRange } from "./contents";
 import { bookVoice } from "./voiceCatalog";
 import type { Book, Preferences, TextSelection, SpeechResult } from "./types";
 // first/last are sentence indexes in the spoken text of `paragraph`.
@@ -40,18 +42,25 @@ export function bookUnits(
   book: Book,
   position: number,
   prefs: Preferences,
+  characterOffset = 0,
 ): Unit[] {
-  const units = book.paragraphs.slice(position).flatMap((p, i) =>
-    speechUnits(
-      spokenText(p, prefs, undefined, book.meta.id),
+  const units = book.paragraphs.slice(position).flatMap((p, i) => {
+    const start = i === 0 && characterOffset > 0 ? bookmarkSentence(p.text, characterOffset).start : 0;
+    const text = spokenText(p, prefs, { start, end: p.text.length }, book.meta.id);
+    const count = start > 0 ? sentenceRanges(text).length : 0;
+    return speechUnits(
+      text,
       400,
       prefs.skipSpeechMarkup !== false,
-    ).map((unit) => ({
+    ).map((unit) => {
+      const range = start > 0 ? spokenSentenceRange(p.text.slice(start), count, unit.first, unit.last) : null;
+      return ({
       ...unit,
+      ...(range ? { range: { start: start + range.start, end: start + range.end } } : start > 0 ? { first: -1, last: -1 } : {}),
       paragraph: position + i,
       heading: p.kind === "heading",
-    })),
-  );
+    }); });
+  });
   // A bare chapter number or single word is joined to what follows so the
   // speech model always receives a complete phrase. Numbers are spelled in
   // the book's own language.
@@ -193,6 +202,7 @@ export function usePlayer(
     selection?: string | TextSelection,
     resumeCurrent = false,
     offset = 0,
+    characterOffset = 0,
   ) {
     const previous = session.current;
     const token = await stop();
@@ -245,8 +255,8 @@ export function usePlayer(
             paragraph: position,
           }))
         : cast
-          ? studioUnits(book, cast, position)
-          : bookUnits(book, position, prefs);
+          ? studioUnits(book, cast, position, characterOffset)
+          : bookUnits(book, position, prefs, characterOffset);
     session.current = { book, units, index: 0, rules, onPosition };
     const voice = bookVoice(book.meta, prefs);
     const get = async (unit: Unit) => {

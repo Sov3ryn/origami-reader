@@ -14,7 +14,7 @@ import {
 } from "./places";
 import type { Preferences, ReadingStats } from "./types";
 
-export type RewardKind = "theme" | "finish" | "ribbon";
+export type RewardKind = "theme" | "finish" | "ribbon" | "bookmark";
 export type Requirement = { metric: GoalMetric; value: number };
 
 // Donations are not linked to the app yet, so supporter unlocks can only be
@@ -39,32 +39,33 @@ const parties = (n: number): Requirement => ({ metric: "celebrations", value: n 
 
 // Each step: the goal, then the themes, finishes and ribbons it unlocks. Dark
 // and light themes come in pairs.
-export const ladder: [Requirement, string[], string[], string[]][] = [
-  [h(2), ["lake", "sage"], [], []],
-  [days(3), ["forest", "sky"], [], ["amber", "blue", "rose"]],
-  [h(5), ["navy", "lavender"], ["silver"], []],
-  [books(2), ["copper", "rose"], [], []],
-  [days(10), ["nordic", "nordic-snow"], [], ["mint", "cyan", "slate"]],
-  [h(12), ["indigo", "seafoam"], [], []],
+export const ladder: [Requirement, string[], string[], string[], string[]?][] = [
+  [h(2), ["lake", "sage"], [], [], ["plum-crane-ribbon"]],
+  [days(3), ["forest", "sky"], [], ["amber", "blue", "rose"], ["lavender-botanical-paper"]],
+  [h(5), ["navy", "lavender"], ["silver"], [], ["midnight-moon-leather"]],
+  [books(2), ["copper", "rose"], [], [], ["forest-gold-pennant"]],
+  [days(10), ["nordic", "nordic-snow"], [], ["mint", "cyan", "slate"], ["origami-crane-blossoms"]],
+  [h(12), ["indigo", "seafoam"], [], [], ["sleeping-cat-stars"]],
   [parties(1), ["coral", "apricot"], [], []],
-  [books(4), [], ["copper"], ["orange", "red", "pink"]],
-  [h(20), ["olive", "olive-paper"], [], []],
-  [days(20), ["burgundy", "berry"], ["gunmetal"], []],
-  [books(6), ["amber", "honey"], [], []],
-  [h(35), ["teahouse", "stone"], [], ["plum", "olive", "lavender"]],
+  [books(4), [], ["copper"], ["orange", "red", "pink"], ["gothic-castle-window"]],
+  [h(20), ["olive", "olive-paper"], [], [], ["sage-lily-leaf"]],
+  [days(20), ["burgundy", "berry"], ["gunmetal"], [], ["brass-feather"]],
+  [books(6), ["amber", "honey"], [], [], ["crane-charm-hook"]],
+  [h(35), ["teahouse", "stone"], [], ["plum", "olive", "lavender"], ["silver-celestial-sword"]],
   [parties(3), ["petrol", "newsprint"], ["rose-gold"], []],
   [days(45), ["ember", "peach"], [], []],
-  [h(60), ["orchid", "crimson"], [], []],
+  [h(60), ["orchid", "crimson"], [], [], ["gold-ivy-moon-filigree"]],
   [books(12), ["aurora", "mossrose"], [], []],
   [h(150), [], ["gold"], []],
 ];
 
 export const rewardId = (kind: RewardKind, id: string) => kind + ":" + id;
 const goals = new Map<string, Requirement>();
-for (const [goal, themes, finishes, ribbons] of ladder) {
+for (const [goal, themes, finishes, ribbons, bookmarks = []] of ladder) {
   for (const id of themes) goals.set(rewardId("theme", id), goal);
   for (const id of finishes) goals.set(rewardId("finish", id), goal);
   for (const id of ribbons) goals.set(rewardId("ribbon", id), goal);
+  for (const id of bookmarks) goals.set(rewardId("bookmark", id), goal);
 }
 
 /** The goal that unlocks an item, or undefined when it is open to everyone. */
@@ -97,6 +98,7 @@ function chosen(prefs: Preferences): string[] {
     if (finish) ids.push(rewardId("finish", finish));
   }
   if (prefs.ribbonColor) ids.push(rewardId("ribbon", prefs.ribbonColor));
+  if (prefs.bookmarkDesign) ids.push(rewardId("bookmark", prefs.bookmarkDesign));
   return ids.filter((id) => goals.has(id));
 }
 
