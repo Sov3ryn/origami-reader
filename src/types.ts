@@ -255,8 +255,11 @@ export type Preferences = {
   workTips: boolean;
   // Online embeds (videos, posts, maps) in notes; off until accepted.
   onlineEmbeds: boolean;
-  // Look for app updates when an update address is configured.
+  // Look for app updates when an update address is configured. On by default.
   autoUpdate: boolean;
+  // Set once update checks were switched on for copies saved while they
+  // were off by default, so a later choice to turn them off sticks.
+  autoUpdateDefaultOn?: boolean;
   // Work mode plugins: which are on and the permissions granted to each.
   plugins: Record<string, { on: boolean; granted: string[] }>;
   pluginsOff: boolean;
@@ -472,7 +475,8 @@ export const defaultPreferences: Preferences = {
   workTheme: "reading",
   workTips: true,
   onlineEmbeds: false,
-  autoUpdate: false,
+  autoUpdate: true,
+  autoUpdateDefaultOn: true,
   plugins: {},
   pluginsOff: false,
 };

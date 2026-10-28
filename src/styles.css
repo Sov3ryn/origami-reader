@@ -6646,15 +6646,29 @@ html[data-hidden="true"] .previous-still {
     rotateZ(-36deg) scale(0.96);
   animation: book-arrive 1.05s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
-/* Picked up: it rises and squares up, held straight toward the reader... */
+/* Picked up: it rises and squares up, held straight toward the reader...
+   Keyframes, not transitions: the resting pose comes from the arrival
+   animation, and a transition does not start from an animated value, so the
+   book jumped straight. */
 .phase-lifting .book {
   transform: translateX(calc(var(--page-w) * -0.5));
-  transition: transform 0.95s cubic-bezier(0.35, 0.05, 0.2, 1);
+  animation: book-lift 0.95s cubic-bezier(0.35, 0.05, 0.2, 1) both;
+}
+@keyframes book-lift {
+  from {
+    transform: translateX(calc(var(--page-w) * -0.5)) translateY(4%) rotateX(54deg)
+      rotateZ(-36deg) scale(0.96);
+  }
 }
 /* ...then slides to the middle as the cover opens. */
 .phase-opening .book {
   transform: none;
-  transition: transform 1.25s cubic-bezier(0.45, 0.05, 0.25, 1);
+  animation: book-center 1.25s cubic-bezier(0.45, 0.05, 0.25, 1) both;
+}
+@keyframes book-center {
+  from {
+    transform: translateX(calc(var(--page-w) * -0.5));
+  }
 }
 /* Opacity below 1 would flatten the book's 3D, so the fade belongs to the
    stage and the book only moves. */
@@ -6882,8 +6896,9 @@ html[data-hidden="true"] .previous-still {
   .book-setting img {
     animation: none;
   }
+  .phase-lifting .book,
   .phase-opening .book {
-    transition: none;
+    animation: none;
   }
 }
 

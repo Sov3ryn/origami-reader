@@ -467,6 +467,10 @@ export function BookView({
   const frame = useRef(0);
   const anchor = useRef(position);
   const reported = useRef(-1);
+  // Positions this book reported that the app has not echoed back yet. An
+  // echo can arrive after the book has turned on, and must not turn it back:
+  // that ping-ponged two spreads every frame.
+  const echoes = useRef<number[]>([]);
   const [fade, setFade] = useState(0);
 
   // A new layout keeps the same passage in view.
@@ -716,6 +720,7 @@ export function BookView({
     if (playing) return;
     if (positionSpread === spread) return;
     reported.current = paragraph;
+    echoes.current = [...echoes.current.slice(-3), paragraph];
     onPosition(paragraph);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spread, pagination, phase]);
@@ -765,7 +770,13 @@ export function BookView({
     [pagination, beginTurn, position, positionSpread],
   );
   useEffect(() => {
-    if (phase !== "ready" || reported.current === position) return;
+    if (phase !== "ready") return;
+    const echo = echoes.current.indexOf(position);
+    if (echo >= 0) {
+      echoes.current = echoes.current.slice(echo + 1);
+      return;
+    }
+    if (reported.current === position) return;
     reported.current = -1;
     if (!playing || follow) show(position);
     // eslint-disable-next-line react-hooks/exhaustive-deps

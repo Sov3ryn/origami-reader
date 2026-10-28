@@ -1063,6 +1063,12 @@ export default function App() {
           // The first 3D library preview was an on/off switch.
           if ((saved as { libraryScene?: boolean }).libraryScene && !saved.libraryTheme)
             merged.libraryTheme = "mansion";
+          // Update checks were off by default before beta 17: switch them on
+          // once, then keep whatever the reader chooses.
+          if (!saved.autoUpdateDefaultOn) {
+            merged.autoUpdate = true;
+            merged.autoUpdateDefaultOn = true;
+          }
           merged.collections = collectionNames(merged.collections, rows);
           if (
             available.length &&
