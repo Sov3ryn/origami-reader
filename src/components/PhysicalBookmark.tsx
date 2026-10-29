@@ -7,6 +7,9 @@ import { SleepingCatBookmark } from "./SleepingCatBookmark";
 import { AnimalBookmark } from "./AnimalBookmark";
 import { MidnightMoonBookmark } from "./MidnightMoonBookmark";
 import { DecorativeBookmark, bookmarkMotionDetails } from "./DecorativeBookmark";
+import { GlobeBookmark } from "./GlobeBookmark";
+import { globeDetails } from "./globeRenderer";
+import { TimeBookmark, timeBookmarkDesigns } from "./TimeBookmark";
 import "./bookmarks.css";
 
 export function PhysicalBookmark({ mark, onOpen, state = "beside", depth = 0, onSettled }: {
@@ -53,6 +56,8 @@ export function PhysicalBookmark({ mark, onOpen, state = "beside", depth = 0, on
       : mark.design === "sleeping-cat-stars" ? <SleepingCatBookmark active={state === "beside"} stillStyle={imageStyle} />
       : mark.design === "moonlit-wolf" || mark.design === "woodland-owl" ? <AnimalBookmark design={mark.design} active={state === "beside"} stillStyle={imageStyle} />
       : mark.design === "midnight-moon-leather" ? <MidnightMoonBookmark active={state === "beside"} stillStyle={imageStyle} />
+      : mark.design && globeDetails[mark.design] ? <GlobeBookmark design={mark.design} active={state === "beside"} stillStyle={imageStyle} />
+      : mark.design && timeBookmarkDesigns.includes(mark.design) ? <TimeBookmark design={mark.design} active={state === "beside"} stillStyle={imageStyle} />
       : mark.design && bookmarkMotionDetails[mark.design] ? <DecorativeBookmark design={mark.design} active={state === "beside"} stillStyle={imageStyle} />
       : art ? <span className="bookmark-art"><img src={art} alt="" draggable={false} style={imageStyle} /></span>
       : <span className="bookmark-color-sample" aria-hidden="true" />}

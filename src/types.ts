@@ -188,6 +188,10 @@ export type Preferences = {
   // The sound visualizer beside the play button, and its style.
   visualizer: boolean;
   visualizerStyle: VisualizerStyle;
+  // The "Save place and close" button in the player bar while reading.
+  saveCloseButton: boolean;
+  // Where that button saves the place.
+  saveCloseTarget: "previous-start" | "previous-end" | "current-start" | "current-sentence";
   // Interface language code; empty follows the operating system.
   uiLanguage: string;
   // "later" means the reader chose Maybe later once; it is asked one last time.
@@ -436,6 +440,8 @@ export const defaultPreferences: Preferences = {
   speedHints: true,
   visualizer: true,
   visualizerStyle: "bars",
+  saveCloseButton: true,
+  saveCloseTarget: "previous-start",
   uiLanguage: "",
   supportPrompt: "ask",
   supportPromptAfter: 0,

@@ -1,6 +1,6 @@
-.bookmark-designs { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:10px; }
+.bookmark-designs { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); grid-auto-rows:max-content; gap:10px; }
 .bookmark-design { display:flex; flex-direction:column; align-items:center; justify-content:end; gap:8px; padding:10px; min-height:150px; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:inherit; }
-.bookmark-design img { width:76px; height:114px; object-fit:contain; }
+.bookmark-design img { width:76px; height:114px; flex:none; object-fit:contain; }
 .bookmark-design span:last-child { font-size:12px; }
 .bookmark-design[aria-pressed="true"] { outline:2px solid var(--accent); outline-offset:2px; }
 .bookmark-color-sample { display:block; width:22px; height:92px; background:linear-gradient(90deg,#0002,transparent 25%,#fff3 55%,#0002),var(--bookmark-color,var(--accent)); clip-path:polygon(0 0,100% 0,100% 100%,50% 88%,0 100%); }
@@ -107,9 +107,70 @@
 .decorative-bookmark-art[data-animated="true"] .decorative-bookmark-animation { display:block; }
 .decorative-bookmark-art[data-animated="true"] .decorative-part-still { visibility:hidden; }
 .bookmark-detail-swing { animation:bookmark-detail-swing 10s ease-in-out infinite; }
+.bookmark-detail-flex { animation:bookmark-detail-flex 13s ease-in-out infinite; }
+@keyframes bookmark-detail-flex {
+  0%,50%,100% { transform:skewX(0deg); }
+  25% { transform:skewX(var(--flex-angle)); }
+  75% { transform:skewX(calc(var(--flex-angle) * -1)); }
+}
+.bookmark-detail-fold { transform-origin:0 0; animation:bookmark-detail-fold 12s ease-in-out infinite; }
+.bookmark-detail-fold-twitch { animation-name:bookmark-detail-fold-twitch; }
+.decorative-bookmark-art[data-design="copper-ginkgo-leaf"] .bookmark-detail-fold { animation-name:bookmark-ginkgo-flutter; }
+.decorative-bookmark-art[data-design="midnight-lotus-leaf"] .bookmark-detail-fold { animation-name:bookmark-lotus-unfurl; }
+@keyframes bookmark-ginkgo-flutter {
+  0%,12%,47%,72%,100% { transform:matrix(1,0,0,1,0,0); }
+  28%,59% { transform:var(--fold-transform); }
+}
+@keyframes bookmark-lotus-unfurl {
+  0%,15%,100% { transform:var(--fold-transform); }
+  48%,68% { transform:matrix(1,0,0,1,0,0); }
+}
+.bookmark-detail-maple { opacity:0; animation:bookmark-detail-petal 24s linear infinite; }
+.bookmark-detail-ripple { opacity:0; animation:bookmark-detail-ripple 13s ease-out infinite; }
+@keyframes bookmark-detail-fold {
+  0%,100% { transform:matrix(1,0,0,1,0,0); }
+  50% { transform:var(--fold-transform); }
+}
+@keyframes bookmark-detail-fold-twitch {
+  0%,60%,71%,84%,100% { transform:matrix(1,0,0,1,0,0); }
+  66%,77% { transform:var(--fold-transform); }
+}
+@keyframes bookmark-detail-ripple {
+  0% { opacity:0; transform:scale(.6); }
+  18% { opacity:.55; }
+  75%,100% { opacity:0; transform:scale(1.15); }
+}
 .bookmark-detail-sheen { animation:bookmark-detail-sheen 16s ease-in-out infinite; }
+.bookmark-detail-ribbon-sheen { animation:bookmark-detail-ribbon-sheen 14s linear infinite; }
+.bookmark-foil { mix-blend-mode:screen; }
+.bookmark-foil-spectrum { animation:bookmark-foil-spectrum 13s ease-in-out infinite; transform-origin:512px 768px; }
+.bookmark-foil-flash { animation:bookmark-foil-flash 11s ease-in-out infinite; }
+.bookmark-foil-iridescent .bookmark-foil-spectrum { animation-duration:17s; animation-delay:-4s; opacity:.8; }
+.bookmark-foil-iridescent .bookmark-foil-flash { animation-duration:16s; animation-delay:-7s; }
+@keyframes bookmark-foil-spectrum {
+  0%,100% { transform:translate(-180px,-240px) rotate(-8deg); }
+  50% { transform:translate(180px,300px) rotate(8deg); }
+}
+@keyframes bookmark-foil-flash {
+  0%,100% { transform:translate(-80px,-510px); opacity:.1; }
+  35% { opacity:.85; }
+  65% { transform:translate(65px,390px); opacity:.7; }
+  85% { opacity:.1; }
+}
+@keyframes bookmark-detail-ribbon-sheen {
+  0% { transform:translateY(0); opacity:0; }
+  8%,65% { opacity:.85; }
+  78%,100% { transform:translateY(1900px); opacity:0; }
+}
 .bookmark-detail-glint { opacity:0; animation:midnight-star 19s ease-in-out infinite; }
 .bookmark-detail-firefly { opacity:0; animation:bookmark-detail-firefly 19s ease-in-out infinite; }
+.bookmark-detail-ember { opacity:0; animation:bookmark-detail-ember 18s linear infinite; }
+@keyframes bookmark-detail-ember {
+  0% { opacity:0; transform:translate(0,60px); }
+  18% { opacity:.8; }
+  60% { opacity:.5; }
+  85%,100% { opacity:0; transform:translate(var(--drift-x),-100px); }
+}
 .bookmark-detail-petal { opacity:0; animation:bookmark-detail-petal 22s linear infinite; }
 .bookmark-detail-mist { opacity:0; animation:bookmark-detail-mist 24s ease-in-out infinite; }
 .bookmark-detail-dew { opacity:0; animation:bookmark-detail-dew 18s ease-in-out infinite; }
@@ -185,5 +246,17 @@
   .decorative-bookmark-art * { animation:none!important; }
 }
 .bookmark-appearance { display:grid; gap:10px; }
+.globe-bookmark-art { overflow:visible; }
+.time-bookmark-animation { position:absolute; inset:0; width:100%; height:100%; overflow:visible; display:none; pointer-events:none; }
+.time-bookmark-art[data-animated="true"] .time-bookmark-animation { display:block; }
+.time-bookmark-art[data-design="measure-of-time"][data-animated="true"] > img { visibility:hidden; }
+.time-bookmark-art[data-design="wandering-blue-box"][data-animated="true"] > img { visibility:hidden; }
+@media(prefers-reduced-motion:reduce) {
+  .time-bookmark-animation { display:none!important; }
+  .time-bookmark-art > img { visibility:visible!important; }
+}
+.bookmark-globe-sphere { position:absolute; display:none; border-radius:50%; pointer-events:none; }
+.globe-bookmark-art[data-animated="true"] .bookmark-globe-sphere[data-ready="true"] { display:block; }
+@media(prefers-reduced-motion:reduce) { .bookmark-globe-sphere { display:none!important; } }
 .bookmark-styles { justify-self:start; }
 .bookmark-designs > .hint { grid-column:1 / -1; margin:0; }

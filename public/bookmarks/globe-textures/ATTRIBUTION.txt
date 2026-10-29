@@ -1,0 +1,26 @@
+Origami globe bookmark surface maps
+
+Earth (earth.png): Blue Marble - A Seamless Image Mosaic of the Earth (WMS).
+NASA/Goddard Space Flight Center Scientific Visualization Studio.
+Blue Marble data courtesy of Reto Stockli (NASA/GSFC) and NASA's Earth Observatory.
+Source: https://svs.gsfc.nasa.gov/2915/
+Original: https://svs.gsfc.nasa.gov/vis/a000000/a002900/a002915/bluemarble-2048.png
+Usage guidelines: https://www.nasa.gov/nasa-brand-center/images-and-media/
+Original map is preserved. Origami renders a stylized walnut/maple palette and
+an original AI-generated walnut material (walnut.png) at runtime; this is a
+decorative globe, not a scientific map.
+
+Moon (moon.jpg) and Mars (mars.jpg): Solar System Scope / INOVE.
+Source: https://www.solarsystemscope.com/textures/
+Originals:
+https://www.solarsystemscope.com/textures/download/2k_moon.jpg
+https://www.solarsystemscope.com/textures/download/2k_mars.jpg
+Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
+License: https://creativecommons.org/licenses/by/4.0/
+Original maps are preserved. Origami resamples, shades, sharpens and slightly adjusts
+their contrast and brightness at runtime. These maps remain CC BY 4.0 and
+are not covered by Origami's more restrictive application or source-code licenses.
+The supplier notes that some unmapped areas may contain matching fictional terrain.
+
+No endorsement by NASA, Solar System Scope or INOVE is implied.
+The bookmark frames and blades are separate original AI-generated artwork.

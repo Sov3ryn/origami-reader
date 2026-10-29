@@ -19,7 +19,7 @@ export function Popover({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const [place, setPlace] = useState({ top: 0, right: 0 });
+  const [place, setPlace] = useState({ top: 0, right: 0, maxHeight: 0 });
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -38,9 +38,14 @@ export function Popover({
   function toggle() {
     if (open) return setOpen(false);
     const r = button.current!.getBoundingClientRect();
+    // The panel sits inside the zoomed top bar, so window pixels are divided
+    // by the interface size before they become its CSS values.
+    const zoom = r.width / (button.current!.offsetWidth || r.width) || 1;
     setPlace({
-      top: r.bottom + 6,
-      right: Math.max(8, window.innerWidth - r.right),
+      top: (r.bottom + 6) / zoom,
+      right: Math.max(8, window.innerWidth - r.right) / zoom,
+      // Ends 12px above the bottom of the window, whatever its size.
+      maxHeight: (window.innerHeight - r.bottom - 18) / zoom,
     });
     setOpen(true);
     requestAnimationFrame(() =>
@@ -73,7 +78,7 @@ export function Popover({
           role="dialog"
           aria-label={label}
           className={"popover-panel " + panelClassName}
-          style={{ top: place.top, right: place.right }}
+          style={{ top: place.top, right: place.right, maxHeight: place.maxHeight }}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               e.stopPropagation();

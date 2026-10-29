@@ -45,6 +45,7 @@ import { BUILD_DATE, PRIVATE_BETA, STUDIO_ENABLED, VERSION } from "./release";
 import type { AuthorNote } from "./authors";
 import { fillBookDetails, isUnknownAuthor, loadPack } from "./authorPack";
 import fontLicense from "../public/fonts/opendyslexic/OFL.txt?raw";
+import globeMapCredits from "../public/bookmarks/globe-textures/ATTRIBUTION.txt?raw";
 import appLicense from "../APP-LICENSE.md?raw";
 import sourceLicense from "../LICENSE?raw";
 import { Section, SectionLevel, SectionState } from "./components/Section";
@@ -2348,6 +2349,45 @@ export default function App() {
     if (prefRef.current.inspector !== "notes")
       autoTabFrom.current ??= prefRef.current.inspector;
     chooseTab("notes");
+  }
+  // One press for a sleepy reader: bookmark the place chosen in Settings
+  // (by default the start of the chapter before the one being read, as the
+  // reader may have drifted off during it), stop the voice and close the book.
+  async function saveAndClose() {
+    if (!book) return;
+    const where = prefs.saveCloseTarget;
+    const chapters = contents.filter(
+      (e, i) => !(i === 0 && e.label === book.meta.title),
+    );
+    const at = chapters.findIndex((e) => e.index === currentSection?.index);
+    // In the first chapter there is no previous one: its start is used.
+    const previous = at > 0 ? chapters[at - 1] : undefined;
+    await player.stop();
+    let message = t("Bookmark saved.");
+    if (where === "current-sentence") {
+      await addAnnotation("bookmark", true);
+      message = t("Place saved at the current sentence.");
+    } else {
+      const section = where === "current-start" ? currentSection : previous ?? currentSection;
+      const atEnd = where === "previous-end" && previous;
+      // The end of the previous chapter is the last paragraph before this one.
+      const paragraph = book.paragraphs[
+        atEnd ? currentSection!.index - 1 : section?.index ?? book.meta.position
+      ];
+      if (paragraph) {
+        const offset = atEnd ? paragraph.text.length : 0;
+        await addAnnotation("bookmark", false, {
+          target: { paragraphId: paragraph.id, start: offset, end: offset, text: paragraph.text },
+        });
+      }
+      if (section)
+        message = atEnd
+          ? t("Place saved at the end of {section}.", { section: section.label })
+          : t("Place saved at the start of {section}.", { section: section.label });
+    }
+    patchPrefs({ libraryShelf: shelfOf(book.meta) });
+    setPage("library");
+    setNotice(message);
   }
   const closeReaderMenu = useCallback(() => setReaderMenu(null), []);
   function readerMenuAction(action: ReaderMenuAction) {
@@ -5612,6 +5652,29 @@ export default function App() {
                 />
                 {t("Show the sound visualizer beside the play button")}
               </label>
+              <label className="check-label">
+                <input
+                  type="checkbox"
+                  checked={prefs.saveCloseButton}
+                  onChange={(e) => patchPrefs({ saveCloseButton: e.target.checked })}
+                />
+                {t("Show the Save place and close button in the player bar")}
+              </label>
+              <label>
+                {t("Save place and close bookmarks")}
+                <select
+                  value={prefs.saveCloseTarget}
+                  disabled={!prefs.saveCloseButton}
+                  onChange={(e) =>
+                    patchPrefs({ saveCloseTarget: e.target.value as Preferences["saveCloseTarget"] })
+                  }
+                >
+                  <option value="previous-start">{t("The start of the previous chapter")}</option>
+                  <option value="previous-end">{t("The end of the previous chapter")}</option>
+                  <option value="current-start">{t("The start of the current chapter")}</option>
+                  <option value="current-sentence">{t("The current sentence")}</option>
+                </select>
+              </label>
               <p className="hint">
                 {t(
                   "The first Play starts sooner. Changing books keeps the loaded voice. Closing Origami releases it.",
@@ -5761,6 +5824,10 @@ export default function App() {
               <summary>OFL.txt</summary>
               <pre className="license-text">{fontLicense}</pre>
             </details>
+          </details>
+          <details>
+            <summary>{t("Globe map credits")}</summary>
+            <pre className="license-text">{globeMapCredits}</pre>
           </details>
         </Section>
       </div>
@@ -8097,7 +8164,16 @@ export default function App() {
           )}
           <footer className="player" inert={otherMode}>
             <div className="now-playing">
-              {page === "reader" && book ? (
+              {page === "reader" && book && prefs.saveCloseButton ? (
+                <button
+                  className="save-close-button"
+                  title={t("Save your place, stop reading aloud and close the book")}
+                  onClick={() => void saveAndClose().catch(error)}
+                >
+                  <Moon size={18} aria-hidden="true" />
+                  <span>{t("Save place and close")}</span>
+                </button>
+              ) : page === "reader" && book ? (
                 <button
                   className="brand player-brand"
                   title={t("Library")}

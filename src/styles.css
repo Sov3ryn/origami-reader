@@ -5006,6 +5006,58 @@ html[data-hidden="true"] .previous-still {
   margin-left: 0;
   min-width: 0;
 }
+/* Save place and close: a large, calm pill for one press at bedtime. */
+.save-close-button {
+  gap: 10px;
+  min-height: 48px;
+  max-width: 100%;
+  padding: 10px 20px 10px 16px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 24%, var(--panel)),
+    color-mix(in srgb, var(--accent) 8%, var(--panel))
+  );
+  box-shadow: 0 4px 14px #0003, inset 0 1px 0 #ffffff14;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+}
+.save-close-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: inherit;
+  font-size: var(--fs-body);
+}
+.save-close-button svg {
+  flex: none;
+  color: var(--accent);
+}
+.save-close-button:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 30%, var(--panel));
+}
+.save-close-button:active {
+  transform: scale(0.97);
+}
+/* The column sizes to nothing in narrow windows; keep the button pressable. */
+.player > .now-playing:has(.save-close-button) {
+  justify-self: stretch;
+  min-width: 48px;
+}
+@container (max-width: 150px) {
+  .save-close-button {
+    padding: 10px 14px;
+  }
+  .save-close-button span {
+    display: none;
+  }
+}
 .player-brand {
   margin: 0;
   font-size: 24px;

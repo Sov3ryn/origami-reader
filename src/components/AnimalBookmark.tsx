@@ -3,7 +3,9 @@ import { bookmarkArt, bookmarkCanvas } from "../bookmarks";
 import { useBookmarkMotion } from "./useBookmarkMotion";
 
 const wolfBody = "M225 0 H780 V245 L745 274 L724 339 H225Z";
-const wolfTail = "M746 265 Q796 288 837 357 Q884 432 874 519 Q873 574 841 620 Q821 656 839 679 Q851 694 862 675 Q881 683 874 707 Q866 749 815 745 Q737 728 718 667 Q687 592 720 513 Q743 458 726 403 Q714 367 711 325Z";
+// Include the transparent margin around the entire gilded tail, not just the fur.
+// The paper ends before x=694; the upper overlap sits behind the haunch.
+const wolfTail = "M770 235 H920 V780 H694 V336 H718 L737 270Z";
 const wolfEar = "M276 0 H345 L372 75 L354 99 L281 105Z";
 const owlBody = "M316 0 H742 V521 H685 V400 H584 V382 H398 V400 H316Z";
 const owlHead = "M325 0 H650 V168 Q642 213 602 235 Q548 252 490 229 Q409 231 352 198Z";
@@ -27,13 +29,23 @@ export function AnimalBookmark({ design, active, stillStyle }: {
         <clipPath id={`${id}-tail`}><path d={wolfTail}/></clipPath>
         <clipPath id={`${id}-ear`}><path d={wolfEar}/></clipPath>
         <clipPath id={`${id}-head`}><path d={owlHead}/></clipPath>
+        <clipPath id={`${id}-feet-join`}>
+          <rect x="225" y={wolf ? 320 : 370} width={wolf ? 469 : 460} height="55"/>
+        </clipPath>
+        <clipPath id={`${id}-neck-join`}><rect x="300" y="178" width="380" height="90"/></clipPath>
         <mask id={`${id}-paper`} maskUnits="userSpaceOnUse" x="0" y="0" width={width} height={height} style={{ maskType: "luminance" }}>
           <rect width={width} height={height} fill="white"/><path d={body} fill="black"/>
+          {/* Keep a narrow underlap at the feet so breathing cannot reveal a cut. */}
+          <path d={body} fill="none" stroke="white" strokeWidth="16" clipPath={`url(#${id}-feet-join)`}/>
           {wolf && <path d={wolfTail} fill="black"/>}
         </mask>
         <mask id={`${id}-face`} maskUnits="userSpaceOnUse" x="0" y="0" width={width} height={height} style={{ maskType: "luminance" }}>
           <rect width={width} height={height} fill="white"/>
-          {wolf ? <path d={wolfEar} fill="black"/> : <rect width={width} height="205" fill="black"/>}
+          {wolf ? <path d={wolfEar} fill="black"/> : <>
+            {/* Match the head silhouette; a rectangular cut removed shoulder feathers. */}
+            <path d={owlHead} fill="black"/>
+            <path d={owlHead} fill="none" stroke="white" strokeWidth="20" clipPath={`url(#${id}-neck-join)`}/>
+          </>}
         </mask>
         <linearGradient id={`${id}-lid`} x1="0" y1="0" x2="0" y2="1">
           <stop stopColor="#ead2a4"/><stop offset="1" stopColor="#ad7a42"/>
