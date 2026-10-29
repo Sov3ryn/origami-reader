@@ -46,6 +46,7 @@ import type { AuthorNote } from "./authors";
 import { fillBookDetails, isUnknownAuthor, loadPack } from "./authorPack";
 import fontLicense from "../public/fonts/opendyslexic/OFL.txt?raw";
 import globeMapCredits from "../public/bookmarks/globe-textures/ATTRIBUTION.txt?raw";
+import coverFontLicenses from "../public/fonts/cover/OFL.txt?raw";
 import appLicense from "../APP-LICENSE.md?raw";
 import sourceLicense from "../LICENSE?raw";
 import { Section, SectionLevel, SectionState } from "./components/Section";
@@ -5829,6 +5830,10 @@ export default function App() {
             <summary>{t("Globe map credits")}</summary>
             <pre className="license-text">{globeMapCredits}</pre>
           </details>
+          <details>
+            <summary>{t("Cover title font licenses")}</summary>
+            <pre className="license-text">{coverFontLicenses}</pre>
+          </details>
         </Section>
       </div>
     );
@@ -8532,6 +8537,15 @@ export default function App() {
                   .then(() =>
                     setCoverEditor((old) =>
                       old ? { ...old, meta: { ...old.meta, coverText } } : old,
+                    ),
+                  )
+                  .catch(error);
+              }}
+              onLettering={(lettering) => {
+                void updateMeta({ ...coverEditor.meta, ...lettering })
+                  .then(() =>
+                    setCoverEditor((old) =>
+                      old ? { ...old, meta: { ...old.meta, ...lettering } } : old,
                     ),
                   )
                   .catch(error);

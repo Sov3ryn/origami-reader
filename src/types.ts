@@ -33,6 +33,9 @@ export type BookMeta = {
   coverImage?: string;
   coverOrigin?: "imported" | "custom" | "generated";
   coverText?: "auto" | "show" | "hide";
+  // Lettering of the title on the cover (coverTitles.ts); unset is automatic.
+  titleStyle?: string;
+  titleInk?: string;
   finished?: boolean;
   // Kept for books that use their own voice; others follow the shared voice.
   voice: string;

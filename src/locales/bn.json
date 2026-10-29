@@ -3086,5 +3086,19 @@
   "Moonwatch owl": "চাঁদের প্রহরী পেঁচা",
   "Fox and key": "শিয়াল ও চাবি",
   "Wisteria moon": "উইস্টেরিয়ার চাঁদ",
-  "Oak and sun": "ওক ও সূর্য"
+  "Oak and sun": "ওক ও সূর্য",
+  "Art deco": "আর্ট ডেকো",
+  "Automatic ({style})": "স্বয়ংক্রিয় ({style})",
+  "Automatic picks the lettering from the book's genres.": "স্বয়ংক্রিয় বিকল্প বইয়ের ধরন দেখে অক্ষর বেছে নেয়।",
+  "Bold thriller": "সাহসী থ্রিলার",
+  "Cover title font licenses": "প্রচ্ছদের শিরোনামের ফন্টের লাইসেন্স",
+  "Cream": "ক্রিম",
+  "Dark ink": "গাঢ় কালি",
+  "Gilded foil": "সোনালি ফয়েল",
+  "Gothic blackletter": "গথিক ব্ল্যাকলেটার",
+  "Lettering colour": "অক্ষরের রং",
+  "Old storybook": "পুরোনো গল্পের বই",
+  "Pressed leather": "চাপা চামড়া",
+  "Romantic script": "রোমান্টিক লিপি",
+  "Title style": "শিরোনামের শৈলী"
 }

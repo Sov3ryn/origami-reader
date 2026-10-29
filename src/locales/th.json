@@ -3086,5 +3086,19 @@
   "Moonwatch owl": "นกฮูกพิทักษ์จันทร์",
   "Fox and key": "จิ้งจอกกับกุญแจ",
   "Wisteria moon": "จันทร์วิสทีเรีย",
-  "Oak and sun": "โอ๊กกับตะวัน"
+  "Oak and sun": "โอ๊กกับตะวัน",
+  "Art deco": "อาร์ตเดโค",
+  "Automatic ({style})": "อัตโนมัติ ({style})",
+  "Automatic picks the lettering from the book's genres.": "โหมดอัตโนมัติเลือกตัวอักษรตามประเภทของหนังสือ",
+  "Bold thriller": "ระทึกขวัญเข้ม",
+  "Cover title font licenses": "สัญญาอนุญาตของฟอนต์ชื่อปก",
+  "Cream": "ครีม",
+  "Dark ink": "หมึกเข้ม",
+  "Gilded foil": "ฟอยล์ทอง",
+  "Gothic blackletter": "อักษรโกธิก",
+  "Lettering colour": "สีตัวอักษร",
+  "Old storybook": "หนังสือนิทานเก่า",
+  "Pressed leather": "หนังปั๊มลาย",
+  "Romantic script": "ลายมือโรแมนติก",
+  "Title style": "สไตล์ชื่อเรื่อง"
 }

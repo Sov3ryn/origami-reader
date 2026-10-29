@@ -50,6 +50,8 @@ const dataFiles = {
   // Store profiles: name, credited narrator and note, and the stores that refuse.
   "studio/production.ts": [/\bname: "((?:[^"\\]|\\.)*)"/g, /\bnarrator: "((?:[^"\\]|\\.)*)"/g, /\bnote: "((?:[^"\\]|\\.)*)"/g, /refusingStores = "((?:[^"\\]|\\.)*)"/g],
   "studio/cast.ts": [/\["[a-z]+", "([A-Z][a-z]+)", "[A-Z][^"]{20,}"\]/g],
+  // Cover title styles and inks: ["id", "Label"].
+  "coverTitles.ts": [/\["[a-z]+", "([A-Z][^"]+)"\]/g],
 };
 // Single-quoted messages, used when the text itself contains double quotes.
 const single = String.raw`'((?:[^'\\]|\\.)*)'`;

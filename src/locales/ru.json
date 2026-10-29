@@ -3086,5 +3086,19 @@
   "Moonwatch owl": "Сова на лунной страже",
   "Fox and key": "Лиса и ключ",
   "Wisteria moon": "Луна глицинии",
-  "Oak and sun": "Дуб и солнце"
+  "Oak and sun": "Дуб и солнце",
+  "Art deco": "Ар-деко",
+  "Automatic ({style})": "Автоматически ({style})",
+  "Automatic picks the lettering from the book's genres.": "В автоматическом режиме шрифт подбирается по жанрам книги.",
+  "Bold thriller": "Броский триллер",
+  "Cover title font licenses": "Лицензии шрифтов для названий на обложках",
+  "Cream": "Кремовый",
+  "Dark ink": "Тёмные чернила",
+  "Gilded foil": "Золотое тиснение",
+  "Gothic blackletter": "Готический шрифт",
+  "Lettering colour": "Цвет букв",
+  "Old storybook": "Старая книга сказок",
+  "Pressed leather": "Тиснёная кожа",
+  "Romantic script": "Романтический курсив",
+  "Title style": "Стиль названия"
 }

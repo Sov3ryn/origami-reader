@@ -1,6 +1,8 @@
 import { t } from "../i18n";
 import { createContext, useContext, type ReactNode } from "react";
 import type { BookMeta } from "../types";
+import { coverTitleInk, coverTitleStyle, titleFit } from "../coverTitles";
+import "../coverTitleFonts.css";
 import {
   Clock,
   ImagePlus,
@@ -58,31 +60,46 @@ export function Cover({
   small?: boolean;
 }) {
   const text = hasCoverText(book, useContext(CoverTextContext));
+  const style = coverTitleStyle(book);
+  const ink = coverTitleInk(book, style);
+  const styled = style !== "classic";
+  const foil = styled && (ink === "gold" || ink === "silver" || ink === "copper") &&
+    style !== "script" && style !== "scifi" && style !== "thriller";
   return (
     <div
       className={
         "cover cover-" +
         book.cover +
         (small ? " small" : "") +
-        (book.coverImage ? " cover-image" : "")
+        (book.coverImage ? " cover-image" : "") +
+        (text
+          ? " title-" + style + (styled ? " styled ink-" + ink : "") + (foil ? " foil" : "")
+          : "")
       }
       aria-hidden="true"
-      style={
-        book.coverImage
+      style={{
+        ...(book.coverImage
           ? {
               backgroundImage:
                 (text
                   ? "linear-gradient(#11182755, #11182705 45%, #111827a0), "
                   : "") + `url("${book.coverImage}")`,
             }
-          : undefined
-      }
+          : {}),
+        ["--title-fit" as string]: titleFit(book.title, style),
+      }}
     >
       {text && (
         <>
           <span className="cover-rule" />
-          <span className="cover-title">{book.title}</span>
-          {!book.coverImage && <img src="/crane.png" alt="" />}
+          <span className="cover-title">
+            <span>{book.title}</span>
+          </span>
+          {styled ? (
+            <span className="cover-ornament" />
+          ) : (
+            !book.coverImage && <img src="/crane.png" alt="" />
+          )}
           <span className="cover-author">{book.author}</span>
         </>
       )}

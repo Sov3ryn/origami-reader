@@ -4,6 +4,7 @@ import { ImagePlus, RefreshCw, X, LoaderCircle } from "lucide-react";
 import type { BookMeta } from "../types";
 import { Cover } from "./Primitives";
 import { coverImage } from "../covers";
+import { autoTitleStyle, titleInks, titleStyles } from "../coverTitles";
 
 export function CoverDialog({
   book,
@@ -12,6 +13,7 @@ export function CoverDialog({
   active,
   busy,
   onText,
+  onLettering,
   idle,
   allowMature,
   starter,
@@ -27,6 +29,7 @@ export function CoverDialog({
   active: boolean;
   busy: boolean;
   onText: (mode: BookMeta["coverText"]) => void;
+  onLettering: (lettering: Pick<BookMeta, "titleStyle" | "titleInk">) => void;
   idle: boolean;
   allowMature: boolean;
   starter: boolean;
@@ -120,6 +123,47 @@ export function CoverDialog({
                 <option value="hide">{t("Hide title and author")}</option>
               </select>
             </label>
+            <label>
+              {t("Title style")}
+              <select
+                value={book.titleStyle || "auto"}
+                onChange={(e) =>
+                  onLettering({
+                    titleStyle: e.target.value === "auto" ? undefined : e.target.value,
+                  })
+                }
+              >
+                <option value="auto">
+                  {t("Automatic ({style})", { style: t(titleStyles.find(([id]) => id === autoTitleStyle(book))![1]) })}
+                </option>
+                {titleStyles.map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {t(name)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              {t("Lettering colour")}
+              <select
+                value={book.titleInk || "auto"}
+                onChange={(e) =>
+                  onLettering({
+                    titleInk: e.target.value === "auto" ? undefined : e.target.value,
+                  })
+                }
+              >
+                <option value="auto">{t("Automatic")}</option>
+                {titleInks.map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {t(name)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="hint">
+              {t("Automatic picks the lettering from the book's genres.")}
+            </p>
             <input
               ref={input}
               type="file"
