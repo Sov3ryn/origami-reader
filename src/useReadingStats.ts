@@ -1,6 +1,7 @@
 import { useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { celebrationsOn, localDay, readingStats } from "./places";
 import { unlockedAll } from "./rewards";
+import { listenForFeats } from "./feats";
 import type { Preferences } from "./types";
 
 const TICK = 5_000;
@@ -40,7 +41,16 @@ export function useReadingStats(
           if (stats.lastReadingDay !== today) {
             stats.readingDays += 1;
             stats.lastReadingDay = today;
+            stats.daySeconds = 0;
           }
+          stats.daySeconds += seconds;
+          // Secret achievements: the hour of reading, and a long day.
+          const hour = now.getHours();
+          const feats = new Set(stats.feats);
+          if (hour < 4) feats.add("midnight");
+          else if (hour < 7) feats.add("early");
+          if (stats.daySeconds >= 2 * 3600) feats.add("marathon");
+          stats.feats = [...feats];
           for (const id of celebrationsOn(now))
             stats.holidaySeconds[id] = (stats.holidaySeconds[id] || 0) + seconds;
         }
@@ -75,6 +85,32 @@ export function useReadingStats(
       window.removeEventListener("pagehide", commit);
       if (pending.current >= 1) commit();
     };
+  }, [ready, setPrefs]);
+  // A part of Origami tried for the first time. "mode-read", "mode-work" and
+  // "mode-studio" count the modes used in a day, for the Wanderer.
+  useEffect(() => {
+    if (!ready) return;
+    const tried = (id: string) => {
+      setPrefs((prefs) => {
+        const stats = readingStats(prefs.readingStats);
+        const feats = new Set(stats.feats);
+        if (id.startsWith("mode-")) {
+          const today = localDay(new Date());
+          const modes = new Set(stats.modesDay === today ? stats.dayModes : []);
+          modes.add(id.slice(5));
+          if (modes.size === stats.dayModes.length && stats.modesDay === today) return prefs;
+          stats.dayModes = [...modes];
+          stats.modesDay = today;
+          if (["read", "work", "studio"].every((m) => modes.has(m))) feats.add("wanderer");
+        } else {
+          if (feats.has(id)) return prefs;
+          feats.add(id);
+        }
+        stats.feats = [...feats];
+        return { ...prefs, readingStats: { ...stats, unlocked: unlockedAll(stats, books.current, prefs) } };
+      });
+    };
+    return listenForFeats(tried);
   }, [ready, setPrefs]);
   // Finishing a book can unlock a place or a theme straight away. On start,
   // the theme, finishes and ribbon already chosen are kept for good.

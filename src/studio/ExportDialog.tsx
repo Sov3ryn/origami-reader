@@ -22,6 +22,7 @@ import {
   type ExportProgress,
   type Production,
 } from "./production";
+import { recordFeat } from "../feats";
 
 // Export: an audiobook (M4B with chapters, or MP3 per chapter), an EPUB and a
 // print PDF. Every file carries the "Made with Origami Reader" credit; audio
@@ -123,6 +124,7 @@ export function ExportDialog({
     }
   }
   async function start() {
+    recordFeat("studio-export");
     setDone(null);
     setStep(t("Starting"));
     setValue(0);

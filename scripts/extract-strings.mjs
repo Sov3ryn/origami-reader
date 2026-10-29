@@ -52,6 +52,8 @@ const dataFiles = {
   "studio/cast.ts": [/\["[a-z]+", "([A-Z][a-z]+)", "[A-Z][^"]{20,}"\]/g],
   // Cover title styles and inks: ["id", "Label"].
   "coverTitles.ts": [/\["[a-z]+", "([A-Z][^"]+)"\]/g],
+  // Achievement names and goals, and the chapter titles: ["id", "Title"].
+  "achievements.ts": [/\bname: "([^"]+)"/g, /\bgoal: "([^"]+)"/g, /\["[a-z]+", "([A-Z][^"]+)"\]/g],
 };
 // Single-quoted messages, used when the text itself contains double quotes.
 const single = String.raw`'((?:[^'\\]|\\.)*)'`;

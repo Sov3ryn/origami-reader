@@ -10,6 +10,7 @@ import { UnlockNote } from "./ThemeGallery";
 import type { BookMeta, Preferences } from "../types";
 import { BookmarkAppearance } from "./BookmarkAppearance";
 import "./bookmarks.css";
+import { recordFeat } from "../feats";
 
 // The 3D book's binding (page edges, spine and cover gilding) and the
 // bookmarks, in their own window apart from the app's theme. With a book, its
@@ -40,6 +41,7 @@ export function BindingMenu({
   const forBook = scope === "book" && book;
   const shown = bindingOf(prefs.binding, forBook ? book.binding : undefined);
   const choose = (part: BindingPart, id: FinishId | undefined) => {
+    recordFeat("binding");
     if (forBook) {
       const next = { ...(book.binding || {}) };
       if (id) next[part] = id;
@@ -171,7 +173,7 @@ export function BindingMenu({
                     data-tip={tip}
                     className={"ribbon-choice" + (hint ? " locked" : "")}
                     style={{ ["--ribbon" as string]: c.value }}
-                    onClick={() => !hint && onPrefs({ ribbonColor: c.id })}
+                    onClick={() => { if (hint) return; recordFeat("binding"); onPrefs({ ribbonColor: c.id }); }}
                   />
                 );
               })}

@@ -37,6 +37,10 @@ export function placeFor(sceneId: string): Place | undefined {
 
 const count = (v: unknown) =>
   typeof v === "number" && Number.isFinite(v) && v > 0 ? v : 0;
+const words = (value: unknown): string[] =>
+  Array.isArray(value)
+    ? [...new Set(value.filter((s): s is string => typeof s === "string" && /^[a-z0-9-]{1,40}$/.test(s)))]
+    : [];
 export function readingStats(value: unknown): ReadingStats {
   const v = (value && typeof value === "object" ? value : {}) as Partial<ReadingStats>;
   const holidays: Record<string, number> = {};
@@ -54,6 +58,10 @@ export function readingStats(value: unknown): ReadingStats {
             (places.some((p) => p.id === id) || /^(theme|finish|ribbon|bookmark):[a-z0-9-]+$/.test(id)),
         )
       : [],
+    feats: words(v.feats),
+    daySeconds: count(v.daySeconds),
+    dayModes: words(v.dayModes),
+    modesDay: typeof v.modesDay === "string" ? v.modesDay : "",
   };
 }
 

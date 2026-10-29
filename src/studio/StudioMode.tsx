@@ -13,6 +13,7 @@ import { studioDemo, studioDemoWanted } from "./devPreview";
 import { PanelResizer } from "../work/PanelResizer";
 import type { SideWidth } from "../components/ModeHeader";
 import "./studio.css";
+import { recordFeat } from "../feats";
 
 const LANGUAGES: Record<string, string> = { en: "english", fr: "french", de: "german", es: "spanish", it: "italian", pt: "portuguese", ru: "russian", ja: "japanese", ko: "korean", zh: "chinese" };
 const languageName = (code?: string) => (code ? LANGUAGES[code.slice(0, 2).toLowerCase()] : undefined);
@@ -428,6 +429,7 @@ export function StudioMode({ open, books, voices, prefs, modeHeader, side }: Pro
             setStartWith("");
           }}
           onCreate={async (bookId, voice) => {
+            recordFeat("studio-production");
             const b = await store.readBook(bookId);
             const p = newProduction(b, prefs, voice);
             await createProduction(p);

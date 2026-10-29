@@ -5,6 +5,7 @@ import type { BookMeta } from "../types";
 import { Cover } from "./Primitives";
 import { coverImage } from "../covers";
 import { autoTitleStyle, titleInks, titleStyles } from "../coverTitles";
+import { recordFeat } from "../feats";
 
 export function CoverDialog({
   book,
@@ -230,6 +231,7 @@ export function CoverDialog({
                 disabled={!installed || !idle || busy || !prompt.trim()}
                 onClick={() => {
                   setError("");
+                  recordFeat("cover");
                   void onGenerate(prompt).catch((e) => setError(String(e)));
                 }}
               >

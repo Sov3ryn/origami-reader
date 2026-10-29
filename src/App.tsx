@@ -168,6 +168,7 @@ import {
   BrainCircuit,
   LibraryBig,
   Vault as VaultIcon,
+  Trophy,
 } from "lucide-react";
 import { PinDialog, type PinRequest } from "./components/PinDialog";
 import { UpdatesPanel } from "./components/UpdatesPanel";
@@ -244,7 +245,10 @@ import { paintWord, playedFraction, rangesFor, wordAt } from "./spokenWord";
 import { useMedia } from "./useMedia";
 import { shelfOf, type Shelf } from "./libraryShelf";
 import { useReadingStats } from "./useReadingStats";
-import { places } from "./places";
+import { recordFeat } from "./feats";
+import { achieved, achievements } from "./achievements";
+import { AchievementsPage } from "./components/AchievementsPage";
+import { places, readingStats } from "./places";
 type ReadingAnchor = {
   bookId: string;
   paragraphId: string;
@@ -911,6 +915,7 @@ export default function App() {
     });
   }
   function startVault() {
+    recordFeat("vault");
     setAddingCollection(false);
     setPinRequest({
       title: t("Create a vault"),
@@ -1451,6 +1456,7 @@ export default function App() {
     else player.toggle();
   }
   function toggleDayNight() {
+    recordFeat("day-night");
     if (!counterpart(prefRef.current.scene)) {
       notify(t("Choose a seasonal scene to switch between day and night."));
       return;
@@ -1641,6 +1647,7 @@ export default function App() {
     books.filter((b) => !b.vault),
   );
   function addCollection() {
+    recordFeat("collection");
     try {
       const name = checkedCollectionName(collectionName, namedCollections);
       patchPrefs({ collections: [...namedCollections, name] });
@@ -1748,6 +1755,7 @@ export default function App() {
   // Back to 0%, as if the book had never been opened. Bookmarks, notes and
   // underlines stay; book mode opens it from the cover again.
   async function startOver(b: BookMeta) {
+    if (bookFinished(b)) recordFeat("full-circle");
     if (
       !window.confirm(
         t(
@@ -1776,6 +1784,7 @@ export default function App() {
     };
   }
   async function importCoverFile(meta: BookMeta, file: File) {
+    recordFeat("cover");
     const image = await coverImage(file);
     if (covers.status(meta.id)) await covers.pause(meta.id);
     const current = (await store.readBook(meta.id)).meta;
@@ -1791,6 +1800,7 @@ export default function App() {
     requestAnimationFrame(() => coverFocus.current?.focus());
   }
   async function chooseCoverImage(image: string) {
+    recordFeat("cover");
     if (!coverEditor) return;
     const current = (await store.readBook(coverEditor.meta.id)).meta;
     const meta = {
@@ -1858,6 +1868,7 @@ export default function App() {
       void store.prepareVoice(id, prefs.speechModel).catch(() => {});
   }
   async function setUniqueVoice(meta: BookMeta, unique: boolean) {
+    if (unique) recordFeat("own-voice");
     const next = {
       ...meta,
       uniqueVoice: unique,
@@ -1925,6 +1936,7 @@ export default function App() {
   }
   // forWork: imported from Work mode, so the documents are work sources.
   async function importFiles(files: FileList | File[], forWork = false) {
+    recordFeat("import");
     setBusy(true);
     let count = 0;
     const failures: string[] = [];
@@ -1987,6 +1999,7 @@ export default function App() {
     if (pack) fillBookDetails(pack, b);
   }
   async function addQuick() {
+    recordFeat("import");
     if (!quickText.trim()) return;
     const b = createBook(
       quickTitle.trim() || "Untitled text",
@@ -2109,6 +2122,32 @@ export default function App() {
     finishedBooks,
     setPrefs,
   );
+  // Achievements for things that are states rather than single actions.
+  useEffect(() => {
+    if (!ready) return;
+    recordFeat("mode-" + appMode);
+  }, [ready, appMode]);
+  useEffect(() => {
+    if (player.status !== "playing") return;
+    recordFeat("listen");
+    if (prefs.speed >= 2) recordFeat("speed");
+  }, [player.status, prefs.speed]);
+  useEffect(() => {
+    if (showShortcuts) recordFeat("shortcuts");
+  }, [showShortcuts]);
+  useEffect(() => {
+    if (focusMode || reading.focusTool !== "off") recordFeat("focus");
+  }, [focusMode, reading.focusTool]);
+  useEffect(() => {
+    if (sleep) recordFeat("sleep-timer");
+  }, [sleep]);
+  // Another reading mode than the one Origami started with.
+  const firstMode = useRef<string | null>(null);
+  useEffect(() => {
+    if (!ready) return;
+    firstMode.current ??= prefs.readingMode;
+    if (prefs.readingMode !== firstMode.current) recordFeat("page-modes");
+  }, [ready, prefs.readingMode]);
   const knownPlaces = useRef<string[] | null>(null);
   const earnedPlaces = prefs.readingStats?.unlocked;
   useEffect(() => {
@@ -2124,6 +2163,26 @@ export default function App() {
           (fresh.length > 1 ? " " + t("{count} more places are ready too.", { count: fresh.length - 1 }) : ""),
       );
   }, [ready, earnedPlaces]);
+  // A notice for each achievement earned while Origami is open; those
+  // already earned when it starts are not announced again.
+  const earnedAchievements = useMemo(() => {
+    const stats = readingStats(prefs.readingStats);
+    return achievements.filter((a) => achieved(a, stats, finishedBooks)).map((a) => a.id);
+  }, [prefs.readingStats, finishedBooks]);
+  const knownAchievements = useRef<string[] | null>(null);
+  useEffect(() => {
+    if (!ready) return;
+    const fresh = knownAchievements.current
+      ? earnedAchievements.filter((id) => !knownAchievements.current!.includes(id))
+      : [];
+    knownAchievements.current = earnedAchievements;
+    const first = achievements.find((a) => a.id === fresh[0]);
+    if (first)
+      setNotice(
+        t("Achievement unlocked: {name}. See what it opens in Achievements.", { name: t(first.name) }) +
+          (fresh.length > 1 ? " " + t("{count} more achievements too.", { count: fresh.length - 1 }) : ""),
+      );
+  }, [ready, earnedAchievements]);
   // On narrow windows only one panel is open at a time, and a click beside it closes it.
   const lastPanel = useRef<"left" | "right">("right");
   useEffect(() => {
@@ -2315,6 +2374,8 @@ export default function App() {
     // Only a note uses the draft and the note being edited: a bookmark or an
     // underline is always new and leaves the draft as it is.
     const isNote = kind === "note";
+    if (kind === "bookmark") recordFeat("bookmark");
+    if (kind === "note" || kind === "sticky") recordFeat("note");
     const a: Annotation = {
       id: (isNote && editing) || crypto.randomUUID(),
       bookId: book.meta.id,
@@ -2355,6 +2416,7 @@ export default function App() {
   // (by default the start of the chapter before the one being read, as the
   // reader may have drifted off during it), stop the voice and close the book.
   async function saveAndClose() {
+    recordFeat("save-close");
     if (!book) return;
     const where = prefs.saveCloseTarget;
     const chapters = contents.filter(
@@ -3696,6 +3758,7 @@ export default function App() {
     );
   }
   function addPronunciation(from: string, to: string, scope: string) {
+    recordFeat("pronunciation");
     if (!from.trim() || !to.trim()) return;
     const bookId = scope === "book" ? bookRef.current?.meta.id : undefined;
     const rule: PronunciationRule = {
@@ -4043,6 +4106,7 @@ export default function App() {
     );
   }
   async function changeLanguage(code: string) {
+    recordFeat("language");
     const loaded = await loadLanguage(code || detectLanguage());
     setUiLanguage(loaded);
     patchPrefs({ uiLanguage: code });
@@ -6392,6 +6456,11 @@ export default function App() {
                         label: "Voices",
                         icon: <AudioLines size={20} />,
                       },
+                      {
+                        id: "achievements",
+                        label: "Achievements",
+                        icon: <Trophy size={20} />,
+                      },
                     ] as const
                   ).map((n) => (
                     <button
@@ -6804,6 +6873,8 @@ export default function App() {
                     t("Bookmarks")
                   ) : page === "voices" ? (
                     t("Voices")
+                  ) : page === "achievements" ? (
+                    t("Achievements")
                   ) : (
                     t("Settings")
                   )}
@@ -7961,6 +8032,12 @@ export default function App() {
                     <div className="wide-notes">{notesPanel()}</div>
                   </>
                 )}
+                {page === "achievements" && (
+                  <AchievementsPage
+                    stats={readingStats(prefs.readingStats)}
+                    completedBooks={finishedBooks}
+                  />
+                )}
                 {page === "voices" && (
                   <div className="voices-page">
                     <div className="page-heading">
@@ -7975,7 +8052,7 @@ export default function App() {
                     </div>
                     <div id="voice-library-panel" role="tabpanel" aria-labelledby="voice-library-tab" hidden={voiceSection !== "library"}>{voiceLibrary()}</div>
                     <div id="voice-create-panel" role="tabpanel" aria-labelledby="voice-create-tab" hidden={voiceSection !== "create"}>
-                      <VoiceStudio active={voiceSection === "create"} onBusy={voiceStudioBusy} beforeGenerate={async () => { await player.unload(); await covers.cancel(); }} onSaved={async () => { await refreshVoices(); }} onUse={(id) => { setVoiceSoon(id); setVoiceSection("library"); void refreshVoices().catch(error); }} onModels={() => { patchPrefs({ settingsCategory: "models" }); setPage("settings"); }}/>
+                      <VoiceStudio active={voiceSection === "create"} onBusy={voiceStudioBusy} beforeGenerate={async () => { await player.unload(); await covers.cancel(); }} onSaved={async () => { recordFeat("voice-save"); await refreshVoices(); }} onUse={(id) => { setVoiceSoon(id); setVoiceSection("library"); void refreshVoices().catch(error); }} onModels={() => { patchPrefs({ settingsCategory: "models" }); setPage("settings"); }}/>
                     </div>
                   </div>
                 )}

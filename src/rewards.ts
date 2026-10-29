@@ -1,21 +1,20 @@
-// Themes, binding finishes and bookmark ribbons earned by using Origami. A
-// few of each are open from the start (including both high contrast themes);
-// the rest unlock with reading time, reading days, finished books or
-// celebration places, a little harder than the places. Supporting Origami
-// unlocks everything at once, places included, and achievements keep
-// counting. Earned items never lock again, and whatever is already chosen
-// stays available.
+// Themes, binding finishes, ribbon colours and bookmarks earned by using
+// Origami. A few of each are open from the start (including both high
+// contrast themes); the rest come with achievements (achievements.ts): reading
+// time, days, finished books and celebrations, or trying parts of the app.
+// Supporting Origami unlocks everything at once, places included, and
+// achievements keep counting. Earned items never lock again, and whatever is
+// already chosen stays available.
+import { achieved, achievements, type Achievement } from "./achievements";
+import { t } from "./i18n";
 import {
-  goalProgress,
   places,
   requirementHint,
   unlockedPlaces,
-  type GoalMetric,
 } from "./places";
 import type { Preferences, ReadingStats } from "./types";
 
 export type RewardKind = "theme" | "finish" | "ribbon" | "bookmark";
-export type Requirement = { metric: GoalMetric; value: number };
 
 // Donations are not linked to the app yet, so supporter unlocks can only be
 // previewed in development builds. There, setting localStorage
@@ -34,74 +33,21 @@ export const freeFinishes = ["plain"];
 // The default bookmark, so every reader starts with one that moves.
 export const freeBookmarks = ["plum-crane-ribbon"];
 
-const h = (n: number): Requirement => ({ metric: "activeSeconds", value: n * 3600 });
-const days = (n: number): Requirement => ({ metric: "distinctReadingDays", value: n });
-const books = (n: number): Requirement => ({ metric: "completedBooks", value: n });
-const parties = (n: number): Requirement => ({ metric: "celebrations", value: n });
-
-// Each step: the goal, then the themes, finishes and ribbons it unlocks. Dark
-// and light themes come in pairs.
-export const ladder: [Requirement, string[], string[], string[], string[]?][] = [
-  [h(2), ["lake", "sage"], [], []],
-  [h(3), [], [], [], ["midnight-moth-ribbon"]],
-  [days(5), [], [], [], ["silver-fox-ribbon"]],
-  [days(3), ["forest", "sky"], [], ["amber", "blue", "rose"], ["lavender-botanical-paper"]],
-  [h(5), ["navy", "lavender"], ["silver"], [], ["midnight-moon-leather"]],
-  [h(8), [], [], [], ["pressed-wildflowers-paper"]],
-  [h(10), [], [], [], ["autumn-herbarium-paper"]],
-  [h(18), [], [], [], ["gilded-stag-leather"]],
-  [h(30), [], [], [], ["ember-dragon-leather"]],
-  [books(2), ["copper", "rose"], [], [], ["forest-gold-pennant"]],
-  [h(22), [], [], [], ["twilight-wisteria-pennant"]],
-  [h(28), [], [], [], ["sunlit-orchard-pennant"]],
-  [days(10), ["nordic", "nordic-snow"], [], ["mint", "cyan", "slate"], ["origami-crane-blossoms"]],
-  [h(32), [], [], [], ["origami-fox-maple"]],
-  [h(38), [], [], [], ["origami-koi-lotus"]],
-  [h(12), ["indigo", "seafoam"], [], [], ["sleeping-cat-stars"]],
-  [h(16), [], [], [], ["moonlit-wolf"]],
-  [days(14), [], [], [], ["woodland-owl"]],
-  [parties(1), ["coral", "apricot"], [], []],
-  [books(4), [], ["copper"], ["orange", "red", "pink"], ["gothic-castle-window"]],
-  [h(42), [], [], [], ["moonlit-abbey-window"]],
-  [h(50), [], [], [], ["ember-citadel-window"]],
-  [h(20), ["olive", "olive-paper"], [], [], ["sage-lily-leaf"]],
-  [h(24), [], [], [], ["copper-ginkgo-leaf"]],
-  [h(34), [], [], [], ["midnight-lotus-leaf"]],
-  [days(20), ["burgundy", "berry"], ["gunmetal"], [], ["brass-feather"]],
-  [h(40), [], [], [], ["moonlit-raven-feather"]],
-  [h(48), [], [], [], ["peacock-plume-feather"]],
-  [h(36), [], [], [], ["library-earth-globe"]],
-  [h(44), [], [], [], ["selenograph-moon-globe"]],
-  [h(52), [], [], [], ["observatory-mars-globe"]],
-  [h(56), [], [], [], ["sands-of-time"]],
-  [h(58), [], [], [], ["measure-of-time"]],
-  [h(59), [], [], [], ["wandering-blue-box"]],
-  [books(6), ["amber", "honey"], [], [], ["crane-charm-hook"]],
-  [h(46), [], [], [], ["moonwatch-owl-hook"]],
-  [h(54), [], [], [], ["fox-key-hook"]],
-  [h(35), ["teahouse", "stone"], [], ["plum", "olive", "lavender"], ["silver-celestial-sword"]],
-  [h(25), [], [], [], ["gilded-thorn-dagger"]],
-  [h(45), [], [], [], ["moonveil-spear"]],
-  [parties(3), ["petrol", "newsprint"], ["rose-gold"], []],
-  [days(45), ["ember", "peach"], [], []],
-  [h(60), ["orchid", "crimson"], [], [], ["gold-ivy-moon-filigree"]],
-  [h(55), [], [], [], ["silver-wisteria-moon-filigree"]],
-  [h(57), [], [], [], ["copper-oak-sun-filigree"]],
-  [books(12), ["aurora", "mossrose"], [], []],
-  [h(150), [], ["gold"], []],
-];
-
 export const rewardId = (kind: RewardKind, id: string) => kind + ":" + id;
-const goals = new Map<string, Requirement>();
-for (const [goal, themes, finishes, ribbons, bookmarks = []] of ladder) {
-  for (const id of themes) goals.set(rewardId("theme", id), goal);
-  for (const id of finishes) goals.set(rewardId("finish", id), goal);
-  for (const id of ribbons) goals.set(rewardId("ribbon", id), goal);
-  for (const id of bookmarks) goals.set(rewardId("bookmark", id), goal);
+// The reward ids of an achievement.
+export function rewardsOf(a: Achievement): string[] {
+  return [
+    ...(a.themes || []).map((id) => rewardId("theme", id)),
+    ...(a.finishes || []).map((id) => rewardId("finish", id)),
+    ...(a.ribbons || []).map((id) => rewardId("ribbon", id)),
+    ...(a.bookmarks || []).map((id) => rewardId("bookmark", id)),
+  ];
 }
+const goals = new Map<string, Achievement>();
+for (const a of achievements) for (const id of rewardsOf(a)) goals.set(id, a);
 
-/** The goal that unlocks an item, or undefined when it is open to everyone. */
-export function requirementOf(kind: RewardKind, id: string): Requirement | undefined {
+/** The achievement that unlocks an item, or undefined when it is open to everyone. */
+export function requirementOf(kind: RewardKind, id: string): Achievement | undefined {
   return goals.get(rewardId(kind, id));
 }
 
@@ -117,8 +63,12 @@ export function placeOpen(id: string, stats: ReadingStats, supporter = isSupport
 
 /** How to unlock an item and how far along the reader is. */
 export function rewardHint(kind: RewardKind, id: string, stats: ReadingStats, completedBooks: number) {
-  const goal = requirementOf(kind, id);
-  return goal ? requirementHint(goal.metric, goal.value, stats, completedBooks) : null;
+  const a = requirementOf(kind, id);
+  if (!a) return null;
+  if (a.metric) return requirementHint(a.metric, a.value!, stats, completedBooks);
+  return a.secret
+    ? { how: t("A secret achievement. Keep exploring Origami."), progress: "" }
+    : { how: t(a.goal), progress: t("Achievement: {name}", { name: t(a.name) }) };
 }
 
 // The ids of the items chosen now, so updating Origami never takes away a
@@ -135,12 +85,15 @@ function chosen(prefs: Preferences): string[] {
 }
 
 /** Places, then earned and kept items: what stats.unlocked should hold. */
-export function unlockedAll(stats: ReadingStats, completedBooks: number, prefs?: Preferences): string[] {
+export function unlockedAll(stats: ReadingStats, completedBooks: number, prefs?: Preferences, supporter = isSupporter()): string[] {
   const withPlaces = { ...stats, unlocked: unlockedPlaces(stats, completedBooks) };
   const ids = new Set(withPlaces.unlocked);
-  for (const [id, goal] of goals)
-    if (goalProgress(goal.metric, withPlaces, completedBooks) >= goal.value) ids.add(id);
-  if (prefs) for (const id of chosen(prefs)) ids.add(id);
+  for (const a of achievements)
+    if (achieved(a, withPlaces, completedBooks)) for (const id of rewardsOf(a)) ids.add(id);
+  // Development builds open everything, so a choice made there is not one
+  // the reader earned; keeping it would unlock it in the installed app too,
+  // which shares the same data folder.
+  if (prefs && !supporter) for (const id of chosen(prefs)) ids.add(id);
   return [...ids];
 }
 

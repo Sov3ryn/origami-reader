@@ -21,6 +21,7 @@ import {
   type VoiceRecording,
   type VoiceStatus,
 } from "./voice";
+import { recordFeat } from "../../feats";
 
 // What voice note blocks need from Work mode: saving and loading recordings
 // for the open note (they follow its vault and workspace).
@@ -84,6 +85,7 @@ function VoiceView({ node, updateAttributes, deleteNode, editor, getPos, selecte
   const model = pickModel(status);
 
   async function record() {
+    recordFeat("work-scribe");
     if (!voiceAvailable()) return world?.notify(t("Recording is not available on this computer."));
     try {
       recorder.current = await startRecording();

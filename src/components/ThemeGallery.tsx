@@ -14,6 +14,7 @@ import { places, placeSceneId, readingStats, unlockHint, type Place } from "../p
 import { bookFinished } from "../libraryFilters";
 import { isOpen, placeOpen, placesOpen, rewardHint } from "../rewards";
 import type { BookMeta, Preferences } from "../types";
+import { recordFeat } from "../feats";
 
 // Colour themes grouped by how bright their background is.
 const brightness = (hex: string) => {
@@ -211,7 +212,7 @@ export function ThemeGallery({
                   undefined,
                   backgroundImage(s),
                   prefs.scene === s.id,
-                  () => onChange({ scene: s.id, backgroundMode: "manual" }),
+                  () => { recordFeat("restyle"); onChange({ scene: s.id, backgroundMode: "manual" }); },
                   { className: "preview-" + s.id },
                 ),
               )}
@@ -249,7 +250,7 @@ export function ThemeGallery({
                         aria-pressed={locked ? undefined : chosen}
                         aria-disabled={locked ? true : undefined}
                         aria-describedby={hint ? "theme-hint-" + th.id : undefined}
-                        onClick={() => !locked && onChange({ theme: th.id })}
+                        onClick={() => { if (locked) return; recordFeat("restyle"); onChange({ theme: th.id }); }}
                         style={{ background: th.bg, color: th.ink, borderColor: th.line }}
                       >
                         <span className="color-panel" style={{ background: th.panel, borderColor: th.line }} aria-hidden="true">

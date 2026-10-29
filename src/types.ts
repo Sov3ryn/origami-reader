@@ -1,5 +1,5 @@
 import type { Binding } from "./binding";
-export type Page = "library" | "reader" | "bookmarks" | "voices" | "settings";
+export type Page = "library" | "reader" | "bookmarks" | "voices" | "achievements" | "settings";
 export type InspectorTab =
   "selection" | "notes" | "voice" | "appearance" | "document";
 export type Paragraph = {
@@ -362,6 +362,12 @@ export type ReadingStats = {
   lastReadingDay: string;
   holidaySeconds: Record<string, number>;
   unlocked: string[];
+  // Parts of Origami tried at least once, for achievements (feats.ts).
+  feats: string[];
+  // Reading seconds on lastReadingDay, and the modes used on modesDay.
+  daySeconds: number;
+  dayModes: string[];
+  modesDay: string;
 };
 export const emptyReadingStats: ReadingStats = {
   activeSeconds: 0,
@@ -369,6 +375,10 @@ export const emptyReadingStats: ReadingStats = {
   lastReadingDay: "",
   holidaySeconds: {},
   unlocked: [],
+  feats: [],
+  daySeconds: 0,
+  dayModes: [],
+  modesDay: "",
 };
 export const defaultPreferences: Preferences = {
   theme: "plum",

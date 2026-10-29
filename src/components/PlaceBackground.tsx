@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import "../places/origami-backgrounds.js";
 import type { Place } from "../places";
+import { recordFeat } from "../feats";
 
 type BackgroundElement = HTMLElement & { useScene(entry: unknown): void };
 
@@ -18,6 +19,10 @@ export function PlaceBackground({
 }) {
   const host = useRef<HTMLDivElement>(null);
   const element = useRef<BackgroundElement | null>(null);
+  // A secret achievement: fireworks seen over a place that has them.
+  useEffect(() => {
+    if (motion && fireworks && place.effects.some((e) => e.type === "fireworks")) recordFeat("fireworks");
+  }, [place, motion, fireworks]);
   useEffect(() => {
     const el = document.createElement("origami-background") as BackgroundElement;
     el.className = "place-background";

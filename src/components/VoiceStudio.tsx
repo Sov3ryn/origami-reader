@@ -42,6 +42,7 @@ import {
 } from "../voiceDesign";
 import { t } from "../i18n";
 import "./voiceStudio.css";
+import { recordFeat } from "../feats";
 
 const emptyState: StudioState = { installed: false, busy: false, previews: [] };
 const seconds = (n: number) =>
@@ -212,6 +213,7 @@ export function VoiceStudio({
     setSpec((s) => ({ ...s, ...value }));
   async function generate() {
     if (error || busy) return;
+    recordFeat("voice-generate");
     setWorking(true);
     setElapsed(0);
     setMessage("");

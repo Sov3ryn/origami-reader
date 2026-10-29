@@ -75,6 +75,7 @@ import { ExportDialog } from "./ExportDialog";
 import { PanelResizer, rememberWidth, rememberedWidth } from "../work/PanelResizer";
 import type { SideWidth } from "../components/ModeHeader";
 import { useMedia } from "../useMedia";
+import { recordFeat } from "../feats";
 
 type Filter = "all" | "review" | "pending" | "speaker";
 const uncertainSpeaker = (u: ProductionUnit) => Boolean(u.speech) && (u.confidence ?? 1) < 0.7;
@@ -291,6 +292,7 @@ export function ProductionView({
   }
   // Generates the pending lines in the chosen scope: a page, a chapter, chapters or the book.
   function generate() {
+    recordFeat("studio-generate");
     const ids = scopeUnits(units, scope, { chapter, selected }).filter((u) => u.status === "pending").map((u) => u.id);
     if (!ids.length) return setStatus(t("Every line here already has audio."));
     void render({ units: ids, label: scopeLabel(scope, chapterName, chapter) });
@@ -491,6 +493,7 @@ export function ProductionView({
     await saveUnits(changed);
   }
   async function setCharacterVoice(character: string, voice: string) {
+    recordFeat("studio-cast");
     const cast = (info.cast || []).map((c) => (c.id === character ? { ...c, voice } : c));
     const nextInfo = { ...info, cast, updated: Date.now() };
     await saveProductionInfo(nextInfo);

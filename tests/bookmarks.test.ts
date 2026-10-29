@@ -4,6 +4,7 @@ import { bookUnits } from "../src/usePlayer";
 import { defaultPreferences, type Book, type Annotation } from "../src/types";
 import { emptyReadingStats } from "../src/places";
 import { freeBookmarks, isOpen, requirementOf, unlockedAll } from "../src/rewards";
+import { achievements } from "../src/achievements";
 
 const text = "The house was silent when she arrived. A small cat slept beside the fire. Outside, the rain had stopped.";
 const start = text.indexOf("A small");
@@ -38,7 +39,8 @@ describe("physical bookmark anchors", () => {
       expect(isOpen("bookmark", id, emptyReadingStats, false)).toBe(free);
       expect(isOpen("bookmark", id, emptyReadingStats, true)).toBe(true);
     }
-    const unlocked = unlockedAll({ ...emptyReadingStats, activeSeconds: 60 * 3600, readingDays: 20 }, 6);
+    const feats = achievements.flatMap((a) => (a.feat ? [a.feat] : []));
+    const unlocked = unlockedAll({ ...emptyReadingStats, activeSeconds: 100 * 3600, readingDays: 60, feats }, 20);
     for (const [id] of bookmarkDesigns)
       if (!freeBookmarks.includes(id)) expect(unlocked).toContain("bookmark:" + id);
   });

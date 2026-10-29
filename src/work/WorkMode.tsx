@@ -163,6 +163,7 @@ import "./work-theme.css";
 import "./work-sheets.css";
 import "./work-embeds.css";
 import "./work-blocks.css";
+import { recordFeat } from "../feats";
 
 type View =
   | { kind: "today" }
@@ -407,6 +408,7 @@ export function WorkMode({
   // "Tutorial"; anyone who already has notes gets it as a workspace of its
   // own (their notes are never moved). "Add the tour again" makes a new copy.
   async function addTutorial(again = false) {
+    recordFeat("work-tutorial");
     if (seeding.current) return;
     seeding.current = true;
     try {
@@ -535,6 +537,7 @@ export function WorkMode({
   }, [current?.id, put]);
 
   async function createNote(fields: Partial<Note> = {}) {
+    recordFeat("work-note");
     const now = Date.now();
     const note: Note = {
       id: crypto.randomUUID(),
@@ -885,6 +888,7 @@ export function WorkMode({
   }
   const noteEditor = useRef<Editor | null>(null);
   async function createSheet(fields: Partial<SheetDoc> = {}, rows: CellValue[][] = []) {
+    recordFeat("work-plan");
     const now = Date.now();
     const title = fields.title || t("Untitled sheet");
     const sheet: SheetDoc = {
@@ -905,6 +909,7 @@ export function WorkMode({
   const plans = data?.plans || [];
   const currentPlan = view.kind === "plan" ? plans.find((x) => x.id === view.id) : undefined;
   async function createPlan(fields: Partial<PlanDoc> = {}, open = true) {
+    recordFeat("work-plan");
     const now = Date.now();
     const imperial = /^en-US/.test(navigator.language);
     const plan: PlanDoc = {
@@ -1031,6 +1036,7 @@ export function WorkMode({
   const boards = data?.boards || [];
   const currentBoard = view.kind === "board" ? boards.find((x) => x.id === view.id) : undefined;
   async function createBoard(fields: Partial<BoardDoc> = {}) {
+    recordFeat("work-plan");
     const now = Date.now();
     const board: BoardDoc = {
       id: crypto.randomUUID(),
@@ -1372,6 +1378,7 @@ export function WorkMode({
 
   const relatedHeading = t("Related");
   function linkDoc(doc: DocInfo) {
+    recordFeat("work-link");
     const now = current && noteNow(current.id);
     if (!now) return;
     if (doc.kind === "note") {
@@ -1387,6 +1394,7 @@ export function WorkMode({
     bump(now.id);
   }
   function quoteInto(given: Note, p: DraggedPassage) {
+    recordFeat("work-link");
     const note = noteNow(given.id) || given;
     const html =
       note.html +
@@ -1443,6 +1451,7 @@ export function WorkMode({
     return out;
   }
   async function confirmLinks(accepted: Proposal[], rejected: Proposal[]) {
+    if (accepted.length) recordFeat("work-link");
     const d = dataRef.current;
     if (!d) return;
     const byNote = new Map<string, string[]>();
@@ -1493,6 +1502,7 @@ export function WorkMode({
     notify(t("Card saved. It joins your next study session."));
   }
   function study(list: StudyCard[], title: string) {
+    recordFeat("study");
     if (!list.length) return notify(t("No cards are due here right now."));
     setView({ kind: "study", cards: list, title, back: view.kind === "study" ? view.back : view });
   }
@@ -1503,6 +1513,7 @@ export function WorkMode({
     return [...today, ...examCards(cards, subjects).filter((c) => !ids.has(c.id))];
   }, [cards, newPerDay, subjects]);
   function practise(list: StudyCard[], title: string) {
+    recordFeat("practice");
     setView((v) => ({ kind: "practice", cards: list, title, back: v.kind === "practice" ? v.back : v }));
   }
   function shareCards(list: StudyCard[], title: string) {

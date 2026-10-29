@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { INK_WIDTH, inkBounds, inkColor, strokePath, strokesNear, type InkData, type InkStroke, type InkTool } from "./ink";
+import { recordFeat } from "../../feats";
 
 export type PadTool = InkTool | "eraser";
 export type PadSettings = { tool: PadTool; color: string; highlight: string; size: number; finger: boolean };
@@ -92,6 +93,7 @@ export function InkPad({
   const radius = () => 14 * (INK_WIDTH / (box.current?.getBoundingClientRect().width || INK_WIDTH));
 
   function down(e: React.PointerEvent) {
+    recordFeat("work-scribe");
     if (!editing) return;
     if (e.pointerType === "pen") notePen();
     if (e.pointerType === "touch" && (!settings.finger || Date.now() - penSeen.current < 1500)) return;

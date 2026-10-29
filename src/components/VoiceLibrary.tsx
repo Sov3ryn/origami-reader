@@ -23,6 +23,7 @@ import type { ModelVersion } from "../storage";
 import * as store from "../storage";
 import { emptyVoiceFilters, filterVoices, type VoiceFilters } from "../voiceCatalog";
 import "./voiceLibrary.css";
+import { recordFeat } from "../feats";
 
 // A sentence each voice says when previewed, in its own language.
 const previewLines: Record<string, string> = {
@@ -145,6 +146,7 @@ export function VoiceLibrary(props: Props) {
     }
   }
   async function download(v: Voice) {
+    recordFeat("voice-download");
     setProblem("");
     setFetching(v.id);
     try {
