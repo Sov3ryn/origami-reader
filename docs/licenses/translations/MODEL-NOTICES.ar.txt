@@ -1,0 +1,130 @@
+Origami Reader: النماذج والأصوات
+================================
+
+نماذج الذكاء الاصطناعي التي يثبّتها Origami Reader أو ينزّلها من صنع آخرين،
+وتحتفظ بتراخيصها الخاصة. ولا تشملها تراخيص Origami (LICENSE وAPP-LICENSE.md)،
+ولا تنتقص هذه التراخيص من أي حق تمنحك إياه تراخيص تلك النماذج. وحيثما يثبّت
+Origami نموذجًا، توضع نسخة من ترخيصه أو إشعاره بجانب ملفات النموذج. كما تتوفر
+النصوص الكاملة لكل من Apache License 2.0 وترخيص CreativeML OpenRAIL-M
+وStability AI Community License في الإعدادات، حول التطبيق والدعم، حقوق النشر
+والتراخيص.
+
+تُنزَّل النماذج من ناشريها (Hugging Face في الغالب) بمراجعات ثابتة، ويُتحقق
+منها بمطابقتها مع بصمة SHA-256 قبل الاستخدام. وتعني عبارة "دون تعديل" أدناه أن
+الملفات المنشورة تُستخدم كما هي.
+
+
+الكلام
+------
+
+Qwen3-TTS 12Hz 0.6B Base وQwen3-TTS 12Hz 1.7B Base وQwen3-TTS 12Hz 1.7B
+VoiceDesign، من فريق Qwen، Alibaba Cloud.
+  الترخيص: Apache License 2.0. دون تعديل.
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 وKitten TTS Micro 0.8، من KittenML.
+  الترخيص: Apache License 2.0. دون تعديل.
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M وملفات أصواته، من hexgrad.
+  الترخيص: Apache License 2.0. دون تعديل.
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+يعمل Kitten وKokoro في القارئ الخفيف (workers/light_tts.py)، وهو برنامج منفصل
+يخضع لـ GNU General Public License الإصدار 3 أو أي إصدار لاحق لأنه يستخدم
+phonemizer وespeak-ng. انظر "القارئ الخفيف" في الإعدادات
+وworkers/LIGHT-READER-SOURCE.txt.
+
+أصوات Origami. الأصوات المرفقة مع Origami (حزم الأصوات ومكتبة الأصوات) أصوات
+اصطناعية صمّمها Sov3ryn باستخدام Qwen VoiceDesign انطلاقًا من أوصاف مكتوبة.
+وهي ليست تسجيلات لأشخاص حقيقيين، ولم تُصنع لتقليد أي شخص. وهي جزء من التطبيق
+ويشملها APP-LICENSE.md.
+
+
+القراءة والملاحظات
+------------------
+
+TrOCR base handwritten، من Microsoft (التعرّف على خط اليد).
+  الترخيص: MIT. Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  تصدير ONNX مُكمَّم من Xenova: https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2، من IBM (الملاحظات ذات الصلة والبحث).
+  الترخيص: Apache License 2.0. ملفات ONNX مُكمَّمة نشرتها IBM.
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base وWhisper small، من OpenAI (تحويل الكلام إلى نص، عند تنزيلهما).
+  الترخيص: MIT. Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  تصديرات ONNX من ONNX Community: https://huggingface.co/onnx-community
+
+
+الصور
+-----
+
+DreamShaper 8 LCM، من Lykon (الأغلفة والصور الشخصية). الترخيص:
+CreativeML OpenRAIL-M. نقطة حفظ (checkpoint) دون تعديل، إصدار Civitai رقم
+252914، SHA-256
+A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3.
+https://huggingface.co/Lykon/dreamshaper-8-lcm تنطبق قيود الاستخدام الواردة في
+القسم 5 وفي الملحق A (Attachment A) من الترخيص عليك، وعلى أي شيء تصنعه
+بالنموذج، وعلى أي شخص تشارك النموذج معه. وأنت تقبلها قبل تثبيت النموذج أو
+تنزيله.
+
+SD-Turbo، من Stability AI (الأغلفة والصور الشخصية).
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  (نموذج Stability AI هذا مرخّص بموجب Stability AI Community License، حقوق
+  النشر © Stability AI Ltd. جميع الحقوق محفوظة.)
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  عدّله Origami: تُحوَّل الأوزان الأصلية على جهاز الكمبيوتر الخاص بك إلى ملف
+  GGUF واحد بدقة الفاصلة العائمة 16 بت (sd-turbo-f16.gguf) كي يتمكن
+  stable-diffusion.cpp من تحميلها. ولا يُعاد تدريبها.
+  أنت تقبل الترخيص، بما في ذلك سياسة الاستخدام المقبول (Acceptable Use Policy)
+  الخاصة به، قبل تثبيت النموذج أو تنزيله.
+
+SD 1.5 + LCM وSDXL-Lightning وZ-Image-Turbo مدرجة في الإعدادات، النماذج، لكن
+Origami لا ينزّلها. وإذا أضفتها بنفسك، تنطبق عليها تراخيصها الخاصة
+(CreativeML OpenRAIL-M وCreativeML Open RAIL++-M وApache 2.0).
+
+
+Studio
+------
+
+Ministral 3 8B Instruct 2512 وMinistral 3 3B Instruct 2512، من Mistral AI
+(العثور على الشخصيات والمتحدثين).
+  الترخيص: Apache License 2.0.
+  تكميمات GGUF Q4_K_M من Unsloth:
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3، من NVIDIA (تحويل التسجيلات إلى نص).
+  الترخيص: Creative Commons Attribution 4.0 International (CC BY 4.0)،
+  https://creativecommons.org/licenses/by/4.0/
+  النموذج الأصلي: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  تصدير ONNX من istupakov: https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  التغييرات: كمّم Sov3ryn المُرمِّز (encoder) إلى أعداد صحيحة بطول 8 بت من أجل
+  Origami (parakeet-tdt-0.6b-v3-encoder.int8.onnx). أما مفكّك الترميز
+  (decoder) والمفردات فهي ملفات تصدير ONNX نفسها، دون تعديل. ولا يُفهم من ذلك
+  أي تأييد من NVIDIA.
+
+AudioSeal، من Meta (العلامة المائية الصوتية على صادرات Studio).
+  الترخيص: MIT، للشيفرة ولأوزان النموذج.
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  التغييرات: صدّر Sov3ryn المولِّد والكاشف بدقة 16 بت إلى ONNX
+  (audioseal_generator_5s.onnx وaudioseal_detector_5s.onnx).
+
+
+ما تصنعه
+--------
+
+السرد والأصوات والصور وتحديد المتحدثين والنصوص المُفرَّغة تصنعها نماذج ذكاء
+اصطناعي، وقد تكون خاطئة. وتُوسَم صادرات Studio بأنها مُولَّدة بالذكاء
+الاصطناعي (عبارة النسبة "Made with Origami Reader"، والبيانات الوصفية الخاصة
+بالذكاء الاصطناعي، وبالنسبة إلى الصوت، علامة AudioSeal المائية). وتنطبق تراخيص
+النماذج، بما في ذلك قيود الاستخدام الواردة فيها، على ما تصنعه بها.

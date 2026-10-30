@@ -1,0 +1,136 @@
+Origami Reader: mô hình và giọng đọc
+====================================
+
+Các mô hình AI mà Origami Reader cài đặt hoặc tải xuống do người khác tạo ra và
+giữ giấy phép riêng của chúng. Các giấy phép của Origami (LICENSE và
+APP-LICENSE.md) không áp dụng cho các mô hình này và không tước bỏ bất kỳ quyền
+nào mà giấy phép của chúng trao cho bạn. Khi Origami cài đặt một mô hình, một
+bản sao giấy phép hoặc thông báo của mô hình đó được đặt bên cạnh các tệp mô
+hình. Toàn văn Apache License 2.0, giấy phép CreativeML OpenRAIL-M và Stability
+AI Community License cũng có trong Cài đặt, Giới thiệu và hỗ trợ, Bản quyền và
+giấy phép.
+
+Các mô hình được tải xuống từ nhà phát hành của chúng (chủ yếu là Hugging Face)
+ở các bản sửa đổi (revision) cố định và được đối chiếu với dấu vân tay SHA-256
+trước khi sử dụng. "Không sửa đổi" dưới đây có nghĩa là các tệp đã phát hành
+được sử dụng nguyên trạng.
+
+
+GIỌNG NÓI
+---------
+
+Qwen3-TTS 12Hz 0.6B Base, Qwen3-TTS 12Hz 1.7B Base và Qwen3-TTS 12Hz 1.7B
+VoiceDesign, do nhóm Qwen, Alibaba Cloud tạo ra.
+  Giấy phép: Apache License 2.0. Không sửa đổi.
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 và Kitten TTS Micro 0.8, do KittenML tạo ra.
+  Giấy phép: Apache License 2.0. Không sửa đổi.
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M và các tệp giọng đọc của nó, do hexgrad tạo ra.
+  Giấy phép: Apache License 2.0. Không sửa đổi.
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+Kitten và Kokoro chạy trong trình đọc nhẹ (workers/light_tts.py), một chương
+trình riêng biệt theo GNU General Public License phiên bản 3 hoặc mới hơn vì
+chương trình này sử dụng phonemizer và espeak-ng. Xem "Trình đọc nhẹ" trong
+Cài đặt và workers/LIGHT-READER-SOURCE.txt.
+
+Giọng đọc Origami. Các giọng đọc đi kèm Origami (các gói giọng đọc và thư viện
+giọng đọc) là giọng tổng hợp do Sov3ryn thiết kế bằng Qwen VoiceDesign dựa trên
+các mô tả bằng văn bản. Chúng không phải là bản ghi âm của người thật và không
+được tạo ra để bắt chước bất kỳ ai. Chúng là một phần của ứng dụng và thuộc
+phạm vi của APP-LICENSE.md.
+
+
+ĐỌC VÀ GHI CHÚ
+--------------
+
+TrOCR base handwritten, do Microsoft tạo ra (nhận dạng chữ viết tay).
+  Giấy phép: MIT. Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  Bản xuất ONNX lượng tử hóa của Xenova: https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2, do IBM tạo ra (ghi chú liên quan và tìm
+kiếm).
+  Giấy phép: Apache License 2.0. Các tệp ONNX lượng tử hóa do IBM phát hành.
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base và Whisper small, do OpenAI tạo ra (chuyển giọng nói thành văn
+bản, khi được tải xuống).
+  Giấy phép: MIT. Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  Bản xuất ONNX của ONNX Community: https://huggingface.co/onnx-community
+
+
+HÌNH ẢNH
+--------
+
+DreamShaper 8 LCM, do Lykon tạo ra (ảnh bìa và chân dung). Giấy phép:
+CreativeML OpenRAIL-M. Checkpoint không sửa đổi, phiên bản Civitai 252914,
+SHA-256 A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3.
+https://huggingface.co/Lykon/dreamshaper-8-lcm Các hạn chế sử dụng trong mục 5
+và Attachment A (Phụ lục A) của giấy phép áp dụng cho bạn, cho mọi thứ bạn tạo
+ra bằng mô hình và cho bất kỳ ai mà bạn chia sẻ mô hình. Bạn chấp nhận các hạn
+chế này trước khi mô hình được cài đặt hoặc tải xuống.
+
+SD-Turbo, do Stability AI tạo ra (ảnh bìa và chân dung).
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  (Mô hình Stability AI này được cấp phép theo Stability AI Community License,
+  Bản quyền © Stability AI Ltd. Bảo lưu mọi quyền.)
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  Được Origami sửa đổi: trọng số gốc được chuyển đổi trên máy tính của bạn
+  thành một tệp GGUF duy nhất ở dạng dấu phẩy động 16 bit (sd-turbo-f16.gguf)
+  để stable-diffusion.cpp có thể tải. Trọng số không được huấn luyện lại.
+  Bạn chấp nhận giấy phép, bao gồm Acceptable Use Policy (Chính sách sử dụng
+  được chấp nhận) của giấy phép, trước khi mô hình được cài đặt hoặc tải xuống.
+
+SD 1.5 + LCM, SDXL-Lightning và Z-Image-Turbo được liệt kê trong Cài đặt, Mô
+hình nhưng không được Origami tải xuống. Nếu bạn tự thêm chúng, giấy phép riêng
+của chúng sẽ được áp dụng (CreativeML OpenRAIL-M, CreativeML Open RAIL++-M và
+Apache 2.0).
+
+
+STUDIO
+------
+
+Ministral 3 8B Instruct 2512 và Ministral 3 3B Instruct 2512, do Mistral AI tạo
+ra (tìm nhân vật và người nói).
+  Giấy phép: Apache License 2.0.
+  Bản lượng tử hóa GGUF Q4_K_M của Unsloth:
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3, do NVIDIA tạo ra (chuyển bản ghi âm thành văn bản).
+  Giấy phép: Creative Commons Attribution 4.0 International (CC BY 4.0),
+  https://creativecommons.org/licenses/by/4.0/
+  Mô hình gốc: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  Bản xuất ONNX của istupakov: https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  Thay đổi: Sov3ryn đã lượng tử hóa bộ mã hóa thành số nguyên 8 bit cho Origami
+  (parakeet-tdt-0.6b-v3-encoder.int8.onnx). Bộ giải mã và bộ từ vựng là các tệp
+  của bản xuất ONNX, không sửa đổi. Điều này không ngụ ý bất kỳ sự xác nhận hay
+  bảo trợ nào từ NVIDIA.
+
+AudioSeal, do Meta tạo ra (hình mờ âm thanh trên các bản xuất Studio).
+  Giấy phép: MIT, cho cả mã nguồn và trọng số mô hình.
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  Thay đổi: Sov3ryn đã xuất bộ tạo và bộ phát hiện 16 bit sang ONNX
+  (audioseal_generator_5s.onnx và audioseal_detector_5s.onnx).
+
+
+NHỮNG GÌ BẠN TẠO RA
+-------------------
+
+Lời kể, giọng đọc, hình ảnh, việc xác định người nói và bản chép lời được tạo
+bởi các mô hình AI và có thể sai. Các bản xuất Studio được gắn nhãn là do AI
+tạo (dòng ghi công "Made with Origami Reader" ("Thực hiện bằng Origami
+Reader"), siêu dữ liệu AI và, đối với âm thanh, hình mờ AudioSeal). Giấy phép
+của các mô hình, bao gồm các hạn chế sử dụng của chúng, áp dụng cho những gì
+bạn tạo ra bằng các mô hình đó.

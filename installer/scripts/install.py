@@ -1134,6 +1134,7 @@ def install(base, options):
                    "imageModelTermsAccepted": bool(options.get("modelTermsAccepted")),
                    # Which app license text was agreed to, so a later change of terms can be detected.
                    "appTermsAccepted": bool(options.get("appTermsAccepted")),
+                   "appLicenseLanguage": str(options.get("appLicenseLanguage") or "en"),
                    "appLicenseSha256": sha256_of(dest / "licenses/Origami-Reader-App-License.txt")
                    if (dest / "licenses/Origami-Reader-App-License.txt").is_file() else None,
                    "installedAt": time.time()}

@@ -69,9 +69,10 @@ def main():
     add(REPO / "installer/scripts/Uninstall Origami.ps1", "Uninstall Origami.ps1")
     add(REPO / "LICENSE", "licenses/Origami-Source-PolyForm-Strict-1.0.0.txt")
     add(REPO / "APP-LICENSE.md", "licenses/Origami-Reader-App-License.txt")
-    for source in sorted((REPO / "docs/licenses").glob("*")):
+    # With translations/ (the app license and model notices in each language).
+    for source in sorted((REPO / "docs/licenses").rglob("*")):
         if source.is_file():
-            add(source, "licenses/" + source.name)
+            add(source, "licenses/" + source.relative_to(REPO / "docs/licenses").as_posix())
     excalidraw = REPO / "public/excalidraw-assets/fonts/LICENSES.txt"
     if excalidraw.is_file():
         add(excalidraw, "licenses/Excalidraw-fonts.txt")

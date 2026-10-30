@@ -1,0 +1,137 @@
+Origami Reader: моделі та голоси
+================================
+
+Моделі ШІ, які Origami Reader встановлює або завантажує, створені іншими й
+зберігають власні ліцензії. Ліцензії Origami (LICENSE і APP-LICENSE.md) на них
+не поширюються й не позбавляють Вас жодних прав, які Вам надають їхні
+ліцензії. Коли Origami встановлює модель, поруч із файлами моделі розміщується
+копія її ліцензії або повідомлення. Повні тексти Apache License 2.0, ліцензії
+CreativeML OpenRAIL-M і Stability AI Community License також є в розділі
+«Налаштування», «Про програму та підтримка», «Авторські права й ліцензії».
+
+Моделі завантажуються від їхніх видавців (здебільшого з Hugging Face) у
+фіксованих ревізіях і перед використанням перевіряються за відбитком SHA-256.
+«Без змін» нижче означає, що опубліковані файли використовуються в незмінному
+вигляді.
+
+
+МОВЛЕННЯ
+--------
+
+Qwen3-TTS 12Hz 0.6B Base, Qwen3-TTS 12Hz 1.7B Base і Qwen3-TTS 12Hz 1.7B
+VoiceDesign від команди Qwen, Alibaba Cloud.
+  Ліцензія: Apache License 2.0. Без змін.
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 і Kitten TTS Micro 0.8 від KittenML.
+  Ліцензія: Apache License 2.0. Без змін.
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M і його файли голосів від hexgrad.
+  Ліцензія: Apache License 2.0. Без змін.
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+Kitten і Kokoro працюють у легкому читці (workers/light_tts.py), окремій
+програмі на умовах GNU General Public License версії 3 або пізнішої, оскільки
+вона використовує phonemizer і espeak-ng. Див. «Легкий читець» у розділі
+«Налаштування» та workers/LIGHT-READER-SOURCE.txt.
+
+Голоси Origami. Голоси, що постачаються з Origami (пакети голосів і бібліотека
+голосів), є синтетичними голосами, створеними Sov3ryn за допомогою Qwen
+VoiceDesign на основі письмових описів. Це не записи реальних людей, і їх не
+створювали для наслідування будь-кого. Вони є частиною застосунку й підпадають
+під дію APP-LICENSE.md.
+
+
+ЧИТАННЯ Й НОТАТКИ
+-----------------
+
+TrOCR base handwritten від Microsoft (розпізнавання рукописного тексту).
+  Ліцензія: MIT. Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  Квантований експорт ONNX від Xenova:
+  https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2 від IBM (пов’язані нотатки й пошук).
+  Ліцензія: Apache License 2.0. Квантовані файли ONNX опубліковано IBM.
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base і Whisper small від OpenAI (розпізнавання мовлення, якщо
+завантажено).
+  Ліцензія: MIT. Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  Експорти ONNX від ONNX Community: https://huggingface.co/onnx-community
+
+
+ЗОБРАЖЕННЯ
+----------
+
+DreamShaper 8 LCM від Lykon (обкладинки й портрети).
+  Ліцензія: CreativeML OpenRAIL-M. Незмінений чекпойнт, версія Civitai 252914,
+  SHA-256 A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3.
+  https://huggingface.co/Lykon/dreamshaper-8-lcm
+  Обмеження на використання, викладені в розділі 5 і Додатку A (Attachment A)
+  ліцензії, поширюються на Вас, на все, що Ви створюєте за допомогою моделі, і
+  на всіх, з ким Ви ділитеся моделлю. Ви приймаєте їх до встановлення або
+  завантаження моделі.
+
+SD-Turbo від Stability AI (обкладинки й портрети).
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  (Ця модель Stability AI ліцензована на умовах Stability AI Community
+  License, Copyright © Stability AI Ltd. Усі права захищено.)
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  Змінено Origami: оригінальні ваги перетворюються на Вашому комп’ютері на
+  один файл GGUF у 16-бітному форматі з рухомою комою (sd-turbo-f16.gguf), щоб
+  stable-diffusion.cpp міг їх завантажити. Повторне навчання не проводиться.
+  Ви приймаєте ліцензію, включно з її Acceptable Use Policy (правилами
+  допустимого використання), до встановлення або завантаження моделі.
+
+SD 1.5 + LCM, SDXL-Lightning і Z-Image-Turbo перелічено в розділі
+«Налаштування», «Моделі», але Origami їх не завантажує. Якщо Ви додасте їх
+самостійно, діють їхні власні ліцензії (CreativeML OpenRAIL-M, CreativeML Open
+RAIL++-M і Apache 2.0).
+
+
+STUDIO
+------
+
+Ministral 3 8B Instruct 2512 і Ministral 3 3B Instruct 2512 від Mistral AI
+(пошук персонажів і мовців).
+  Ліцензія: Apache License 2.0.
+  Квантування GGUF Q4_K_M від Unsloth:
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3 від NVIDIA (перетворення записів на текст).
+  Ліцензія: Creative Commons Attribution 4.0 International (CC BY 4.0),
+  https://creativecommons.org/licenses/by/4.0/
+  Оригінальна модель: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  Експорт ONNX від istupakov:
+  https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  Зміни внесено Sov3ryn: для Origami кодувальник (encoder) квантовано до
+  8-бітних цілих чисел (parakeet-tdt-0.6b-v3-encoder.int8.onnx). Декодер і
+  словник є файлами експорту ONNX без змін. Жодного схвалення з боку NVIDIA не
+  мається на увазі.
+
+AudioSeal від Meta (аудіоводяний знак в експортах Studio).
+  Ліцензія: MIT, для коду та ваг моделі.
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  Зміни внесено Sov3ryn: 16-бітні генератор і детектор експортовано в ONNX
+  (audioseal_generator_5s.onnx і audioseal_detector_5s.onnx).
+
+
+ЩО ВИ СТВОРЮЄТЕ
+---------------
+
+Озвучення, голоси, зображення, атрибуція мовців і транскрипції створюються
+моделями ШІ й можуть містити помилки. Експорти Studio позначаються як створені
+ШІ (напис «Made with Origami Reader» («Створено в Origami Reader»), метадані
+ШІ та, для аудіо, водяний знак AudioSeal). Ліцензії моделей, включно з їхніми
+обмеженнями на використання, поширюються на те, що Ви створюєте за їхньою
+допомогою.

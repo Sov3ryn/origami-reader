@@ -219,12 +219,19 @@ force; setup and Settings still show APP-LICENSE.md.
 
 ## For a lawyer
 
-1. **French version of the license (high).** Since 1 June 2023 (Bill 96),
-   Quebec's Charter of the French Language (section 55) requires contracts of adhesion,
-   such as an app license accepted by checkbox, to be given in French before
-   the parties can choose English. Origami's interface is translated into
-   French but the license is English only. Ask whether this applies to a free
-   app and what it needs.
+1. **Translated license (addressed; lawyer to confirm).** Since 1 June 2023
+   (Bill 96), Quebec's Charter of the French Language (section 55) requires
+   contracts of adhesion, such as an app license accepted by checkbox, to be
+   given in French before the parties can choose English. The owner's
+   decision: the license is available in all 20 languages. Setup and Settings
+   now show APP-LICENSE.md and the model notices in the chosen language
+   (docs/licenses/translations), with the English original one click away,
+   and installation.json records the language shown. Third-party licenses
+   stay in their official English, with a translated note saying so. Ask a
+   lawyer: which version prevails (the draft says English, except where local
+   law gives effect to the local version), and have the French text reviewed
+   by a French-speaking lawyer. The translations are machine-made and should
+   be checked by native speakers, at least French.
 2. Limitation of liability and warranty exclusions against Quebec consumers
    (Consumer Protection Act, Civil Code arts. 1474 and 3117) and consumers
    elsewhere (EU, UK).
@@ -263,5 +270,12 @@ force; setup and Settings still show APP-LICENSE.md.
 - `installer/scripts/install.py`: records the app license acceptance and the
   license text's SHA-256 in installation.json.
 
-New interface strings are in English only; they fall back to English in the
-other 19 languages until translated.
+All 20 languages: APP-LICENSE.md and MODEL-NOTICES.txt are translated in
+docs/licenses/translations (machine translations, to be checked by native
+speakers), loaded by src/licenseTexts.ts in setup and in Settings, and
+installed in licenses/translations by refresh-windows.py. The new interface
+strings are in all 19 locale files. Terms with no earlier app translation
+("Light reader", the plural "Boards") were chosen by the translators; the
+legal texts use the formal register even where the app uses the informal one
+(Italian, Spanish, Dutch). When the draft license is approved, its text needs
+the same translation pass.

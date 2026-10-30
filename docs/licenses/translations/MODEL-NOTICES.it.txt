@@ -1,0 +1,140 @@
+Origami Reader: modelli e voci
+==============================
+
+I modelli di IA che Origami Reader installa o scarica sono realizzati da altri
+e mantengono le proprie licenze. Le licenze di Origami (LICENSE e
+APP-LICENSE.md) non li riguardano e non Le tolgono alcun diritto concesso
+dalle loro licenze. Quando Origami installa un modello, accanto ai file del
+modello viene posta una copia della sua licenza o nota. I testi completi della
+Apache License 2.0, della licenza CreativeML OpenRAIL-M e della Stability AI
+Community License si trovano anche in Impostazioni, Informazioni e supporto,
+Copyright e licenze.
+
+I modelli vengono scaricati dai rispettivi editori (per lo più Hugging Face) a
+revisioni fisse e verificati con un’impronta SHA-256 prima dell’uso. Di
+seguito, “Non modificati” significa che i file pubblicati sono usati così come
+sono.
+
+
+SINTESI VOCALE
+--------------
+
+Qwen3-TTS 12Hz 0.6B Base, Qwen3-TTS 12Hz 1.7B Base e Qwen3-TTS 12Hz 1.7B
+VoiceDesign, del team Qwen, Alibaba Cloud.
+  Licenza: Apache License 2.0. Non modificati.
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 e Kitten TTS Micro 0.8, di KittenML.
+  Licenza: Apache License 2.0. Non modificati.
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M e i suoi file di voce, di hexgrad.
+  Licenza: Apache License 2.0. Non modificati.
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+Kitten e Kokoro funzionano nel lettore leggero (workers/light_tts.py), un
+programma separato distribuito secondo la GNU General Public License v3 o
+successiva perché usa phonemizer ed espeak-ng. Vedere “Lettore leggero” in
+Impostazioni e workers/LIGHT-READER-SOURCE.txt.
+
+Voci di Origami. Le voci fornite con Origami (i pacchetti di voci e la
+libreria delle voci) sono voci sintetiche progettate da Sov3ryn con Qwen
+VoiceDesign a partire da descrizioni scritte. Non sono registrazioni di
+persone reali e non sono state create per imitare nessuno. Fanno parte
+dell’app e sono coperte da APP-LICENSE.md.
+
+
+LETTURA E NOTE
+--------------
+
+TrOCR base handwritten, di Microsoft (riconoscimento della scrittura a mano).
+  Licenza: MIT. Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  Esportazione ONNX quantizzata di Xenova:
+  https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2, di IBM (note correlate e ricerca).
+  Licenza: Apache License 2.0. File ONNX quantizzati pubblicati da IBM.
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base e Whisper small, di OpenAI (da voce a testo, se scaricati).
+  Licenza: MIT. Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  Esportazioni ONNX di ONNX Community: https://huggingface.co/onnx-community
+
+
+IMMAGINI
+--------
+
+DreamShaper 8 LCM, di Lykon (copertine e ritratti).
+  Licenza: CreativeML OpenRAIL-M. Checkpoint non modificato, versione Civitai
+  252914,
+  SHA-256 A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3.
+  https://huggingface.co/Lykon/dreamshaper-8-lcm
+  Le restrizioni d’uso della sezione 5 e dell’Allegato A (Attachment A) della
+  licenza si applicano a Lei, a tutto ciò che crea con il modello e a chiunque
+  con cui condivide il modello. Lei le accetta prima che il modello venga
+  installato o scaricato.
+
+SD-Turbo, di Stability AI (copertine e ritratti).
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  (Questo modello di Stability AI è concesso in licenza secondo la Stability
+  AI Community License, Copyright © Stability AI Ltd. Tutti i diritti
+  riservati.)
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  Modificato da Origami: i pesi originali vengono convertiti sul Suo computer
+  in un unico file GGUF in virgola mobile a 16 bit (sd-turbo-f16.gguf)
+  affinché stable-diffusion.cpp possa caricarli. Non vengono riaddestrati.
+  Lei accetta la licenza, compresa la relativa Politica di utilizzo
+  accettabile (Acceptable Use Policy), prima che il modello venga installato o
+  scaricato.
+
+SD 1.5 + LCM, SDXL-Lightning e Z-Image-Turbo sono elencati in Impostazioni,
+Modelli, ma non vengono scaricati da Origami. Se li aggiunge autonomamente, si
+applicano le rispettive licenze (CreativeML OpenRAIL-M, CreativeML Open
+RAIL++-M e Apache 2.0).
+
+
+STUDIO
+------
+
+Ministral 3 8B Instruct 2512 e Ministral 3 3B Instruct 2512, di Mistral AI
+(individuazione di personaggi e parlanti).
+  Licenza: Apache License 2.0.
+  Quantizzazioni GGUF Q4_K_M di Unsloth:
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3, di NVIDIA (dalle registrazioni al testo).
+  Licenza: Creative Commons Attribution 4.0 International (CC BY 4.0),
+  https://creativecommons.org/licenses/by/4.0/
+  Modello originale: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  Esportazione ONNX di istupakov:
+  https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  Modifiche: Sov3ryn ha quantizzato l’encoder in interi a 8 bit per Origami
+  (parakeet-tdt-0.6b-v3-encoder.int8.onnx). Il decoder e il vocabolario sono i
+  file dell’esportazione ONNX, non modificati. Non è implicita alcuna
+  approvazione da parte di NVIDIA.
+
+AudioSeal, di Meta (la filigrana audio sulle esportazioni di Studio).
+  Licenza: MIT, per il codice e i pesi del modello.
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  Modifiche: Sov3ryn ha esportato il generatore e il rilevatore a 16 bit in
+  ONNX (audioseal_generator_5s.onnx e audioseal_detector_5s.onnx).
+
+
+CIÒ CHE CREA
+------------
+
+Narrazione, voci, immagini, attribuzioni dei parlanti e trascrizioni sono
+prodotte da modelli di IA e possono contenere errori. Le esportazioni di
+Studio sono etichettate come generate dall’IA (il credito
+“Made with Origami Reader”, metadati IA e, per l’audio, una filigrana
+AudioSeal). Le licenze dei modelli, comprese le loro restrizioni d’uso, si
+applicano a ciò che Lei crea con essi.

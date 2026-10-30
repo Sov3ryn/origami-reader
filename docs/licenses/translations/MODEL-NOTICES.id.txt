@@ -1,0 +1,135 @@
+Origami Reader: model dan suara
+===============================
+
+Model AI yang diinstal atau diunduh oleh Origami Reader dibuat oleh pihak lain
+dan tetap berada di bawah lisensinya masing-masing. Lisensi Origami (LICENSE
+dan APP-LICENSE.md) tidak mencakup model tersebut dan tidak menghilangkan hak
+apa pun yang diberikan lisensinya kepada Anda. Jika Origami menginstal sebuah
+model, salinan lisensi atau pemberitahuannya ditempatkan di samping file
+model. Teks lengkap Apache License 2.0, lisensi CreativeML OpenRAIL-M, dan
+Stability AI Community License juga tersedia di Pengaturan, Tentang dan
+dukungan, Hak cipta dan lisensi.
+
+Model diunduh dari penerbitnya (sebagian besar Hugging Face) pada revisi tetap
+dan diperiksa terhadap sidik jari SHA-256 sebelum digunakan. "Tanpa
+modifikasi" di bawah ini berarti file yang diterbitkan digunakan apa adanya.
+
+
+UCAPAN
+------
+
+Qwen3-TTS 12Hz 0.6B Base, Qwen3-TTS 12Hz 1.7B Base, dan Qwen3-TTS 12Hz 1.7B
+VoiceDesign, oleh tim Qwen, Alibaba Cloud.
+  Lisensi: Apache License 2.0. Tanpa modifikasi.
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 dan Kitten TTS Micro 0.8, oleh KittenML.
+  Lisensi: Apache License 2.0. Tanpa modifikasi.
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M beserta file suaranya, oleh hexgrad.
+  Lisensi: Apache License 2.0. Tanpa modifikasi.
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+Kitten dan Kokoro berjalan di pembaca ringan (workers/light_tts.py), sebuah
+program terpisah di bawah GNU General Public License v3 atau versi yang lebih
+baru karena program ini menggunakan phonemizer dan espeak-ng. Lihat "Pembaca
+ringan" di Pengaturan dan workers/LIGHT-READER-SOURCE.txt.
+
+Suara Origami. Suara yang disertakan dengan Origami (paket suara dan pustaka
+suara) adalah suara sintetis yang dirancang oleh Sov3ryn dengan Qwen
+VoiceDesign berdasarkan deskripsi tertulis. Suara ini bukan rekaman orang
+sungguhan dan tidak dibuat untuk meniru siapa pun. Suara ini merupakan bagian
+dari aplikasi dan tercakup dalam APP-LICENSE.md.
+
+
+MEMBACA DAN CATATAN
+-------------------
+
+TrOCR base handwritten, oleh Microsoft (pengenalan tulisan tangan).
+  Lisensi: MIT. Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  Ekspor ONNX terkuantisasi oleh Xenova: https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2, oleh IBM (catatan terkait dan
+pencarian).
+  Lisensi: Apache License 2.0. File ONNX terkuantisasi yang diterbitkan oleh
+  IBM.
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base dan Whisper small, oleh OpenAI (ucapan ke teks, jika diunduh).
+  Lisensi: MIT. Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  Ekspor ONNX oleh ONNX Community: https://huggingface.co/onnx-community
+
+
+GAMBAR
+------
+
+DreamShaper 8 LCM, oleh Lykon (sampul dan potret). Lisensi:
+CreativeML OpenRAIL-M. Checkpoint tanpa modifikasi, Civitai versi 252914,
+SHA-256 A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3.
+https://huggingface.co/Lykon/dreamshaper-8-lcm Batasan penggunaan dalam pasal
+5 dan Lampiran A (Attachment A) lisensi tersebut berlaku bagi Anda, bagi apa
+pun yang Anda buat dengan model tersebut, dan bagi siapa pun yang dengannya
+Anda membagikan model tersebut. Anda menerimanya sebelum model diinstal atau
+diunduh.
+
+SD-Turbo, oleh Stability AI (sampul dan potret).
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  (Model Stability AI ini dilisensikan di bawah Stability AI Community
+  License, Hak Cipta © Stability AI Ltd. Semua Hak Dilindungi.)
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  Dimodifikasi oleh Origami: bobot (weights) asli dikonversi di komputer Anda
+  menjadi satu file GGUF dalam floating point 16-bit (sd-turbo-f16.gguf) agar
+  stable-diffusion.cpp dapat memuatnya. Bobot tersebut tidak dilatih ulang.
+  Anda menerima lisensi tersebut, termasuk Acceptable Use Policy (Kebijakan
+  Penggunaan yang Dapat Diterima), sebelum model diinstal atau diunduh.
+
+SD 1.5 + LCM, SDXL-Lightning, dan Z-Image-Turbo tercantum di Pengaturan,
+Model, tetapi tidak diunduh oleh Origami. Jika Anda menambahkannya sendiri,
+lisensinya masing-masing berlaku (CreativeML OpenRAIL-M, CreativeML Open
+RAIL++-M, dan Apache 2.0).
+
+
+STUDIO
+------
+
+Ministral 3 8B Instruct 2512 dan Ministral 3 3B Instruct 2512, oleh Mistral AI
+(menemukan tokoh dan penutur).
+  Lisensi: Apache License 2.0.
+  Kuantisasi GGUF Q4_K_M oleh Unsloth:
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3, oleh NVIDIA (rekaman ke teks).
+  Lisensi: Creative Commons Attribution 4.0 International (CC BY 4.0),
+  https://creativecommons.org/licenses/by/4.0/
+  Model asli: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  Ekspor ONNX oleh istupakov: https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  Perubahan: Sov3ryn mengkuantisasi encoder menjadi bilangan bulat 8-bit untuk
+  Origami (parakeet-tdt-0.6b-v3-encoder.int8.onnx). Decoder dan kosakata
+  adalah file dari ekspor ONNX tersebut, tanpa modifikasi. Tidak ada dukungan
+  dari NVIDIA yang tersirat.
+
+AudioSeal, oleh Meta (watermark audio pada ekspor Studio).
+  Lisensi: MIT, untuk kode dan bobot model.
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  Perubahan: Sov3ryn mengekspor generator dan detektor 16-bit ke ONNX
+  (audioseal_generator_5s.onnx dan audioseal_detector_5s.onnx).
+
+
+YANG ANDA BUAT
+--------------
+
+Narasi, suara, gambar, atribusi penutur, dan transkripsi dibuat oleh model AI
+dan bisa saja keliru. Ekspor Studio diberi label sebagai buatan AI (kredit
+"Made with Origami Reader", metadata AI, dan, untuk audio, watermark
+AudioSeal). Lisensi model, termasuk batasan penggunaannya, berlaku untuk apa
+yang Anda buat dengan model tersebut.

@@ -1,0 +1,134 @@
+Origami Reader: मॉडल और आवाज़ें
+===============================
+
+Origami Reader जो AI मॉडल इंस्टॉल या डाउनलोड करता है, वे दूसरों द्वारा बनाए गए
+हैं और उन पर उनके अपने लाइसेंस लागू रहते हैं। Origami के लाइसेंस (LICENSE और
+APP-LICENSE.md) उन पर लागू नहीं होते और उनके लाइसेंसों द्वारा आपको दिए गए किसी
+भी अधिकार को नहीं छीनते। जहाँ Origami कोई मॉडल इंस्टॉल करता है, वहाँ उसके
+लाइसेंस या नोटिस की एक प्रति मॉडल फ़ाइलों के साथ रखी जाती है। Apache License
+2.0, CreativeML OpenRAIL-M लाइसेंस और Stability AI Community License के पूरे
+पाठ सेटिंग्स, परिचय और सहयोग, कॉपीराइट और लाइसेंस में भी उपलब्ध हैं।
+
+मॉडल उनके प्रकाशकों से (अधिकतर Hugging Face से) निश्चित संशोधनों (revisions)
+पर डाउनलोड किए जाते हैं और उपयोग से पहले SHA-256 फ़िंगरप्रिंट से जाँचे जाते
+हैं। नीचे "अपरिवर्तित" का अर्थ है कि प्रकाशित फ़ाइलों का उपयोग जैसी हैं वैसी
+ही किया जाता है।
+
+
+स्पीच
+-----
+
+Qwen3-TTS 12Hz 0.6B Base, Qwen3-TTS 12Hz 1.7B Base और Qwen3-TTS 12Hz 1.7B
+VoiceDesign, Qwen टीम, Alibaba Cloud द्वारा।
+  लाइसेंस: Apache License 2.0। अपरिवर्तित।
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 और Kitten TTS Micro 0.8, KittenML द्वारा।
+  लाइसेंस: Apache License 2.0। अपरिवर्तित।
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M और इसकी आवाज़ फ़ाइलें, hexgrad द्वारा।
+  लाइसेंस: Apache License 2.0। अपरिवर्तित।
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+Kitten और Kokoro हल्के रीडर (workers/light_tts.py) में चलते हैं, जो एक अलग
+प्रोग्राम है और GNU General Public License v3 या उसके बाद के किसी संस्करण के
+तहत है, क्योंकि यह phonemizer और espeak-ng का उपयोग करता है। सेटिंग्स में
+"हल्का रीडर" और workers/LIGHT-READER-SOURCE.txt देखें।
+
+Origami आवाज़ें। Origami के साथ आने वाली आवाज़ें (आवाज़ पैक और आवाज़
+लाइब्रेरी) सिंथेटिक आवाज़ें हैं, जिन्हें Sov3ryn ने लिखित विवरणों के आधार पर
+Qwen VoiceDesign से डिज़ाइन किया है। ये वास्तविक लोगों की रिकॉर्डिंग नहीं हैं
+और किसी की नकल करने के लिए नहीं बनाई गईं। ये ऐप का हिस्सा हैं और
+APP-LICENSE.md के अंतर्गत आती हैं।
+
+
+पढ़ना और नोट
+------------
+
+TrOCR base handwritten, Microsoft द्वारा (हस्तलेख पहचान)।
+  लाइसेंस: MIT। Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  Xenova द्वारा क्वांटाइज़्ड ONNX एक्सपोर्ट: https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2, IBM द्वारा (संबंधित नोट और खोज)।
+  लाइसेंस: Apache License 2.0। IBM द्वारा प्रकाशित क्वांटाइज़्ड ONNX फ़ाइलें।
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base और Whisper small, OpenAI द्वारा (स्पीच से टेक्स्ट, डाउनलोड किए
+जाने पर)।
+  लाइसेंस: MIT। Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  ONNX Community द्वारा ONNX एक्सपोर्ट: https://huggingface.co/onnx-community
+
+
+चित्र
+-----
+
+DreamShaper 8 LCM, Lykon द्वारा (कवर और पोर्ट्रेट)। लाइसेंस:
+CreativeML OpenRAIL-M। अपरिवर्तित चेकपॉइंट, Civitai संस्करण 252914, SHA-256
+A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3.
+https://huggingface.co/Lykon/dreamshaper-8-lcm लाइसेंस के खंड 5 और अनुलग्नक A
+(Attachment A) में दिए गए उपयोग प्रतिबंध आप पर, मॉडल से आपके द्वारा बनाई गई हर
+चीज़ पर और हर उस व्यक्ति पर लागू होते हैं जिसके साथ आप मॉडल साझा करते हैं।
+मॉडल इंस्टॉल या डाउनलोड होने से पहले आप उन्हें स्वीकार करते हैं।
+
+SD-Turbo, Stability AI द्वारा (कवर और पोर्ट्रेट)।
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  (Stability AI का यह मॉडल Stability AI Community License के तहत लाइसेंस
+  प्राप्त है, कॉपीराइट © Stability AI Ltd. सर्वाधिकार सुरक्षित।)
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  Origami द्वारा संशोधित: मूल वेट्स (weights) को आपके कंप्यूटर पर ही 16-बिट
+  फ़्लोटिंग पॉइंट वाली एक GGUF फ़ाइल (sd-turbo-f16.gguf) में बदला जाता है,
+  ताकि stable-diffusion.cpp उन्हें लोड कर सके। उन्हें दोबारा प्रशिक्षित नहीं
+  किया जाता।
+  मॉडल इंस्टॉल या डाउनलोड होने से पहले आप लाइसेंस को, उसकी Acceptable Use
+  Policy (स्वीकार्य उपयोग नीति) सहित, स्वीकार करते हैं।
+
+SD 1.5 + LCM, SDXL-Lightning और Z-Image-Turbo सेटिंग्स, मॉडल में सूचीबद्ध हैं,
+लेकिन Origami उन्हें डाउनलोड नहीं करता। यदि आप उन्हें स्वयं जोड़ते हैं, तो उन
+पर उनके अपने लाइसेंस लागू होते हैं (CreativeML OpenRAIL-M, CreativeML Open
+RAIL++-M और Apache 2.0)।
+
+
+Studio
+------
+
+Ministral 3 8B Instruct 2512 और Ministral 3 3B Instruct 2512, Mistral AI
+द्वारा (पात्रों और वक्ताओं की पहचान)।
+  लाइसेंस: Apache License 2.0।
+  Unsloth द्वारा GGUF Q4_K_M क्वांटाइज़ेशन:
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3, NVIDIA द्वारा (रिकॉर्डिंग से टेक्स्ट)।
+  लाइसेंस: Creative Commons Attribution 4.0 International (CC BY 4.0),
+  https://creativecommons.org/licenses/by/4.0/
+  मूल मॉडल: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  istupakov द्वारा ONNX एक्सपोर्ट: https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  बदलाव: Sov3ryn ने Origami के लिए एनकोडर को 8-बिट पूर्णांकों में क्वांटाइज़
+  किया (parakeet-tdt-0.6b-v3-encoder.int8.onnx)। डिकोडर और शब्दावली ONNX
+  एक्सपोर्ट की ही फ़ाइलें हैं, अपरिवर्तित। इससे NVIDIA द्वारा किसी समर्थन का
+  संकेत नहीं मिलता।
+
+AudioSeal, Meta द्वारा (Studio निर्यातों पर ऑडियो वॉटरमार्क)।
+  लाइसेंस: MIT, कोड और मॉडल वेट्स दोनों के लिए।
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  बदलाव: Sov3ryn ने 16-बिट जनरेटर और डिटेक्टर को ONNX में एक्सपोर्ट किया
+  (audioseal_generator_5s.onnx और audioseal_detector_5s.onnx)।
+
+
+आप जो बनाते हैं
+---------------
+
+वाचन, आवाज़ें, चित्र, वक्ता निर्धारण और ट्रांसक्रिप्शन AI मॉडलों द्वारा बनाए
+जाते हैं और गलत हो सकते हैं। Studio निर्यातों पर AI-जनित होने का लेबल लगाया
+जाता है ("Made with Origami Reader" क्रेडिट, AI मेटाडेटा और, ऑडियो के लिए,
+AudioSeal वॉटरमार्क)। मॉडलों के लाइसेंस, उनके उपयोग प्रतिबंधों सहित, उन मॉडलों
+से आपके द्वारा बनाई गई चीज़ों पर लागू होते हैं।

@@ -1,0 +1,134 @@
+Origami Reader: মডেল ও কণ্ঠ
+===========================
+
+Origami Reader যে AI মডেলগুলো ইনস্টল বা ডাউনলোড করে, সেগুলো অন্যদের তৈরি এবং
+সেগুলোর নিজস্ব লাইসেন্স বহাল থাকে। Origami-র লাইসেন্স (LICENSE ও
+APP-LICENSE.md) সেগুলোর ক্ষেত্রে প্রযোজ্য নয় এবং সেগুলোর লাইসেন্স আপনাকে যে
+অধিকার দেয় তার কোনোটিই কেড়ে নেয় না। যেখানে Origami কোনো মডেল ইনস্টল করে,
+সেখানে মডেলের ফাইলগুলোর পাশে এর লাইসেন্স বা নোটিসের একটি কপি রাখা হয়। Apache
+License 2.0, CreativeML OpenRAIL-M লাইসেন্স এবং Stability AI Community
+License-এর পূর্ণ পাঠ সেটিংস, সম্পর্কে ও সহায়তা, কপিরাইট ও লাইসেন্স-এও পাওয়া
+যায়।
+
+মডেলগুলো তাদের প্রকাশকদের কাছ থেকে (বেশিরভাগ Hugging Face থেকে) নির্দিষ্ট
+সংশোধনে (revision) ডাউনলোড করা হয় এবং ব্যবহারের আগে একটি SHA-256
+ফিঙ্গারপ্রিন্টের সঙ্গে মিলিয়ে যাচাই করা হয়। নিচে "অপরিবর্তিত" মানে প্রকাশিত
+ফাইলগুলো যেমন আছে তেমনই ব্যবহার করা হয়।
+
+
+স্পিচ
+-----
+
+Qwen3-TTS 12Hz 0.6B Base, Qwen3-TTS 12Hz 1.7B Base ও Qwen3-TTS 12Hz 1.7B
+VoiceDesign, Qwen টিম, Alibaba Cloud-এর তৈরি।
+  লাইসেন্স: Apache License 2.0। অপরিবর্তিত।
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 ও Kitten TTS Micro 0.8, KittenML-এর তৈরি।
+  লাইসেন্স: Apache License 2.0। অপরিবর্তিত।
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M ও এর কণ্ঠ ফাইলগুলো, hexgrad-এর তৈরি।
+  লাইসেন্স: Apache License 2.0। অপরিবর্তিত।
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+Kitten ও Kokoro হালকা রিডারে (workers/light_tts.py) চলে, যা একটি আলাদা
+প্রোগ্রাম এবং phonemizer ও espeak-ng ব্যবহার করে বলে GNU General Public
+License v3 বা পরবর্তী কোনো সংস্করণের অধীনে রয়েছে। সেটিংসে "হালকা রিডার" এবং
+workers/LIGHT-READER-SOURCE.txt দেখুন।
+
+Origami কণ্ঠ। Origami-র সঙ্গে আসা কণ্ঠগুলো (কণ্ঠ প্যাক ও কণ্ঠ লাইব্রেরি)
+কৃত্রিম কণ্ঠ, যা Sov3ryn লিখিত বর্ণনা থেকে Qwen VoiceDesign দিয়ে নকশা করেছে।
+এগুলো বাস্তব মানুষের রেকর্ডিং নয় এবং কাউকে নকল করার জন্য তৈরি করা হয়নি।
+এগুলো অ্যাপের অংশ এবং APP-LICENSE.md-এর আওতাভুক্ত।
+
+
+পড়া ও নোট
+----------
+
+TrOCR base handwritten, Microsoft-এর তৈরি (হাতের লেখা শনাক্তকরণ)।
+  লাইসেন্স: MIT। Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  Xenova-র কোয়ান্টাইজ করা ONNX এক্সপোর্ট: https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2, IBM-এর তৈরি (সম্পর্কিত নোট ও
+অনুসন্ধান)।
+  লাইসেন্স: Apache License 2.0। IBM-এর প্রকাশিত কোয়ান্টাইজ করা ONNX ফাইল।
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base ও Whisper small, OpenAI-এর তৈরি (স্পিচ থেকে টেক্সট, ডাউনলোড করা
+হলে)।
+  লাইসেন্স: MIT। Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  ONNX Community-র ONNX এক্সপোর্ট: https://huggingface.co/onnx-community
+
+
+ছবি
+---
+
+DreamShaper 8 LCM, Lykon-এর তৈরি (প্রচ্ছদ ও প্রতিকৃতি)। লাইসেন্স:
+CreativeML OpenRAIL-M। অপরিবর্তিত চেকপয়েন্ট, Civitai সংস্করণ 252914, SHA-256
+A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3.
+https://huggingface.co/Lykon/dreamshaper-8-lcm লাইসেন্সের ধারা 5 ও সংযুক্তি A
+(Attachment A)-তে থাকা ব্যবহারের বিধিনিষেধ আপনার ক্ষেত্রে, মডেল দিয়ে আপনি যা
+কিছু তৈরি করেন তার ক্ষেত্রে, এবং আপনি যার সঙ্গে মডেলটি শেয়ার করেন তার
+ক্ষেত্রে প্রযোজ্য। মডেলটি ইনস্টল বা ডাউনলোড করার আগে আপনি সেগুলো মেনে নেন।
+
+SD-Turbo, Stability AI-এর তৈরি (প্রচ্ছদ ও প্রতিকৃতি)।
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  (এই Stability AI মডেলটি Stability AI Community License-এর অধীনে
+  লাইসেন্সপ্রাপ্ত, কপিরাইট © Stability AI Ltd. সর্বস্বত্ব সংরক্ষিত।)
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  Origami কর্তৃক পরিবর্তিত: মূল ওয়েটগুলো (weights) আপনার কম্পিউটারেই 16-বিট
+  ফ্লোটিং পয়েন্টে একটি GGUF ফাইলে (sd-turbo-f16.gguf) রূপান্তর করা হয়, যাতে
+  stable-diffusion.cpp সেগুলো লোড করতে পারে। সেগুলো পুনরায় প্রশিক্ষণ দেওয়া
+  হয় না।
+  মডেলটি ইনস্টল বা ডাউনলোড করার আগে আপনি লাইসেন্সটি, এর Acceptable Use Policy
+  (গ্রহণযোগ্য ব্যবহার নীতি) সহ, মেনে নেন।
+
+SD 1.5 + LCM, SDXL-Lightning ও Z-Image-Turbo সেটিংস, মডেল-এ তালিকাভুক্ত,
+কিন্তু Origami এগুলো ডাউনলোড করে না। আপনি নিজে এগুলো যোগ করলে এগুলোর নিজস্ব
+লাইসেন্স প্রযোজ্য হয় (CreativeML OpenRAIL-M, CreativeML Open RAIL++-M ও
+Apache 2.0)।
+
+
+Studio
+------
+
+Ministral 3 8B Instruct 2512 ও Ministral 3 3B Instruct 2512, Mistral AI-এর
+তৈরি (চরিত্র ও বক্তা খুঁজে বের করা)।
+  লাইসেন্স: Apache License 2.0।
+  Unsloth-এর GGUF Q4_K_M কোয়ান্টাইজেশন:
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3, NVIDIA-র তৈরি (রেকর্ডিং থেকে টেক্সট)।
+  লাইসেন্স: Creative Commons Attribution 4.0 International (CC BY 4.0),
+  https://creativecommons.org/licenses/by/4.0/
+  মূল মডেল: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  istupakov-এর ONNX এক্সপোর্ট: https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  পরিবর্তন: Sov3ryn Origami-র জন্য এনকোডারটিকে 8-বিট পূর্ণসংখ্যায় কোয়ান্টাইজ
+  করেছে (parakeet-tdt-0.6b-v3-encoder.int8.onnx)। ডিকোডার ও শব্দভান্ডার ONNX
+  এক্সপোর্টেরই ফাইল, অপরিবর্তিত। এতে NVIDIA-র কোনো সমর্থন বোঝানো হয় না।
+
+AudioSeal, Meta-র তৈরি (Studio এক্সপোর্টে অডিও ওয়াটারমার্ক)।
+  লাইসেন্স: MIT, কোড ও মডেলের ওয়েট উভয়ের জন্য।
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  পরিবর্তন: Sov3ryn 16-বিট জেনারেটর ও ডিটেক্টর ONNX-এ এক্সপোর্ট করেছে
+  (audioseal_generator_5s.onnx ও audioseal_detector_5s.onnx)।
+
+
+আপনি যা তৈরি করেন
+-----------------
+
+পাঠ, কণ্ঠ, ছবি, বক্তা নির্ধারণ ও ট্রান্সক্রিপশন AI মডেল দিয়ে তৈরি হয় এবং
+সেগুলোতে ভুল থাকতে পারে। Studio এক্সপোর্টগুলোকে AI দিয়ে তৈরি হিসেবে চিহ্নিত
+করা হয় ("Made with Origami Reader" ক্রেডিট, AI মেটাডেটা এবং, অডিওর ক্ষেত্রে,
+একটি AudioSeal ওয়াটারমার্ক)। মডেলগুলোর লাইসেন্স, তাদের ব্যবহারের বিধিনিষেধসহ,
+সেগুলো দিয়ে আপনি যা তৈরি করেন তার ক্ষেত্রে প্রযোজ্য।

@@ -1,4 +1,4 @@
-import { detectLanguage, loadLanguage, t } from "../../src/i18n";
+import { currentLanguage, detectLanguage, loadLanguage, t } from "../../src/i18n";
 import { LanguagePicker } from "../../src/components/LanguagePicker";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -11,7 +11,7 @@ import { getPreset, presetOptions, surfaceNames } from "./presets";
 import imageModelLicense from "../../docs/licenses/DreamShaper-OpenRAIL-M.txt?raw";
 import turboModelLicense from "../../docs/licenses/SD-Turbo-LICENSE.txt?raw";
 import appLicense from "../../APP-LICENSE.md?raw";
-import modelNotices from "../../docs/licenses/MODEL-NOTICES.txt?raw";
+import { hasTranslation, useLicenseText } from "../../src/licenseTexts";
 import {
   useEffect,
   useRef,
@@ -173,6 +173,10 @@ export default function App() {
   const [terms, setTerms] = useState(false);
   // Origami Reader's own license, accepted before installing.
   const [appTerms, setAppTerms] = useState(false);
+  // The license and model notices in setup's language (English is the original).
+  const licenseLanguage = currentLanguage();
+  const appLicenseShown = useLicenseText("app", licenseLanguage);
+  const modelNotices = useLicenseText("models", licenseLanguage);
   const [packageReady, setPackageReady] = useState(!native);
   const [packageSize, setPackageSize] = useState(0);
   // Online kits: what each optional group downloads (see installer/downloads.json).
@@ -561,6 +565,7 @@ export default function App() {
             ...installationPlan(options),
             modelTermsAccepted: terms,
             appTermsAccepted: appTerms,
+            appLicenseLanguage: licenseLanguage,
             lightVoices: hasLight && options.lightVoices,
             turboModel: hasTurbo && options.turboModel,
             largeModel: hasLarge && options.speech && options.largeModel,
@@ -738,8 +743,16 @@ export default function App() {
                       aria-label={t("Origami Reader license")}
                       tabIndex={0}
                     >
-                      {appLicense}
+                      {appLicenseShown}
                     </pre>
+                    {hasTranslation("app", licenseLanguage) && (
+                      <details>
+                        <summary>{t("Read the original English text")}</summary>
+                        <pre className="license-text" lang="en" dir="ltr" tabIndex={0}>
+                          {appLicense}
+                        </pre>
+                      </details>
+                    )}
                   </details>
                   <label>
                     <input
@@ -776,6 +789,11 @@ export default function App() {
                 <div className="info-card">
                   <div>
                     <strong>{t("Image model license")}</strong>
+                    {licenseLanguage !== "en" && (
+                      <p className="hint">
+                        {t("Licenses written by others are shown in their original English, which is their official text.")}
+                      </p>
+                    )}
                     {(options.coverModel || options.portraitModel) && (
                       <>
                         <p>

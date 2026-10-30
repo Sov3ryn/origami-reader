@@ -1,0 +1,144 @@
+Origami Reader: modeller ve sesler
+==================================
+
+Origami Reader'ın yüklediği veya indirdiği yapay zekâ modelleri başkaları
+tarafından yapılmıştır ve kendi lisanslarını korur. Origami'nin lisansları
+(LICENSE ve APP-LICENSE.md) bu modelleri kapsamaz ve modellerin lisanslarının
+size tanıdığı hiçbir hakkı elinizden almaz. Origami bir model yüklediğinde,
+modelin lisansının veya bildiriminin bir kopyası model dosyalarının yanına
+konur. Apache License 2.0, CreativeML OpenRAIL-M lisansı ve Stability AI
+Community License'ın tam metinleri ayrıca Ayarlar, Hakkında ve destek, Telif
+hakkı ve lisanslar bölümünde bulunur.
+
+Modeller, yayıncılarından (çoğunlukla Hugging Face'ten) sabit revizyonlarda
+indirilir ve kullanılmadan önce bir SHA-256 parmak iziyle doğrulanır.
+Aşağıdaki "Değiştirilmemiş" ifadesi, yayımlanan dosyaların olduğu gibi
+kullanıldığı anlamına gelir.
+
+
+KONUŞMA
+-------
+
+Qwen3-TTS 12Hz 0.6B Base, Qwen3-TTS 12Hz 1.7B Base ve Qwen3-TTS 12Hz 1.7B
+VoiceDesign; geliştiren: Qwen ekibi, Alibaba Cloud.
+  Lisans: Apache License 2.0. Değiştirilmemiş.
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 ve Kitten TTS Micro 0.8; geliştiren: KittenML.
+  Lisans: Apache License 2.0. Değiştirilmemiş.
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M ve ses dosyaları; geliştiren: hexgrad.
+  Lisans: Apache License 2.0. Değiştirilmemiş.
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+Kitten ve Kokoro, hafif okuyucuda (workers/light_tts.py) çalışır. Hafif
+okuyucu, phonemizer ve espeak-ng kullandığı için GNU General Public License
+sürüm 3 veya sonraki bir sürüm kapsamında olan ayrı bir programdır.
+Ayarlar'daki "Hafif okuyucu" bölümüne ve workers/LIGHT-READER-SOURCE.txt
+dosyasına bakın.
+
+Origami sesleri. Origami ile gelen sesler (ses paketleri ve ses kitaplığı),
+Sov3ryn'in Qwen VoiceDesign ile yazılı tanımlardan tasarladığı sentetik
+seslerdir. Gerçek kişilerin kayıtları değildir ve kimseyi taklit etmek için
+yapılmamıştır. Uygulamanın bir parçasıdır ve APP-LICENSE.md kapsamındadır.
+
+
+OKUMA VE NOTLAR
+---------------
+
+TrOCR base handwritten; geliştiren: Microsoft (el yazısı tanıma).
+  Lisans: MIT. Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  Xenova tarafından kuantize edilmiş ONNX dışa aktarımı:
+  https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2; geliştiren: IBM (ilgili notlar ve
+arama).
+  Lisans: Apache License 2.0. Kuantize edilmiş ONNX dosyaları IBM tarafından
+  yayımlanmıştır.
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base ve Whisper small; geliştiren: OpenAI (konuşmayı metne dönüştürme,
+indirildiğinde).
+  Lisans: MIT. Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  ONNX Community tarafından yapılan ONNX dışa aktarımları:
+  https://huggingface.co/onnx-community
+
+
+GÖRSELLER
+---------
+
+DreamShaper 8 LCM; geliştiren: Lykon (kapaklar ve portreler).
+  Lisans: CreativeML OpenRAIL-M. Değiştirilmemiş checkpoint, Civitai sürümü
+  252914, SHA-256
+  A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3.
+  https://huggingface.co/Lykon/dreamshaper-8-lcm
+  Lisansın 5. bölümündeki ve Ek A'daki (Attachment A) kullanım kısıtlamaları
+  size, modelle yaptığınız her şeye ve modeli paylaştığınız herkese uygulanır.
+  Bunları model yüklenmeden veya indirilmeden önce kabul edersiniz.
+
+SD-Turbo; geliştiren: Stability AI (kapaklar ve portreler).
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  (Bu Stability AI Modeli, Stability AI Community License kapsamında
+  lisanslanmıştır, Copyright © Stability AI Ltd. Tüm hakları saklıdır.)
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  Origami tarafından değiştirilmiştir: orijinal ağırlıklar,
+  stable-diffusion.cpp'nin yükleyebilmesi için bilgisayarınızda 16 bit kayan
+  noktalı tek bir GGUF dosyasına (sd-turbo-f16.gguf) dönüştürülür. Yeniden
+  eğitilmezler.
+  Lisansı, Acceptable Use Policy (Kabul Edilebilir Kullanım Politikası) dahil,
+  model yüklenmeden veya indirilmeden önce kabul edersiniz.
+
+SD 1.5 + LCM, SDXL-Lightning ve Z-Image-Turbo, Ayarlar, Modeller bölümünde
+listelenir ancak Origami tarafından indirilmez. Bunları kendiniz eklerseniz
+kendi lisansları geçerli olur (CreativeML OpenRAIL-M, CreativeML Open RAIL++-M
+ve Apache 2.0).
+
+
+STUDIO
+------
+
+Ministral 3 8B Instruct 2512 ve Ministral 3 3B Instruct 2512; geliştiren:
+Mistral AI (karakterleri ve konuşmacıları bulma).
+  Lisans: Apache License 2.0.
+  Unsloth tarafından yapılan GGUF Q4_K_M kuantizasyonları:
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3; geliştiren: NVIDIA (kayıtları metne dönüştürme).
+  Lisans: Creative Commons Attribution 4.0 International (CC BY 4.0),
+  https://creativecommons.org/licenses/by/4.0/
+  Orijinal model: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  istupakov tarafından yapılan ONNX dışa aktarımı:
+  https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  Değişiklikler: Sov3ryn, kodlayıcıyı (encoder) Origami için 8 bit tam
+  sayılara kuantize etmiştir (parakeet-tdt-0.6b-v3-encoder.int8.onnx). Kod
+  çözücü (decoder) ve sözlük, ONNX dışa aktarımının dosyalarıdır ve
+  değiştirilmemiştir. NVIDIA tarafından herhangi bir onay verildiği ima
+  edilmez.
+
+AudioSeal; geliştiren: Meta (Studio dışa aktarımlarındaki ses filigranı).
+  Lisans: MIT, kod ve model ağırlıkları için.
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  Değişiklikler: Sov3ryn, 16 bit üreticiyi (generator) ve dedektörü ONNX'e
+  dışa aktarmıştır (audioseal_generator_5s.onnx ve
+  audioseal_detector_5s.onnx).
+
+
+YAPTIKLARINIZ
+-------------
+
+Anlatım, sesler, görseller, konuşmacı atamaları ve transkripsiyonlar yapay
+zekâ modelleri tarafından yapılır ve hatalı olabilir. Studio dışa aktarımları
+yapay zekâ ile üretilmiş olarak etiketlenir ("Made with Origami Reader"
+ibaresi, yapay zekâ meta verileri ve ses için bir AudioSeal filigranı).
+Modellerin kullanım kısıtlamaları dahil lisansları, onlarla yaptığınız her
+şeye uygulanır.

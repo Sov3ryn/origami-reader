@@ -1,0 +1,129 @@
+Origami Reader: 모델 및 음성
+============================
+
+Origami Reader가 설치하거나 다운로드하는 AI 모델은 타인이 만든 것으로, 각자의
+라이선스가 적용됩니다. Origami의 라이선스(LICENSE 및 APP-LICENSE.md)는 이
+모델들에 적용되지 않으며, 해당 라이선스가 귀하에게 부여하는 어떠한 권리도
+박탈하지 않습니다. Origami가 모델을 설치하는 경우, 해당 라이선스 또는 고지의
+사본이 모델 파일 옆에 함께 저장됩니다. Apache License 2.0,
+CreativeML OpenRAIL-M 라이선스 및 Stability AI Community License의 전문은 설정, 정보 및
+지원, 저작권 및 라이선스에서도 볼 수 있습니다.
+
+모델은 게시자(대부분 Hugging Face)로부터 고정된 리비전으로 다운로드되며,
+사용하기 전에 SHA-256 지문과 대조하여 확인합니다. 아래의 "수정 없음"은 게시된
+파일을 있는 그대로 사용한다는 뜻입니다.
+
+
+음성 합성
+---------
+
+Qwen3-TTS 12Hz 0.6B Base, Qwen3-TTS 12Hz 1.7B Base 및 Qwen3-TTS 12Hz 1.7B
+VoiceDesign, Alibaba Cloud Qwen 팀 제작.
+  라이선스: Apache License 2.0. 수정 없음.
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 및 Kitten TTS Micro 0.8, KittenML 제작.
+  라이선스: Apache License 2.0. 수정 없음.
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M 및 해당 음성 파일, hexgrad 제작.
+  라이선스: Apache License 2.0. 수정 없음.
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+Kitten과 Kokoro는 가벼운 낭독기(workers/light_tts.py)에서 실행됩니다. 이
+프로그램은 phonemizer와 espeak-ng를 사용하기 때문에 GNU General Public License
+버전 3 또는 그 이후 버전이 적용되는 별도의 프로그램입니다. 설정의 "가벼운
+낭독기" 항목과 workers/LIGHT-READER-SOURCE.txt를 참조하십시오.
+
+Origami 음성. Origami와 함께 제공되는 음성(음성 팩 및 음성 서재)은 Sov3ryn이
+글로 작성한 설명을 바탕으로 Qwen VoiceDesign을 사용해 디자인한 합성
+음성입니다. 실존 인물의 녹음이 아니며 누군가를 흉내 내기 위해 만들어진 것도
+아닙니다. 이 음성은 앱의 일부이며 APP-LICENSE.md가 적용됩니다.
+
+
+읽기 및 메모
+------------
+
+TrOCR base handwritten, Microsoft 제작(손글씨 인식).
+  라이선스: MIT. Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  Xenova의 양자화 ONNX 내보내기: https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2, IBM 제작(관련 메모 및 검색).
+  라이선스: Apache License 2.0. 양자화 ONNX 파일은 IBM이 게시.
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base 및 Whisper small, OpenAI 제작(음성을 텍스트로 변환, 다운로드한
+경우).
+  라이선스: MIT. Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  ONNX Community의 ONNX 내보내기: https://huggingface.co/onnx-community
+
+
+그림
+----
+
+DreamShaper 8 LCM, Lykon 제작(표지 및 초상화). 라이선스: CreativeML OpenRAIL-M. 수정하지 않은
+체크포인트, Civitai 버전 252914, SHA-256
+A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3.
+https://huggingface.co/Lykon/dreamshaper-8-lcm 라이선스 제5조 및 Attachment A(부속서 A)의
+사용 제한은 귀하, 귀하가 이 모델로 만드는 모든 결과물, 그리고 귀하가 이 모델을 공유하는 모든 사람에게 적용됩니다. 귀하는 모델이
+설치되거나 다운로드되기 전에 이 제한에 동의합니다.
+
+SD-Turbo, Stability AI 제작(표지 및 초상화).
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  (이 Stability AI 모델은 Stability AI Community License에 따라 라이선스가
+  부여됩니다. Copyright © Stability AI Ltd. All Rights Reserved.)
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  Origami에 의한 수정: stable-diffusion.cpp에서 불러올 수 있도록 원본 가중치를
+  귀하의 컴퓨터에서 16비트 부동소수점 형식의 GGUF 파일 하나
+  (sd-turbo-f16.gguf)로 변환합니다. 재학습은 하지 않습니다.
+  귀하는 모델이 설치되거나 다운로드되기 전에 Acceptable Use Policy(허용되는
+  사용 정책)를 포함한 라이선스에 동의합니다.
+
+SD 1.5 + LCM, SDXL-Lightning 및 Z-Image-Turbo는 설정, 모델에 표시되지만
+Origami가 다운로드하지는 않습니다. 귀하가 직접 추가하는 경우 해당 모델의
+라이선스(CreativeML OpenRAIL-M, CreativeML Open RAIL++-M 및 Apache 2.0)가
+적용됩니다.
+
+
+STUDIO
+------
+
+Ministral 3 8B Instruct 2512 및 Ministral 3 3B Instruct 2512, Mistral AI 제작
+(등장인물과 화자 찾기).
+  라이선스: Apache License 2.0.
+  Unsloth의 GGUF Q4_K_M 양자화:
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3, NVIDIA 제작(녹음을 텍스트로 변환).
+  라이선스: Creative Commons Attribution 4.0 International (CC BY 4.0),
+  https://creativecommons.org/licenses/by/4.0/
+  원본 모델: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  istupakov의 ONNX 내보내기: https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  변경 사항: Sov3ryn이 Origami용으로 인코더를 8비트 정수로 양자화했습니다
+  (parakeet-tdt-0.6b-v3-encoder.int8.onnx). 디코더와 어휘는 ONNX 내보내기의
+  파일이며 수정하지 않았습니다. NVIDIA의 지지나 승인을 의미하지 않습니다.
+
+AudioSeal, Meta 제작(Studio 내보내기의 오디오 워터마크).
+  라이선스: MIT(코드 및 모델 가중치 모두).
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  변경 사항: Sov3ryn이 16비트 생성기와 감지기를 ONNX로 내보냈습니다
+  (audioseal_generator_5s.onnx 및 audioseal_detector_5s.onnx).
+
+
+귀하가 만드는 결과물
+--------------------
+
+낭독, 음성, 그림, 화자 지정 및 받아쓰기 결과는 AI 모델이 만든 것으로, 틀릴 수
+있습니다. Studio 내보내기 파일에는 AI 생성물이라는 표시가 붙습니다
+("Made with Origami Reader" 크레딧, AI 메타데이터, 그리고 오디오의 경우
+AudioSeal 워터마크). 모델의 라이선스(사용 제한 포함)는 귀하가 해당 모델로 만드는
+결과물에 적용됩니다.

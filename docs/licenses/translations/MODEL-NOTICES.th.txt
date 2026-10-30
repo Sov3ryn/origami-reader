@@ -1,0 +1,134 @@
+Origami Reader: โมเดลและเสียง
+=============================
+
+โมเดล AI ที่ Origami Reader ติดตั้งหรือดาวน์โหลดสร้างขึ้นโดยผู้อื่น
+และยังคงอยู่ภายใต้สัญญาอนุญาตของตนเอง สัญญาอนุญาตของ Origami
+(LICENSE และ APP-LICENSE.md) ไม่ครอบคลุมโมเดลเหล่านี้
+และไม่ลิดรอนสิทธิ์ใด ๆ ที่สัญญาอนุญาตของโมเดลให้แก่คุณ เมื่อ Origami
+ติดตั้งโมเดล จะวางสำเนาสัญญาอนุญาตหรือประกาศของโมเดลนั้นไว้ข้างไฟล์โมเดล
+ข้อความฉบับเต็มของ Apache License 2.0 สัญญาอนุญาต CreativeML OpenRAIL-M
+และ Stability AI Community License ยังดูได้ที่ การตั้งค่า,
+เกี่ยวกับและการสนับสนุน, ลิขสิทธิ์และสัญญาอนุญาต
+
+โมเดลดาวน์โหลดจากผู้เผยแพร่ (ส่วนใหญ่คือ Hugging Face) ที่รุ่นแก้ไข
+(revision) ที่กำหนดตายตัว และตรวจสอบกับลายนิ้วมือ SHA-256 ก่อนใช้งาน
+คำว่า "ไม่มีการแก้ไข" ด้านล่างหมายถึงใช้ไฟล์ที่เผยแพร่ตามสภาพเดิม
+
+
+เสียงพูด
+--------
+
+Qwen3-TTS 12Hz 0.6B Base, Qwen3-TTS 12Hz 1.7B Base และ Qwen3-TTS 12Hz 1.7B
+VoiceDesign โดยทีม Qwen ของ Alibaba Cloud
+  สัญญาอนุญาต: Apache License 2.0 ไม่มีการแก้ไข
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 และ Kitten TTS Micro 0.8 โดย KittenML
+  สัญญาอนุญาต: Apache License 2.0 ไม่มีการแก้ไข
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M และไฟล์เสียงของโมเดล โดย hexgrad
+  สัญญาอนุญาต: Apache License 2.0 ไม่มีการแก้ไข
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+Kitten และ Kokoro ทำงานในโปรแกรมอ่านแบบเบา (workers/light_tts.py)
+ซึ่งเป็นโปรแกรมแยกต่างหากภายใต้ GNU General Public License รุ่นที่ 3
+หรือรุ่นที่ใหม่กว่า เนื่องจากใช้ phonemizer และ espeak-ng ดู
+"โปรแกรมอ่านแบบเบา" ในการตั้งค่า และ workers/LIGHT-READER-SOURCE.txt
+
+เสียงของ Origami เสียงที่มาพร้อม Origami (ชุดเสียงและคลังเสียง)
+เป็นเสียงสังเคราะห์ที่ Sov3ryn ออกแบบด้วย Qwen VoiceDesign
+จากคำบรรยายที่เป็นลายลักษณ์อักษร ไม่ใช่การบันทึกเสียงของบุคคลจริง
+และไม่ได้สร้างขึ้นเพื่อเลียนแบบผู้ใด เสียงเหล่านี้เป็นส่วนหนึ่งของแอป
+และอยู่ภายใต้ APP-LICENSE.md
+
+
+การอ่านและโน้ต
+--------------
+
+TrOCR base handwritten โดย Microsoft (การจดจำลายมือ)
+  สัญญาอนุญาต: MIT Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  ไฟล์ ONNX ที่ผ่านการควอนไทซ์ ส่งออกโดย Xenova: https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2 โดย IBM (โน้ตที่เกี่ยวข้องและการค้นหา)
+  สัญญาอนุญาต: Apache License 2.0 ไฟล์ ONNX ที่ผ่านการควอนไทซ์เผยแพร่โดย IBM
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base และ Whisper small โดย OpenAI (แปลงเสียงพูดเป็นข้อความ
+เมื่อดาวน์โหลดไว้)
+  สัญญาอนุญาต: MIT Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  ไฟล์ ONNX ส่งออกโดย ONNX Community: https://huggingface.co/onnx-community
+
+
+ภาพ
+---
+
+DreamShaper 8 LCM โดย Lykon (ปกและภาพเหมือน)
+  สัญญาอนุญาต: CreativeML OpenRAIL-M เช็กพอยต์ที่ไม่มีการแก้ไข Civitai
+  เวอร์ชัน 252914,
+  SHA-256 A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3
+  https://huggingface.co/Lykon/dreamshaper-8-lcm
+  ข้อจำกัดการใช้งานในข้อ 5 และ Attachment A (ภาคผนวก A) ของสัญญาอนุญาต
+  มีผลกับคุณ กับทุกสิ่งที่คุณสร้างด้วยโมเดล และกับทุกคนที่คุณแบ่งปันโมเดลให้
+  คุณยอมรับข้อจำกัดเหล่านี้ก่อนที่โมเดลจะถูกติดตั้งหรือดาวน์โหลด
+
+SD-Turbo โดย Stability AI (ปกและภาพเหมือน)
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  (โมเดล Stability AI นี้อยู่ภายใต้สัญญาอนุญาต Stability AI Community
+  License ลิขสิทธิ์ © Stability AI Ltd. สงวนลิขสิทธิ์ทั้งหมด)
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  แก้ไขโดย Origami: น้ำหนักต้นฉบับจะถูกแปลงบนคอมพิวเตอร์ของคุณ
+  เป็นไฟล์ GGUF ไฟล์เดียวแบบจุดลอยตัว 16 บิต (sd-turbo-f16.gguf)
+  เพื่อให้ stable-diffusion.cpp โหลดได้ โดยไม่มีการฝึกใหม่
+  คุณยอมรับสัญญาอนุญาต รวมถึง Acceptable Use Policy
+  (นโยบายการใช้งานที่ยอมรับได้) ก่อนที่โมเดลจะถูกติดตั้งหรือดาวน์โหลด
+
+SD 1.5 + LCM, SDXL-Lightning และ Z-Image-Turbo แสดงอยู่ใน การตั้งค่า, โมเดล
+แต่ Origami ไม่ได้ดาวน์โหลดโมเดลเหล่านี้ หากคุณเพิ่มเอง
+สัญญาอนุญาตของโมเดลนั้น ๆ จะมีผลบังคับ (CreativeML OpenRAIL-M,
+CreativeML Open RAIL++-M และ Apache 2.0)
+
+
+STUDIO
+------
+
+Ministral 3 8B Instruct 2512 และ Ministral 3 3B Instruct 2512 โดย Mistral AI
+(ค้นหาตัวละครและผู้พูด)
+  สัญญาอนุญาต: Apache License 2.0
+  ไฟล์ GGUF Q4_K_M ที่ผ่านการควอนไทซ์โดย Unsloth:
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3 โดย NVIDIA (แปลงไฟล์บันทึกเสียงเป็นข้อความ)
+  สัญญาอนุญาต: Creative Commons Attribution 4.0 International (CC BY 4.0),
+  https://creativecommons.org/licenses/by/4.0/
+  โมเดลต้นฉบับ: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  ไฟล์ ONNX ส่งออกโดย istupakov: https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  การเปลี่ยนแปลง: Sov3ryn ควอนไทซ์ตัวเข้ารหัส (encoder) เป็นจำนวนเต็ม 8 บิต
+  สำหรับ Origami (parakeet-tdt-0.6b-v3-encoder.int8.onnx) ตัวถอดรหัส
+  (decoder) และคลังคำศัพท์เป็นไฟล์จาก ONNX ที่ส่งออกนั้นโดยไม่มีการแก้ไข
+  ทั้งนี้ไม่ได้สื่อว่า NVIDIA ให้การรับรองแต่อย่างใด
+
+AudioSeal โดย Meta (ลายน้ำเสียงในไฟล์ส่งออกของ Studio)
+  สัญญาอนุญาต: MIT สำหรับทั้งโค้ดและน้ำหนักโมเดล
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  การเปลี่ยนแปลง: Sov3ryn ส่งออกตัวสร้างและตัวตรวจจับแบบ 16 บิตเป็น ONNX
+  (audioseal_generator_5s.onnx และ audioseal_detector_5s.onnx)
+
+
+สิ่งที่คุณสร้าง
+--------------
+
+การบรรยาย เสียง ภาพ การระบุผู้พูด และข้อความถอดเสียง สร้างขึ้นโดยโมเดล AI
+และอาจผิดพลาดได้ ไฟล์ส่งออกของ Studio มีป้ายกำกับว่าสร้างด้วย AI
+(เครดิต "Made with Origami Reader" เมทาดาทา AI และสำหรับเสียง
+จะมีลายน้ำ AudioSeal) สัญญาอนุญาตของโมเดล รวมถึงข้อจำกัดการใช้งาน
+มีผลกับสิ่งที่คุณสร้างด้วยโมเดลเหล่านั้น

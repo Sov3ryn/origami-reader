@@ -1,0 +1,120 @@
+Origami Reader：模型与语音
+==========================
+
+Origami Reader 安装或下载的 AI 模型由他人制作，并保留其各自的许可。
+Origami 的许可（LICENSE 和 APP-LICENSE.md）不涵盖这些模型，也不剥夺其许可
+赋予您的任何权利。凡是由 Origami 安装的模型，其许可或声明的副本都会放在模型
+文件旁。Apache License 2.0、CreativeML OpenRAIL-M 许可和 Stability AI
+Community License 的全文也可在“设置”>“关于与支持”>“版权与许可”中查看。
+
+模型从其发布者处下载（大多来自 Hugging Face），使用固定的修订版本，并在使用
+前对照 SHA-256 指纹进行校验。下文中的“未修改”是指按原样使用已发布的文件。
+
+
+语音
+----
+
+Qwen3-TTS 12Hz 0.6B Base、Qwen3-TTS 12Hz 1.7B Base 和 Qwen3-TTS 12Hz 1.7B
+VoiceDesign，由 Alibaba Cloud 的 Qwen 团队制作。
+  许可：Apache License 2.0。未修改。
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 和 Kitten TTS Micro 0.8，由 KittenML 制作。
+  许可：Apache License 2.0。未修改。
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M 及其语音文件，由 hexgrad 制作。
+  许可：Apache License 2.0。未修改。
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+Kitten 和 Kokoro 在轻量朗读器（workers/light_tts.py）中运行。轻量朗读器是一个
+独立程序，由于它使用了 phonemizer 和 espeak-ng，因此依据 GNU General Public
+License 第 3 版或更高版本发布。请参阅“设置”中的“轻量朗读器”以及
+workers/LIGHT-READER-SOURCE.txt。
+
+Origami 语音。Origami 附带的语音（语音包和语音库）是 Sov3ryn 根据文字描述，
+使用 Qwen VoiceDesign 设计的合成语音。它们不是真人录音，也并非为模仿任何人而
+制作。它们是本应用的一部分，受 APP-LICENSE.md 约束。
+
+
+阅读与笔记
+----------
+
+TrOCR base handwritten，由 Microsoft 制作（手写识别）。
+  许可：MIT。Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  由 Xenova 制作的量化 ONNX 导出版本：https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2，由 IBM 制作（相关笔记与搜索）。
+  许可：Apache License 2.0。量化 ONNX 文件由 IBM 发布。
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base 和 Whisper small，由 OpenAI 制作（语音转文字，仅在已下载时使用）。
+  许可：MIT。Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  由 ONNX Community 制作的 ONNX 导出版本：https://huggingface.co/onnx-community
+
+
+图片
+----
+
+DreamShaper 8 LCM，由 Lykon 制作（封面和肖像）。 许可：CreativeML OpenRAIL-M。未修改的检查点，Civitai
+版本 252914，SHA-256
+A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3。
+https://huggingface.co/Lykon/dreamshaper-8-lcm 该许可第 5 节及附件 A
+中的使用限制适用于您、您使用该模型制作的任何内容， 以及您与之分享该模型的任何人。您须在安装或下载该模型之前接受这些限制。
+
+SD-Turbo，由 Stability AI 制作（封面和肖像）。
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  （此 Stability AI 模型依据 Stability AI Community License 授权，
+  版权所有 © Stability AI Ltd.，保留所有权利。）
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  由 Origami 修改：原始权重会在您的电脑上转换为一个 16 位浮点格式的 GGUF
+  文件（sd-turbo-f16.gguf），以便 stable-diffusion.cpp 加载。这些权重未经
+  重新训练。
+  您须在安装或下载该模型之前接受该许可，包括其可接受使用政策
+  （Acceptable Use Policy）。
+
+SD 1.5 + LCM、SDXL-Lightning 和 Z-Image-Turbo 列于“设置”>“模型”中，但
+Origami 不会下载它们。如果您自行添加这些模型，则适用其各自的许可
+（CreativeML OpenRAIL-M、CreativeML Open RAIL++-M 和 Apache 2.0）。
+
+
+STUDIO
+------
+
+Ministral 3 8B Instruct 2512 和 Ministral 3 3B Instruct 2512，由 Mistral AI
+制作（识别角色与说话人）。
+  许可：Apache License 2.0。
+  由 Unsloth 制作的 GGUF Q4_K_M 量化版本：
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3，由 NVIDIA 制作（录音转文字）。
+  许可：Creative Commons Attribution 4.0 International (CC BY 4.0)，
+  https://creativecommons.org/licenses/by/4.0/
+  原始模型：https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  由 istupakov 制作的 ONNX 导出版本：https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  修改：Sov3ryn 为 Origami 将编码器量化为 8 位整数
+  （parakeet-tdt-0.6b-v3-encoder.int8.onnx）。解码器和词表为该 ONNX 导出版本
+  中的文件，未修改。本文不暗示获得 NVIDIA 的任何认可。
+
+AudioSeal，由 Meta 制作（Studio 导出文件中的音频水印）。
+  许可：MIT，适用于代码和模型权重。
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  修改：Sov3ryn 将 16 位生成器和检测器导出为 ONNX
+  （audioseal_generator_5s.onnx 和 audioseal_detector_5s.onnx）。
+
+
+您制作的内容
+------------
+
+朗读、语音、图片、说话人标注和转写内容均由 AI 模型生成，可能有误。Studio 导出
+文件均标注为 AI 生成（“Made with Origami Reader”署名、AI 元数据，以及音频的
+AudioSeal 水印）。模型的许可（包括其使用限制）适用于您使用这些模型制作的内容。

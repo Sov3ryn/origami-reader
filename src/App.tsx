@@ -49,7 +49,7 @@ import globeMapCredits from "../public/bookmarks/globe-textures/ATTRIBUTION.txt?
 import coverFontLicenses from "../public/fonts/cover/OFL.txt?raw";
 import appLicense from "../APP-LICENSE.md?raw";
 import sourceLicense from "../LICENSE?raw";
-import modelNotices from "../docs/licenses/MODEL-NOTICES.txt?raw";
+import { hasTranslation, useLicenseText } from "./licenseTexts";
 import softwareNotices from "../docs/licenses/SOFTWARE-NOTICES.txt?raw";
 import imageModelLicense from "../docs/licenses/DreamShaper-OpenRAIL-M.txt?raw";
 import turboModelLicense from "../docs/licenses/SD-Turbo-LICENSE.txt?raw";
@@ -562,6 +562,9 @@ export default function App() {
   const [artVersion, setArtVersion] = useState(0);
   // Re-renders memoized views after the interface language changes.
   const [uiLanguage, setUiLanguage] = useState("en");
+  // The app license and model notices in the interface language.
+  const appLicenseShown = useLicenseText("app", uiLanguage);
+  const modelNoticesShown = useLicenseText("models", uiLanguage);
   const [sleep, setSleep] = useState<
     | { mode: "minutes"; endsAt: number; minutes: number }
     | { mode: "chapter"; chapter: number }
@@ -5873,7 +5876,15 @@ export default function App() {
           <p className="hint">Copyright © 2026 Sov3ryn</p>
           <details>
             <summary>{t("Origami Reader app license")}</summary>
-            <pre className="license-text">{appLicense}</pre>
+            <pre className="license-text">{appLicenseShown}</pre>
+            {hasTranslation("app", uiLanguage) && (
+              <details>
+                <summary>{t("Read the original English text")}</summary>
+                <pre className="license-text" lang="en" dir="ltr">
+                  {appLicense}
+                </pre>
+              </details>
+            )}
           </details>
           <details>
             <summary>{t("Source code license (PolyForm Strict 1.0.0)")}</summary>
@@ -5920,7 +5931,10 @@ export default function App() {
                 "Each AI model keeps its own license. The image models' use restrictions apply to everything you make with them.",
               )}
             </p>
-            <pre className="license-text">{modelNotices}</pre>
+            <pre className="license-text">{modelNoticesShown}</pre>
+            <p className="hint">
+              {t("Licenses written by others are shown in their original English, which is their official text.")}
+            </p>
             <details>
               <summary>{t("CreativeML OpenRAIL-M (DreamShaper)")}</summary>
               <pre className="license-text">{imageModelLicense}</pre>

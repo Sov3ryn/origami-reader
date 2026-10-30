@@ -1,0 +1,142 @@
+Origami Reader: modellen en stemmen
+===================================
+
+De AI-modellen die Origami Reader installeert of downloadt, zijn door anderen
+gemaakt en behouden hun eigen licenties. De licenties van Origami (LICENSE en
+APP-LICENSE.md) zijn niet op die modellen van toepassing en ontnemen u geen
+enkel recht dat hun licenties u geven. Wanneer Origami een model installeert,
+wordt een kopie van de licentie of kennisgeving ervan naast de modelbestanden
+geplaatst. De volledige teksten van de Apache License 2.0, de
+CreativeML OpenRAIL-M-licentie en de Stability AI Community License staan ook
+in Instellingen, Over en ondersteuning, Auteursrecht en licenties.
+
+Modellen worden in vaste revisies gedownload van hun uitgevers (meestal
+Hugging Face) en vóór gebruik gecontroleerd aan de hand van een
+SHA-256-vingerafdruk. "Ongewijzigd" betekent hieronder dat de gepubliceerde
+bestanden worden gebruikt zoals ze zijn.
+
+
+SPRAAK
+------
+
+Qwen3-TTS 12Hz 0.6B Base, Qwen3-TTS 12Hz 1.7B Base en Qwen3-TTS 12Hz 1.7B
+VoiceDesign, door het Qwen-team, Alibaba Cloud.
+  Licentie: Apache License 2.0. Ongewijzigd.
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 en Kitten TTS Micro 0.8, door KittenML.
+  Licentie: Apache License 2.0. Ongewijzigd.
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M en de bijbehorende stembestanden, door hexgrad.
+  Licentie: Apache License 2.0. Ongewijzigd.
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+Kitten en Kokoro draaien in de lichte voorlezer (workers/light_tts.py), een
+afzonderlijk programma onder de GNU General Public License versie 3 of later,
+omdat het phonemizer en espeak-ng gebruikt. Zie "Lichte voorlezer" in
+Instellingen en workers/LIGHT-READER-SOURCE.txt.
+
+Origami-stemmen. De stemmen die bij Origami horen (de stempakketten en de
+stemmenbibliotheek) zijn synthetische stemmen die Sov3ryn met Qwen VoiceDesign
+heeft ontworpen op basis van geschreven beschrijvingen. Het zijn geen opnamen
+van echte mensen en ze zijn niet gemaakt om iemand na te bootsen. Ze maken
+deel uit van de app en vallen onder APP-LICENSE.md.
+
+
+LEZEN EN NOTITIES
+-----------------
+
+TrOCR base handwritten, door Microsoft (handschriftherkenning).
+  Licentie: MIT. Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  Gekwantiseerde ONNX-export door Xenova:
+  https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2, door IBM (gerelateerde notities en
+zoeken).
+  Licentie: Apache License 2.0. Gekwantiseerde ONNX-bestanden gepubliceerd
+  door IBM.
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base en Whisper small, door OpenAI (spraak naar tekst, indien
+gedownload).
+  Licentie: MIT. Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  ONNX-exports door ONNX Community: https://huggingface.co/onnx-community
+
+
+AFBEELDINGEN
+------------
+
+DreamShaper 8 LCM, door Lykon (omslagen en portretten).
+  Licentie: CreativeML OpenRAIL-M. Ongewijzigd checkpoint, Civitai-versie
+  252914, SHA-256
+  A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3.
+  https://huggingface.co/Lykon/dreamshaper-8-lcm
+  De gebruiksbeperkingen in sectie 5 en bijlage A (Attachment A) van de
+  licentie gelden voor u, voor alles wat u met het model maakt en voor
+  iedereen met wie u het model deelt. U accepteert ze voordat het model wordt
+  geïnstalleerd of gedownload.
+
+SD-Turbo, door Stability AI (omslagen en portretten).
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  (Dit Stability AI-model wordt in licentie gegeven onder de Stability AI
+  Community License, Copyright © Stability AI Ltd. Alle rechten voorbehouden.)
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  Gewijzigd door Origami: de oorspronkelijke gewichten worden op uw computer
+  omgezet naar één GGUF-bestand in 16-bits drijvende komma
+  (sd-turbo-f16.gguf), zodat stable-diffusion.cpp ze kan laden. Ze worden niet
+  opnieuw getraind.
+  U accepteert de licentie, inclusief het Acceptable Use Policy (beleid voor
+  aanvaardbaar gebruik), voordat het model wordt geïnstalleerd of gedownload.
+
+SD 1.5 + LCM, SDXL-Lightning en Z-Image-Turbo staan vermeld in Instellingen,
+Modellen, maar worden niet door Origami gedownload. Als u ze zelf toevoegt,
+gelden hun eigen licenties (CreativeML OpenRAIL-M, CreativeML Open RAIL++-M en
+Apache 2.0).
+
+
+STUDIO
+------
+
+Ministral 3 8B Instruct 2512 en Ministral 3 3B Instruct 2512, door Mistral AI
+(personages en sprekers vinden).
+  Licentie: Apache License 2.0.
+  GGUF Q4_K_M-kwantiseringen door Unsloth:
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3, door NVIDIA (opnamen naar tekst).
+  Licentie: Creative Commons Attribution 4.0 International (CC BY 4.0),
+  https://creativecommons.org/licenses/by/4.0/
+  Oorspronkelijk model: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  ONNX-export door istupakov:
+  https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  Wijzigingen: Sov3ryn heeft de encoder voor Origami gekwantiseerd naar 8-bits
+  gehele getallen (parakeet-tdt-0.6b-v3-encoder.int8.onnx). De decoder en de
+  woordenlijst zijn de bestanden van de ONNX-export, ongewijzigd. Er wordt
+  geen goedkeuring door NVIDIA geïmpliceerd.
+
+AudioSeal, door Meta (het audiowatermerk op Studio-exports).
+  Licentie: MIT, voor de code en de modelgewichten.
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  Wijzigingen: Sov3ryn heeft de 16-bits generator en detector naar ONNX
+  geëxporteerd (audioseal_generator_5s.onnx en audioseal_detector_5s.onnx).
+
+
+WAT U MAAKT
+-----------
+
+Vertelling, stemmen, afbeeldingen, sprekertoewijzingen en transcripties worden
+door AI-modellen gemaakt en kunnen fouten bevatten. Studio-exports worden
+gelabeld als door AI gegenereerd (de vermelding "Made with Origami Reader"
+(Gemaakt met Origami Reader), AI-metadata en, voor audio, een
+AudioSeal-watermerk). De licenties van de modellen, inclusief hun
+gebruiksbeperkingen, gelden voor wat u ermee maakt.
