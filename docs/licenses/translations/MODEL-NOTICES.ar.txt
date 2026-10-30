@@ -87,6 +87,13 @@ SD-Turbo، من Stability AI (الأغلفة والصور الشخصية).
   أنت تقبل الترخيص، بما في ذلك سياسة الاستخدام المقبول (Acceptable Use Policy)
   الخاصة به، قبل تثبيت النموذج أو تنزيله.
 
+TrustMark، من Adobe (العلامة المائية غير المرئية على الصور).
+  الترخيص: MIT، للشيفرة ولأوزان النموذج.
+  Copyright (c) 2024 Adobe.
+  https://github.com/adobe/trustmark
+  يضيفها Origami إلى كل غلاف وصورة شخصية يُنشآن بنموذج صور، كما تذكر ملفات
+  الرسوم المحفوظة عبارة "مُنشأ بالذكاء الاصطناعي" في بياناتها الوصفية.
+
 SD 1.5 + LCM وSDXL-Lightning وZ-Image-Turbo مدرجة في الإعدادات، النماذج، لكن
 Origami لا ينزّلها. وإذا أضفتها بنفسك، تنطبق عليها تراخيصها الخاصة
 (CreativeML OpenRAIL-M وCreativeML Open RAIL++-M وApache 2.0).

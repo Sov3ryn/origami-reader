@@ -240,8 +240,20 @@ force; setup and Settings still show APP-LICENSE.md.
    and DreamShaper's "no selling the model" field (docs/MODEL-DISTRIBUTION.md).
 5. CC BY-SA portraits: attribution form and ShareAlike for the crops.
 6. EU AI Act article 50 (from August 2026): Origami labels Studio audio with
-   metadata, a watermark and a spoken credit; check that this satisfies the
-   provider duty for synthetic audio, and what users must disclose.
+   metadata, a watermark and a spoken credit. Pictures (added 30 October):
+   every cover and portrait made with an image model gets an invisible
+   TrustMark watermark (Adobe, MIT code and weights; variant Q, 61-bit
+   Origami payload with BCH-5; tested at 41.7 dB PSNR, no bit errors after a
+   75% resize and JPEG at quality 80; checked in the desktop app with
+   DreamShaper 8 LCM, where a cover and a portrait read back with no bit
+   errors at full size and as the library's small WebP), and
+   files written by Saved artwork carry IPTC "trained algorithmic media" XMP plus a description (PNG, WebP,
+   JPEG). Imported and custom covers are not marked. The encoder
+   (17 MB, SHA-256 pinned) ships in runtime/trustmark through
+   refresh-windows.py and app updates; without it or the ONNX Runtime,
+   pictures are kept unmarked. In-app narration is presented as AI and needs
+   no mark. Check that this satisfies the provider duty, and what users must
+   disclose when they publish.
 7. The draft clauses as a whole, including the governing-law choice.
 8. Earlier items still open from LICENSING-REVIEW-2026-10-13.md: taxes on
    donations, and the voice packs (now synthetic Qwen VoiceDesign voices,

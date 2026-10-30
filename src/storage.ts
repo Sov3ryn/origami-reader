@@ -334,9 +334,10 @@ export async function saveVoicePortrait(
 export async function deleteVoicePortrait(voice: string) {
   if (desktop) await invoke("delete_voice_portrait", { voice });
 }
-// Copies of covers and portraits as files in the app's Artwork folder.
+// Copies of covers and portraits as files in the app's Artwork folder. `ai`
+// marks pictures made with an image model: their files say so in metadata.
 export async function saveArtworkCopies(
-  items: { folder: "covers" | "portraits"; name: string; data: string }[],
+  items: { folder: "covers" | "portraits"; name: string; data: string; ai: boolean }[],
 ): Promise<string> {
   if (!desktop)
     throw new Error("Artwork files are available in the desktop app.");

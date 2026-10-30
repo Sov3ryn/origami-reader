@@ -62,6 +62,7 @@ import pdfCmapLicense from "../public/pdfjs/cmaps/LICENSE?raw";
 import garamondLicense from "../src-tauri/studio/fonts/ebgaramond/OFL.txt?raw";
 import literataLicense from "../src-tauri/studio/fonts/literata/OFL.txt?raw";
 import dropletLicense from "../src-tauri/studio/template/vendor/droplet-0.3.1/LICENSE?raw";
+import trustmarkLicense from "../src-tauri/src/image_mark/LICENSE-TrustMark.txt?raw";
 import { Section, SectionLevel, SectionState } from "./components/Section";
 import { BookMenu, type BookMenuActions } from "./components/BookMenu";
 import { Popover } from "./components/Popover";
@@ -1616,6 +1617,7 @@ export default function App() {
             ? b.title
             : `${b.title} - ${b.author}`,
           data: b.coverImage!,
+          ai: b.coverOrigin === "generated",
         })),
       ...voices
         .filter((v) => v.portrait)
@@ -1623,6 +1625,7 @@ export default function App() {
           folder: "portraits" as const,
           name: v.name,
           data: v.portrait!,
+          ai: v.portraitOrigin === "generated",
         })),
     ]);
     await store.openArtworkFolder();
@@ -5942,6 +5945,10 @@ export default function App() {
             <details>
               <summary>{t("Stability AI Community License (SD-Turbo)")}</summary>
               <pre className="license-text">{turboModelLicense}</pre>
+            </details>
+            <details>
+              <summary>TrustMark (MIT)</summary>
+              <pre className="license-text">{trustmarkLicense}</pre>
             </details>
           </details>
           <details>

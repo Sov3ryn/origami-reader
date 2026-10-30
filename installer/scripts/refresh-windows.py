@@ -15,12 +15,31 @@ import importlib.util
 import json
 import shutil
 import sys
+import urllib.request
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("package_windows", Path(__file__).with_name("package-windows.py"))
 package_windows = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(package_windows)
+
+# TrustMark's image watermark encoder (Adobe, MIT): marks the covers and
+# portraits Origami makes as AI-generated (src-tauri/src/image_mark.rs).
+TRUSTMARK_URL = "https://cai-watermark.adobe.net/watermarking/trustmark-models/encoder_Q.onnx"
+TRUSTMARK_SHA256 = "19b3d1b25836130ffd78775a8f61539f993375d1823ef0e59ba5b8dffb4f892d"
+
+
+def trustmark_encoder():
+    """The pinned encoder, from .local/trustmark or downloaded there once."""
+    path = REPO / ".local/trustmark/encoder_Q.onnx"
+    if not path.is_file():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        urllib.request.urlretrieve(TRUSTMARK_URL, path.with_suffix(".part"))
+        path.with_suffix(".part").replace(path)
+    with path.open("rb") as stream:
+        if hashlib.file_digest(stream, "sha256").hexdigest() != TRUSTMARK_SHA256:
+            raise SystemExit(f"{path} does not match the pinned TrustMark encoder.")
+    return path
 
 
 def main():
@@ -73,6 +92,9 @@ def main():
     for source in sorted((REPO / "docs/licenses").rglob("*")):
         if source.is_file():
             add(source, "licenses/" + source.relative_to(REPO / "docs/licenses").as_posix())
+    add(trustmark_encoder(), "runtime/trustmark/encoder_Q.onnx")
+    add(REPO / "src-tauri/src/image_mark/LICENSE-TrustMark.txt", "runtime/trustmark/LICENSE.txt")
+    add(REPO / "src-tauri/src/image_mark/LICENSE-TrustMark.txt", "licenses/TrustMark-LICENSE.txt")
     excalidraw = REPO / "public/excalidraw-assets/fonts/LICENSES.txt"
     if excalidraw.is_file():
         add(excalidraw, "licenses/Excalidraw-fonts.txt")

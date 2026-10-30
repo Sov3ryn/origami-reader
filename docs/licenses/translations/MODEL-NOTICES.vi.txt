@@ -91,6 +91,14 @@ SD-Turbo, do Stability AI tạo ra (ảnh bìa và chân dung).
   Bạn chấp nhận giấy phép, bao gồm Acceptable Use Policy (Chính sách sử dụng
   được chấp nhận) của giấy phép, trước khi mô hình được cài đặt hoặc tải xuống.
 
+TrustMark, của Adobe (hình mờ vô hình trên hình ảnh).
+  Giấy phép: MIT, cho mã nguồn và trọng số mô hình.
+  Copyright (c) 2024 Adobe.
+  https://github.com/adobe/trustmark
+  Origami thêm hình mờ này vào mọi bìa sách và chân dung được tạo bằng mô hình
+  hình ảnh, và các tệp ảnh minh họa đã lưu cũng ghi "do AI tạo" trong siêu dữ
+  liệu.
+
 SD 1.5 + LCM, SDXL-Lightning và Z-Image-Turbo được liệt kê trong Cài đặt, Mô
 hình nhưng không được Origami tải xuống. Nếu bạn tự thêm chúng, giấy phép riêng
 của chúng sẽ được áp dụng (CreativeML OpenRAIL-M, CreativeML Open RAIL++-M và

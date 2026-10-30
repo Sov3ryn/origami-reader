@@ -96,6 +96,14 @@ SD-Turbo; geliştiren: Stability AI (kapaklar ve portreler).
   Lisansı, Acceptable Use Policy (Kabul Edilebilir Kullanım Politikası) dahil,
   model yüklenmeden veya indirilmeden önce kabul edersiniz.
 
+TrustMark, Adobe tarafından (görsellerdeki görünmez filigran).
+  Lisans: MIT, kod ve model ağırlıkları için.
+  Copyright (c) 2024 Adobe.
+  https://github.com/adobe/trustmark
+  Origami bunu bir görsel modeliyle oluşturulan her kapağa ve portreye ekler;
+  kaydedilen çizim dosyaları da meta verilerinde "yapay zekâ ile oluşturuldu"
+  bilgisini taşır.
+
 SD 1.5 + LCM, SDXL-Lightning ve Z-Image-Turbo, Ayarlar, Modeller bölümünde
 listelenir ancak Origami tarafından indirilmez. Bunları kendiniz eklerseniz
 kendi lisansları geçerli olur (CreativeML OpenRAIL-M, CreativeML Open RAIL++-M

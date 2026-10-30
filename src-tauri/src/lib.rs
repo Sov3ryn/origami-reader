@@ -3,6 +3,7 @@ mod embed;
 mod handwriting;
 mod whisper;
 mod hardware;
+mod image_mark;
 mod ink;
 mod plugins;
 mod models;
@@ -133,6 +134,9 @@ struct ArtworkCopy {
     folder: String,
     name: String,
     data: String,
+    // Made with an image model: the file gets the AI-generated metadata.
+    #[serde(default)]
+    ai: bool,
 }
 // File names people can read, safe on Windows, macOS and Linux.
 fn artwork_file_name(name: &str, ext: &str) -> String {
@@ -175,6 +179,7 @@ fn save_artwork_copies(app: tauri::AppHandle, items: Vec<ArtworkCopy>) -> Result
             continue;
         };
         let bytes = STANDARD.decode(data).map_err(|_| "Invalid image data.")?;
+        let bytes = if item.ai { image_mark::tag_file(bytes, ext) } else { bytes };
         let dir = root.join(folder);
         std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
         let mut name = artwork_file_name(&item.name, ext);

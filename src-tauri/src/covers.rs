@@ -482,6 +482,9 @@ impl Covers {
             if bytes.len() > 4 * 1024 * 1024 || !bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
                 return Err("Invalid generated cover image".into());
             }
+            // The invisible "AI-generated" watermark. Without the ONNX Runtime
+            // or the model the picture is kept as it is.
+            let bytes = crate::image_mark::watermark_png(&app, &bytes).unwrap_or(bytes);
             Ok(format!("data:image/png;base64,{}", STANDARD.encode(bytes)))
         };
         let configured = model_config["backend"]

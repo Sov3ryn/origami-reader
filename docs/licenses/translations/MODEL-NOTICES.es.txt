@@ -93,6 +93,14 @@ SD-Turbo, de Stability AI (portadas y retratos).
   Usted acepta la licencia, incluida su Política de uso aceptable (Acceptable
   Use Policy), antes de que el modelo se instale o se descargue.
 
+TrustMark, de Adobe (la marca de agua invisible de las imágenes).
+  Licencia: MIT, para el código y los pesos del modelo.
+  Copyright (c) 2024 Adobe.
+  https://github.com/adobe/trustmark
+  Origami la añade a cada portada y retrato creados con un modelo de imágenes,
+  y los archivos de ilustraciones guardados también indican "generado por IA"
+  en sus metadatos.
+
 SD 1.5 + LCM, SDXL-Lightning y Z-Image-Turbo aparecen en Ajustes, Modelos,
 pero Origami no los descarga. Si los añade usted mismo, se aplican sus propias
 licencias (CreativeML OpenRAIL-M, CreativeML Open RAIL++-M y Apache 2.0).
