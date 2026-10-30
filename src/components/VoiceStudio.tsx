@@ -82,6 +82,8 @@ export function VoiceStudio({
   const [listened, setListened] = useState<string[]>([]);
   const [remove, setRemove] = useState("");
   const [source, setSource] = useState("");
+  // The take whose audio is in source, so autoplay waits for the right one.
+  const [sourceTake, setSourceTake] = useState("");
   const [playing, setPlaying] = useState(false);
   const [position, setPosition] = useState(0);
   const [elapsed, setElapsed] = useState(0);
@@ -175,6 +177,7 @@ export function VoiceStudio({
   }, [busy]);
   useEffect(() => {
     setSource("");
+    setSourceTake("");
     setPlaying(false);
     setPosition(0);
     setReviewed(false);
@@ -187,7 +190,9 @@ export function VoiceStudio({
     if (selected && desktop)
       void invoke<string>("voice_preview_audio", { id: selected })
         .then((url) => {
-          if (!cancelled) setSource(url);
+          if (cancelled) return;
+          setSource(url);
+          setSourceTake(selected);
         })
         .catch((e) => {
           if (!cancelled) setMessage(String(e));
@@ -199,10 +204,10 @@ export function VoiceStudio({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected]);
   useEffect(() => {
-    if (!source || autoplay !== selected || !audio.current) return;
+    if (!source || sourceTake !== selected || autoplay !== selected || !audio.current) return;
     setAutoplay("");
     void audio.current.play().catch(() => {});
-  }, [source, autoplay, selected]);
+  }, [source, sourceTake, autoplay, selected]);
   useEffect(() => {
     if (audio.current) {
       audio.current.playbackRate = rate;
