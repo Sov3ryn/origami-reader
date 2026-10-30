@@ -228,6 +228,8 @@ import { WorkMode, type Handoff } from "./work/WorkMode";
 import { nextMode, type AppMode } from "./work/ModeSwitch";
 import { ModeHeader, type SideWidth } from "./components/ModeHeader";
 import { bindingOf } from "./binding";
+import { CoverBindingContext } from "./coverGilding";
+import { CoverMotionContext } from "./useCoverTilt";
 import { BindingMenu } from "./components/BindingMenu";
 import { BookmarkAppearance } from "./components/BookmarkAppearance";
 import { PhysicalBookmark } from "./components/PhysicalBookmark";
@@ -6048,6 +6050,8 @@ export default function App() {
     );
   return (
     <CoverTextContext value={prefs.showCoverText}>
+      <CoverBindingContext value={prefs.binding}>
+      <CoverMotionContext value={prefs.motion}>
       <SectionState value={sectionState}>
         <div
           ref={appRoot}
@@ -7383,6 +7387,7 @@ export default function App() {
                           <h2>{t("Continue reading")}</h2>
                           <div className="continue-card">
                             <CoverControl
+                              tilt
                               book={latest}
                               small={!latestAuthor}
                               onOpen={() => {
@@ -7563,6 +7568,7 @@ export default function App() {
                           <div className="book-entry">
                             <div className="cover-column">
                               <CoverControl
+                                tilt
                                 book={b}
                                 onTrash={
                                   b.deleted
@@ -8964,6 +8970,8 @@ export default function App() {
           )}
         </div>
       </SectionState>
+      </CoverMotionContext>
+      </CoverBindingContext>
     </CoverTextContext>
   );
 }

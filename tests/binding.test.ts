@@ -26,4 +26,10 @@ describe("book binding", () => {
     expect(bookThickness(160000)).toBeLessThan(0.2);
     expect(bookThickness(2000000)).toBe(0.22);
   });
+  it("keeps Normal as a per-book override without changing independent metals", () => {
+    const all = { cover: "gold", edges: "copper", spine: "silver", coverPattern: "botanical" } as const;
+    expect(bindingOf(all).coverPattern).toBe("botanical");
+    expect(bindingOf(all, { coverPattern: "normal" })).toEqual({ ...all, coverPattern: "normal" });
+    expect(bindingOf(all, { edges: "plain" })).toEqual({ ...all, edges: "plain" });
+  });
 });

@@ -1,0 +1,48 @@
+/* Frames decorate the perimeter. Lettering still comes from coverTitles.ts. */
+.cover-pattern-foil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(125deg, var(--gilt-lo), var(--gilt-mid) 22%, var(--gilt-hi) 35%, var(--gilt-mid) 48%, var(--gilt-lo) 66%, var(--gilt-hi) 80%, var(--gilt-mid));
+  background-size: 170% 170%;
+  background-position: var(--foil-x, 50%) 50%;
+  mask: var(--gilt-mask) center / 100% 100% no-repeat;
+  -webkit-mask: var(--gilt-mask) center / 100% 100% no-repeat;
+}
+.cover.cover-patterned .cover-rule { display: none; }
+/* Side padding keeps lettering clear of the frame's side ornaments. */
+.cover.cover-patterned { padding: 28px 16px 22px; }
+.cover.cover-patterned .cover-author { left: 16px; right: 16px; bottom: 20px; }
+.cover.cover-patterned.title-thriller { padding-bottom: 27px; }
+.cover.cover-patterned.small { padding: 11px 6px 9px; }
+.cover.cover-patterned.small.title-thriller { padding-bottom: 11px; }
+.cover.cover-patterned.small .cover-author { left: 6px; right: 6px; bottom: 9px; }
+.cover.cover-patterned.cover-image[data-cover-pattern="gothic"] { padding-top: 38px; }
+.cover.cover-patterned.cover-image.small[data-cover-pattern="gothic"] { padding-top: 15px; }
+.cover-pattern-grid { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
+.cover-pattern-choice { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px; }
+.cover-pattern-choice[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: -2px; }
+.cover-pattern-sample { display: block; width: 64px; height: 90px; border-radius: 2px 5px 5px 2px; background: #342639; box-shadow: -3px 1px 0 #17111c, 0 4px 8px #0005; }
+.cover-pattern-sample img { width: 100%; height: 100%; opacity: .85; }
+.cover-tilt { perspective: 800px; }
+.cover-tilt > .cover, .cover-tilt > .cover-open > .cover {
+  transform: rotateX(calc(var(--pointer-y, 0) * -4deg)) rotateY(calc(var(--pointer-x, 0) * 6deg));
+  transition: transform 240ms ease-out;
+}
+.cover-tilt .cover[data-pointer-near] { will-change: transform; }
+.cover-tilt .cover[data-pointer-near].foil .cover-title > span {
+  background-size: 150% 150%;
+  background-position: var(--foil-x, 50%) 50%;
+}
+/* The independent rotate property composes with the existing arrival and
+   opening transforms, and is cleared before the page-turn sequence starts. */
+.book-stage.phase-closed[data-cover-idle="true"] .book {
+  rotate: calc(var(--pointer-y, 0) * -1) var(--pointer-x, 0) 0 calc((abs(var(--pointer-x, 0)) + abs(var(--pointer-y, 0))) * 2deg);
+}
+.book-stage .book { transition: rotate 240ms ease-out; }
+.book-stage.held.phase-closed .book { transition: transform 1.1s cubic-bezier(.3,.1,.2,1), rotate 240ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .cover-tilt > .cover, .cover-tilt > .cover-open > .cover { transform: none; transition: none; }
+  .book-stage.phase-closed[data-cover-idle="true"] .book { rotate: none; transition: none; }
+}

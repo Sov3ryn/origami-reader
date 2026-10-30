@@ -37,4 +37,10 @@ describe("cover title styles", () => {
     expect(titleFit("Bookmark Journey", "gilded")).toBeLessThan(1);
     expect(titleFit("x".repeat(400), "scifi")).toBe(0.45);
   });
+
+  it("fits titles to the narrower space inside a frame pattern", () => {
+    const title = "The Hound of the Baskervilles";
+    expect(titleFit(title, "thriller", true)).toBeLessThan(titleFit(title, "thriller"));
+    expect(titleFit("Dracula", "gothic", true)).toBe(1);
+  });
 });

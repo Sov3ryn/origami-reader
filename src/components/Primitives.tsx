@@ -1,5 +1,8 @@
 import { t } from "../i18n";
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useRef, type ReactNode } from "react";
+import { bindingOf, edgeFinish, type Binding } from "../binding";
+import { CoverBindingContext, coverPattern } from "../coverGilding";
+import { useCoverTilt } from "../useCoverTilt";
 import type { BookMeta } from "../types";
 import { coverTitleInk, coverTitleStyle, titleFit } from "../coverTitles";
 import "../coverTitleFonts.css";
@@ -55,10 +58,17 @@ export function IconButton({
 export function Cover({
   book,
   small = false,
+  binding,
 }: {
   book: BookMeta;
   small?: boolean;
+  binding?: Binding;
 }) {
+  const defaults = useContext(CoverBindingContext);
+  const chosen = binding || bindingOf(defaults, book.binding);
+  const pattern = coverPattern(chosen.coverPattern);
+  const decorated = pattern !== "normal" && chosen.cover !== "plain";
+  const metal = edgeFinish(chosen.cover);
   const text = hasCoverText(book, useContext(CoverTextContext));
   const style = coverTitleStyle(book);
   const ink = coverTitleInk(book, style);
@@ -72,11 +82,13 @@ export function Cover({
         book.cover +
         (small ? " small" : "") +
         (book.coverImage ? " cover-image" : "") +
+        (decorated ? " cover-patterned" : "") +
         (text
           ? " title-" + style + (styled ? " styled ink-" + ink : "") + (foil ? " foil" : "")
           : "")
       }
       aria-hidden="true"
+      data-cover-pattern={decorated ? pattern : undefined}
       style={{
         ...(book.coverImage
           ? {
@@ -86,9 +98,16 @@ export function Cover({
                   : "") + `url("${book.coverImage}")`,
             }
           : {}),
-        ["--title-fit" as string]: titleFit(book.title, style),
+        ["--title-fit" as string]: titleFit(book.title, style, decorated),
+        ...(decorated ? {
+          ["--gilt-mask" as string]: `url("/cover-gilding/${pattern}.svg")`,
+          ["--gilt-hi" as string]: metal.hi,
+          ["--gilt-mid" as string]: metal.mid,
+          ["--gilt-lo" as string]: metal.lo,
+        } : {}),
       }}
     >
+      {decorated && <span className="cover-pattern-foil" />}
       {text && (
         <>
           <span className="cover-rule" />
@@ -123,6 +142,7 @@ export function CoverControl({
   always = false,
   onTrash,
   job,
+  tilt = false,
 }: {
   book: BookMeta;
   small?: boolean;
@@ -131,14 +151,19 @@ export function CoverControl({
   always?: boolean;
   onTrash?: () => void;
   job?: CoverJob;
+  tilt?: boolean;
 }) {
+  const tiltRoot = useRef<HTMLDivElement>(null);
+  useCoverTilt(tiltRoot, tilt, ".cover");
   // Books without a cover get a small toolbar: generate, pause or resume,
   // import an image, or open the full cover editor.
   const bar = job && !book.coverImage;
   return (
     <div
+      ref={tiltRoot}
       className={
         "cover-control" +
+        (tilt ? " cover-tilt" : "") +
         (always ? " cover-control-visible" : "") +
         (job?.status ? " cover-" + job.status : "")
       }

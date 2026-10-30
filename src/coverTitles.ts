@@ -90,11 +90,13 @@ const styleType: Record<TitleStyle, { scale: number; em: number; lines: number }
 };
 
 // Long titles and long words shrink so the title keeps whole words within
-// its lines. Measured against a 128 px cover; smaller ones scale alike.
-export function titleFit(title: string, style: TitleStyle): number {
+// its lines. Measured against a 128 px cover; smaller ones scale alike. A
+// gilded frame pattern takes 8 px more of the width.
+export function titleFit(title: string, style: TitleStyle, framed = false): number {
   const { scale, em, lines } = styleType[style];
   const size = 19 * scale;
-  const width = style === "leather" ? 104 - 0.9 * size : 104;
+  const inner = framed ? 96 : 104;
+  const width = style === "leather" ? inner - 0.9 * size : inner;
   const longest = Math.max(...title.split(/\s+/).map((w) => w.length), 1);
   const byWord = (0.95 * width) / (longest * em * size);
   const byLines = (lines * width) / (1.2 * Math.max(title.length, 1) * em * size);

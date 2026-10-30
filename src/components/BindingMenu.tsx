@@ -11,6 +11,7 @@ import type { BookMeta, Preferences } from "../types";
 import { BookmarkAppearance } from "./BookmarkAppearance";
 import "./bookmarks.css";
 import { recordFeat } from "../feats";
+import { coverPattern, coverPatterns } from "../coverGilding";
 
 // The 3D book's binding (page edges, spine and cover gilding) and the
 // bookmarks, in their own window apart from the app's theme. With a book, its
@@ -150,6 +151,30 @@ export function BindingMenu({
               </div>
             );
           })}
+          <div className="binding-row">
+            <h3>{t("Cover pattern")}
+              {forBook && book.binding?.coverPattern && <button className="text-button" onClick={() => {
+                const next = { ...book.binding }; delete next.coverPattern;
+                onBook({ ...book, binding: Object.keys(next).length ? next : undefined });
+              }}>{t("Same as all books")}</button>}
+            </h3>
+            {coverPattern(shown.coverPattern) !== "normal" && shown.cover === "plain" &&
+              <p className="hint">{t("Choose a cover metal to show the pattern.")}</p>}
+            <div className="gallery-grid cover-pattern-grid">
+              {coverPatterns.map(([id, name]) => <button key={id} className="cover-pattern-choice"
+                aria-pressed={coverPattern(shown.coverPattern) === id}
+                onClick={() => {
+                  recordFeat("binding");
+                  if (forBook) onBook({ ...book, binding: { ...book.binding, coverPattern: id } });
+                  else onPrefs({ binding: { ...prefs.binding, coverPattern: id } });
+                }}>
+                <span className="cover-pattern-sample" aria-hidden="true">
+                  {id !== "normal" && <img src={`/cover-gilding/${id}.svg`} alt="" />}
+                </span>
+                <strong>{t(name)}</strong>
+              </button>)}
+            </div>
+          </div>
           <div className="binding-row">
             <h3>{t("Bookmarks")}</h3>
             <p className="hint">{t("Appearance for new bookmarks. Existing bookmarks can be changed in Notes.")}</p>

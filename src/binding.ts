@@ -28,12 +28,13 @@ export function edgeFinish(id: string | undefined): EdgeFinish {
 // Where the gilding goes. Page edges are plain paper or a metal; the spine's
 // title and bands and the cover's frame are printed in ink ("plain") or gilded.
 export type BindingPart = "edges" | "spine" | "cover";
-export type Binding = Record<BindingPart, FinishId>;
+export type Binding = Record<BindingPart, FinishId> & { coverPattern?: string };
 export const defaultBinding: Binding = { edges: "plain", spine: "plain", cover: "plain" };
 /** The binding a book is drawn with: its own choices over the default for all books. */
 export function bindingOf(all: Partial<Binding> | undefined, book?: Partial<Binding>): Binding {
   const pick = (part: BindingPart) => edgeFinish(book?.[part] ?? all?.[part] ?? defaultBinding[part]).id;
-  return { edges: pick("edges"), spine: pick("spine"), cover: pick("cover") };
+  const coverPattern = book?.coverPattern ?? all?.coverPattern;
+  return { edges: pick("edges"), spine: pick("spine"), cover: pick("cover"), ...(coverPattern ? { coverPattern } : {}) };
 }
 
 // Spine cloth for covers made by Origami, which have no image to read.

@@ -34,6 +34,8 @@ import {
 } from "../bookLayout";
 import { paragraphText, type SentenceMark } from "./ReadingPage";
 import { Cover } from "./Primitives";
+import { coverPattern } from "../coverGilding";
+import { useCoverTilt } from "../useCoverTilt";
 import { playPageTurn } from "../pageSound";
 import { languageName } from "../bookLanguage";
 import { isUnknownAuthor } from "../authorPack";
@@ -438,6 +440,7 @@ export function BookView({
   // Waits on the closed cover for a click: a new book until the reader opens
   // it, and a book the reader closed.
   const [held, setHeld] = useState(firstOpening);
+  useCoverTilt(stage, !!geometry && phase === "closed" && held, ".book", ".book-cover-hit");
   // Closed by the reader (shown turned, without the arrival animation).
   const [shut, setShut] = useState(false);
   const [spread, setSpread] = useState<number | null>(playOpening ? 0 : null);
@@ -923,9 +926,9 @@ export function BookView({
             className="book-cover-art"
             style={{ transform: `scale(${(geometry?.pageW || 128) / 128})` }}
           >
-            <Cover book={book.meta} />
+            <Cover book={book.meta} binding={binding} />
           </div>
-          <span className="book-cover-gilt" />
+          {coverPattern(binding.coverPattern) === "normal" && <span className="book-cover-gilt" />}
           <span className="book-cover-hinge" />
           <span className="book-cover-gloss" />
         </div>
@@ -1112,6 +1115,7 @@ export function BookView({
       data-edges={finishes.edges.id}
       data-spine={finishes.spine.id}
       data-cover={finishes.cover.id}
+      data-cover-idle={phase === "closed" && held ? "true" : undefined}
       style={style}
       onWheel={(e) => {
         if (phase !== "ready" || e.ctrlKey) return;
