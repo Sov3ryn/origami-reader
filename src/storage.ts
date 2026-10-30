@@ -366,6 +366,11 @@ export async function externalLinks(): Promise<{
 export async function openExternalLink(kind: "support" | "source") {
   if (desktop) await invoke("open_external_link", { kind });
 }
+// The installed licenses folder, with THIRD-PARTY-NOTICES.txt.
+export async function openLicensesFolder() {
+  if (!desktop) throw new Error("The licenses folder is installed with the desktop app.");
+  await invoke("open_licenses_folder");
+}
 
 export async function modelInventory(): Promise<
   import("./modelCatalog").ModelInstallation[]

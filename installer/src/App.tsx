@@ -11,6 +11,7 @@ import { getPreset, presetOptions, surfaceNames } from "./presets";
 import imageModelLicense from "../../docs/licenses/DreamShaper-OpenRAIL-M.txt?raw";
 import turboModelLicense from "../../docs/licenses/SD-Turbo-LICENSE.txt?raw";
 import appLicense from "../../APP-LICENSE.md?raw";
+import modelNotices from "../../docs/licenses/MODEL-NOTICES.txt?raw";
 import {
   useEffect,
   useRef,
@@ -559,6 +560,7 @@ export default function App() {
           options: {
             ...installationPlan(options),
             modelTermsAccepted: terms,
+            appTermsAccepted: appTerms,
             lightVoices: hasLight && options.lightVoices,
             turboModel: hasTurbo && options.turboModel,
             largeModel: hasLarge && options.speech && options.largeModel,
@@ -747,6 +749,24 @@ export default function App() {
                     />{" "}
                     {t("I agree to the Origami Reader license.")}
                   </label>
+                </div>
+              </div>
+            )}
+            {native && step === 5 && (
+              <div className="info-card">
+                <div>
+                  <strong>{t("Other licenses")}</strong>
+                  <p>
+                    {t(
+                      "Speech, handwriting and notes models keep their own licenses (Apache 2.0 and MIT), installed beside them. The light reader program is under the GNU GPL 3.0. Library notices are installed in the licenses folder, and every notice can be read in Settings, About and support.",
+                    )}
+                  </p>
+                  <details>
+                    <summary>{t("Read the model notices")}</summary>
+                    <pre className="license-text" aria-label={t("Model notices")} tabIndex={0}>
+                      {modelNotices}
+                    </pre>
+                  </details>
                 </div>
               </div>
             )}

@@ -1131,7 +1131,12 @@ def install(base, options):
         installed = sorted(p.relative_to(long_path(dest)).as_posix() for p in long_path(dest).rglob("*") if p.is_file())
         receipt = {"root": str(dest), "version": manifest["version"], "files": installed,
                    "configFiles": [str(p) for p in owned_configs], "shortcuts": links,
-                   "imageModelTermsAccepted": bool(options.get("modelTermsAccepted")), "installedAt": time.time()}
+                   "imageModelTermsAccepted": bool(options.get("modelTermsAccepted")),
+                   # Which app license text was agreed to, so a later change of terms can be detected.
+                   "appTermsAccepted": bool(options.get("appTermsAccepted")),
+                   "appLicenseSha256": sha256_of(dest / "licenses/Origami-Reader-App-License.txt")
+                   if (dest / "licenses/Origami-Reader-App-License.txt").is_file() else None,
+                   "installedAt": time.time()}
         write_json(dest / "installation.json", receipt)
         path = config / "installation.json"
         write_owned_json(path, {"root": str(dest)}, owned_configs)

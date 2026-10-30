@@ -91,6 +91,11 @@ export function StudioSetup({ onChange, only }: { onChange?: () => void; only?: 
           );
         })}
       </ul>
+      <p className="studio-hint">
+        {t(
+          "Licenses: AudioSeal by Meta (MIT), Ministral 3 by Mistral AI (Apache 2.0), llama.cpp (MIT), NVIDIA Parakeet TDT 0.6B v3 (CC BY 4.0, converted by Origami). Full notices are in Settings, About and support.",
+        )}
+      </p>
       {!status.runtime && <p className="studio-warn">{t("The ONNX Runtime is missing from this installation; run setup again to add it.")}</p>}
       {running && progress && (
         <div className="studio-export-running">

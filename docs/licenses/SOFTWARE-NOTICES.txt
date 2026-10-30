@@ -1,0 +1,79 @@
+Origami Reader: software components
+===================================
+
+Origami Reader is built with software made by others. Each component keeps
+its own license; Origami's licenses (LICENSE and APP-LICENSE.md) do not
+cover them and do not take away any right their licenses give you. The full
+license texts and copyright notices of the JavaScript packages and Rust
+crates are in licenses/THIRD-PARTY-NOTICES.txt in the installation folder
+(Settings, About and support, Copyright and licenses, Open the licenses
+folder). Python packages keep their notices in python/Lib/site-packages and
+python-light/Lib/site-packages, in each package's .dist-info folder.
+
+
+THE APP
+-------
+
+Tauri, by the Tauri Programme within the Commons Conservancy
+  (the desktop shell). MIT or Apache License 2.0.
+React and React DOM, by Meta Platforms, Inc. and affiliates. MIT.
+PDF.js, by Mozilla. Apache License 2.0. Character maps by Adobe (BSD-style
+  license, shown in Settings).
+Excalidraw, by Excalidraw contributors (Boards). MIT. Its fonts are listed
+  under "Drawing fonts (Boards)".
+Typst, by Typst GmbH and contributors (Studio print PDFs). Apache License 2.0.
+  Its citation styles (hayagriva) are CC BY-SA 3.0 and its syntax files
+  (two-face, syntect) carry their own notices, in THIRD-PARTY-NOTICES.txt.
+ONNX Runtime, by Microsoft (handwriting, notes, transcription and the Studio
+  watermark). MIT, with its ThirdPartyNotices.txt in the runtime folder.
+Mozilla Public License 2.0 crates compiled into the app and setup: symphonia
+  (audio decoding, 9 crates), cssparser, selectors, dtoa-short and
+  option-ext. Their source code is available from crates.io
+  (https://crates.io/crates/<name>) and their repositories. Origami does not
+  change them.
+Other JavaScript packages and Rust crates: MIT, Apache 2.0, BSD, ISC, Zlib,
+  Unicode and similar permissive licenses, each listed in
+  THIRD-PARTY-NOTICES.txt.
+
+
+RUNTIMES SETUP INSTALLS
+-----------------------
+
+Python, by the Python Software Foundation. PSF License Agreement
+  (python/LICENSE.txt).
+PyTorch and torchaudio, by the Linux Foundation and contributors (Qwen
+  speech). BSD 3-Clause.
+  The PyTorch build includes Intel OpenMP (libiomp5md.dll), under Intel's
+  license.
+NVIDIA CUDA runtime and cuDNN libraries, inside the NVIDIA build of PyTorch
+  (only on computers with an NVIDIA card). NVIDIA CUDA Toolkit EULA and cuDNN
+  Software License Agreement: https://docs.nvidia.com/cuda/eula/
+GNU Lesser General Public License 2.1 libraries, loaded as separate,
+  replaceable files: libsoxr (in soxr) and libsndfile (in soundfile) for
+  speech, and num2words for the light reader. You may replace them with your
+  own builds. Source: https://github.com/chirlu/soxr ,
+  https://github.com/libsndfile/libsndfile ,
+  https://github.com/savoirfairelinux/num2words
+Other Python packages for speech (transformers, qwen-tts and their
+  dependencies): Apache 2.0, MIT, BSD and similar, each in its .dist-info
+  folder.
+stable-diffusion.cpp and ggml, by leejet and the ggml authors (pictures).
+  MIT. Downloaded from the stable-diffusion.cpp GitHub releases. Its
+  libwebp and libwebm libraries are by Google, BSD 3-Clause.
+llama.cpp, by the ggml authors (Studio speaker finding). MIT. Downloaded
+  from the llama.cpp GitHub releases.
+
+The light reader (workers/light_tts.py) is a separate program under the GNU
+General Public License v3 or later. It uses phonemizer-fork and espeak-ng
+(through espeakng-loader), both GNU GPL 3.0 or later, installed in
+python-light. See "Light reader" in Settings and
+workers/LIGHT-READER-SOURCE.txt for their source.
+
+
+MICROSOFT COMPONENTS
+--------------------
+
+Microsoft Edge WebView2 Runtime, which draws the app's window, and the
+Microsoft Visual C++ Redistributable are made by Microsoft and installed by
+Microsoft's own installers when they are missing. They are licensed by
+Microsoft under its own license terms, not by Sov3ryn.

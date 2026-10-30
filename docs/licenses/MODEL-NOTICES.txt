@@ -1,0 +1,126 @@
+Origami Reader: models and voices
+=================================
+
+The AI models Origami Reader installs or downloads are made by others and keep
+their own licenses. Origami's licenses (LICENSE and APP-LICENSE.md) do not
+cover them and do not take away any right their licenses give you. Where
+Origami installs a model, a copy of its license or notice is placed beside the
+model files. The full texts of the Apache License 2.0, the CreativeML
+OpenRAIL-M license and the Stability AI Community License are also in Settings,
+About and support, Copyright and licenses.
+
+Models are downloaded from their publishers (mostly Hugging Face) at fixed
+revisions and checked against a SHA-256 fingerprint before use. "Unmodified"
+below means the published files are used as they are.
+
+
+SPEECH
+------
+
+Qwen3-TTS 12Hz 0.6B Base, Qwen3-TTS 12Hz 1.7B Base and Qwen3-TTS 12Hz 1.7B
+VoiceDesign, by the Qwen team, Alibaba Cloud.
+  License: Apache License 2.0. Unmodified.
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+
+Kitten TTS Mini 0.8 and Kitten TTS Micro 0.8, by KittenML.
+  License: Apache License 2.0. Unmodified.
+  https://huggingface.co/KittenML/kitten-tts-mini-0.8
+  https://huggingface.co/KittenML/kitten-tts-micro-0.8
+
+Kokoro-82M and its voice files, by hexgrad.
+  License: Apache License 2.0. Unmodified.
+  https://huggingface.co/hexgrad/Kokoro-82M
+
+Kitten and Kokoro run in the light reader (workers/light_tts.py), a separate
+program under the GNU General Public License v3 or later because it uses
+phonemizer and espeak-ng. See "Light reader" in Settings and
+workers/LIGHT-READER-SOURCE.txt.
+
+Origami voices. The voices that come with Origami (the voice packs and the
+voice library) are synthetic voices designed by Sov3ryn with Qwen VoiceDesign
+from written descriptions. They are not recordings of real people and were not
+made to imitate anyone. They are part of the app and covered by APP-LICENSE.md.
+
+
+READING AND NOTES
+-----------------
+
+TrOCR base handwritten, by Microsoft (handwriting recognition).
+  License: MIT. Copyright (c) Microsoft Corporation.
+  https://huggingface.co/microsoft/trocr-base-handwritten
+  Quantized ONNX export by Xenova: https://huggingface.co/Xenova/trocr-base-handwritten
+
+Granite Embedding 97M Multilingual R2, by IBM (related notes and search).
+  License: Apache License 2.0. Quantized ONNX files published by IBM.
+  https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2
+
+Whisper base and Whisper small, by OpenAI (speech to text, when downloaded).
+  License: MIT. Copyright (c) 2022 OpenAI.
+  https://github.com/openai/whisper
+  ONNX exports by ONNX Community: https://huggingface.co/onnx-community
+
+
+PICTURES
+--------
+
+DreamShaper 8 LCM, by Lykon (covers and portraits).
+  License: CreativeML OpenRAIL-M. Unmodified checkpoint, Civitai version
+  252914, SHA-256 A4F3E1526C5DC4FCBE342F5C410D83AE202C7A415FCEFCBB92E0F93FCD0A87C3.
+  https://huggingface.co/Lykon/dreamshaper-8-lcm
+  The use restrictions in section 5 and Attachment A of the license apply to
+  you, to anything you make with the model and to anyone you share the model
+  with. You accept them before the model is installed or downloaded.
+
+SD-Turbo, by Stability AI (covers and portraits).
+  This Stability AI Model is licensed under the Stability AI Community
+  License, Copyright © Stability AI Ltd. All Rights Reserved.
+  Powered by Stability AI.
+  https://huggingface.co/stabilityai/sd-turbo
+  Modified by Origami: the original weights are converted on your computer to
+  one GGUF file in 16-bit floating point (sd-turbo-f16.gguf) so
+  stable-diffusion.cpp can load them. They are not retrained.
+  You accept the license, including its Acceptable Use Policy, before the
+  model is installed or downloaded.
+
+SD 1.5 + LCM, SDXL-Lightning and Z-Image-Turbo are listed in Settings, Models
+but are not downloaded by Origami. If you add them yourself, their own
+licenses apply (CreativeML OpenRAIL-M, CreativeML Open RAIL++-M and Apache 2.0).
+
+
+STUDIO
+------
+
+Ministral 3 8B Instruct 2512 and Ministral 3 3B Instruct 2512, by Mistral AI
+(finding characters and speakers).
+  License: Apache License 2.0.
+  GGUF Q4_K_M quantizations by Unsloth:
+  https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF
+  https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF
+
+Parakeet TDT 0.6B v3, by NVIDIA (recordings to text).
+  License: Creative Commons Attribution 4.0 International (CC BY 4.0),
+  https://creativecommons.org/licenses/by/4.0/
+  Original model: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  ONNX export by istupakov: https://huggingface.co/istupakov/parakeet-tdt-0.6b-v3-onnx
+  Changes: Sov3ryn quantized the encoder to 8-bit integers for Origami
+  (parakeet-tdt-0.6b-v3-encoder.int8.onnx). The decoder and vocabulary are
+  the ONNX export's files, unmodified. No endorsement by NVIDIA is implied.
+
+AudioSeal, by Meta (the audio watermark on Studio exports).
+  License: MIT, for the code and the model weights.
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://github.com/facebookresearch/audioseal
+  Changes: Sov3ryn exported the 16-bit generator and detector to ONNX
+  (audioseal_generator_5s.onnx and audioseal_detector_5s.onnx).
+
+
+WHAT YOU MAKE
+-------------
+
+Narration, voices, pictures, speaker attributions and transcriptions are made
+by AI models and can be wrong. Studio exports are labelled as AI-generated
+(the "Made with Origami Reader" credit, AI metadata and, for audio, an
+AudioSeal watermark). The models' licenses, including their use restrictions,
+apply to what you make with them.

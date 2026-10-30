@@ -47,6 +47,18 @@ def append_notices(directory, label):
     candidates = [p for p in directory.iterdir() if p.is_file() and p.name.upper().startswith(("LICENSE", "LICENCE", "COPYING", "NOTICE"))]
     for candidate in candidates:
         notices.append("\n\n" + "=" * 72 + "\n" + label + " / " + candidate.name + "\n" + "=" * 72 + "\n" + candidate.read_text(encoding="utf-8", errors="replace"))
+    if not candidates:
+        # No license file shipped: name the declared license and where its text is.
+        license, home = "", ""
+        if (directory / "package.json").is_file():
+            meta = json.loads((directory / "package.json").read_text(encoding="utf-8", errors="replace"))
+            license = meta.get("license") if isinstance(meta.get("license"), str) else ""
+            home = meta.get("repository", {}).get("url", "") if isinstance(meta.get("repository"), dict) else meta.get("repository", "") or ""
+        elif (directory / "Cargo.toml").is_file():
+            meta = tomllib.loads((directory / "Cargo.toml").read_text(encoding="utf-8", errors="replace")).get("package", {})
+            license, home = str(meta.get("license", "")), str(meta.get("repository", ""))
+        if license:
+            notices.append("\n\n" + "=" * 72 + "\n" + label + "\n" + "=" * 72 + "\nLicense: " + license + " (no license file in the package; full text at " + (home or "the package's repository") + ")\n")
 
 
 lock = json.loads((repo / "package-lock.json").read_text(encoding="utf-8"))
@@ -57,9 +69,15 @@ for lockfile in (repo / "src-tauri/Cargo.lock", repo / "installer/src-tauri/Carg
     for package in tomllib.loads(lockfile.read_text(encoding="utf-8"))["package"]:
         if package.get("source", "").startswith("registry+"):
             crates.add((package["name"], package["version"]))
+found = 0
 for name, version in sorted(crates):
-    candidates = list(args.cargo_registry.glob("*/" + name + "-" + version))
-    if candidates: append_notices(candidates[0], name + " " + version)
+    # Accepts CARGO_HOME/registry or CARGO_HOME/registry/src (crates live in src/<index>/).
+    candidates = list(args.cargo_registry.glob("*/" + name + "-" + version)) or list(args.cargo_registry.glob("src/*/" + name + "-" + version))
+    if candidates:
+        found += 1
+        append_notices(candidates[0], name + " " + version)
+if found < len(crates) // 2:
+    raise SystemExit(f"Only {found} of {len(crates)} Rust crates found under {args.cargo_registry}; their notices would be missing.")
 (payload / "licenses/THIRD-PARTY-NOTICES.txt").write_text("".join(notices), encoding="utf-8")
 record("licenses/THIRD-PARTY-NOTICES.txt")
 tracked = subprocess.check_output(["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd=repo).decode().split("\0")

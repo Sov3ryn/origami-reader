@@ -59,6 +59,27 @@ fn open_external_link(kind: String) -> Result<()> {
     }
     open_in_browser(url)
 }
+// The licenses folder setup installs beside the program: the app and source
+// licenses, model licenses and THIRD-PARTY-NOTICES.txt.
+#[tauri::command]
+fn open_licenses_folder() -> Result<()> {
+    let folder = std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.parent().map(|dir| dir.join("licenses")))
+        .filter(|dir| dir.is_dir())
+        .ok_or("The licenses folder is installed with the app by setup.")?;
+    #[cfg(windows)]
+    let mut command = std::process::Command::new("explorer.exe");
+    #[cfg(target_os = "macos")]
+    let mut command = std::process::Command::new("open");
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let mut command = std::process::Command::new("xdg-open");
+    command
+        .arg(&folder)
+        .spawn()
+        .map(|_| ())
+        .map_err(|_| "Could not open the folder.".into())
+}
 // A web page from a note (an embed's "Open in your browser"). Only plain
 // http(s) addresses, without spaces or quotes, are passed on.
 #[tauri::command]
@@ -1947,6 +1968,7 @@ pub fn run() {
             prune_note_versions,
             external_links,
             open_external_link,
+            open_licenses_folder,
             save_artwork_copies,
             open_artwork_folder,
             delete_voice_portrait,

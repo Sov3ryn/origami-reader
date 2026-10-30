@@ -49,6 +49,19 @@ import globeMapCredits from "../public/bookmarks/globe-textures/ATTRIBUTION.txt?
 import coverFontLicenses from "../public/fonts/cover/OFL.txt?raw";
 import appLicense from "../APP-LICENSE.md?raw";
 import sourceLicense from "../LICENSE?raw";
+import modelNotices from "../docs/licenses/MODEL-NOTICES.txt?raw";
+import softwareNotices from "../docs/licenses/SOFTWARE-NOTICES.txt?raw";
+import imageModelLicense from "../docs/licenses/DreamShaper-OpenRAIL-M.txt?raw";
+import turboModelLicense from "../docs/licenses/SD-Turbo-LICENSE.txt?raw";
+import apacheLicense from "../public/pdfjs/LICENSE?raw";
+import lightReaderSource from "../workers/LIGHT-READER-SOURCE.txt?raw";
+import gplLicense from "../workers/LICENSE-GPL-3.0.txt?raw";
+import flagLicense from "../public/flags/LICENSE-flag-icons.txt?raw";
+import drawingFontLicenses from "../public/excalidraw-assets/fonts/LICENSES.txt?raw";
+import pdfCmapLicense from "../public/pdfjs/cmaps/LICENSE?raw";
+import garamondLicense from "../src-tauri/studio/fonts/ebgaramond/OFL.txt?raw";
+import literataLicense from "../src-tauri/studio/fonts/literata/OFL.txt?raw";
+import dropletLicense from "../src-tauri/studio/template/vendor/droplet-0.3.1/LICENSE?raw";
 import { Section, SectionLevel, SectionState } from "./components/Section";
 import { BookMenu, type BookMenuActions } from "./components/BookMenu";
 import { Popover } from "./components/Popover";
@@ -5899,6 +5912,81 @@ export default function App() {
           <details>
             <summary>{t("Cover title font licenses")}</summary>
             <pre className="license-text">{coverFontLicenses}</pre>
+          </details>
+          <details>
+            <summary>{t("Models and voices")}</summary>
+            <p className="hint">
+              {t(
+                "Each AI model keeps its own license. The image models' use restrictions apply to everything you make with them.",
+              )}
+            </p>
+            <pre className="license-text">{modelNotices}</pre>
+            <details>
+              <summary>{t("CreativeML OpenRAIL-M (DreamShaper)")}</summary>
+              <pre className="license-text">{imageModelLicense}</pre>
+            </details>
+            <details>
+              <summary>{t("Stability AI Community License (SD-Turbo)")}</summary>
+              <pre className="license-text">{turboModelLicense}</pre>
+            </details>
+          </details>
+          <details>
+            <summary>{t("Apache License 2.0")}</summary>
+            <p className="hint">
+              {t("Used by the Qwen, Kitten, Kokoro, Granite and Ministral models, PDF.js and other components.")}
+            </p>
+            <pre className="license-text">{apacheLicense}</pre>
+          </details>
+          <details>
+            <summary>{t("Software components")}</summary>
+            <pre className="license-text">{softwareNotices}</pre>
+            <button
+              className="text-button"
+              onClick={() => void store.openLicensesFolder().catch(error)}
+            >
+              {t("Open the licenses folder")}
+            </button>
+          </details>
+          <details>
+            <summary>{t("Light reader (GNU GPL 3.0)")}</summary>
+            <pre className="license-text">{lightReaderSource}</pre>
+            <details>
+              <summary>{t("GNU General Public License 3.0")}</summary>
+              <pre className="license-text">{gplLicense}</pre>
+            </details>
+          </details>
+          <details>
+            <summary>{t("Author portraits from Wikimedia Commons")}</summary>
+            <p className="hint">
+              {t(
+                "Portraits in the author notes are small crops of images from Wikimedia Commons. Each one is credited under the portrait with its artist and license. Public-domain and CC0 images need no credit. Images under a Creative Commons license (CC BY or CC BY-SA, versions 1.0 to 4.0) were resized and cropped by Origami, stay under that license, and are not covered by Origami's licenses. Author facts come from Wikidata (CC0).",
+              )}
+            </p>
+            <p className="hint">https://creativecommons.org/licenses/</p>
+          </details>
+          <details>
+            <summary>{t("Drawing fonts (Boards)")}</summary>
+            <pre className="license-text">{drawingFontLicenses}</pre>
+          </details>
+          <details>
+            <summary>{t("Studio print fonts and template")}</summary>
+            <p className="hint">
+              {t("EB Garamond and Literata are bundled with the app and embedded in Studio's print PDFs. The droplet package draws drop capitals.")}
+            </p>
+            <pre className="license-text">{garamondLicense}</pre>
+            <pre className="license-text">{literataLicense}</pre>
+            <pre className="license-text">{"droplet 0.3.1\n\n" + dropletLicense}</pre>
+          </details>
+          <details>
+            <summary>{t("Flag icons")}</summary>
+            <pre className="license-text">{flagLicense}</pre>
+          </details>
+          <details>
+            <summary>{t("PDF viewer (PDF.js)")}</summary>
+            <p className="hint">
+              {t("PDF.js by Mozilla, under the Apache License 2.0. Its character maps are by Adobe, under this license:")}
+            </p>
+            <pre className="license-text">{pdfCmapLicense}</pre>
           </details>
         </Section>
       </div>
