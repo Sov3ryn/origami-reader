@@ -26,6 +26,26 @@ manifest_path = kit / "payload/manifest.json"
 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 files = {item["path"]: item for item in manifest["files"]}
 
+# GPL and LGPL code whose binaries may only be shared with their corresponding
+# source. Online kits leave these packages to setup, which installs them from
+# PyPI; a kit that carries them must also carry their exact source archives
+# under source/third-party/<name>/ (docs/LIGHT-READER-LICENSING.md).
+COPYLEFT = {
+    "site-packages/espeakng_loader/": ("espeak-ng", "GPL-3.0-or-later"),
+    "site-packages/phonemizer/": ("phonemizer-fork", "GPL-3.0-or-later"),
+    "site-packages/num2words/": ("num2words", "LGPL-2.1"),
+    "site-packages/soxr/": ("libsoxr", "LGPL-2.1"),
+    "site-packages/_soundfile_data/": ("libsndfile", "LGPL-2.1"),
+}
+carried = {component for path in files for marker, component in COPYLEFT.items() if marker in path}
+unsourced = sorted(c for c in carried if not any(p.startswith(f"source/third-party/{c[0]}/") for p in files))
+if unsourced:
+    raise SystemExit(
+        "This kit carries GPL or LGPL code without its source, so it cannot be shared:\n"
+        + "".join(f"  {name} ({license}): add its source under source/third-party/{name}/\n" for name, license in unsourced)
+        + "Share the online kit instead (make-online-windows.py leaves these packages to setup),\n"
+        "or add the exact source archives first (docs/LIGHT-READER-LICENSING.md).")
+
 
 def record(relative, group="core"):
     path = payload / relative

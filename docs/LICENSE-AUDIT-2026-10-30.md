@@ -22,7 +22,7 @@ Status of the work in this audit: notices and installer screens are made but
 | App license accepted in setup | Yes (step 5, checkbox gates Install). Now also recorded with the license text's SHA-256 in installation.json. |
 | Image model licenses accepted | Yes, in setup and in Settings, Models (OpenRAIL-M for DreamShaper, Stability AI Community License for SD-Turbo). |
 | Other model licenses | None need acceptance (Apache 2.0, MIT, CC BY 4.0). They need notices, which were incomplete in Settings and missing for Studio. Fixed. |
-| Copyleft | The GPL light reader is handled as a separate program. Its third-party corresponding source is still not shipped (section 1.3). LGPL-2.1 libraries (libsoxr, libsndfile, num2words) are loaded as replaceable files, which is allowed; full kits need their source offered. MPL-2.0 Rust crates need a source pointer (added). No npm GPL obligation. |
+| Copyleft | The GPL light reader is handled as a separate program. The published kits (betas 6 to 19, the online kit) carry none of the GPL or LGPL binaries: setup installs espeak-ng, phonemizer-fork, num2words, libsoxr and libsndfile from PyPI (section 1.3). Only the unpublished full kit carries them, and seal-package.py now refuses to seal such a kit without their source. LGPL-2.1 libraries are loaded as replaceable files, which is allowed. MPL-2.0 Rust crates need a source pointer (added). No npm GPL obligation. |
 | Shipped notices | **Rust crate notices are missing from betas 13 to 19** because of a registry path mismatch. Fixed in seal-package.py for the next release. |
 | Notices in Settings | Covered the app and source licenses, starter books, OpenDyslexic, cover fonts and globe maps. Missing: models, software components, GPL light reader, Wikimedia portraits, Boards fonts, flag icons, PDF.js. Added. |
 | Owner's protective terms | Warranty disclaimer and termination exist. Missing: limitation of liability detail, reverse engineering, beta clause, AI and voice terms, privacy, trademark, governing law, change of terms. Drafted. |
@@ -56,16 +56,24 @@ licenses) or from the installed files. **Done** means made in this audit.
    Added a "Software components" summary (`docs/licenses/SOFTWARE-NOTICES.txt`)
    and an "Open the licenses folder" button (new `open_licenses_folder`
    command).
-3. **GPL light reader** (Done in Settings; source still open). Settings now
-   shows LIGHT-READER-SOURCE.txt and the GPL 3.0 text.
-   - **Still missing: corresponding source for phonemizer-fork and espeak-ng.**
-     LIGHT-READER-SOURCE.txt says a kit "must also include their corresponding
-     source archives (or a written offer...)", but no packaging script adds
-     them. In the online kit the wheels come straight from PyPI, which
-     arguably makes PyPI the distributor, but the full kit (and any kit that
-     stages `python-light`) distributes espeak-ng binaries. **Action:** add
-     the two sdists (or upstream source tarballs) to the kit, or a written
-     offer valid three years. **Lawyer** if you rely on the PyPI argument.
+3. **GPL light reader** (Done in Settings; source handled by not shipping
+   the binaries). Settings now shows LIGHT-READER-SOURCE.txt and the GPL 3.0
+   text.
+   - **Checked 30 October: the published kits do not carry the GPL or LGPL
+     binaries.** The beta 19 kit's manifest (750 files) has no espeak-ng,
+     phonemizer, num2words, soxr or soundfile file; betas 6 to 19 on the hub
+     are all this online kit. Setup installs those packages from PyPI on the
+     user's computer at the versions pinned in installer/locks, and in-app
+     updates never ship them. PyPI is then the distributor, and the source
+     links in Settings are a courtesy. Only the full kit
+     (package-windows.py, not published) contains them.
+   - **Guard added:** seal-package.py refuses to seal a kit that carries any
+     of them unless their source is under `source/third-party/<name>/`.
+     LIGHT-READER-SOURCE.txt and docs/LIGHT-READER-LICENSING.md now say this.
+   - **Later:** bundle the exact source archives if an offline kit is ever
+     published (GPL 3 allows a written offer only with physical media).
+   - **Lawyer:** confirm that setup fetching pinned packages from PyPI does
+     not make Origami their distributor.
 4. **Author portraits from Wikimedia Commons** (Done as a general notice;
    per-image credit needs a check). `public/author-pack` holds 25,611
    portraits. About 10,000 are CC BY or CC BY-SA (CC BY-SA 4.0: 3,265; CC BY-SA
@@ -147,8 +155,9 @@ folder as license-audit-deps.md).
   binaries, the source is offered. The app license must not forbid
   replacing them or reverse engineering for debugging (LGPL 2.1 section 6).
   APP-LICENSE.md already says it takes away no rights those licenses give;
-  the draft adds the LGPL explicitly. **Action:** add their source or a
-  written offer to full kits; online kits get them from PyPI.
+  the draft adds the LGPL explicitly. Published kits do not carry them (setup
+  installs them from PyPI); seal-package.py blocks a kit that carries them
+  without their source (section 1.3).
 - **NVIDIA and Intel inside PyTorch:** the torch 2.10.0+cu128 wheel contains
   the CUDA 12.8 runtime DLLs, cuDNN 9 and Intel libiomp5md.dll. Full kits
   ship these without NVIDIA's EULA or Intel's license; online kits download
@@ -235,7 +244,8 @@ force; setup and Settings still show APP-LICENSE.md.
 2. Limitation of liability and warranty exclusions against Quebec consumers
    (Consumer Protection Act, Civil Code arts. 1474 and 3117) and consumers
    elsewhere (EU, UK).
-3. GPL corresponding source for espeak-ng and phonemizer-fork (section 1.3).
+3. Whether setup installing the GPL and LGPL packages from PyPI keeps
+   Origami from being their distributor (section 1.3).
 4. Stability AI Community License terms for a donation-funded public release,
    and DreamShaper's "no selling the model" field (docs/MODEL-DISTRIBUTION.md).
 5. CC BY-SA portraits: attribution form and ShareAlike for the crops.

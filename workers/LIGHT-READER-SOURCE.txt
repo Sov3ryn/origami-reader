@@ -24,6 +24,9 @@ GPL components the light reader uses, with their source code:
   https://pypi.org/project/espeakng-loader/0.2.4/#files
   https://github.com/espeak-ng/espeak-ng
 
-Packaging requirement: any Origami kit that includes these components must
-also include their corresponding source archives (or a written offer for them,
-valid for three years), not only these links. See docs/LIGHT-READER-LICENSING.md.
+How they reach you: Origami's setup does not include these components. When
+the light voices are installed, setup downloads these exact versions from the
+Python Package Index (PyPI), where their publishers share them; their source
+is at the links above. Any Origami kit that does include them must also
+include their corresponding source archives, not only these links. See
+docs/LIGHT-READER-LICENSING.md.
