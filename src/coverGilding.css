@@ -11,16 +11,16 @@
   -webkit-mask: var(--gilt-mask) center / 100% 100% no-repeat;
 }
 .cover.cover-patterned .cover-rule { display: none; }
-/* Side padding keeps lettering clear of the frame's side ornaments. */
-.cover.cover-patterned { padding: 28px 16px 22px; }
-.cover.cover-patterned .cover-author { left: 14px; right: 14px; bottom: 24px; }
-.cover.cover-patterned.title-thriller { padding-bottom: 27px; }
-.cover.cover-patterned.small { padding: 11px 6px 9px; }
-.cover.cover-patterned.small.title-thriller { padding-bottom: 11px; }
-.cover.cover-patterned.small .cover-author { left: 6px; right: 6px; bottom: 10px; }
+/* Side padding keeps lettering clear of a frame's side ornaments. */
+.cover.cover-framed { padding: 28px 16px 22px; }
+.cover.cover-framed .cover-author { left: 16px; right: 16px; bottom: 24px; }
+.cover.cover-framed.title-thriller { padding-bottom: 27px; }
+.cover.cover-framed.small { padding: 11px 6px 9px; }
+.cover.cover-framed.small.title-thriller { padding-bottom: 11px; }
+.cover.cover-framed.small .cover-author { left: 6px; right: 6px; bottom: 10px; }
 /* Titles on artwork keep to the top, below the frame's top ornament. */
-.cover.cover-patterned.cover-image { padding-top: 28px; }
-.cover.cover-patterned.cover-image.small { padding-top: 11px; }
+.cover.cover-framed.cover-image { padding-top: 28px; }
+.cover.cover-framed.cover-image.small { padding-top: 11px; }
 .cover.cover-patterned.cover-image[data-cover-pattern="origami"] { padding-top: 32px; }
 .cover.cover-patterned.cover-image.small[data-cover-pattern="origami"] { padding-top: 13px; }
 .cover.cover-patterned:is(.cover-image, .title-classic)[data-cover-pattern="gothic"] { padding-top: 38px; }

@@ -926,7 +926,7 @@ export function BookView({
             className="book-cover-art"
             style={{ transform: `scale(${(geometry?.pageW || 128) / 128})` }}
           >
-            <Cover book={book.meta} binding={binding} />
+            <Cover book={book.meta} binding={binding} gilt />
           </div>
           {coverPattern(binding.coverPattern) === "normal" && <span className="book-cover-gilt" />}
           <span className="book-cover-hinge" />

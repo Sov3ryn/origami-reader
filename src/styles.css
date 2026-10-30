@@ -6694,7 +6694,7 @@ html[data-hidden="true"] .previous-still {
 /* At rest on the table, turned so the spine and the tail of the pages face
    the reader, as a book left lying on a desk. */
 .phase-closed .book {
-  transform: translateX(calc(var(--page-w) * -0.5)) translateY(4%) rotateX(54deg)
+  transform: translateX(calc(var(--page-w) * -0.5)) translateY(-3.3%) rotateX(54deg)
     rotateZ(-36deg) scale(0.96);
   animation: book-arrive 1.05s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
@@ -6708,7 +6708,7 @@ html[data-hidden="true"] .previous-still {
 }
 @keyframes book-lift {
   from {
-    transform: translateX(calc(var(--page-w) * -0.5)) translateY(4%) rotateX(54deg)
+    transform: translateX(calc(var(--page-w) * -0.5)) translateY(-3.3%) rotateX(54deg)
       rotateZ(-36deg) scale(0.96);
   }
 }
@@ -6734,7 +6734,7 @@ html[data-hidden="true"] .previous-still {
 }
 @keyframes book-arrive {
   from {
-    transform: translateX(calc(var(--page-w) * -0.5)) translateY(16%)
+    transform: translateX(calc(var(--page-w) * -0.5)) translateY(9%)
       rotateX(58deg) rotateZ(-48deg) scale(0.9);
   }
 }

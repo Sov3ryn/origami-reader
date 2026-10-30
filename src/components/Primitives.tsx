@@ -59,15 +59,20 @@ export function Cover({
   book,
   small = false,
   binding,
+  gilt = false,
 }: {
   book: BookMeta;
   small?: boolean;
   binding?: Binding;
+  /** The 3D book draws its own gilt frame over the cover. */
+  gilt?: boolean;
 }) {
   const defaults = useContext(CoverBindingContext);
   const chosen = binding || bindingOf(defaults, book.binding);
   const pattern = coverPattern(chosen.coverPattern);
   const decorated = pattern !== "normal" && chosen.cover !== "plain";
+  // Lettering keeps inside a pattern or the 3D book's gilt frame.
+  const framed = decorated || (gilt && chosen.cover !== "plain");
   const metal = edgeFinish(chosen.cover);
   const text = hasCoverText(book, useContext(CoverTextContext));
   const style = coverTitleStyle(book);
@@ -82,6 +87,7 @@ export function Cover({
         book.cover +
         (small ? " small" : "") +
         (book.coverImage ? " cover-image" : "") +
+        (framed ? " cover-framed" : "") +
         (decorated ? " cover-patterned" : "") +
         (text
           ? " title-" + style + (styled ? " styled ink-" + ink : "") + (foil ? " foil" : "")
@@ -98,7 +104,7 @@ export function Cover({
                   : "") + `url("${book.coverImage}")`,
             }
           : {}),
-        ["--title-fit" as string]: titleFit(book.title, style, decorated),
+        ["--title-fit" as string]: titleFit(book.title, style, framed),
         ...(decorated ? {
           ["--gilt-mask" as string]: `url("/cover-gilding/${pattern}.svg")`,
           ["--gilt-hi" as string]: metal.hi,
