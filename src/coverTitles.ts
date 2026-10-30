@@ -91,9 +91,11 @@ const styleType: Record<TitleStyle, { scale: number; em: number; lines: number }
 
 // Long titles and long words shrink so the title keeps whole words within
 // its lines. Measured against a 128 px cover; smaller ones scale alike. A
-// gilded frame pattern takes 8 px more of the width.
+// gilded frame pattern takes 8 px more of the width, and its height leaves
+// the large thriller lettering room for three lines.
 export function titleFit(title: string, style: TitleStyle, framed = false): number {
-  const { scale, em, lines } = styleType[style];
+  const { scale, em } = styleType[style];
+  const lines = framed && style === "thriller" ? 3 : styleType[style].lines;
   const size = 19 * scale;
   const inner = framed ? 96 : 104;
   const width = style === "leather" ? inner - 0.9 * size : inner;
