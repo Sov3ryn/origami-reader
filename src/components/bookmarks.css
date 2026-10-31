@@ -31,7 +31,7 @@
 .physical-bookmark { perspective:900px; user-select:none; -webkit-user-select:none; touch-action:pan-y; }
 .bookmark-tilt { position:absolute; inset:0; transform-origin:50% 40%; }
 .physical-bookmark.colored .bookmark-tilt { display:grid; place-items:center; }
-.physical-bookmark.beside .bookmark-tilt { transform:rotateX(calc(var(--pointer-y, 0) * -7deg)) rotateY(calc(var(--pointer-x, 0) * 14deg)); transition:transform 360ms cubic-bezier(.2,.7,.2,1); }
+.physical-bookmark.beside .bookmark-tilt { transform:rotateX(calc(var(--pointer-y, 0) * -7deg)) rotateY(calc(var(--pointer-x, 0) * 14deg)) translateZ(calc(var(--tilt-light, 0) * 10px)); transition:transform 360ms cubic-bezier(.2,.7,.2,1); }
 .physical-bookmark.beside .bookmark-tilt[data-pointer-near] { transition-duration:160ms; }
 .bookmark-sheen { position:absolute; inset:0; pointer-events:none; mask-size:100% 100%; mask-repeat:no-repeat; -webkit-mask-size:100% 100%; -webkit-mask-repeat:no-repeat; opacity:var(--tilt-light, 0); transition:opacity 360ms ease-out;
   background:radial-gradient(circle at calc((var(--tilt-light-x, 50%) - var(--art-left, 0) * 1%) * 100 / var(--art-width, 100)) calc((var(--tilt-light-y, 40%) - var(--art-top, 0) * 1%) * 100 / var(--art-height, 100)), #ffffff4d, #ffffff14 30%, transparent 58%); }
@@ -162,20 +162,27 @@
 }
 .bookmark-detail-sheen { animation:bookmark-detail-sheen 16s ease-in-out infinite; }
 .bookmark-detail-ribbon-sheen { animation:bookmark-detail-ribbon-sheen 14s linear infinite; }
-/* Normal blending: a screen blend inside the SVG masks makes the whole bookmark blink in some Chromium GPU setups. */
-.bookmark-foil { opacity:.7; }
-.bookmark-foil-spectrum { animation:bookmark-foil-spectrum 13s ease-in-out infinite; transform-origin:512px 768px; }
-.bookmark-foil-flash { animation:bookmark-foil-flash 11s ease-in-out infinite; }
-.bookmark-foil-iridescent .bookmark-foil-spectrum { animation-duration:17s; animation-delay:-4s; opacity:.8; }
-.bookmark-foil-iridescent .bookmark-foil-flash { animation-duration:16s; animation-delay:-7s; }
-@keyframes bookmark-foil-spectrum {
-  0%,100% { transform:translate(-180px,-240px) rotate(-8deg); }
-  50% { transform:translate(180px,300px) rotate(8deg); }
+/* Foil (DecorativeBookmark): a rainbow band and a soft flash under one mask
+   image, sized like the artwork. 1 artwork pixel is 100cqw / 1024; the band
+   repeats the old reflected gradient (one run of the colours is --run long).
+   Only transform and opacity animate, so nothing is redrawn per frame. */
+.bookmark-foil-layer { position:absolute; overflow:hidden; pointer-events:none; container-type:size; opacity:.7; mask-size:100% 100%; mask-repeat:no-repeat; -webkit-mask-size:100% 100%; -webkit-mask-repeat:no-repeat; }
+.decorative-bookmark-art:not([data-animated="true"]) .bookmark-foil-layer { display:none; }
+.bookmark-foil-band { position:absolute; left:-136.72%; top:-104.17%; width:371.09%; height:312.5%; transform-origin:50.32% 49.33%;
+  --run:37.43cqw; --c0:#623dff1f; --c5:#7754df1f;
+  background:repeating-linear-gradient(var(--angle, 146.7deg), var(--c0) 0, #a96cfff2 calc(var(--run) * .2), #377dffbf calc(var(--run) * .42), #4ef4dfd9 calc(var(--run) * .62), #55dd8be6 calc(var(--run) * .8), var(--c5) var(--run), #55dd8be6 calc(var(--run) * 1.2), #4ef4dfd9 calc(var(--run) * 1.38), #377dffbf calc(var(--run) * 1.58), #a96cfff2 calc(var(--run) * 1.8), var(--c0) calc(var(--run) * 2));
+  animation:bookmark-foil-band 13s ease-in-out infinite; }
+.bookmark-foil-glow { position:absolute; left:28.32%; top:35.81%; width:42.97%; height:27.34%; background:radial-gradient(closest-side, #d9c0ffa6, #619cff73 28%, #67f7c233 60%, #67f7c200); animation:bookmark-foil-glow 11s ease-in-out infinite; }
+.bookmark-foil-iridescent .bookmark-foil-band { --run:73.19cqw; --angle:148.6deg; --c5:#e5c25d1f; animation-duration:17s; animation-delay:-4s; opacity:.8; }
+.bookmark-foil-iridescent .bookmark-foil-glow { top:26.04%; height:46.88%; animation-duration:16s; animation-delay:-7s; }
+@keyframes bookmark-foil-band {
+  0%,100% { transform:translate(-17.58cqw,-23.44cqw) rotate(-8deg); }
+  50% { transform:translate(17.58cqw,29.3cqw) rotate(8deg); }
 }
-@keyframes bookmark-foil-flash {
-  0%,100% { transform:translate(-80px,-510px); opacity:.1; }
+@keyframes bookmark-foil-glow {
+  0%,100% { transform:translate(-7.81cqw,-49.8cqw); opacity:.1; }
   35% { opacity:.85; }
-  65% { transform:translate(65px,390px); opacity:.7; }
+  65% { transform:translate(6.35cqw,38.09cqw); opacity:.7; }
   85% { opacity:.1; }
 }
 @keyframes bookmark-detail-ribbon-sheen {
@@ -265,6 +272,7 @@
   .decorative-bookmark-art .decorative-bookmark-animation { display:none!important; }
   .decorative-bookmark-art .decorative-part-still { visibility:visible!important; }
   .decorative-bookmark-art * { animation:none!important; }
+  .decorative-bookmark-art .bookmark-foil-layer { display:none!important; }
 }
 .bookmark-appearance { display:grid; gap:10px; }
 .globe-bookmark-art { overflow:visible; }

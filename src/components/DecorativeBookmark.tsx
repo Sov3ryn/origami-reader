@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type CSSProperties } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { bookmarkArt, bookmarkCanvas } from "../bookmarks";
 import { useBookmarkMotion } from "./useBookmarkMotion";
 
@@ -216,6 +216,66 @@ export const bookmarkMotionDetails: Record<string, Detail> = {
   },
 };
 
+// Foil is drawn as plain layers under one mask image made once per design:
+// the artwork's brightened texture, its outline and the soft sheen area. The
+// earlier SVG version filtered the full artwork inside nested masks on every
+// frame, and some GPUs then dropped the whole window for a frame.
+const foilMasks = new Map<string, Promise<string>>();
+function foilMask(original: string, width: number, height: number, sheen: NonNullable<Detail["softSheen"]>) {
+  const key = original + "|" + JSON.stringify(sheen);
+  let made = foilMasks.get(key);
+  if (!made) {
+    made = new Promise<string>((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => {
+        const art = document.createElement("canvas");
+        art.width = width; art.height = height;
+        const a = art.getContext("2d", { willReadFrequently: true })!;
+        a.drawImage(image, 0, 0, width, height);
+        const glow = document.createElement("canvas");
+        glow.width = width; glow.height = height;
+        const g = glow.getContext("2d", { willReadFrequently: true })!;
+        for (const [cx, cy, rx, ry] of sheen) {
+          g.save(); g.translate(cx, cy); g.scale(rx, ry);
+          const fill = g.createRadialGradient(0, 0, 0, 0, 0, 1);
+          fill.addColorStop(0, "#fff"); fill.addColorStop(.45, "#fff");
+          fill.addColorStop(.75, "rgba(255,255,255,.45)"); fill.addColorStop(1, "rgba(255,255,255,0)");
+          g.fillStyle = fill; g.beginPath(); g.arc(0, 0, 1, 0, Math.PI * 2); g.fill(); g.restore();
+        }
+        const pixels = a.getImageData(0, 0, width, height);
+        const light = g.getImageData(0, 0, width, height).data;
+        const d = pixels.data;
+        for (let i = 0; i < d.length; i += 4) {
+          // Luminance of the artwork lifted a little (dark feathers still catch
+          // the foil), by its alpha twice as in the old masks, by the sheen.
+          const lum = Math.min(1, (.2125 * d[i] + .7154 * d[i + 1] + .0721 * d[i + 2]) / 255 * .9 + .16);
+          const alpha = d[i + 3] / 255;
+          d[i] = d[i + 1] = d[i + 2] = 255;
+          d[i + 3] = Math.round(lum * alpha * alpha * light[i + 3]);
+        }
+        a.putImageData(pixels, 0, 0);
+        art.toBlob((blob) => blob ? resolve(URL.createObjectURL(blob)) : reject(new Error("foil mask")), "image/png");
+      };
+      image.onerror = () => reject(new Error("foil mask"));
+      image.src = original;
+    });
+    made.catch(() => foilMasks.delete(key));
+    foilMasks.set(key, made);
+  }
+  return made;
+}
+function useFoilMask(original: string, width: number, height: number, detail: Detail | undefined) {
+  const [mask, setMask] = useState<string | null>(null);
+  const sheen = detail?.finish ? detail.softSheen : undefined;
+  useEffect(() => {
+    if (!sheen) return;
+    let live = true;
+    foilMask(original, width, height, sheen).then((url) => { if (live) setMask(url); }, () => {});
+    return () => { live = false; };
+  }, [original, width, height, sheen]);
+  return sheen ? mask : null;
+}
+
 export function DecorativeBookmark({ design, active, stillStyle }: {
   design: string; active: boolean; stillStyle: CSSProperties;
 }) {
@@ -224,6 +284,7 @@ export function DecorativeBookmark({ design, active, stillStyle }: {
   const { width, height, viewBox } = bookmarkCanvas(design);
   const id = `detail-${useId().replace(/:/g, "")}`;
   const { host, loaded, animated, paused } = useBookmarkMotion(original, active);
+  const foil = useFoilMask(original, width, height, detail);
   const svg = useRef<SVGSVGElement>(null);
   useEffect(() => {
     if (!detail.deform || !svg.current) return;
@@ -273,32 +334,6 @@ export function DecorativeBookmark({ design, active, stillStyle }: {
         <mask id={`${id}-alpha`} style={{ maskType: "alpha" }} maskUnits="userSpaceOnUse" x="0" y="0" width={width} height={height}>
           <image href={original} width={width} height={height}/>
         </mask>
-        {detail.finish && <>
-          <filter id={`${id}-foil-relief`} colorInterpolationFilters="sRGB">
-            <feComponentTransfer>
-              <feFuncR type="linear" slope=".9" intercept=".16"/>
-              <feFuncG type="linear" slope=".9" intercept=".16"/>
-              <feFuncB type="linear" slope=".9" intercept=".16"/>
-            </feComponentTransfer>
-          </filter>
-          <mask id={`${id}-foil-texture`} maskUnits="userSpaceOnUse" x="0" y="0" width={width} height={height} style={{ maskType: "luminance" }}>
-            <image href={original} width={width} height={height} filter={`url(#${id}-foil-relief)`}/>
-          </mask>
-          <linearGradient id={`${id}-spectrum`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={detail.finish === "holographic" ? 210 : 390} y2={detail.finish === "holographic" ? 320 : 640} spreadMethod="reflect">
-            <stop stopColor="#623dff" stopOpacity=".12"/>
-            <stop offset=".2" stopColor="#a96cff" stopOpacity=".95"/>
-            <stop offset=".42" stopColor="#377dff" stopOpacity=".75"/>
-            <stop offset=".62" stopColor="#4ef4df" stopOpacity=".85"/>
-            <stop offset=".8" stopColor="#55dd8b" stopOpacity=".9"/>
-            <stop offset="1" stopColor={detail.finish === "holographic" ? "#7754df" : "#e5c25d"} stopOpacity=".12"/>
-          </linearGradient>
-          <radialGradient id={`${id}-foil-flash`}>
-            <stop stopColor="#d9c0ff" stopOpacity=".65"/>
-            <stop offset=".28" stopColor="#619cff" stopOpacity=".45"/>
-            <stop offset=".6" stopColor="#67f7c2" stopOpacity=".2"/>
-            <stop offset="1" stopColor="#67f7c2" stopOpacity="0"/>
-          </radialGradient>
-        </>}
         {detail.sheen && <clipPath id={`${id}-metal`}><path d={detail.sheen}/></clipPath>}
         {detail.field && <clipPath id={`${id}-field`}><path d={detail.field.path}/></clipPath>}
         {detail.part && <>
@@ -339,12 +374,6 @@ export function DecorativeBookmark({ design, active, stillStyle }: {
       <g mask={`url(#${id}-alpha)`}>
       <g mask={detail.part ? `url(#${id}-body)` : detail.folds ? `url(#${id}-fold-body)` : undefined}>
         {detail.aura && <circle cx={detail.aura.x} cy={detail.aura.y} r={detail.aura.radius} fill={`url(#${id}-halo)`} className="bookmark-detail-aura"/>}
-        {detail.finish && <g className={`bookmark-foil bookmark-foil-${detail.finish}`} mask={`url(#${id}-foil-texture)`}>
-          <g mask={`url(#${id}-soft-metal)`}>
-            <rect className="bookmark-foil-spectrum" x="-1400" y="-1600" width="3800" height="4800" fill={`url(#${id}-spectrum)`}/>
-            <ellipse className="bookmark-foil-flash" cx="510" cy="760" rx="220" ry={detail.finish === "holographic" ? 210 : 360} fill={`url(#${id}-foil-flash)`}/>
-          </g>
-        </g>}
         {!detail.finish && (detail.sheen || detail.softSheen) && <g clipPath={detail.sheen ? `url(#${id}-metal)` : undefined} mask={detail.softSheen ? `url(#${id}-soft-metal)` : undefined}>
           {detail.softSheen
             ? <rect className="bookmark-detail-ribbon-sheen" x="0" y="-320" width={width} height="320" fill={`url(#${id}-ribbon-shine)`} style={{ animationDelay: detail.deform ? (detail.deform === "moth" ? "-2s" : "-6s") : `${-phase}s` }}/>
@@ -370,6 +399,11 @@ export function DecorativeBookmark({ design, active, stillStyle }: {
       </g>
       </g>
     </svg>}
+    {loaded && detail.finish && foil && <span className={`bookmark-foil-layer bookmark-foil-${detail.finish}`}
+      style={{ ...stillStyle, maskImage: `url("${foil}")`, WebkitMaskImage: `url("${foil}")` }}>
+      <span className="bookmark-foil-band"/>
+      <span className="bookmark-foil-glow"/>
+    </span>}
   </span>;
 }
 
