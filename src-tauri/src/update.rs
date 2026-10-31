@@ -20,7 +20,7 @@ type Result<T> = std::result::Result<T, String>;
 /// Where updates come from (the newest release of the public updates
 /// repository), and the public key that signs them. ORIGAMI_UPDATE_URL and
 /// ORIGAMI_UPDATE_KEY override both, for testing.
-const UPDATE_URL: &str = "https://github.com/Promethor/origami-updates/releases/latest/download";
+const UPDATE_URL: &str = "https://github.com/Sov3ryn/origami-updates/releases/latest/download";
 const UPDATE_PUBLIC_KEY: &str = "flCemWjLu1Me9Vc9DmNCVEC5ypqX/g3oliGhcYij9YY=";
 /// Update files are encrypted with this key so only friends' copies can open
 /// them. It is given at build time (never in Git); a copy built without it

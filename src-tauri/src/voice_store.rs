@@ -11,7 +11,7 @@ use tauri::{AppHandle, Manager};
 
 pub type Result<T> = std::result::Result<T, String>;
 
-const STORE: &str = "https://github.com/Promethor/origami-voices/releases/download/voices-store-1";
+const STORE: &str = "https://github.com/Sov3ryn/origami-voices/releases/download/voices-store-1";
 const MAX_CATALOG: u64 = 4 << 20;
 const MAX_VOICE: u64 = 24 << 20;
 

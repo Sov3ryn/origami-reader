@@ -27,7 +27,7 @@ request for the list.
 ## Where updates live
 
 Updates are on, from beta 6. The app reads
-`https://github.com/Promethor/origami-updates/releases/latest/download/manifest.json`
+`https://github.com/Sov3ryn/origami-updates/releases/latest/download/manifest.json`
 and its `.sig`: the newest release of the public `origami-updates` repository.
 The hub itself is private, and the app cannot read a private repository
 without a key, so update files live there instead, encrypted:
@@ -54,13 +54,13 @@ without a key, so update files live there instead, encrypted:
 2. Pack, encrypt and sign the changed components (usually `app`, often `workers`):
 
    ```powershell
-   python installer/scripts/make-update.py --version 0.1.0-beta.7 --base-url https://github.com/Promethor/origami-updates/releases/download/v0.1.0-beta.7 --key "$HOME\Documents\Origami-keys\origami-update-signing.key" --content-key "$HOME\Documents\Origami-keys\origami-update-content.key" --notes "What changed" --output ..\work\hub\updates\0.1.0-beta.7 app workers
+   python installer/scripts/make-update.py --version 0.1.0-beta.7 --base-url https://github.com/Sov3ryn/origami-updates/releases/download/v0.1.0-beta.7 --key "$HOME\Documents\Origami-keys\origami-update-signing.key" --content-key "$HOME\Documents\Origami-keys\origami-update-content.key" --notes "What changed" --output ..\work\hub\updates\0.1.0-beta.7 app workers
    ```
 
 3. Publish them as the newest release of origami-updates (the tag must match the base address):
 
    ```powershell
-   gh release create v0.1.0-beta.7 (Get-ChildItem ..\work\hub\updates\0.1.0-beta.7).FullName --repo Promethor/origami-updates --title "Origami Reader 0.1.0 beta 7" --notes "What changed" --latest
+   gh release create v0.1.0-beta.7 (Get-ChildItem ..\work\hub\updates\0.1.0-beta.7).FullName --repo Sov3ryn/origami-updates --title "Origami Reader 0.1.0 beta 7" --notes "What changed" --latest
    ```
 
 4. Optionally, build a new online kit and add it to the hub for new friends.

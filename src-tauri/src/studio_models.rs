@@ -11,7 +11,7 @@ use std::sync::Mutex;
 
 pub type Result<T> = std::result::Result<T, String>;
 
-const VOICES: &str = "https://github.com/Promethor/origami-voices/releases/download/studio-models-1";
+const VOICES: &str = "https://github.com/Sov3ryn/origami-voices/releases/download/studio-models-1";
 const LLAMA: &str = "https://github.com/ggml-org/llama.cpp/releases/download/b11714/llama-b11714-bin-win-vulkan-x64.zip";
 const MINISTRAL_8B: &str = "https://huggingface.co/unsloth/Ministral-3-8B-Instruct-2512-GGUF/resolve/3731507ec3e867db16d620f73e14d689125758f4/Ministral-3-8B-Instruct-2512-Q4_K_M.gguf";
 const MINISTRAL_3B: &str = "https://huggingface.co/unsloth/Ministral-3-3B-Instruct-2512-GGUF/resolve/7564922f37fa5bbb62b87f09a55c12f1f91d7a6a/Ministral-3-3B-Instruct-2512-Q4_K_M.gguf";
