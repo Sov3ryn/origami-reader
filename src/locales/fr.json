@@ -3027,7 +3027,7 @@
   "{name} (locked)": "{name} (verrouillé)",
   "{name}, locked. {how} {progress}": "{name}, verrouillé. {how} {progress}",
   "Celebrations so far: {count}.": "Fêtes jusqu’ici : {count}.",
-  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Chaque thème, lieu, reliure et signet se débloque gratuitement en utilisant Origami. Soutenir le développement les débloque tous immédiatement. Vos succès continuent de progresser comme d’habitude.",
+  "Every theme, place, binding, ribbon colour and bookmark can be unlocked for free through achievements. Supporting development unlocks them all immediately. Nothing is for supporters only, and your achievements still progress as usual.": "Chaque thème, lieu, reliure, signet et couleur de signet se débloque gratuitement grâce aux succès. Soutenir le développement les débloque tous immédiatement. Rien n’est réservé aux personnes qui soutiennent, et vos succès continuent de progresser comme d’habitude.",
   "Unlock {count} celebration places by reading during their months.": "Débloquez {count} lieux de fête en lisant pendant leur mois.",
   "Unlock a celebration place by reading during its month.": "Débloquez un lieu de fête en lisant pendant son mois.",
   "Dark": "Sombres",

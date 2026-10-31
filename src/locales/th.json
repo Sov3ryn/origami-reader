@@ -3005,7 +3005,7 @@
   "{name} (locked)": "{name} (ล็อกอยู่)",
   "{name}, locked. {how} {progress}": "{name} ล็อกอยู่ {how} {progress}",
   "Celebrations so far: {count}.": "เทศกาลที่ได้แล้ว: {count}",
-  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "ธีม สถานที่ การเข้าเล่ม และที่คั่นหนังสือทุกแบบปลดล็อกได้ฟรีด้วยการใช้ Origami การสนับสนุนการพัฒนาจะปลดล็อกทั้งหมดทันที และความสำเร็จของคุณยังคืบหน้าตามปกติ",
+  "Every theme, place, binding, ribbon colour and bookmark can be unlocked for free through achievements. Supporting development unlocks them all immediately. Nothing is for supporters only, and your achievements still progress as usual.": "ธีม สถานที่ การเข้าเล่ม สีริบบิ้น และที่คั่นหนังสือทุกแบบปลดล็อกได้ฟรีผ่านความสำเร็จ การสนับสนุนการพัฒนาจะปลดล็อกทั้งหมดทันที ไม่มีสิ่งใดที่สงวนไว้เฉพาะผู้สนับสนุน และความสำเร็จของคุณยังคืบหน้าตามปกติ",
   "Unlock {count} celebration places by reading during their months.": "ปลดล็อกสถานที่เทศกาล {count} แห่งด้วยการอ่านในเดือนของเทศกาลนั้น",
   "Unlock a celebration place by reading during its month.": "ปลดล็อกสถานที่เทศกาลหนึ่งแห่งด้วยการอ่านในเดือนของเทศกาลนั้น",
   "Dark": "โทนมืด",

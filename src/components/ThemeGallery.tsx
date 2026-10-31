@@ -38,7 +38,7 @@ export function UnlockNote() {
       <Heart size={14} aria-hidden="true" />
       <span>
         {t(
-          "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.",
+          "Every theme, place, binding, ribbon colour and bookmark can be unlocked for free through achievements. Supporting development unlocks them all immediately. Nothing is for supporters only, and your achievements still progress as usual.",
         )}
       </span>
     </p>

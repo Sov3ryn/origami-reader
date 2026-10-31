@@ -3005,7 +3005,7 @@
   "{name} (locked)": "{name} (잠김)",
   "{name}, locked. {how} {progress}": "{name}, 잠김. {how} {progress}",
   "Celebrations so far: {count}.": "지금까지 기념일: {count}.",
-  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "모든 테마, 장소, 장정, 책갈피는 Origami를 사용하면 무료로 잠금 해제할 수 있습니다. 개발을 후원하면 모두 바로 잠금 해제됩니다. 업적은 평소처럼 계속 쌓입니다.",
+  "Every theme, place, binding, ribbon colour and bookmark can be unlocked for free through achievements. Supporting development unlocks them all immediately. Nothing is for supporters only, and your achievements still progress as usual.": "모든 테마, 장소, 장정, 가름끈 색, 책갈피는 업적으로 무료로 잠금 해제할 수 있습니다. 개발을 후원하면 모두 바로 잠금 해제됩니다. 후원자 전용인 것은 없으며, 업적은 평소처럼 계속 쌓입니다.",
   "Unlock {count} celebration places by reading during their months.": "기념일이 있는 달에 읽어 기념일 장소 {count}곳을 잠금 해제하세요.",
   "Unlock a celebration place by reading during its month.": "기념일이 있는 달에 읽어 기념일 장소 한 곳을 잠금 해제하세요.",
   "Dark": "어두운 테마",

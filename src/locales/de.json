@@ -3005,7 +3005,7 @@
   "{name} (locked)": "{name} (gesperrt)",
   "{name}, locked. {how} {progress}": "{name}, gesperrt. {how} {progress}",
   "Celebrations so far: {count}.": "Bisherige Feste: {count}.",
-  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Jedes Farbschema, jeder Ort, jeder Einband und jedes Lesezeichen lässt sich kostenlos durch die Nutzung von Origami freischalten. Wer die Entwicklung unterstützt, schaltet sofort alles frei. Deine Erfolge zählen trotzdem weiter.",
+  "Every theme, place, binding, ribbon colour and bookmark can be unlocked for free through achievements. Supporting development unlocks them all immediately. Nothing is for supporters only, and your achievements still progress as usual.": "Jedes Farbschema, jeder Ort, jeder Einband, jede Bändchenfarbe und jedes Lesezeichen lässt sich kostenlos über Erfolge freischalten. Wer die Entwicklung unterstützt, schaltet sofort alles frei. Nichts ist Unterstützern vorbehalten, und deine Erfolge zählen trotzdem weiter.",
   "Unlock {count} celebration places by reading during their months.": "Schalte {count} Festorte frei, indem du in ihren Monaten liest.",
   "Unlock a celebration place by reading during its month.": "Schalte einen Festort frei, indem du in seinem Monat liest.",
   "Dark": "Dunkel",

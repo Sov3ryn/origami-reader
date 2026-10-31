@@ -3005,7 +3005,7 @@
   "{name} (locked)": "{name} (লক করা)",
   "{name}, locked. {how} {progress}": "{name}, লক করা। {how} {progress}",
   "Celebrations so far: {count}.": "এখন পর্যন্ত উৎসব: {count}।",
-  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Origami ব্যবহার করেই প্রতিটি থিম, জায়গা, বাঁধাই ও বুকমার্ক বিনামূল্যে আনলক করা যায়। উন্নয়নে সহায়তা করলে সবগুলো সঙ্গে সঙ্গে আনলক হয়। আপনার অর্জন আগের মতোই এগোতে থাকে।",
+  "Every theme, place, binding, ribbon colour and bookmark can be unlocked for free through achievements. Supporting development unlocks them all immediately. Nothing is for supporters only, and your achievements still progress as usual.": "প্রতিটি থিম, জায়গা, বাঁধাই, ফিতার রং ও বুকমার্ক অর্জনের মাধ্যমে বিনামূল্যে আনলক করা যায়। উন্নয়নে সহায়তা করলে সবগুলো সঙ্গে সঙ্গে আনলক হয়। কিছুই শুধু সহায়তাকারীদের জন্য নয়, আর আপনার অর্জন আগের মতোই এগোতে থাকে।",
   "Unlock {count} celebration places by reading during their months.": "উৎসবের মাসে পড়ে {count}টি উৎসবের জায়গা আনলক করুন।",
   "Unlock a celebration place by reading during its month.": "উৎসবের মাসে পড়ে একটি উৎসবের জায়গা আনলক করুন।",
   "Dark": "গাঢ়",

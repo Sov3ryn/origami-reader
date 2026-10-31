@@ -3005,7 +3005,7 @@
   "{name} (locked)": "{name} (закрито)",
   "{name}, locked. {how} {progress}": "{name}, закрито. {how} {progress}",
   "Celebrations so far: {count}.": "Свят поки що: {count}.",
-  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "Кожну тему, місце, палітурку й закладку можна відкрити безкоштовно, просто користуючись Origami. Підтримка розробки відкриває все одразу. Ваші досягнення при цьому зростають як завжди.",
+  "Every theme, place, binding, ribbon colour and bookmark can be unlocked for free through achievements. Supporting development unlocks them all immediately. Nothing is for supporters only, and your achievements still progress as usual.": "Кожну тему, місце, палітурку, колір стрічки й закладку можна відкрити безкоштовно за досягнення. Підтримка розробки відкриває все одразу. Нічого не доступно лише тим, хто підтримує, а ваші досягнення зростають як завжди.",
   "Unlock {count} celebration places by reading during their months.": "Відкрийте місця свят ({count}), читаючи в їхні місяці.",
   "Unlock a celebration place by reading during its month.": "Відкрийте місце свята, читаючи в його місяць.",
   "Dark": "Темні",

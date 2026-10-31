@@ -3005,7 +3005,7 @@
   "{name} (locked)": "{name} (مقفل)",
   "{name}, locked. {how} {progress}": "{name}، مقفل. {how} {progress}",
   "Celebrations so far: {count}.": "الاحتفالات حتى الآن: {count}.",
-  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "يمكن فتح كل سمة ومكان وتجليد وفاصل مجانًا باستخدام Origami. دعم التطوير يفتحها كلها فورًا. وتستمر إنجازاتك في التقدم كالمعتاد.",
+  "Every theme, place, binding, ribbon colour and bookmark can be unlocked for free through achievements. Supporting development unlocks them all immediately. Nothing is for supporters only, and your achievements still progress as usual.": "يمكن فتح كل سمة ومكان وتجليد ولون شريط وفاصل مجانًا عبر الإنجازات. دعم التطوير يفتحها كلها فورًا. لا شيء مخصص للداعمين وحدهم، وتستمر إنجازاتك في التقدم كالمعتاد.",
   "Unlock {count} celebration places by reading during their months.": "افتح {count} من أماكن الاحتفالات بالقراءة خلال أشهرها.",
   "Unlock a celebration place by reading during its month.": "افتح مكان احتفال بالقراءة خلال شهره.",
   "Dark": "داكنة",

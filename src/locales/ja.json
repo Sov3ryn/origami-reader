@@ -3005,7 +3005,7 @@
   "{name} (locked)": "{name}（ロック中）",
   "{name}, locked. {how} {progress}": "{name}、ロック中。{how}{progress}",
   "Celebrations so far: {count}.": "これまでの行事：{count}。",
-  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "テーマ、場所、装丁、しおりはすべて、Origami を使うことで無料で解放できます。開発を支援すると、すべてがすぐに解放されます。実績はこれまでどおり進みます。",
+  "Every theme, place, binding, ribbon colour and bookmark can be unlocked for free through achievements. Supporting development unlocks them all immediately. Nothing is for supporters only, and your achievements still progress as usual.": "テーマ、場所、装丁、スピンの色、しおりはすべて、実績で無料で解放できます。開発を支援すると、すべてがすぐに解放されます。支援者だけのものはなく、実績はこれまでどおり進みます。",
   "Unlock {count} celebration places by reading during their months.": "行事の月に読んで、行事の場所を {count} か所解放する。",
   "Unlock a celebration place by reading during its month.": "行事の月に読んで、行事の場所を 1 か所解放する。",
   "Dark": "ダーク",

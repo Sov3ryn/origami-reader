@@ -4,6 +4,7 @@ import { edgeFinishes } from "../binding";
 import { bookmarkArt, bookmarkDesigns } from "../bookmarks";
 import { t } from "../i18n";
 import { requirementHint } from "../places";
+import { UnlockNote } from "./ThemeGallery";
 import { annotationColors, themes } from "../themes";
 import type { ReadingStats } from "../types";
 
@@ -22,6 +23,7 @@ export function AchievementsPage({ stats, completedBooks }: { stats: ReadingStat
       <p className="hint achievements-intro">
         {t("Reading, coming back and trying new parts of Origami unlock themes, finishes, ribbon colours and bookmarks.")}
       </p>
+      <UnlockNote />
       {chapters.map(([chapter, title]) => {
         const list = achievements.filter((a) => a.chapter === chapter);
         const earned = list.filter((a) => achieved(a, stats, completedBooks)).length;

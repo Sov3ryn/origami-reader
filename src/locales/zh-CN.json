@@ -3005,7 +3005,7 @@
   "{name} (locked)": "{name}（未解锁）",
   "{name}, locked. {how} {progress}": "{name}，未解锁。{how}{progress}",
   "Celebrations so far: {count}.": "目前的节日：{count}。",
-  "Every theme, place, binding and bookmark can be unlocked for free by using Origami. Supporting development unlocks them all immediately. Your achievements still progress as usual.": "每个主题、场景、装帧和书签都可以通过使用 Origami 免费解锁。支持开发可立即解锁全部内容。你的成就仍会照常累积。",
+  "Every theme, place, binding, ribbon colour and bookmark can be unlocked for free through achievements. Supporting development unlocks them all immediately. Nothing is for supporters only, and your achievements still progress as usual.": "每个主题、场景、装帧、丝带颜色和书签都可以通过成就免费解锁。支持开发可立即解锁全部内容。没有任何内容仅限支持者，你的成就仍会照常累积。",
   "Unlock {count} celebration places by reading during their months.": "在节日所在的月份阅读，解锁 {count} 个节日场景。",
   "Unlock a celebration place by reading during its month.": "在节日所在的月份阅读，解锁一个节日场景。",
   "Dark": "深色",
