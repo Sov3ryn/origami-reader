@@ -11,9 +11,10 @@ textures, speech, image, transcription, analysis and watermark models, voice
 packs, WebView2, Visual C++, and the Python runtimes and native programs setup
 installs.
 
-Status of the work in this audit: notices and installer screens are made but
-**not committed, published or released**. The new clauses are a draft
-(docs/APP-LICENSE-DRAFT.md) and are not in force.
+Status of the work in this audit: notices and installer screens are committed
+but not yet released. The new clauses were reviewed with the owner clause by
+clause on 30 October 2026 and are now APP-LICENSE.md, in force from the next
+release, with an in-app screen that asks existing users to agree.
 
 ## Summary
 
@@ -206,8 +207,10 @@ Gaps:
 
 ## 3. Protective clauses you could add
 
-Drafted in **docs/APP-LICENSE-DRAFT.md** for your approval. Nothing there is in
-force; setup and Settings still show APP-LICENSE.md.
+Reviewed with the owner on 30 October 2026 and adopted as APP-LICENSE.md
+(the draft file is removed). Added during the review: online services the user
+connects, changes to the app (cosmetics, achievements, limited-time items),
+non-refundable donations, the Montreal district and the "Sov3ryn" pseudonym.
 
 | Clause | In APP-LICENSE.md today | Draft |
 | --- | --- | --- |
@@ -275,7 +278,6 @@ force; setup and Settings still show APP-LICENSE.md.
 
 - `docs/licenses/MODEL-NOTICES.txt` (new): models and voices.
 - `docs/licenses/SOFTWARE-NOTICES.txt` (new): software components summary.
-- `docs/APP-LICENSE-DRAFT.md` (new): proposed terms, not in force.
 - `docs/LICENSE-AUDIT-2026-10-30.md` (new): this report.
 - `public/excalidraw-assets/fonts/LICENSES.txt`: copyright lines, OFL and MIT texts.
 - `src/App.tsx`: new entries in Settings, Copyright and licenses (models and
