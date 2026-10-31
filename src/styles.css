@@ -3319,6 +3319,27 @@ html[data-hidden="true"] .previous-still {
   color: var(--muted);
   font-size: var(--fs-small);
 }
+/* New app terms at start-up: the license scrolls inside the dialog. */
+.terms-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.terms-dialog h2 {
+  margin: 0;
+}
+.terms-dialog > .license-text,
+.terms-dialog details .license-text {
+  max-height: 46vh;
+  overflow: auto;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.terms-dialog .support-dialog-actions {
+  margin: 6px 0 0;
+}
 .support-dialog {
   max-width: 460px;
   text-align: center;
@@ -6955,7 +6976,7 @@ html[data-hidden="true"] .previous-still {
   }
 }
 
-/* Private beta marking */
+/* Beta marking */
 .beta-badge {
   margin-left: 8px;
   padding: 2px 7px;

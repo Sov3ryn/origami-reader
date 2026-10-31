@@ -60,6 +60,22 @@ fn open_external_link(kind: String) -> Result<()> {
     }
     open_in_browser(url)
 }
+// The SHA-256 of the app license setup recorded as agreed to (installation.json
+// beside the program). The app asks again when its own license differs.
+#[tauri::command]
+fn accepted_app_terms() -> Option<String> {
+    let dir = std::env::current_exe().ok()?.parent()?.to_path_buf();
+    let receipt: serde_json::Value = serde_json::from_slice(&std::fs::read(dir.join("installation.json")).ok()?).ok()?;
+    if receipt["appTermsAccepted"] != true {
+        return None;
+    }
+    receipt["appLicenseSha256"].as_str().map(str::to_string)
+}
+// Declining new terms closes the app.
+#[tauri::command]
+fn quit_app(app: tauri::AppHandle) {
+    app.exit(0);
+}
 // The licenses folder setup installs beside the program: the app and source
 // licenses, model licenses and THIRD-PARTY-NOTICES.txt.
 #[tauri::command]
@@ -1974,6 +1990,8 @@ pub fn run() {
             external_links,
             open_external_link,
             open_licenses_folder,
+            accepted_app_terms,
+            quit_app,
             save_artwork_copies,
             open_artwork_folder,
             delete_voice_portrait,

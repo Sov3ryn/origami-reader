@@ -1,6 +1,7 @@
 ORIGAMI READER 0.1.0 BETA 19, WINDOWS
 
-This is a private beta for invited friends. Please do not share or re-upload it.
+This is a free public beta. Download it only from the official Origami Reader
+page on GitHub, and please do not re-upload it elsewhere.
 
 ALREADY INSTALLED AN EARLIER BETA?
 Setup offers to replace it. Your library, notes, cards and settings are kept.
@@ -28,8 +29,8 @@ INSTALL
 For a small laptop: keep the light voices setup suggests.
 If a download stops, run setup again: finished downloads are kept.
 
-The full guide and the feedback page are on the private Origami page where
-you downloaded this.
+The full guide and the feedback page are on the Origami Reader GitHub page
+where you downloaded this.
 
 LICENSES
 Origami Reader, copyright (c) 2026 Sov3ryn. Free to use; copies may not be

@@ -368,6 +368,14 @@ export async function openExternalLink(kind: "support" | "source") {
   if (desktop) await invoke("open_external_link", { kind });
 }
 // The installed licenses folder, with THIRD-PARTY-NOTICES.txt.
+// The SHA-256 of the app license setup recorded as agreed to, if any.
+export async function acceptedAppTerms(): Promise<string | null> {
+  if (!desktop) return null;
+  return (await invoke<string | null>("accepted_app_terms")) ?? null;
+}
+export async function quitApp() {
+  if (desktop) await invoke("quit_app");
+}
 export async function openLicensesFolder() {
   if (!desktop) throw new Error("The licenses folder is installed with the desktop app.");
   await invoke("open_licenses_folder");

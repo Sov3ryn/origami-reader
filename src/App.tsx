@@ -41,7 +41,7 @@ import { VoiceDownloads } from "./components/VoiceDownloads";
 import { ReaderMenu, type ReaderMenuAction } from "./components/ReaderMenu";
 import { BookView, type BookNav } from "./components/BookView";
 import { BOOK_MIN_HEIGHT, BOOK_MIN_WIDTH } from "./bookLayout";
-import { BUILD_DATE, PRIVATE_BETA, STUDIO_ENABLED, VERSION } from "./release";
+import { BETA, BUILD_DATE, STUDIO_ENABLED, VERSION } from "./release";
 import type { AuthorNote } from "./authors";
 import { fillBookDetails, isUnknownAuthor, loadPack } from "./authorPack";
 import fontLicense from "../public/fonts/opendyslexic/OFL.txt?raw";
@@ -4132,6 +4132,27 @@ export default function App() {
     setUiLanguage(loaded);
     patchPrefs({ uiLanguage: code });
   }
+  // New app terms: people who agreed to an earlier license, in setup or here,
+  // are asked once to agree to the current one (or close the app).
+  const [termsHash, setTermsHash] = useState("");
+  const [setupTerms, setSetupTerms] = useState<string | null | undefined>(undefined);
+  const [termsAgreed, setTermsAgreed] = useState(false);
+  useEffect(() => {
+    if (!store.desktop) return;
+    void crypto.subtle
+      .digest("SHA-256", new TextEncoder().encode(appLicense))
+      .then((d) => setTermsHash([...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("")));
+    store
+      .acceptedAppTerms()
+      .then(setSetupTerms)
+      .catch(() => setSetupTerms(null));
+  }, []);
+  const termsDue =
+    ready &&
+    !!termsHash &&
+    setupTerms !== undefined &&
+    setupTerms !== termsHash &&
+    prefs.appTermsSha256 !== termsHash;
   // Pay what you want: one polite request after a day of real use, never
   // shown to people who already support Origami or asked not to be asked.
   // Nothing in the app is ever locked behind a payment.
@@ -4139,6 +4160,7 @@ export default function App() {
   const [supportNever, setSupportNever] = useState(false);
   const supportDue =
     ready &&
+    !termsDue &&
     prefs.supportPrompt !== "never" &&
     prefs.supportPromptAfter > 0 &&
     Date.now() > prefs.supportPromptAfter &&
@@ -5800,12 +5822,12 @@ export default function App() {
       );
     return (
       <div className="inspector-content">
-        {PRIVATE_BETA && (
+        {BETA && (
           <section className="beta-notice" aria-labelledby="beta-title">
-            <h4 id="beta-title">{t("Private beta")}</h4>
+            <h4 id="beta-title">{t("Beta")}</h4>
             <p>
               {t(
-                "This early version was shared privately with trusted testers and is not for redistribution. If you received it from anywhere else, it may have been modified, so please delete it.",
+                "This is an early version of Origami Reader. Features may still change and errors can happen, so keep your own copies of books and exports you care about. Download Origami Reader only from its official GitHub page: copies from anywhere else may have been modified.",
               )}
             </p>
             <p className="hint">
@@ -8832,6 +8854,52 @@ export default function App() {
                     onClick={() => void permanentlyDelete()}
                   >
                     {deletingBooks ? t("Deleting…") : t("Delete permanently")}
+                  </button>
+                </div>
+              </section>
+            </div>
+          )}
+          {termsDue && (
+            <div className="modal-scrim">
+              <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="terms-dialog-title"
+                className="quick-dialog terms-dialog"
+              >
+                <h2 id="terms-dialog-title">{t("New terms for Origami Reader")}</h2>
+                <p>
+                  {t(
+                    "The Origami Reader license has changed. Read it and agree to keep using the app. If you do not agree, you may stop using it.",
+                  )}
+                </p>
+                <pre className="license-text">{appLicenseShown}</pre>
+                {hasTranslation("app", uiLanguage) && (
+                  <details>
+                    <summary>{t("Read the original English text")}</summary>
+                    <pre className="license-text" lang="en" dir="ltr">
+                      {appLicense}
+                    </pre>
+                  </details>
+                )}
+                <label className="check-label">
+                  <input
+                    type="checkbox"
+                    checked={termsAgreed}
+                    onChange={(e) => setTermsAgreed(e.target.checked)}
+                  />
+                  {t("I agree to the Origami Reader license.")}
+                </label>
+                <div className="support-dialog-actions">
+                  <button
+                    className="primary"
+                    disabled={!termsAgreed}
+                    onClick={() => patchPrefs({ appTermsSha256: termsHash })}
+                  >
+                    {t("Continue")}
+                  </button>
+                  <button onClick={() => void store.quitApp()}>
+                    {t("Close Origami Reader")}
                   </button>
                 </div>
               </section>

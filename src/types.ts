@@ -200,6 +200,8 @@ export type Preferences = {
   // "later" means the reader chose Maybe later once; it is asked one last time.
   supportPrompt: "ask" | "later" | "never";
   supportPromptAfter: number;
+  // SHA-256 of the app license text agreed to in the app (setup records its own).
+  appTermsSha256: string;
   sentencePause: number;
   paragraphPause: number;
   headingPause: number;
@@ -458,6 +460,7 @@ export const defaultPreferences: Preferences = {
   uiLanguage: "",
   supportPrompt: "ask",
   supportPromptAfter: 0,
+  appTermsSha256: "",
   sentencePause: 120,
   paragraphPause: 450,
   headingPause: 800,

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { t } from "../i18n";
-import { PRIVATE_BETA } from "../release";
+import { BETA } from "../release";
 import { ModeSwitch, type AppMode } from "../work/ModeSwitch";
 
 /** The side panel's width, one for Read, Work and Studio so the panel keeps
@@ -33,7 +33,7 @@ export function ModeHeader({
       <img src="/crane.png" alt="" />
       <span className="mode-brand-text">
         <span className="mode-brand-name">{t("Origami")}</span>
-        {PRIVATE_BETA && <span className="beta-badge">{t("Private beta")}</span>}
+        {BETA && <span className="beta-badge">{t("Beta")}</span>}
       </span>
     </>
   );
