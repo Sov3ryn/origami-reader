@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { History, LoaderCircle, RotateCcw, X } from "lucide-react";
-import { t } from "../i18n";
+import { useModal } from "../components/useModal";
+import { displayLocale, t } from "../i18n";
 import { noteExtensions } from "./editorExtensions";
 import { noteVersions } from "./store";
 import { noteText } from "./text";
@@ -13,10 +14,10 @@ function when(ts: number) {
   const d = new Date(ts);
   const today = new Date();
   const yesterday = new Date(Date.now() - 86_400_000);
-  const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const time = d.toLocaleTimeString(displayLocale(), { hour: "2-digit", minute: "2-digit" });
   if (d.toDateString() === today.toDateString()) return t("Today, {time}", { time });
   if (d.toDateString() === yesterday.toDateString()) return t("Yesterday, {time}", { time });
-  return d.toLocaleDateString([], { day: "numeric", month: "short", year: d.getFullYear() === today.getFullYear() ? undefined : "numeric" }) + ", " + time;
+  return d.toLocaleDateString(displayLocale(), { day: "numeric", month: "short", year: d.getFullYear() === today.getFullYear() ? undefined : "numeric" }) + ", " + time;
 }
 
 // Earlier versions of a note: kept automatically while you write (one every
@@ -25,6 +26,8 @@ function when(ts: number) {
 export function HistoryDialog({ note, onRestore, onClose }: { note: Note; onRestore: (v: NoteVersion) => void; onClose: () => void }) {
   const [versions, setVersions] = useState<NoteVersion[] | null>(null);
   const [picked, setPicked] = useState<NoteVersion | null>(null);
+  const scrim = useRef<HTMLDivElement>(null);
+  useModal(scrim);
   useEffect(() => {
     let live = true;
     void noteVersions(note.id)
@@ -51,7 +54,7 @@ export function HistoryDialog({ note, onRestore, onClose }: { note: Note; onRest
   const nowWords = useMemo(() => words(note.html), [note.html]);
 
   return (
-    <div className="modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div ref={scrim} className="modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <section className="history-dialog" role="dialog" aria-modal="true" aria-labelledby="history-title">
         <header>
           <History size={18} />

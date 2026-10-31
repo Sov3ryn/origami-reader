@@ -38,6 +38,20 @@ export const IMPORT_EXTENSIONS = [
   "prc",
 ];
 const MAX_EXPANDED = 64 * 1024 * 1024;
+// Matches the desktop store limit in src-tauri/src/store.rs.
+export const MAX_PARAGRAPHS = 200_000;
+
+// Chinese, Japanese, Thai and similar scripts have no spaces between words.
+const unspaced =
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Thai}\p{Script=Lao}\p{Script=Khmer}\p{Script=Myanmar}]/u;
+let wordSegmenter: Intl.Segmenter | undefined;
+export function countWords(text: string) {
+  if (!unspaced.test(text)) return text.split(/\s+/).filter(Boolean).length;
+  wordSegmenter ??= new Intl.Segmenter(undefined, { granularity: "word" });
+  let n = 0;
+  for (const s of wordSegmenter.segment(text)) if (s.isWordLike) n++;
+  return n;
+}
 export function paragraphsFromText(text: string): Paragraph[] {
   let chapter = 0;
   return text
@@ -324,6 +338,10 @@ export function createBook(
   format = "TXT",
   sourceHash = "",
 ): Book {
+  if (paragraphs.length > MAX_PARAGRAPHS)
+    throw new Error(
+      "This file has more than 200,000 paragraphs, more than one book can hold. Split it into smaller files, then import them.",
+    );
   const meta: BookMeta = {
     id: crypto.randomUUID(),
     title,
@@ -333,7 +351,7 @@ export function createBook(
     opened: 0,
     position: 0,
     paragraphCount: paragraphs.length,
-    wordCount: paragraphs.reduce((n, p) => n + p.text.split(/\s+/).length, 0),
+    wordCount: paragraphs.reduce((n, p) => n + countWords(p.text), 0),
     collection: "Unsorted",
     favorite: false,
     deleted: false,
@@ -361,7 +379,9 @@ export function epubParagraphs(
   start = 0,
 ): Paragraph[] {
   const result: Paragraph[] = [];
-  const selector = "h1,h2,h3,h4,p,li,blockquote";
+  // Leaf divs, cells and h5-h6 are read as paragraphs.
+  const selector =
+    "h1,h2,h3,h4,h5,h6,p,li,blockquote,pre,dd,dt,td,th,figcaption,div";
   const emit = (el: Element, raw: string) => {
     const text = raw.replace(/\s+/g, " ").trim();
     if (!text) return;
@@ -385,6 +405,9 @@ export function epubParagraphs(
           : {}),
     });
   };
+  const root = doc.querySelector("body") || doc.documentElement;
+  // textContent drops line breaks, which would join the words around them.
+  root.querySelectorAll("br").forEach((br) => br.replaceWith(" "));
   const walk = (el: Element) => {
     if (el.matches(selector) && !el.querySelector(selector)) {
       emit(el, el.textContent || "");
@@ -392,12 +415,14 @@ export function epubParagraphs(
     }
     let buffer = "";
     const flush = () => {
-      if (el.matches(selector)) emit(el, buffer);
+      // Loose text directly in the body is kept as its own paragraph.
+      if (el === root || el.matches(selector)) emit(el, buffer);
       buffer = "";
     };
     for (const node of Array.from(el.childNodes)) {
       if (node.nodeType === 1) {
         const child = node as Element;
+        if (child.localName === "head") continue;
         if (child.matches(selector) || child.querySelector(selector)) {
           flush();
           walk(child);
@@ -406,7 +431,7 @@ export function epubParagraphs(
     }
     flush();
   };
-  walk(doc.querySelector("body") || doc.documentElement);
+  walk(root);
   return result;
 }
 function fromImported(
@@ -426,7 +451,24 @@ function fromImported(
   if (imported.author) book.meta.author = imported.author;
   return book;
 }
+// Parser failures (fflate zip errors carry a numeric code; DataView and
+// TextDecoder failures are RangeErrors) become one plain message. The
+// module's own messages pass through unchanged.
 export async function importDocument(file: File): Promise<Book> {
+  try {
+    return await readDocument(file);
+  } catch (e) {
+    if (
+      e instanceof RangeError ||
+      (e instanceof Error && typeof (e as { code?: unknown }).code === "number")
+    )
+      throw new Error(
+        "This file could not be read. It may be damaged, or its extension may not match its contents.",
+      );
+    throw e;
+  }
+}
+async function readDocument(file: File): Promise<Book> {
   const lower = file.name.toLowerCase();
   const ext = lower.endsWith(".fb2.zip") ? "fb2.zip" : lower.split(".").pop();
   if (ext === "pdf" && file.size > MAX_PDF_BYTES)
@@ -467,7 +509,8 @@ export async function importDocument(file: File): Promise<Book> {
   if (ext === "mobi" || ext === "azw" || ext === "azw3" || ext === "prc") {
     const kindle = readMobi(bytes);
     const doc = new DOMParser().parseFromString(kindle.html, "text/html");
-    doc.querySelectorAll("script,style").forEach((el) => el.remove());
+    // Ruby readings (furigana) would repeat every annotated word.
+    doc.querySelectorAll("script,style,rt,rp,rtc").forEach((el) => el.remove());
     const paragraphs = epubParagraphs(doc, 1);
     if (!paragraphs.length)
       throw new Error("No readable text was found in this Kindle book.");
@@ -511,20 +554,33 @@ export async function importDocument(file: File): Promise<Book> {
     const manifest = new Map(
       Array.from(pkg.getElementsByTagName("item")).map((e) => [
         e.getAttribute("id"),
-        e.getAttribute("href"),
+        {
+          href: e.getAttribute("href"),
+          type: (e.getAttribute("media-type") || "").toLowerCase(),
+        },
       ]),
     );
     const pieces: Paragraph[] = [];
     let chapter = 0;
     for (const item of Array.from(pkg.getElementsByTagName("itemref"))) {
-      const href = manifest.get(item.getAttribute("idref"));
-      if (!href) throw new Error("EPUB spine references missing content.");
-      const resolved = new URL(href, "https://book.invalid/" + base);
+      const entry = manifest.get(item.getAttribute("idref"));
+      if (!entry?.href)
+        throw new Error("EPUB spine references missing content.");
+      // SVG pages and other non-text spine documents have nothing to read.
+      if (
+        entry.type &&
+        entry.type !== "application/xhtml+xml" &&
+        entry.type !== "text/html"
+      )
+        continue;
+      const resolved = new URL(entry.href, "https://book.invalid/" + base);
       if (resolved.origin !== "https://book.invalid")
         throw new Error("Remote EPUB content is not supported.");
       const content = entries[decodeURIComponent(resolved.pathname.slice(1))];
       const doc = xml(content, "chapter");
-      doc.querySelectorAll("script,style,nav").forEach((el) => el.remove());
+      doc
+        .querySelectorAll("script,style,nav,rt,rp,rtc")
+        .forEach((el) => el.remove());
       chapter++;
       pieces.push(...epubParagraphs(doc, chapter, pieces.length));
     }
@@ -533,14 +589,19 @@ export async function importDocument(file: File): Promise<Book> {
         "No readable text found in this EPUB. Protected and image-only books are not supported.",
       );
     const book = createBook(
-      pkg.getElementsByTagNameNS("*", "title")[0]?.textContent || name,
+      pkg
+        .getElementsByTagNameNS("*", "title")[0]
+        ?.textContent?.replace(/\s+/g, " ")
+        .trim() || name,
       pieces,
       "EPUB",
       sourceHash,
     );
     book.meta.author =
-      pkg.getElementsByTagNameNS("*", "creator")[0]?.textContent ||
-      "Unknown author";
+      pkg
+        .getElementsByTagNameNS("*", "creator")[0]
+        ?.textContent?.replace(/\s+/g, " ")
+        .trim() || "Unknown author";
     book.meta.genres = Array.from(
       pkg.getElementsByTagNameNS("*", "subject"),
       (el) => el.textContent?.trim() || "",

@@ -3,7 +3,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // Reads a note aloud with the reader's Origami voice, paragraph by paragraph.
 // The next paragraph is prepared while the current one plays, so there are
 // no gaps; stopping cancels everything still waiting.
-export function useNoteReader(speak?: (text: string) => Promise<string>) {
+export function useNoteReader(speak?: (text: string) => Promise<string>, onError?: (e: unknown) => void) {
+  const failed = useRef(onError);
+  failed.current = onError;
   const [state, setState] = useState<{ index: number; total: number } | null>(null);
   const run = useRef(0);
   const audio = useRef<HTMLAudioElement | null>(null);
@@ -28,7 +30,8 @@ export function useNoteReader(speak?: (text: string) => Promise<string>) {
         let url: string;
         try {
           url = await next!;
-        } catch {
+        } catch (e) {
+          if (my === run.current) failed.current?.(e);
           break;
         }
         next = i + 1 < parts.length ? speak(parts[i + 1]) : null;

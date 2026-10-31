@@ -30,12 +30,26 @@
 .cover-pattern-choice[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: -2px; }
 .cover-pattern-sample { display: block; width: 64px; height: 90px; border-radius: 2px 5px 5px 2px; background: #342639; box-shadow: -3px 1px 0 #17111c, 0 4px 8px #0005; }
 .cover-pattern-sample img { width: 100%; height: 100%; opacity: .85; }
-.cover-tilt { perspective: 800px; }
+/* Cards tilt toward the pointer and catch a soft light where it rests, then
+   ease back flat when it leaves. useCoverTilt sets the variables. */
+.cover-tilt { perspective: 700px; }
 .cover-tilt > .cover, .cover-tilt > .cover-open > .cover {
-  transform: rotateX(calc(var(--pointer-y, 0) * -4deg)) rotateY(calc(var(--pointer-x, 0) * 6deg));
-  transition: transform 240ms ease-out;
+  transform: rotateX(calc(var(--pointer-y, 0) * -8deg)) rotateY(calc(var(--pointer-x, 0) * 10deg)) translateZ(calc(var(--sheen, 0) * 8px));
+  transition: transform 320ms cubic-bezier(.2,.7,.2,1);
 }
-.cover-tilt .cover[data-pointer-near] { will-change: transform; }
+.cover-tilt .cover[data-pointer-near] { will-change: transform; transition-duration: 160ms; }
+.cover-tilt > .cover::before, .cover-tilt > .cover-open > .cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--sheen-x, 50%) var(--sheen-y, 50%), #ffffff3d, #ffffff10 32%, transparent 62%);
+  mix-blend-mode: screen;
+  opacity: var(--sheen, 0);
+  transition: opacity 320ms ease-out;
+}
 .cover-tilt .cover[data-pointer-near].foil .cover-title > span {
   background-size: 150% 150%;
   background-position: var(--foil-x, 50%) 50%;
@@ -49,5 +63,6 @@
 .book-stage.held.phase-closed .book { transition: transform 1.1s cubic-bezier(.3,.1,.2,1), rotate 240ms ease-out; }
 @media (prefers-reduced-motion: reduce) {
   .cover-tilt > .cover, .cover-tilt > .cover-open > .cover { transform: none; transition: none; }
+  .cover-tilt > .cover::before, .cover-tilt > .cover-open > .cover::before { display: none; }
   .book-stage.phase-closed[data-cover-idle="true"] .book { rotate: none; transition: none; }
 }

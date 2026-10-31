@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import type { BookMeta } from "./types";
 
 export const builtInCollections = [
@@ -6,6 +7,15 @@ export const builtInCollections = [
   "Unsorted",
   "Trash",
 ];
+// The collection the app gives its starter books. Stored in English.
+export const starterCollection = "Starter library";
+// The name shown for a collection: built-in and app-made names are
+// translated, names the reader chose are shown as typed.
+export function collectionLabel(name: string): string {
+  return builtInCollections.includes(name) || name === starterCollection
+    ? t(name)
+    : name;
+}
 export function collectionNames(saved: string[], books: BookMeta[]): string[] {
   return [...new Set([...saved, ...books.map((b) => b.collection)])].filter(
     (name) => name && !builtInCollections.includes(name),

@@ -1,5 +1,5 @@
 import { t } from "../i18n";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   AudioLines,
   BookMarked,
@@ -53,24 +53,43 @@ export function BookMenu({
 }) {
   const [open, setOpen] = useState(false);
   // Fixed coordinates keep the menu clear of scrolling panels and the player.
-  const [place, setPlace] = useState<{ left: number; top: number } | null>(
-    null,
-  );
+  // This is the window position asked for; the menu is placed once it is
+  // measured. From the button, x is the right edge the menu lines up with.
+  const anchor = useRef({ x: 0, y: 0, above: 0, alignRight: false });
+  const [shown, setShown] = useState(0);
   const button = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (openAt) show(openAt.x, openAt.y);
   }, [openAt]);
-  function show(x: number, y: number, above = y) {
-    const width = 280;
-    const height = 370;
-    setPlace({
-      left: Math.max(8, Math.min(x, window.innerWidth - width - 8)),
-      top:
-        y + height < window.innerHeight - 8 ? y : Math.max(8, above - height),
-    });
+  function show(x: number, y: number, above = y, alignRight = false) {
+    anchor.current = { x, y, above, alignRight };
+    setShown((n) => n + 1);
     setOpen(true);
   }
+  useLayoutEffect(() => {
+    const m = menu.current;
+    if (!open || !m) return;
+    // The menu sits inside the zoomed library, so window pixels are divided
+    // by the interface size before they become its CSS values.
+    const zoom = m.getBoundingClientRect().width / (m.offsetWidth || 1) || 1;
+    m.style.maxHeight = (window.innerHeight - 16) / zoom + "px";
+    m.style.overflowY = "auto";
+    const r = m.getBoundingClientRect();
+    const { y, above, alignRight } = anchor.current;
+    const x = alignRight ? anchor.current.x - r.width : anchor.current.x;
+    const left = Math.max(8, Math.min(x, window.innerWidth - r.width - 8));
+    // Below the pointer when it fits, otherwise above it, always on screen.
+    const top =
+      y + r.height <= window.innerHeight - 8
+        ? y
+        : Math.max(
+            8,
+            Math.min(above - r.height, window.innerHeight - r.height - 8),
+          );
+    m.style.left = left / zoom + "px";
+    m.style.top = top / zoom + "px";
+  }, [open, shown]);
   useEffect(() => {
     if (!open) return;
     requestAnimationFrame(() =>
@@ -116,7 +135,7 @@ export function BookMenu({
         onClick={(e) => {
           if (open) return close();
           const r = e.currentTarget.getBoundingClientRect();
-          show(r.right - 270, r.bottom + 4, r.top - 4);
+          show(r.right, r.bottom + 4, r.top - 4, true);
         }}
       >
         <Ellipsis size={16} />
@@ -127,7 +146,6 @@ export function BookMenu({
           className="book-menu-popup"
           role="menu"
           aria-label={t("Options for {title}", { title: book.title })}
-          style={place || undefined}
           onKeyDown={(e) => {
             const list = items();
             const i = list.indexOf(document.activeElement as HTMLElement);

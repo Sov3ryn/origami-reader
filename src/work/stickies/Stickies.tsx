@@ -29,7 +29,7 @@ export const stickyColors: Record<string, { bg: string; edge: string }> = {
   violet: { bg: "#e3d8ff", edge: "#ae98ea" },
 };
 
-const colorNames = (): Record<string, string> => ({
+export const colorNames = (): Record<string, string> => ({
   yellow: t("Yellow"),
   pink: t("Pink"),
   green: t("Green"),
@@ -116,6 +116,7 @@ function Sticky({
               className={"sticky-color" + (note.color === name ? " active" : "")}
               style={{ background: c.bg, borderColor: c.edge }}
               aria-label={colorNames()[name] || name}
+              aria-pressed={note.color === name}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => onChange({ color: name })}
             />
@@ -123,6 +124,7 @@ function Sticky({
         <button
           className="sticky-tool"
           data-tip={note.collapsed ? t("Unfold") : t("Fold")}
+          aria-label={note.collapsed ? t("Unfold") : t("Fold")}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => onChange({ collapsed: !note.collapsed })}
         >
@@ -131,6 +133,7 @@ function Sticky({
         <button
           className="sticky-tool"
           data-tip={t("Remove sticky note")}
+          aria-label={t("Remove sticky note")}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => {
             if (text.trim() && !window.confirm(t("Remove this sticky note and its text?"))) return;

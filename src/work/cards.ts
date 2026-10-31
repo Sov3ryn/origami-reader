@@ -8,6 +8,7 @@ import {
 } from "ts-fsrs";
 import type { CardSource, CardType, Note, Schedule, StudyCard } from "./types";
 import { noteCardLines } from "./text";
+import { formatNumber, t } from "../i18n";
 
 // FSRS scheduling (ts-fsrs, MIT). Fuzz spreads cards made together.
 const scheduler = fsrs({ enable_fuzz: true });
@@ -238,11 +239,11 @@ export function syncNoteCards(note: Note, cards: StudyCard[], now = Date.now()) 
 
 export function formatWait(ms: number) {
   const m = Math.max(1, Math.round(ms / 60000));
-  if (m < 60) return `${m} min`;
+  if (m < 60) return t("{minutes} min", { minutes: m });
   const h = Math.round(m / 60);
-  if (h < 24) return `${h} h`;
+  if (h < 24) return t("{hours} h", { hours: h });
   const d = Math.round(h / 24);
-  if (d < 31) return `${d} d`;
+  if (d < 31) return t("{days} d", { days: d });
   const mo = Math.round(d / 30);
-  return mo < 12 ? `${mo} mo` : `${(d / 365).toFixed(1)} y`;
+  return mo < 12 ? t("{months} mo", { months: mo }) : t("{years} y", { years: formatNumber(Math.round((d / 365) * 10) / 10) });
 }

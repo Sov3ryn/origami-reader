@@ -9,6 +9,8 @@ import { asrReady, bookMarkdown, cancelTranscribe, doubtful, guessLanguage, pick
 import { revealFile } from "./production";
 import { WordReview } from "./WordReview";
 import { alignBook } from "./align";
+import { StudioSetup } from "./StudioSetup";
+import { useModal } from "../components/useModal";
 import type { BookMeta } from "../types";
 
 // From a recording: an audiobook or any narrated recording becomes a book in the
@@ -30,9 +32,15 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
   const [textFrom, setTextFrom] = useState("");
   const [aligned, setAligned] = useState("");
   const started = useRef(0);
+  const scrim = useRef<HTMLDivElement>(null);
+  useModal(scrim);
+  // A finished transcription is only discarded on purpose, with the Close button.
+  const keepOpen = running || saving || heard !== null;
 
   useEffect(() => {
-    void asrReady().then(setReady);
+    void asrReady()
+      .then(setReady)
+      .catch(() => setReady(false));
     const off = [
       listen<AsrProgress>("studio-asr-progress", (e) => setProgress(e.payload)),
       listen<AsrDone>("studio-asr-done", (e) => {
@@ -44,10 +52,10 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
     return () => off.forEach((p) => void p.then((f) => f()));
   }, []);
   useEffect(() => {
-    const key = (e: KeyboardEvent) => e.key === "Escape" && !running && onClose();
+    const key = (e: KeyboardEvent) => e.key === "Escape" && !keepOpen && onClose();
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [running, onClose]);
+  }, [keepOpen, onClose]);
 
   const chapters = useMemo(() => (heard ? structure(heard, { title, author }) : []), [heard, title, author]);
   useEffect(() => {
@@ -142,7 +150,7 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
   }
 
   return (
-    <div className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && !running && onClose()}>
+    <div ref={scrim} className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && !keepOpen && onClose()}>
       <section className="studio-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-rec-title">
         <header>
           <h2 id="studio-rec-title">{t("Book from a recording")}</h2>
@@ -211,23 +219,25 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
               <button onClick={() => void save(false)} disabled={saving || !chapters.length}>
                 <BookPlus size={15} /> {t("Add to the library")}
               </button>
-              <button className="primary" onClick={() => void save(true)} disabled={saving || !chapters.length}>
+              <button className="primary" autoFocus onClick={() => void save(true)} disabled={saving || !chapters.length}>
                 {t("Add and open it")}
               </button>
             </div>
           </>
         ) : running ? (
           <div className="studio-export-running">
-            <p>
+            <p role="status">
               <AudioLines size={15} /> {progress?.name ? t("Listening to {name}", { name: progress.name }) : t("Loading the transcription model")}
               {progress && progress.files > 1 ? ` (${progress.file + 1}/${progress.files})` : ""}
             </p>
-            <span className="studio-progress" aria-hidden="true">
+            <span className="studio-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((progress?.value || 0) * 100)}>
               <i style={{ width: `${Math.round((progress?.value || 0) * 100)}%` }} />
             </span>
             {eta > 0 && <p className="muted small">{t("About {time} left", { time: clock(eta) })}</p>}
             <div className="studio-row end">
-              <button onClick={() => void cancelTranscribe()}>{t("Cancel")}</button>
+              <button autoFocus onClick={() => void cancelTranscribe()}>
+                {t("Cancel")}
+              </button>
             </div>
           </div>
         ) : (
@@ -235,7 +245,12 @@ export function RecordingDialog({ onClose, onMade }: { onClose: () => void; onMa
             <p className="studio-hint">
               {t("Turn an audiobook or any narrated recording into a book: Origami listens on this computer, writes the text, and lays it out in chapters and paragraphs. Readers' credits are left out.")}
             </p>
-            {ready === false && <p className="studio-warn">{t("The transcription model is not installed on this computer.")}</p>}
+            {ready === false && (
+              <>
+                <p className="studio-warn">{t("The transcription model is not installed on this computer.")}</p>
+                <StudioSetup only={["transcription"]} onChange={() => void asrReady().then(setReady).catch(() => setReady(false))} />
+              </>
+            )}
             <div className="studio-row">
               <button onClick={() => void choose()} disabled={!ready}>
                 <FolderOpen size={15} /> {files.length ? t("Choose other files") : t("Choose the recording")}

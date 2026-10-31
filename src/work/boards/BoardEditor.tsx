@@ -10,6 +10,8 @@ export type BoardApi = {
   png: () => Promise<Blob | null>;
   svg: () => Promise<string>;
   setPaper: (background: string, grid: boolean) => void;
+  // The board as it is now, including changes not saved yet (null before the first change).
+  scene: () => BoardScene | null;
 };
 type Scene = Parameters<typeof exportToSvg>[0];
 
@@ -70,6 +72,10 @@ export default function BoardEditor({
         const s = live.current || { elements: scene.elements, appState: scene.appState, files: scene.files };
         const el = await exportToSvg({ ...(s as unknown as Scene), appState: { ...s.appState, exportBackground: true } as never, exportPadding: 24 });
         return el.outerHTML;
+      },
+      scene: () => {
+        const s = live.current;
+        return s ? cleanScene(s.elements, s.appState, s.files) : null;
       },
     });
     return () => {

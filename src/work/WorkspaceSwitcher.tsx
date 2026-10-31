@@ -36,10 +36,20 @@ export function WorkspaceSwitcher({
 }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
+    // Focus starts on the active workspace.
+    requestAnimationFrame(() =>
+      (menu.current?.querySelector<HTMLElement>("[role=menuitemradio][aria-checked=true]") || menu.current?.querySelector<HTMLElement>("[role^=menuitem]"))?.focus({ preventScroll: true }),
+    );
     const close = (e: MouseEvent) => !box.current?.contains(e.target as Node) && setOpen(false);
-    const key = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      trigger.current?.focus();
+    };
     window.addEventListener("mousedown", close);
     window.addEventListener("keydown", key);
     return () => {
@@ -47,6 +57,16 @@ export function WorkspaceSwitcher({
       window.removeEventListener("keydown", key);
     };
   }, [open]);
+  // Arrow keys move between the items; Tab leaves the menu.
+  function keys(e: React.KeyboardEvent) {
+    if (e.key === "Tab") return setOpen(false);
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    e.preventDefault();
+    const items = Array.from(menu.current?.querySelectorAll<HTMLElement>("[role=menuitem],[role=menuitemradio]") || []);
+    if (!items.length) return;
+    const at = items.indexOf(document.activeElement as HTMLElement);
+    items[(at + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length]?.focus();
+  }
   const unlocked = vaults.filter((v) => v.unlocked);
   const act = (fn: () => void) => () => {
     setOpen(false);
@@ -55,14 +75,14 @@ export function WorkspaceSwitcher({
   const vaultName = (id?: string) => vaults.find((v) => v.id === id)?.name;
   return (
     <div className="workspace-switcher" ref={box}>
-      <button className="workspace-current" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen(!open)} data-tip={t("Workspaces")}>
+      <button ref={trigger} className="workspace-current" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen(!open)} data-tip={t("Workspaces")}>
         <span className="workspace-dot" style={{ background: active.color }} />
         <span className="workspace-name">{active.name}</span>
         {active.vault && <Lock size={12} />}
         <ChevronDown size={14} />
       </button>
       {open && (
-        <div className="workspace-menu" role="menu">
+        <div ref={menu} className="workspace-menu" role="menu" onKeyDown={keys}>
           <div className="work-menu-label">{t("Workspaces")}</div>
           {workspaces.map((w) => (
             <button key={w.id} role="menuitemradio" aria-checked={w.id === active.id} onClick={act(() => onSwitch(w.id))}>

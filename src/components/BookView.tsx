@@ -23,7 +23,9 @@ import type { Annotation, Book, Paragraph } from "../types";
 import { annotationColors } from "../themes";
 import {
   BookPagination,
+  BOOK_PAGE_ASPECT,
   FRONT_PAGES,
+  bookPageHeight,
   bookSections,
   dropCap,
   firstAfterHeading,
@@ -98,7 +100,7 @@ function roundedSpine(thick: number) {
 const LIFT_MS = 950;
 const GAP = 48;
 // Page proportions of a trade paperback, which also match the covers.
-const ASPECT = 0.7;
+const ASPECT = BOOK_PAGE_ASPECT;
 
 type Turn = {
   direction: 1 | -1;
@@ -233,6 +235,7 @@ export function BookView({
   positionOffset = 0,
   bookmark,
   onBookmark,
+  onRemoveBookmark,
   playing,
   onPosition,
   annotationsByParagraph,
@@ -256,6 +259,8 @@ export function BookView({
   positionOffset?: number;
   bookmark?: Annotation;
   onBookmark: (mark: Annotation) => void;
+  // Deletes the bookmark beside the book (right-click or drag it away).
+  onRemoveBookmark?: (mark: Annotation) => void;
   playing: boolean;
   onPosition: (paragraph: number) => void;
   annotationsByParagraph: Map<string, Annotation[]>;
@@ -293,8 +298,10 @@ export function BookView({
   // lines tall, so lines sit on the same grid on facing pages.
   const geometry = useMemo<Geometry | null>(() => {
     if (!box.w || !box.h) return null;
-    const pageH = Math.floor(
-      Math.min(box.h - 110, (box.w - 150) / (2 * ASPECT + (bookmark ? 4 / 3 * (bookmarkGeometry(bookmark.design).ratio + 0.1) : 0)), 1150),
+    const pageH = bookPageHeight(
+      box.w,
+      box.h,
+      bookmark ? bookmarkGeometry(bookmark.design).ratio : undefined,
     );
     if (pageH < 360) return null;
     const pageW = Math.floor(pageH * ASPECT);
@@ -321,9 +328,15 @@ export function BookView({
     [book.paragraphs],
   );
   const signature = geometry
-    ? [book.meta.id, geometry.textW, geometry.textH, layoutKey, pageClass].join(
-        "|",
-      )
+    ? [
+        book.meta.id,
+        geometry.textW,
+        geometry.textH,
+        fontSize,
+        lineHeight,
+        layoutKey,
+        pageClass,
+      ].join("|")
     : "";
   const [measured, setMeasured] = useState<{
     key: string;
@@ -709,6 +722,17 @@ export function BookView({
     setPhase("ready");
     setSpread(pagination ? positionSpread : null);
   }, [pagination, positionSpread]);
+  // A jump (contents, Home/End, the slider) stops any turn under way and
+  // drops queued ones, so neither lands after it.
+  const jumpTo = useCallback((target: number) => {
+    cancelAnimationFrame(frame.current);
+    busy.current = false;
+    turnTarget.current = null;
+    queued.current = 0;
+    setTurn(null);
+    setFade((f) => f + 1);
+    setSpread(target);
+  }, []);
   // Without a position yet (no opening), go to the saved passage.
   useEffect(() => {
     if (phase === "ready" && spread === null && pagination)
@@ -741,6 +765,7 @@ export function BookView({
         clearTimeout(lift.current);
         cancelAnimationFrame(frame.current);
         busy.current = false;
+        queued.current = 0;
         setTurn(null);
         setHeld(false);
         setShut(false);
@@ -764,13 +789,9 @@ export function BookView({
         beginTurn(target > k ? 1 : -1);
         return;
       }
-      cancelAnimationFrame(frame.current);
-      busy.current = false;
-      setTurn(null);
-      setFade((f) => f + 1);
-      setSpread(target);
+      jumpTo(target);
     },
-    [pagination, beginTurn, position, positionSpread],
+    [pagination, beginTurn, position, positionSpread, jumpTo],
   );
   useEffect(() => {
     if (phase !== "ready") return;
@@ -816,9 +837,8 @@ export function BookView({
     },
     show,
     edge: (end) => {
-      if (!pagination) return;
-      setFade((f) => f + 1);
-      setSpread(end ? pagination.spreads - 1 : 1);
+      if (!pagination || phase !== "ready" || stowing) return;
+      jumpTo(end ? pagination.spreads - 1 : 1);
     },
     // A long sentence that runs onto the next page turns it when the voice gets
     // there, not when the next sentence starts.
@@ -899,7 +919,7 @@ export function BookView({
     book.paragraphs.forEach((p, i) => {
       const mark = annotationsByParagraph
         .get(p.id)
-        ?.find((a) => a.kind === "bookmark");
+        ?.find((a) => a.kind === "bookmark" && a.id !== bookmark?.id);
       if (mark)
         pages.set(
           pagination.contentPageOf(i),
@@ -907,7 +927,7 @@ export function BookView({
         );
     });
     return pages;
-  }, [pagination, annotationsByParagraph, book.paragraphs]);
+  }, [pagination, annotationsByParagraph, book.paragraphs, bookmark?.id]);
   const lang = book.meta.language || undefined;
   // The front pages need no measuring, so the opening can play meanwhile.
   function kindOf(index: number): PageKind {
@@ -1014,7 +1034,7 @@ export function BookView({
             <div className={"book-folio" + (opener ? " centered" : "")}>
               {kind.index + 1}
             </div>
-            {ribbon && !bookmark && (
+            {ribbon && (
               <span
                 className="book-ribbon"
                 style={{ ["--ribbon" as string]: ribbon }}
@@ -1103,6 +1123,15 @@ export function BookView({
       : null;
   const first = Math.max(1, 2 * k - 2);
   const last = Math.min(pagination?.contentPages ?? 0, 2 * k - 1);
+  const pagesLabel = pagination
+    ? last >= first
+      ? t("Pages {first} to {last} of {count}", {
+          first,
+          last,
+          count: pagination.contentPages,
+        })
+      : t("{count} pages", { count: pagination.contentPages })
+    : "";
 
   return (
     <div
@@ -1136,7 +1165,8 @@ export function BookView({
         >
           <span className="book-stack left" aria-hidden="true" />
           <span className="book-stack right" aria-hidden="true" />
-          {bookmark && <PhysicalBookmark mark={bookmark} onOpen={() => onBookmark(bookmark)}
+          {bookmark && <PhysicalBookmark key={bookmark.id} mark={bookmark} onOpen={() => onBookmark(bookmark)}
+            onRemove={onRemoveBookmark && (() => onRemoveBookmark(bookmark))}
             state={bookmarkBeside && !stowing ? "beside" : stowing ? "returning" : "inside"}
             depth={-geometry.pageH * thickness * bookmarkPage / Math.max(1, pagination?.totalPages ?? 1)} />}
           {/* The rest of the closed volume behind the cover: the back board,
@@ -1229,6 +1259,12 @@ export function BookView({
                 onPointerMove={hotMove}
                 onPointerUp={hotUp}
                 onPointerCancel={hotUp}
+                // Keyboard activation only (detail 0); pointers turn on press.
+                onClick={(e) => {
+                  if (e.detail !== 0) return;
+                  if (spreadRef.current === 0) closeBook();
+                  else beginTurn(-1);
+                }}
               />
               <button
                 className="book-hot right"
@@ -1238,6 +1274,9 @@ export function BookView({
                 onPointerMove={hotMove}
                 onPointerUp={hotUp}
                 onPointerCancel={hotUp}
+                onClick={(e) => {
+                  if (e.detail === 0) beginTurn(1);
+                }}
               />
             </>
           )}
@@ -1280,13 +1319,11 @@ export function BookView({
           <input
             type="range"
             aria-label={t("Page")}
+            aria-valuetext={pagesLabel}
             min={0}
             max={spreads - 1}
             value={spread}
-            onChange={(e) => {
-              setFade((f) => f + 1);
-              setSpread(+e.target.value);
-            }}
+            onChange={(e) => jumpTo(+e.target.value)}
           />
           <button
             className="icon-button book-close"
@@ -1296,15 +1333,7 @@ export function BookView({
           >
             <BookIcon size={16} />
           </button>
-          <span className="book-bar-pages">
-            {last >= first
-              ? t("Pages {first} to {last} of {count}", {
-                  first,
-                  last,
-                  count: pagination.contentPages,
-                })
-              : t("{count} pages", { count: pagination.contentPages })}
-          </span>
+          <span className="book-bar-pages">{pagesLabel}</span>
         </div>
       )}
       <div

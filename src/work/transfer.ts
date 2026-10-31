@@ -1,6 +1,6 @@
 import { Editor } from "@tiptap/core";
 import katex from "katex";
-import { decodeText, readDocx, readOdt, readRtf, type Block } from "../importers";
+import { decodeHtml, decodeText, readDocx, readOdt, readRtf, type Block } from "../importers";
 import { noteExtensions } from "./editorExtensions";
 import { embedsAsLinks } from "./embeds/EmbedBlock";
 import { inkToSvg, parseInk } from "./ink/ink";
@@ -78,7 +78,7 @@ async function readNote(file: File): Promise<{ title: string; html: string } | n
   if (!NOTE_IMPORTS.includes(ext)) return null;
   const bytes = new Uint8Array(await file.arrayBuffer());
   const fallback = baseName(file.name);
-  if (ext === ".html" || ext === ".htm" || ext === ".xhtml") return htmlDocumentToNote(decodeText(bytes), fallback);
+  if (ext === ".html" || ext === ".htm" || ext === ".xhtml") return htmlDocumentToNote(decodeHtml(bytes), fallback);
   if (ext === ".md" || ext === ".markdown") return markdownToNote(decodeText(bytes), fallback);
   if (ext === ".txt")
     return {

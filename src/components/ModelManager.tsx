@@ -154,13 +154,11 @@ export function ModelManager({
       {(["reader", "image", "creator"] as const).map((kind) => (
         <section key={kind}>
           <h3>
-            {t(
-              kind === "reader"
-                ? "Reader models"
-                : kind === "image"
-                  ? "Image models"
-                  : "Voice creation",
-            )}
+            {kind === "reader"
+              ? t("Reader models")
+              : kind === "image"
+                ? t("Image models")
+                : t("Voice creation")}
           </h3>
           {kind === "reader" && (
             <p className="hint">
@@ -197,15 +195,13 @@ export function ModelManager({
                     <p className="hint">{t(model.hardware)}</p>
                     <div className="model-meta">
                       <span>
-                        {t(item.installed ? "Installed" : "Not installed")}
+                        {item.installed ? t("Installed") : t("Not installed")}
                       </span>
                       {model.voices && (
                         <span>
-                          {t(
-                            model.voices === "custom"
-                              ? "Custom voices"
-                              : "Built-in voices",
-                          )}
+                          {model.voices === "custom"
+                            ? t("Custom voices")
+                            : t("Built-in voices")}
                         </span>
                       )}
                     </div>
@@ -232,20 +228,18 @@ export function ModelManager({
                             }}
                           >
                             {active ? <Check size={15} /> : null}
-                            {t(
-                              kind === "creator"
-                                ? "Ready in Voices"
-                                : active
-                                  ? "In use"
-                                  : "Use model",
-                            )}
+                            {kind === "creator"
+                              ? t("Ready in Voices")
+                              : active
+                                ? t("In use")
+                                : t("Use model")}
                           </button>
                           <button
                             disabled={!!busy}
                             onClick={() => setRemove(item)}
                           >
                             <Trash2 size={15} />
-                            {t(item.managed ? "Uninstall" : "Disconnect")}
+                            {item.managed ? t("Uninstall") : t("Disconnect")}
                           </button>
                         </>
                       ) : item.availableLocally ? (
@@ -256,7 +250,7 @@ export function ModelManager({
                           {t("Reconnect local model")}
                         </button>
                       ) : model.download ? (
-                        model.terms && terms === model.id ? null : progress?.model === model.id ? (
+                        progress?.model === model.id ? (
                           <div className="model-progress" role="status">
                             <progress max={100} value={progress.percent} />
                             <small>
@@ -268,7 +262,7 @@ export function ModelManager({
                               {t("Cancel")}
                             </button>
                           </div>
-                        ) : (
+                        ) : model.terms && terms === model.id ? null : (
                           <button
                             className="primary"
                             disabled={!!busy}
@@ -298,14 +292,12 @@ export function ModelManager({
                         {t("Kitten Mini, Kitten Micro and Kokoro download together.")}
                       </p>
                     )}
-                    {model.terms && terms === model.id && !item.installed && (
+                    {model.terms && terms === model.id && !item.installed && progress?.model !== model.id && (
                       <div className="model-removal model-terms" role="group" aria-label={t("Image model license")}>
                         <p>
-                          {t(
-                            model.terms === "stability"
-                              ? "SD-Turbo is provided under the Stability AI Community License. Powered by Stability AI."
-                              : "DreamShaper is provided under CreativeML OpenRAIL-M. Its use restrictions apply to generated content and redistribution.",
-                          )}
+                          {model.terms === "stability"
+                            ? t("SD-Turbo is provided under the Stability AI Community License. Powered by Stability AI.")
+                            : t("DreamShaper is provided under CreativeML OpenRAIL-M. Its use restrictions apply to generated content and redistribution.")}
                         </p>
                         <details>
                           <summary>{t("Read the image model license")}</summary>
@@ -341,11 +333,9 @@ export function ModelManager({
                         aria-label={t("Confirm model removal")}
                       >
                         <p>
-                          {t(
-                            item.managed
-                              ? "Remove this model's managed files? Books, voices and saved artwork will be kept."
-                              : "Disconnect this external model? Its files will remain on disk for other apps and testing.",
-                          )}
+                          {item.managed
+                            ? t("Remove this model's managed files? Books, voices and saved artwork will be kept.")
+                            : t("Disconnect this external model? Its files will remain on disk for other apps and testing.")}
                         </p>
                         <button
                           disabled={!!busy}

@@ -11,7 +11,9 @@ const rustup = resolve("../work/origami-tools/rustup");
 if (existsSync(cargo) && existsSync(rustup)) {
   env.CARGO_HOME = cargo;
   env.RUSTUP_HOME = rustup;
-  env.PATH = resolve(cargo, "bin") + delimiter + env.PATH;
+  // Windows calls it "Path"; reuse whichever spelling is present.
+  const key = Object.keys(env).find((k) => k.toUpperCase() === "PATH") || "PATH";
+  env[key] = resolve(cargo, "bin") + delimiter + (env[key] || "");
 }
 const cli = resolve("node_modules/@tauri-apps/cli/tauri.js");
 const child = spawn(process.execPath, [cli, "dev"], { stdio: "inherit", env });

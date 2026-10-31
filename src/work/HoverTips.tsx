@@ -78,6 +78,9 @@ export function HoverTips({ root }: { root: React.RefObject<HTMLElement | null> 
         const [label, keys] = splitKeys(target.getAttribute("title") || target.getAttribute("aria-label") || "");
         target.dataset.tip = label;
         if (keys && !target.dataset.keys) target.dataset.keys = keys;
+        // A title that was the only name (an icon or a swatch) stays as the name.
+        const title = target.getAttribute("title");
+        if (title && label && !target.hasAttribute("aria-label") && !target.hasAttribute("aria-labelledby") && !target.textContent?.trim()) target.setAttribute("aria-label", label);
         target.removeAttribute("title");
       }
       return target;

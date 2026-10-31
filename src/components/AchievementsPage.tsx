@@ -1,5 +1,6 @@
 import { Check, LockKeyhole, Sparkles } from "lucide-react";
-import { achieved, achievements, chapters, progressOf, type Achievement } from "../achievements";
+import { achievements, chapters, progressOf, type Achievement } from "../achievements";
+import { achievementEarned } from "../rewards";
 import { edgeFinishes } from "../binding";
 import { bookmarkArt, bookmarkDesigns } from "../bookmarks";
 import { t } from "../i18n";
@@ -11,7 +12,7 @@ import type { ReadingStats } from "../types";
 // Every achievement by chapter, with how far along the reader is and what it
 // unlocks. Secret ones stay hidden until found.
 export function AchievementsPage({ stats, completedBooks }: { stats: ReadingStats; completedBooks: number }) {
-  const done = achievements.filter((a) => achieved(a, stats, completedBooks)).length;
+  const done = achievements.filter((a) => achievementEarned(a, stats, completedBooks)).length;
   return (
     <div className="achievements-page">
       <div className="page-heading">
@@ -26,7 +27,7 @@ export function AchievementsPage({ stats, completedBooks }: { stats: ReadingStat
       <UnlockNote />
       {chapters.map(([chapter, title]) => {
         const list = achievements.filter((a) => a.chapter === chapter);
-        const earned = list.filter((a) => achieved(a, stats, completedBooks)).length;
+        const earned = list.filter((a) => achievementEarned(a, stats, completedBooks)).length;
         return (
           <section key={chapter} className="achievement-chapter" aria-labelledby={"chapter-" + chapter}>
             <h2 id={"chapter-" + chapter}>
@@ -45,7 +46,7 @@ export function AchievementsPage({ stats, completedBooks }: { stats: ReadingStat
 }
 
 function AchievementCard({ a, stats, completedBooks }: { a: Achievement; stats: ReadingStats; completedBooks: number }) {
-  const earned = achieved(a, stats, completedBooks);
+  const earned = achievementEarned(a, stats, completedBooks);
   const hidden = a.secret && !earned;
   const hint = a.metric ? requirementHint(a.metric, a.value!, stats, completedBooks) : null;
   const progress = progressOf(a, stats, completedBooks);
@@ -71,7 +72,8 @@ function AchievementCard({ a, stats, completedBooks }: { a: Achievement; stats: 
   );
 }
 
-function Rewards({ a }: { a: Achievement }) {
+// Also shown in the notice when an achievement is earned.
+export function Rewards({ a }: { a: Achievement }) {
   return (
     <ul className="achievement-rewards" aria-label={t("Unlocks")}>
       {(a.bookmarks || []).map((id) => (

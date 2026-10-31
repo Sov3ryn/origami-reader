@@ -330,8 +330,12 @@ export function ProductionView({
     onChange({ ...production, info: nextInfo, units: units.map((u) => byId.get(u.id) ?? u) });
     if (rendering || checking) void reload();
   }
+  // A save that fails shows its reason in the status.
+  const report = (e: unknown) => {
+    if (alive.current) setStatus(String(e));
+  };
   const approve = (u: ProductionUnit) =>
-    void saveUnits([{ ...u, status: u.status === "approved" ? "rendered" : "approved" }]);
+    void saveUnits([{ ...u, status: u.status === "approved" ? "rendered" : "approved" }]).catch(report);
   function nextToReview(from = selected) {
     const order = units;
     const start = Math.max(0, order.findIndex((u) => u.id === from));
@@ -546,7 +550,13 @@ export function ProductionView({
   useEffect(() => {
     function key(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
-      if (target.closest("input, textarea, select, [contenteditable='true']") || e.ctrlKey || e.metaKey || e.altKey) return;
+      // Nothing reaches the script behind an open dialog (Export, say).
+      if (exporting || e.defaultPrevented || document.querySelector("[aria-modal='true']")) return;
+      if (target.closest("input, textarea, select, [contenteditable='true'], [role='dialog']") || e.ctrlKey || e.metaKey || e.altKey) return;
+      // A focused control keeps its own Enter, and its Space when it was reached by keyboard;
+      // after a mouse click, Space still plays.
+      const control = target.closest("button, summary, a[href], [role='button'], [role='tab'], [role='radio'], [role='option']");
+      if (control && (e.key === "Enter" || (e.key === " " && target.matches(":focus-visible")))) return;
       const index = chapterUnits.findIndex((u) => u.id === selected);
       if (e.key === " ") {
         e.preventDefault();
@@ -565,7 +575,7 @@ export function ProductionView({
       else if (/^[0-9]$/.test(e.key) && unit?.speech) {
         // 0 gives the line to the narrator; 1 to 9 to this chapter's speakers.
         const who = e.key === "0" ? "" : chapterSpeakers[Number(e.key) - 1];
-        if (who !== undefined) void setSpeaker(unit, who);
+        if (who !== undefined) void setSpeaker(unit, who).catch(report);
       }
     }
     window.addEventListener("keydown", key);
@@ -764,7 +774,7 @@ export function ProductionView({
           >
             <Ear size={18} />
           </button>
-          <button onClick={() => setExporting(true)} disabled={!counts.rendered}>
+          <button onClick={() => setExporting(true)} disabled={!units.length}>
             <Download size={15} /> {t("Export")}
           </button>
           <IconButton label={right ? t("Collapse inspector") : t("Expand inspector")} onClick={() => setRight(!right)}>
@@ -933,16 +943,16 @@ export function ProductionView({
               issues={issues.get(unit.id) || []}
               rendering={rendering || analysing}
               onPlayTake={(take) => playback.play(unit.id, take)}
-              onSave={(u) => void saveUnits([u])}
+              onSave={(u) => void saveUnits([u]).catch(report)}
               onApprove={() => approve(unit)}
               onRegenerate={() => void render({ units: [unit.id] })}
               onNext={() => nextToReview(unit.id)}
-              onPause={(pause) => void saveUnits([{ ...unit, pause }])}
+              onPause={(pause) => void saveUnits([{ ...unit, pause }]).catch(report)}
               cast={info.cast || []}
               chapterSpeakers={chapterSpeakers}
-              onSpeaker={(who) => void setSpeaker(unit, who)}
+              onSpeaker={(who) => void setSpeaker(unit, who).catch(report)}
               voices={voices}
-              onVoice={(v) => void setLineVoice(unit, v)}
+              onVoice={(v) => void setLineVoice(unit, v).catch(report)}
             />
           ) : (
             <Overview
@@ -950,9 +960,13 @@ export function ProductionView({
               voices={voices}
               counts={counts}
               onVoice={async (voice) => {
-                const next = { ...info, voice, updated: Date.now() };
-                await saveProductionInfo(next);
-                onChange({ ...production, info: next });
+                try {
+                  const next = { ...info, voice, updated: Date.now() };
+                  await saveProductionInfo(next);
+                  onChange({ ...production, info: next });
+                } catch (e) {
+                  report(e);
+                }
               }}
               onReview={() => nextToReview("")}
               onRegenerateFlagged={() => void render({ units: [...issues.keys()].filter((id) => units.find((u) => u.id === id)?.status !== "approved") })}
@@ -960,7 +974,14 @@ export function ProductionView({
               busy={rendering || checking || exporting || analysing}
               confirming={confirming}
               setConfirming={setConfirming}
-              onDelete={onDelete}
+              onDelete={async () => {
+                try {
+                  await onDelete();
+                } catch (e) {
+                  setConfirming(false);
+                  report(e);
+                }
+              }}
               onInfo={async (next) => {
                 await saveProductionInfo(next);
                 onChange({ ...production, info: next });
@@ -1029,6 +1050,12 @@ function LineInspector({
   onNext: () => void;
 }) {
   const [draft, setDraft] = useState(unit.text);
+  // A change from outside (a pronunciation, say) shows here while nothing is typed.
+  const [seenText, setSeenText] = useState(unit.text);
+  if (unit.text !== seenText) {
+    setSeenText(unit.text);
+    if (draft.replace(/\s+/g, " ").trim() === seenText) setDraft(unit.text);
+  }
   const takes = takesOf(production, unit.id);
   const changed = draft.replace(/\s+/g, " ").trim() !== unit.text;
   return (
@@ -1233,6 +1260,8 @@ function Overview({
 }) {
   const { info, units } = production;
   const total = units.length;
+  const [savingCopy, setSavingCopy] = useState(false);
+  const blocked = busy || savingCopy;
   return (
     <div className="studio-panel">
       <label className="studio-field">
@@ -1291,9 +1320,9 @@ function Overview({
         </ul>
       </div>
       <BackgroundSound production={production} onInfo={onInfo} />
-      <PortableCopy id={info.id} />
+      <PortableCopy id={info.id} onSaving={setSavingCopy} />
       <div className="studio-danger">
-        {confirming && !busy ? (
+        {confirming && !blocked ? (
           <>
             <p>{t("Delete this production and its takes? Exported files are kept.")}</p>
             <div className="studio-row">
@@ -1304,7 +1333,7 @@ function Overview({
             </div>
           </>
         ) : (
-          <button className="danger-text" onClick={() => setConfirming(true)} disabled={busy} data-tip={busy ? t("Stop rendering, checking or exporting first") : undefined}>
+          <button className="danger-text" onClick={() => setConfirming(true)} disabled={blocked} data-tip={blocked ? t("Stop rendering, checking or exporting first") : undefined}>
             <Trash2 size={14} /> {t("Delete production")}
           </button>
         )}
@@ -1314,7 +1343,7 @@ function Overview({
 }
 
 // Saves the production as one file (takes, book and designed voices) to carry to another computer.
-function PortableCopy({ id }: { id: string }) {
+function PortableCopy({ id, onSaving }: { id: string; onSaving: (saving: boolean) => void }) {
   const [saving, setSaving] = useState(false);
   const [value, setValue] = useState(0);
   const [saved, setSaved] = useState("");
@@ -1328,6 +1357,7 @@ function PortableCopy({ id }: { id: string }) {
       <button
         onClick={async () => {
           setSaving(true);
+          onSaving(true);
           setSaved("");
           setError("");
           setValue(0);
@@ -1337,6 +1367,7 @@ function PortableCopy({ id }: { id: string }) {
             setError(String(e));
           } finally {
             setSaving(false);
+            onSaving(false);
           }
         }}
         disabled={saving}
@@ -1417,17 +1448,30 @@ function BackgroundSound({ production, onInfo }: { production: Production; onInf
             <Music size={14} /> <span title={bed.name}>{bed.name}</span>
           </p>
           <div className="studio-row">
-            <select value={bed.level} onChange={(e) => void onInfo({ ...info, bed: { ...bed, level: e.target.value as "quiet" | "low" | "medium" }, updated: Date.now() })} aria-label={t("Level")}>
+            <select
+              value={bed.level}
+              onChange={(e) => {
+                setError("");
+                onInfo({ ...info, bed: { ...bed, level: e.target.value as "quiet" | "low" | "medium" }, updated: Date.now() }).catch((err) => setError(String(err)));
+              }}
+              aria-label={t("Level")}
+            >
               <option value="quiet">{t("Quiet")}</option>
               <option value="low">{t("Low")}</option>
               <option value="medium">{t("Medium")}</option>
             </select>
             <button
               onClick={async () => {
-                await clearBed(info.id).catch(() => undefined);
-                const next = { ...info, updated: Date.now() };
-                delete next.bed;
-                await onInfo(next);
+                setError("");
+                try {
+                  // The file is only dropped from the production once it is gone.
+                  await clearBed(info.id);
+                  const next = { ...info, updated: Date.now() };
+                  delete next.bed;
+                  await onInfo(next);
+                } catch (e) {
+                  setError(String(e));
+                }
               }}
             >
               {t("Remove")}

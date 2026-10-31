@@ -100,7 +100,7 @@ async fn system_info() -> Value {
     }).await.unwrap_or_else(|_| json!({"os": std::env::consts::OS, "arch": std::env::consts::ARCH, "gpus": [], "speech": "cpu"}))
 }
 #[tauri::command]
-async fn choose_folder() -> Option<String> { tauri::async_runtime::spawn_blocking(||rfd::FileDialog::new().set_title("Choose the parent folder for Origami").pick_folder().map(|p|p.to_string_lossy().into_owned())).await.ok().flatten() }
+async fn choose_folder(title: Option<String>) -> Option<String> { tauri::async_runtime::spawn_blocking(move ||rfd::FileDialog::new().set_title(title.as_deref().unwrap_or("Choose the parent folder for Origami")).pick_folder().map(|p|p.to_string_lossy().into_owned())).await.ok().flatten() }
 #[tauri::command]
 fn control_install(state: State<Session>, action: String) -> Result<(),String> {
     if !["pause", "resume", "cancel"].contains(&action.as_str()) { return Err("Unknown action".into()); }

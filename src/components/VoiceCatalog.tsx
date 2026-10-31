@@ -211,7 +211,7 @@ export function VoiceCatalog({
               >
                 <option value="all">{t("All languages")}</option>
                 {languages.map((l) => (
-                  <option key={l}>{l}</option>
+                  <option key={l} value={l}>{t(l)}</option>
                 ))}
               </select>
             </label>

@@ -33,16 +33,16 @@ export function WriteAnswer({ expected, onChecked }: { expected: string; onCheck
       <div className="write-answer-bar">
         <span>{t("Write your answer")}</span>
         <span className="ink-spacer" />
-        <button type="button" className={"ink-tool" + (!eraser ? " active" : "")} data-tip={t("Pen")} onClick={() => setEraser(false)}>
+        <button type="button" className={"ink-tool" + (!eraser ? " active" : "")} aria-label={t("Pen")} data-tip={t("Pen")} onClick={() => setEraser(false)}>
           <Pen size={15} />
         </button>
-        <button type="button" className={"ink-tool" + (eraser ? " active" : "")} data-tip={t("Eraser (or the pen's eraser end)")} onClick={() => setEraser(true)}>
+        <button type="button" className={"ink-tool" + (eraser ? " active" : "")} aria-label={t("Eraser (or the pen's eraser end)")} data-tip={t("Eraser (or the pen's eraser end)")} onClick={() => setEraser(true)}>
           <Eraser size={15} />
         </button>
-        <button type="button" className="ink-tool" data-tip={t("Undo stroke")} disabled={!ink.strokes.length} onClick={() => setInk({ ...ink, strokes: ink.strokes.slice(0, -1) })}>
+        <button type="button" className="ink-tool" aria-label={t("Undo stroke")} data-tip={t("Undo stroke")} disabled={!ink.strokes.length} onClick={() => setInk({ ...ink, strokes: ink.strokes.slice(0, -1) })}>
           <Undo2 size={15} />
         </button>
-        <button type="button" className="ink-tool" data-tip={t("Clear")} disabled={!ink.strokes.length} onClick={() => setInk(emptyInk(ink.h))}>
+        <button type="button" className="ink-tool" aria-label={t("Clear")} data-tip={t("Clear")} disabled={!ink.strokes.length} onClick={() => setInk(emptyInk(ink.h))}>
           <Trash2 size={15} />
         </button>
         <button type="button" className="mini primary" disabled={!ink.strokes.length || busy} onClick={() => void check()}>

@@ -7,6 +7,7 @@
 // already chosen stays available.
 import { achieved, achievements, type Achievement } from "./achievements";
 import { t } from "./i18n";
+import { supporterActive } from "./supporter";
 import {
   places,
   requirementHint,
@@ -16,10 +17,9 @@ import type { Preferences, ReadingStats } from "./types";
 
 export type RewardKind = "theme" | "finish" | "ribbon" | "bookmark";
 
-// Donations are not linked to the app yet, so supporter unlocks can only be
-// previewed in development builds. There, setting localStorage
-// "origami.devLocks" to "1" shows the locks as a new reader sees them.
-export const isSupporter = () => import.meta.env.DEV && !devLocks();
+// Signed supporter grants work offline. Development builds can still preview
+// the galleries without issuing a key; devLocks shows the normal earned path.
+export const isSupporter = () => supporterActive() || (import.meta.env.DEV && !devLocks());
 function devLocks() {
   try {
     return localStorage.getItem("origami.devLocks") === "1";
@@ -95,6 +95,14 @@ export function unlockedAll(stats: ReadingStats, completedBooks: number, prefs?:
   // which shares the same data folder.
   if (prefs && !supporter) for (const id of chosen(prefs)) ids.add(id);
   return [...ids];
+}
+
+/** Earned now, or earned before: a finished-book goal stays earned after
+ * Start over or deleting a book, like its rewards. */
+export function achievementEarned(a: Achievement, stats: ReadingStats, completedBooks: number): boolean {
+  if (achieved(a, stats, completedBooks)) return true;
+  const ids = rewardsOf(a);
+  return a.metric === "completedBooks" && ids.length > 0 && ids.every((id) => stats.unlocked.includes(id));
 }
 
 /** How many places are open, for the gallery's count. */

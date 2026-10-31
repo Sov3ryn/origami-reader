@@ -128,6 +128,8 @@ export function StudySession({
   useEffect(() => {
     function key(e: KeyboardEvent) {
       if ((e.target as HTMLElement).closest("input,textarea,select,[contenteditable=true]")) return;
+      // A focused button or link handles its own Space/Enter (so "Forgot" grades as Forgot).
+      if ((e.key === " " || e.key === "Enter") && (e.target as HTMLElement).closest("button,a,summary,[role=button]")) return;
       if (e.key === "Escape") return onClose();
       if (!card) return;
       if (!revealed && (e.key === " " || e.key === "Enter")) {

@@ -7,7 +7,19 @@ import { providerNames, toEmbed } from "./providers";
 export function ConsentDialog({ onChoice }: { onChoice: (allow: boolean) => void }) {
   return (
     <div className="modal-scrim">
-      <section className="quick-dialog consent-dialog" role="dialog" aria-modal="true" aria-labelledby="consent-title">
+      <section
+        className="quick-dialog consent-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="consent-title"
+        onKeyDown={(e) => {
+          // Escape is the same as "Not now".
+          if (e.key === "Escape") {
+            e.stopPropagation();
+            onChoice(false);
+          }
+        }}
+      >
         <header>
           <Wifi size={20} />
           <h2 id="consent-title">{t("Allow online embeds?")}</h2>
@@ -41,7 +53,18 @@ export function EmbedDialog({ onInsert, onClose }: { onInsert: (url: string, pag
   const valid = /^https?:\/\/\S+\.\S+/.test(url.trim());
   return (
     <div className="modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <section className="quick-dialog embed-dialog" role="dialog" aria-modal="true" aria-labelledby="embed-title">
+      <section
+        className="quick-dialog embed-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="embed-title"
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.stopPropagation();
+            onClose();
+          }
+        }}
+      >
         <h2 id="embed-title">{t("Embed from the web")}</h2>
         <label className="card-field">
           <span>{t("Link")}</span>

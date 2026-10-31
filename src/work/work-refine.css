@@ -73,7 +73,8 @@
   opacity: 0;
   transition: opacity 160ms;
 }
-.note-cover:hover .cover-change {
+.note-cover:hover .cover-change,
+.note-cover:focus-within .cover-change {
   opacity: 1;
 }
 .note-icon {
@@ -380,23 +381,25 @@
   box-shadow: 0 8px 22px -14px rgb(0 0 0 / 0.6);
 }
 
-/* Outline beside long notes, on wide screens. */
+/* Outline beside long notes, where there is room (placed by NoteEditor's Outline). */
 .note-outline {
   position: fixed;
-  display: none;
+  z-index: 2;
+  display: flex;
   flex-direction: column;
   gap: 1px;
   width: 168px;
   max-height: 50vh;
   overflow: auto;
-  padding: 8px 6px;
+  padding: 2px 0 2px 6px;
+  border-left: 1px solid var(--line);
 }
-@media (min-width: 1500px) {
-  .work-main:not(.split) .note-outline {
-    display: flex;
-    left: calc(252px + 12px + 28px);
-    top: 150px;
-  }
+.note-outline-title {
+  padding: 2px 8px 6px;
+  font-size: var(--fs-caption);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 .note-outline button {
   display: block;

@@ -150,12 +150,70 @@ function setupMessage(message: string) {
     "Choose a destination outside the extracted setup package.": t("Choose a destination outside the extracted setup package."),
     "Accept the image model license before installing that model.": t("Accept the image model license before installing that model."),
     "Installation cancelled. Your selections have been kept.": t("Installation cancelled. Your selections have been kept."),
+    "Close Origami Reader, then run setup again.": t("Close Origami Reader, then run setup again."),
+    "This package was built for a different operating system.": t("This package was built for a different operating system."),
+    "Choose a folder outside the earlier installation.": t("Choose a folder outside the earlier installation."),
+    "The earlier installation is in an unexpected folder, so it was left as it is.": t("The earlier installation is in an unexpected folder, so it was left as it is."),
+    "The earlier installation's receipt does not match its folder, so it was left as it is. Uninstall it from Windows Settings, Apps, then run setup again.": t("The earlier installation's receipt does not match its folder, so it was left as it is. Uninstall it from Windows Settings, Apps, then run setup again."),
+    "Setup cannot write to this folder. Choose another folder, such as the default location.": t("Setup cannot write to this folder. Choose another folder, such as the default location."),
+    "Installation already running": t("Installation already running"),
+    "No completed installation": t("No completed installation"),
+    // Completion warnings.
+    "Could not register Windows uninstall entry. Use Uninstall Origami.ps1 in the app folder.": t("Could not register Windows uninstall entry. Use Uninstall Origami.ps1 in the app folder."),
+    "AMD graphics support needs a shorter install folder (for example C:\\Origami), so speech uses the processor. Run setup again with a shorter folder to use the card.": t("AMD graphics support needs a shorter install folder (for example C:\\Origami), so speech uses the processor. Run setup again with a shorter folder to use the card."),
+    "AMD graphics support is installed, but this card could not be used yet. Update the AMD driver (26.2.2 or newer) and restart Origami; until then speech uses the processor.": t("AMD graphics support is installed, but this card could not be used yet. Update the AMD driver (26.2.2 or newer) and restart Origami; until then speech uses the processor."),
+    "AMD graphics support and the processor speech packages could not be installed. Run setup again.": t("AMD graphics support and the processor speech packages could not be installed. Run setup again."),
+    "AMD graphics support could not be downloaded, so speech uses the processor. Run setup again with an internet connection to retry.": t("AMD graphics support could not be downloaded, so speech uses the processor. Run setup again with an internet connection to retry."),
   };
-  return known[message] || message;
+  return known[message] || t(message);
+}
+// Completion warnings from the installer script; some end with a path.
+function warningText(warning: string) {
+  const shortcutKept = warning.match(/^Existing shortcut kept: (.+)$/);
+  if (shortcutKept) return t("Existing shortcut kept: {path}", { path: shortcutKept[1] });
+  const shortcutFailed = warning.match(/^Could not create shortcut: (.+)$/);
+  if (shortcutFailed) return t("Could not create shortcut: {path}", { path: shortcutFailed[1] });
+  const kept = warning.match(/^Files that were not part of Origami were kept in (.+)$/);
+  if (kept) return t("Files that were not part of Origami were kept in {path}", { path: kept[1] });
+  const left = warning.match(/^The earlier version could not be removed completely\. It is in (.+)$/);
+  if (left) return t("The earlier version could not be removed completely. It is in {path}", { path: left[1] });
+  return setupMessage(warning);
+}
+// Folder check messages (pathError), in the setup's language.
+function pathMessage(message: string) {
+  const known: Record<string, string> = {
+    "Use an absolute Windows folder, such as C:\\Apps\\Origami.": t("Use an absolute Windows folder, such as C:\\Apps\\Origami."),
+  };
+  return known[message] || t(message);
 }
 // A voice setup can install, with a few seconds of it (voice-previews/ in the kit).
 type VoiceOption = { id: string; name: string; gender: string; description: string; accent: string; preview: string };
 type DownloadGroup = { bytes?: number; voices?: number; voiceList?: VoiceOption[]; estimate?: number | Record<string, number>; wheelBytes?: Record<string, number> };
+// A browsed folder with the app folder added, unless the folder already is
+// one (an earlier install picked directly).
+function withAppFolder(path: string, platform: Platform): string {
+  const separator = platform === "windows" ? "\\" : "/";
+  const directory = path.replace(/[\\/]+$/, "");
+  const name = platform === "macos" ? "Origami.app" : "Origami";
+  return directory.toLowerCase().endsWith(`${separator}${name}`.toLowerCase())
+    ? directory
+    : `${directory}${separator}${name}`;
+}
+// The voices ticked at first for a language: two women's and two men's
+// voices by id, the same start install.py uses when none is chosen.
+function starterVoiceIds(list: VoiceOption[] = []): string[] {
+  const sorted = [...list].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  return ["female", "male"].flatMap((g) => sorted.filter((v) => v.gender === g).slice(0, 2).map((v) => v.id));
+}
+// Adds the starter voices of each language that has none ticked yet.
+function withStarters(groups: Record<string, DownloadGroup> | null | undefined, languages: string[], voices: string[]): string[] {
+  const out = [...voices];
+  for (const code of languages) {
+    const list = groups?.[`voices-${code}`]?.voiceList ?? [];
+    if (list.length && !list.some((v) => out.includes(v.id))) out.push(...starterVoiceIds(list));
+  }
+  return out;
+}
 export default function App() {
   const [options, setOptions] = useState<SetupOptions>(() => ({
     ...initialOptions(),
@@ -251,6 +309,7 @@ export default function App() {
       ...prev,
       speech: natural,
       languages: natural ? [pack] : [],
+      voices: natural ? withStarters(downloads, [pack], prev.voices) : prev.voices,
       lightVoices: hasLight && !natural,
       turboModel: false,
       coverModel: false,
@@ -288,10 +347,12 @@ export default function App() {
         setHasTurbo(turbo);
         setHasLarge(Boolean(groups?.["speech-qwen-large"]));
         setHasDesigner(Boolean(groups?.["voice-design"]));
+        // Online, only English is ticked at first: each pack is a download.
+        const chosen = groups ? packs.filter((pack) => pack.id === "en").map((pack) => pack.id) : packs.map((pack) => pack.id);
         setOptions((previous) => ({
           ...previous,
-          // Online, only English is ticked at first: each pack is a download.
-          languages: groups ? packs.filter((pack) => pack.id === "en").map((pack) => pack.id) : packs.map((pack) => pack.id),
+          languages: chosen,
+          voices: withStarters(groups, chosen, previous.voices),
           lightVoices: light && previous.lightVoices,
           turboModel: turbo && previous.turboModel,
           platform: info.platform,
@@ -300,13 +361,23 @@ export default function App() {
         setPackageSize(info.totalBytes);
         setPackageReady(true);
       })
-      .catch((error) => setInstallError(String(error)));
+      .catch((error) =>
+        setInstallError(
+          t("Setup could not read its own files. Extract the whole download to a folder, then run setup from that folder.") +
+            " (" +
+            String(error) +
+            ")",
+        ),
+      );
     const progressListener = listen<{
       percent?: number;
       message?: string;
       file?: string;
+      pausable?: boolean;
     }>("install-progress", ({ payload }) => {
       if (payload.percent !== undefined) setProgress(payload.percent);
+      // pip and the picture model conversion cannot be paused.
+      setPausable(payload.pausable !== false);
       if (payload.message)
         setInstallMessage(
           progressText(payload.message) + (payload.file ? ` · ${payload.file}` : ""),
@@ -339,6 +410,8 @@ export default function App() {
   }, []);
   // The result of an installation started by this page or an earlier load of it.
   function showOutcome(outcome: InstallOutcome) {
+    setCancelling(false);
+    setPausable(true);
     if (outcome.ok) {
       setWarnings(outcome.result?.warnings || []);
       setStep(7);
@@ -355,6 +428,9 @@ export default function App() {
   const liveInstall = useRef(false);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
+  // Whether the running step can be paused, and a cancel already sent.
+  const [pausable, setPausable] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
   const [query, setQuery] = useState("");
   const [help, setHelp] = useState(false);
   const [cancel, setCancel] = useState(false);
@@ -381,11 +457,6 @@ export default function App() {
   const voiceList = (code: string) => downloads?.[`voices-${code}`]?.voiceList ?? [];
   const missingVoices = selected.some(
     (language) => voiceList(language.id).length > 0 && !voiceList(language.id).some((v) => options.voices.includes(v.id)),
-  );
-  const voices = selected.reduce(
-    (sum, language) =>
-      sum + (voiceList(language.id).length ? voiceList(language.id).filter((v) => options.voices.includes(v.id)).length : language.count),
-    0,
   );
   // One sample plays at a time; the data URLs are kept once loaded.
   const [playing, setPlaying] = useState("");
@@ -414,9 +485,14 @@ export default function App() {
       voices: prev.voices.includes(id) ? prev.voices.filter((v) => v !== id) : [...prev.voices, id],
     }));
   }
-  // Setup installs two women's and two men's voices per language; the others
-  // stay in the voice library, to hear and download from the app.
-  const starterVoices = selected.reduce((sum, language) => sum + Math.min(language.count, 4), 0);
+  // Setup installs the ticked voices of a language or, when the kit lists
+  // none (offline), two women's and two men's voices. The others stay in the
+  // voice library, to hear and download from the app.
+  const installedFor = (language: (typeof selected)[number]) =>
+    voiceList(language.id).length
+      ? voiceList(language.id).filter((v) => options.voices.includes(v.id)).length
+      : Math.min(language.count, 4);
+  const installedVoices = selected.reduce((sum, language) => sum + installedFor(language), 0);
   const packagedVoices = availableLanguages.reduce(
     (sum, language) => sum + language.count,
     0,
@@ -427,6 +503,8 @@ export default function App() {
     Math.floor(progress / (100 / phases.length)),
   );
   const reduced = options.motion === "reduced";
+  // pip, a model conversion and everything from 95% run to the end.
+  const unpausable = !pausable || progress >= 95;
   const platformName = platforms.find(
     (item) => item.id === options.platform,
   )!.name;
@@ -464,6 +542,8 @@ export default function App() {
       sum += typeof e === "number" ? e : e ? e[device] || 0 : 0;
       sum += g.wheelBytes?.[device] || 0;
     }
+    // AMD's ROCm runtime and PyTorch from repo.radeon.com (about 3 GB, as the step 1 checkbox says).
+    if (options.speech && options.amdSpeech && system?.speech === "rocm") sum += 3e9;
     return sum;
   })();
 
@@ -509,7 +589,7 @@ export default function App() {
         ? prev.languages.filter((item) => item !== id)
         : [...prev.languages, id],
       // A language taken off also takes off its voices.
-      voices: prev.languages.includes(id) ? prev.voices.filter((v) => !dropped.has(v)) : prev.voices,
+      voices: prev.languages.includes(id) ? prev.voices.filter((v) => !dropped.has(v)) : withStarters(downloads, [id], prev.voices),
       speech: true,
     }));
   }
@@ -522,12 +602,10 @@ export default function App() {
     if (native) {
       setFolderBusy(true);
       try {
-        const path = await invoke<string | null>("choose_folder");
-        if (path)
-          setFolderDraft(
-            path.replace(/[\\/]+$/, "") +
-              (options.platform === "windows" ? "\\Origami" : "/Origami"),
-          );
+        const path = await invoke<string | null>("choose_folder", {
+          title: t("Choose the parent folder for Origami"),
+        });
+        if (path) setFolderDraft(withAppFolder(path, options.platform));
       } catch (error) {
         setFolderMessage(String(error));
       } finally {
@@ -560,16 +638,7 @@ export default function App() {
       };
       if (!response.ok)
         throw new Error(result.error || "Folder browsing is unavailable.");
-      if (result.path) {
-        const separator = options.platform === "windows" ? "\\" : "/";
-        const directory = result.path.replace(/[\\/]+$/, "");
-        const name = options.platform === "macos" ? "Origami.app" : "Origami";
-        setFolderDraft(
-          directory.toLowerCase().endsWith(`${separator}${name}`.toLowerCase())
-            ? directory
-            : `${directory}${separator}${name}`,
-        );
-      }
+      if (result.path) setFolderDraft(withAppFolder(result.path, options.platform));
     } catch (error) {
       setFolderMessage(
         error instanceof Error
@@ -597,6 +666,8 @@ export default function App() {
     setInstallMessage("Preparing your setup");
     setProgress(0);
     setPaused(false);
+    setCancelling(false);
+    setPausable(true);
     setStep(6);
     if (native) {
       liveInstall.current = true;
@@ -738,7 +809,7 @@ export default function App() {
               <button
                 className="icon-button"
                 aria-label={
-                  native ? "About this installer" : "About this preview"
+                  native ? t("About this installer") : t("About this preview")
                 }
                 onClick={() => setHelp(true)}
               >
@@ -752,7 +823,8 @@ export default function App() {
                 {setupMessage(installError)}
               </p>
             )}
-            {earlier && (
+            {/* Replacing it goes through the footer's install button and its checks. */}
+            {earlier && step === 5 && (
               <div className="info-card" role="alert">
                 <div>
                   <strong>{t("An earlier version of Origami is installed")}</strong>
@@ -762,12 +834,17 @@ export default function App() {
                       { folder: earlier },
                     )}
                   </p>
-                  <button className="primary" onClick={() => void startPreview(true)}>
-                    {t("Replace it and install")}
-                  </button>
                 </div>
               </div>
             )}
+            {step === 5 &&
+              title(
+                "05 / REVIEW",
+                "Review your setup",
+                native
+                  ? "Review your choices before installing Origami."
+                  : "Review your choices before previewing the installation experience.",
+              )}
             {native && step === 5 && (
               <div className="info-card">
                 <div>
@@ -1099,10 +1176,11 @@ export default function App() {
                   </button>
                 </div>
                 <p id="path-note" className={error ? "error" : "field-help"}>
-                  {error ||
-                    t(
-                      "Choose a folder using the folder icon, or enter a location.",
-                    )}
+                  {error
+                    ? pathMessage(error)
+                    : t(
+                        "Choose a folder using the folder icon, or enter a location.",
+                      )}
                 </p>
                 <div className="info-card">
                   <HardDrive size={22} />
@@ -1192,10 +1270,10 @@ export default function App() {
                       <button
                         className="text-button"
                         onClick={() =>
-                          update(
-                            "languages",
-                            availableLanguages.map((item) => item.id),
-                          )
+                          setOptions((prev) => {
+                            const all = availableLanguages.map((item) => item.id);
+                            return { ...prev, languages: all, voices: withStarters(downloads, all, prev.voices) };
+                          })
                         }
                       >
                         {t("Select all")}
@@ -1326,7 +1404,7 @@ export default function App() {
                               count: selected.length,
                             })}
                       </span>
-                      <strong>{t("{count} voices", { count: voices })}</strong>
+                      <strong>{t("{count} voices", { count: installedVoices })}</strong>
                     </div>
                   </>
                 ) : (
@@ -1334,7 +1412,11 @@ export default function App() {
                     <BookOpen size={30} />
                     <h3>{t("Start with reading.")}</h3>
                     <p>
-                      {t("You can add voices and the speech engine later.")}
+                      {hasLight && options.lightVoices
+                        ? t(
+                            "The light English voices are selected in Preferences. Turn on local speech for natural voices and other languages.",
+                          )
+                        : t("You can add voices and the speech engine later.")}
                     </p>
                   </div>
                 )}
@@ -1349,9 +1431,13 @@ export default function App() {
                         { packagedVoices: packagedVoices },
                       )}
                   {native
-                    ? t(
-                        "Selected recordings and speech models are installed from this offline package.",
-                      )
+                    ? downloads
+                      ? t(
+                          "Selected recordings and speech models are downloaded from their publishers during setup.",
+                        )
+                      : t(
+                          "Selected recordings and speech models are installed from this offline package.",
+                        )
                     : t(
                         "Voice recordings and speech models are not included in this preview.",
                       )}
@@ -1540,13 +1626,6 @@ export default function App() {
                 !(options.coverModel || options.portraitModel || (hasTurbo && options.turboModel)) ||
                 terms) && (
                 <>
-                  {title(
-                    "05 / REVIEW",
-                    "Review your setup",
-                    native
-                      ? "Review your choices before installing Origami."
-                      : "Review your choices before previewing the installation experience.",
-                  )}
                   <div className="review-banner">
                     <img src="./crane.png" alt="" />
                     <div>
@@ -1570,7 +1649,9 @@ export default function App() {
                     {summaryRow("Destination", options.installPath, 1)}
                     {summaryRow(
                       "Components",
-                      options.speech ? t("Reader + local speech") : t("Reader"),
+                      options.speech || (hasLight && options.lightVoices)
+                        ? t("Reader + local speech")
+                        : t("Reader"),
                       2,
                     )}
                     {summaryRow(
@@ -1580,7 +1661,7 @@ export default function App() {
                             languages: selected
                               .map((item) => t(item.name))
                               .join(", "),
-                            voices: starterVoices,
+                            voices: installedVoices,
                           })
                         : "None selected",
                       2,
@@ -1603,9 +1684,6 @@ export default function App() {
                       "Reading",
                       [
                         t(surfaceNames[options.readingSurface]),
-                        options.textSize === "large"
-                          ? t("Large text")
-                          : t("Standard text"),
                         options.paperTexture
                           ? t("Paper texture")
                           : t("No texture"),
@@ -1646,9 +1724,13 @@ export default function App() {
                       </strong>
                       <p>
                         {native
-                          ? t(
-                              "Install your selected components from this package. Speech chooses NVIDIA acceleration when available and CPU otherwise. CPU speech can be slow.",
-                            )
+                          ? downloads
+                            ? t(
+                                "Downloads and installs your selected components. Speech uses your graphics card when it can and the processor otherwise. Processor speech can be slow.",
+                              )
+                            : t(
+                                "Install your selected components from this package. Speech chooses NVIDIA acceleration when available and CPU otherwise. CPU speech can be slow.",
+                              )
                           : t(
                               "This demonstration simulates progress without installing files.",
                             )}
@@ -1663,7 +1745,9 @@ export default function App() {
                   native ? "INSTALLING ORIGAMI" : "INSTALLATION PREVIEW",
                   "Preparing your Origami setup.",
                   native
-                    ? "Copying and checking your selected app, voices and models."
+                    ? downloads
+                      ? "Downloading and checking your selected voices and models, and copying the app."
+                      : "Copying and checking your selected app, voices and models."
                     : "Preview the installation stages and progress animation. No files are being installed.",
                 )}
                 <div className="progress-art">
@@ -1674,9 +1758,11 @@ export default function App() {
                 <div className="progress-heading">
                   <span>
                     {native
-                      ? paused
-                        ? t("Installation paused")
-                        : t(installMessage)
+                      ? cancelling
+                        ? t("Cancelling installation…")
+                        : paused
+                          ? t("Installation paused")
+                          : t(installMessage)
                       : paused
                         ? t("Preview paused")
                         : phase === 2 && !selected.length
@@ -1695,8 +1781,8 @@ export default function App() {
                   role="progressbar"
                   aria-label={
                     native
-                      ? "Installation progress"
-                      : "Simulated installation progress"
+                      ? t("Installation progress")
+                      : t("Simulated installation progress")
                   }
                   aria-valuemin={0}
                   aria-valuemax={100}
@@ -1708,12 +1794,14 @@ export default function App() {
                   <span>
                     {t("{packs} language packs · {voices} voice profiles", {
                       packs: selected.length,
-                      voices: starterVoices,
+                      voices: installedVoices,
                     })}
                   </span>
                   <span>
                     {native
-                      ? t("COPYING AND VERIFYING FILES")
+                      ? downloads
+                        ? t("DOWNLOADING AND VERIFYING FILES")
+                        : t("COPYING AND VERIFYING FILES")
                       : t("SIMULATED PROGRESS")}
                   </span>
                 </div>
@@ -1766,7 +1854,7 @@ export default function App() {
                   </div>
                   <div>
                     <AudioLines />
-                    <strong>{starterVoices}</strong>
+                    <strong>{installedVoices}</strong>
                     <small>{t("Voice profiles")}</small>
                   </div>
                   <div>
@@ -1789,7 +1877,7 @@ export default function App() {
                 </button>
                 {warnings.map((warning) => (
                   <p className="finish-message" key={warning}>
-                    {warning}
+                    {warningText(warning)}
                   </p>
                 ))}
                 {finishedAction && (
@@ -1839,14 +1927,16 @@ export default function App() {
                     (native && step === 5 && !appTerms)
                   }
                   onClick={() =>
-                    step === 5 ? startPreview() : setStep(step + 1)
+                    step === 5 ? startPreview(!!earlier) : setStep(step + 1)
                   }
                 >
                   {step === 0
                     ? t("Get started")
                     : step === 5
                       ? native
-                        ? t("Install Origami")
+                        ? earlier
+                          ? t("Replace it and install")
+                          : t("Install Origami")
                         : t("Preview installation")
                       : t("Continue")}
                   <ArrowRight size={16} />
@@ -1854,14 +1944,23 @@ export default function App() {
               )}
               {step === 6 && (
                 <>
-                  <button
-                    className="text-button"
-                    onClick={() => setCancel(true)}
-                  >
-                    {native ? t("Cancel installation") : t("Cancel preview")}
-                  </button>
+                  {/* From 95% setup finishes on its own. */}
+                  {!(native && (progress >= 95 || cancelling)) && (
+                    <button
+                      className="text-button"
+                      onClick={() => setCancel(true)}
+                    >
+                      {native ? t("Cancel installation") : t("Cancel preview")}
+                    </button>
+                  )}
                   <button
                     className="secondary"
+                    disabled={native && (cancelling || (!paused && unpausable))}
+                    title={
+                      native && !paused && unpausable
+                        ? t("This step cannot be paused. It finishes on its own.")
+                        : undefined
+                    }
                     onClick={() => {
                       if (native)
                         void invoke("control_install", {
@@ -1892,8 +1991,8 @@ export default function App() {
           onClick={() => update("motion", reduced ? "system" : "reduced")}
           aria-label={
             reduced
-              ? "Use system motion preference"
-              : "Reduce background motion"
+              ? t("Use system motion preference")
+              : t("Reduce background motion")
           }
         >
           {reduced ? <Sun size={13} /> : <Moon size={13} />}
@@ -1944,9 +2043,10 @@ export default function App() {
           className={folderError ? "error" : "field-help"}
           role="status"
         >
-          {folderError ||
-            folderMessage ||
-            t("You can also type the full installation path.")}
+          {folderError
+            ? pathMessage(folderError)
+            : folderMessage ||
+              t("You can also type the full installation path.")}
         </p>
         <div className="dialog-actions">
           <button
@@ -1975,7 +2075,7 @@ export default function App() {
       >
         <button
           className="dialog-close icon-button"
-          aria-label={t("Close preview information")}
+          aria-label={native ? t("Close") : t("Close preview information")}
           onClick={() => setHelp(false)}
         >
           <X size={18} />
@@ -2032,6 +2132,9 @@ export default function App() {
             onClick={() => {
               setCancel(false);
               if (native) {
+                // From 95% (closing the window can still ask) setup finishes.
+                if (progress >= 95) return;
+                setCancelling(true);
                 void invoke("control_install", { action: "cancel" });
                 return;
               }

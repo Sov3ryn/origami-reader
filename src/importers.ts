@@ -3,6 +3,7 @@
 // Everything runs locally; nothing is uploaded or converted elsewhere.
 import { unzipSync, strFromU8 } from "fflate";
 import type { Paragraph } from "./types";
+import { currentLanguage } from "./i18n";
 
 export type Block = { text: string; heading?: number; quote?: boolean };
 export type Imported = {
@@ -69,7 +70,52 @@ export function decodeText(bytes: Uint8Array): string {
     }
   }
   if (best.score > 0.2) return best.text;
-  return new TextDecoder("windows-1252").decode(bytes);
+  // Otherwise the usual legacy code page for the interface language.
+  const lang = currentLanguage().split("-")[0].toLowerCase();
+  const localPage: Record<string, string> = {
+    ru: "windows-1251",
+    uk: "windows-1251",
+    pl: "windows-1250",
+    tr: "windows-1254",
+    ar: "windows-1256",
+    vi: "windows-1258",
+    th: "windows-874",
+  };
+  const fallback = localPage[lang] || "windows-1252";
+  // Cyrillic files are common enough to detect outright, but Arabic and Thai
+  // code pages also map to Cyrillic letters in windows-1251. This check stays
+  // after the CJK candidates, whose bytes also read as mostly Cyrillic.
+  if (fallback !== "windows-1256" && fallback !== "windows-874") {
+    const cyrillic = new TextDecoder("windows-1251").decode(bytes);
+    const letters = (cyrillic.match(/\p{L}/gu) || []).length;
+    const cyr = (cyrillic.match(/[Ѐ-ӿ]/g) || []).length;
+    if (letters && cyr / letters > 0.5) return cyrillic;
+  }
+  return new TextDecoder(fallback).decode(bytes);
+}
+
+// Web pages: a byte-order mark or valid UTF-8 wins; otherwise the page's own
+// meta charset, then the same detection as plain text.
+export function decodeHtml(bytes: Uint8Array): string {
+  const bom =
+    (bytes[0] === 0xff && bytes[1] === 0xfe) ||
+    (bytes[0] === 0xfe && bytes[1] === 0xff);
+  if (bom) return decodeText(bytes);
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    /* Not UTF-8: look for a declared charset below. */
+  }
+  const head = new TextDecoder("windows-1252").decode(bytes.subarray(0, 2048));
+  const label = /<meta[^>]+charset\s*=\s*["']?([\w-]+)/i.exec(head)?.[1];
+  if (label) {
+    try {
+      return new TextDecoder(label).decode(bytes);
+    } catch {
+      /* Unknown label: fall back to detection. */
+    }
+  }
+  return decodeText(bytes);
 }
 
 // ---- Zip-based formats ----
@@ -109,39 +155,65 @@ export function readDocx(bytes: Uint8Array): Imported {
   );
   const doc = parseXml(files["word/document.xml"], "Word document");
   // Heading styles may be named "Heading 1" or defined with an outline level.
+  // Outline levels 0-8 are heading levels; 9 means body text.
+  const outlineLevel = (value: string | null | undefined) => {
+    if (value === null || value === undefined) return undefined;
+    const o = Number(value);
+    return Number.isInteger(o) && o >= 0 && o <= 8 ? o + 1 : undefined;
+  };
+  const child = (el: Element | undefined, name: string) =>
+    el && Array.from(el.children).find((c) => c.localName === name);
   const levels = new Map<string, number>();
   if (files["word/styles.xml"]) {
     const styles = parseXml(files["word/styles.xml"], "Word styles");
     for (const style of byLocal(styles, "style")) {
       const id = style.getAttribute("w:styleId") || "";
       const name = byLocal(style, "name")[0]?.getAttribute("w:val") || "";
-      const outline = byLocal(style, "outlineLvl")[0]?.getAttribute("w:val");
+      const outline = outlineLevel(
+        child(child(style, "pPr"), "outlineLvl")?.getAttribute("w:val"),
+      );
       const match = /^(?:heading|titre|überschrift|título|제목)\s*(\d)/i.exec(
         name,
       );
       if (/^title$/i.test(name)) levels.set(id, 1);
       else if (match) levels.set(id, Number(match[1]));
-      else if (outline !== null && outline !== undefined)
-        levels.set(id, Number(outline) + 1);
+      else if (outline !== undefined) levels.set(id, outline);
     }
   }
-  const blocks: Block[] = [];
-  for (const p of byLocal(doc, "p")) {
+  // Word writes each text box twice (mc:Choice and mc:Fallback). Its
+  // paragraphs are read once, from the Choice copy, as their own blocks.
+  const inFallback = (el: Element) => {
+    for (let a = el.parentElement; a; a = a.parentElement)
+      if (a.localName === "Fallback") return true;
+    return false;
+  };
+  const textOf = (el: Element): string => {
     let text = "";
-    for (const node of byLocal(p, "*")) {
+    for (const node of Array.from(el.children)) {
       const name = node.localName;
       if (name === "t") text += node.textContent || "";
       else if (name === "tab") text += " ";
       else if (name === "br" || name === "cr") text += "\n";
+      else if (name !== "txbxContent" && name !== "Fallback")
+        text += textOf(node);
     }
-    const style = byLocal(p, "pStyle")[0]?.getAttribute("w:val") || "";
-    const outline = byLocal(p, "outlineLvl")[0]?.getAttribute("w:val");
+    return text;
+  };
+  const blocks: Block[] = [];
+  for (const p of byLocal(doc, "p")) {
+    if (inFallback(p)) continue;
+    const text = textOf(p);
+    // Direct paragraph properties only, so tracked-change history is ignored.
+    const pPr = child(p, "pPr");
+    const style = child(pPr, "pStyle")?.getAttribute("w:val") || "";
+    const outline = child(pPr, "outlineLvl")?.getAttribute("w:val");
+    // Direct formatting wins over the style; outline level 9 is body text.
     const level =
-      levels.get(style) ??
-      (/^heading(\d)$/i.test(style) ? Number(style.slice(7)) : undefined) ??
-      (outline !== null && outline !== undefined
-        ? Number(outline) + 1
-        : undefined);
+      outline !== null && outline !== undefined && Number(outline) === 9
+        ? undefined
+        : (outlineLevel(outline) ??
+          levels.get(style) ??
+          (/^heading(\d)$/i.test(style) ? Number(style.slice(7)) : undefined));
     blocks.push({
       text,
       ...(level !== undefined ? { heading: level } : {}),
@@ -282,9 +354,12 @@ export function readHtml(
   bytes: Uint8Array,
   paragraphs: (doc: Document) => Paragraph[],
 ): { paragraphs: Paragraph[]; title?: string; author?: string } {
-  const doc = new DOMParser().parseFromString(decodeText(bytes), "text/html");
+  const doc = new DOMParser().parseFromString(decodeHtml(bytes), "text/html");
+  // Ruby readings (rt, rp, rtc) would repeat every annotated word.
   doc
-    .querySelectorAll("script,style,nav,header,footer,aside,noscript,template")
+    .querySelectorAll(
+      "script,style,nav,header,footer,aside,noscript,template,rt,rp,rtc",
+    )
     .forEach((el) => el.remove());
   return {
     paragraphs: paragraphs(doc),
@@ -295,6 +370,30 @@ export function readHtml(
         ?.getAttribute("content")
         ?.trim() || undefined,
   };
+}
+
+// The \title group holds raw RTF: hex bytes, \uN characters and escapes.
+// The \uN replacement assumes the default \uc1 fallback, as Word writes it.
+function decodeRtfTitle(raw: string, decoder: TextDecoder) {
+  return raw
+    .replace(/\\u(-?\d+) ?(?:\\'[0-9a-fA-F]{2}|\?)?/g, (_, n: string) => {
+      const code = Number(n);
+      return String.fromCharCode(code < 0 ? code + 65536 : code);
+    })
+    .replace(/(?:\\'[0-9a-fA-F]{2})+/g, (run) =>
+      decoder.decode(
+        new Uint8Array(
+          (run.match(/[0-9a-fA-F]{2}/g) || []).map((h) => parseInt(h, 16)),
+        ),
+      ),
+    )
+    .replace(/\\[a-z]+-?\d* ?/g, "")
+    .replace(/\\([\\{}])/g, "$1")
+    .replace(/\\~/g, " ")
+    .replace(/\\-/g, "")
+    .replace(/\\_/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 // Rich Text Format (.rtf): text, paragraphs and the document title.
@@ -347,7 +446,7 @@ export function readRtf(bytes: Uint8Array): Imported {
   let pendingSkip = 0;
   let title: string | undefined;
   const titleMatch = /\{\\title\s+([^}]*)\}/.exec(source);
-  if (titleMatch) title = titleMatch[1].trim();
+  if (titleMatch) title = decodeRtfTitle(titleMatch[1], decoder) || undefined;
   for (let i = 0; i < source.length; i++) {
     const c = source[i];
     if (c === "{") {
@@ -381,8 +480,34 @@ export function readRtf(bytes: Uint8Array): Imported {
         i++;
         continue;
       }
+      // Optional hyphen: shown only at a line end, so left out.
+      if (next === "-") {
+        i++;
+        continue;
+      }
+      // Non-breaking hyphen.
+      if (next === "_") {
+        flushBytes();
+        if (!skip) text += "‑";
+        i++;
+        continue;
+      }
+      // A backslash before a line break is a paragraph break.
+      if (next === "\n" || next === "\r") {
+        flushBytes();
+        if (!skip) {
+          blocks.push({ text });
+          text = "";
+        }
+        i++;
+        continue;
+      }
       const word = /^\\([a-z]+)(-?\d+)? ?/.exec(source.slice(i, i + 40));
-      if (!word) continue;
+      // Any other control symbol is skipped with its character.
+      if (!word) {
+        i++;
+        continue;
+      }
       i += word[0].length - 1;
       flushBytes();
       const [, name, arg] = word;

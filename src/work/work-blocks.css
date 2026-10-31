@@ -979,7 +979,7 @@
 .workspace-menu {
   position: absolute;
   left: 0;
-  right: -40px;
+  right: 0;
   top: calc(100% + 4px);
   z-index: 30;
   display: flex;

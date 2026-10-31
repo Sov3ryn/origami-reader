@@ -12,8 +12,8 @@ const PAGE_WORDS = 300;
 
 const words = (text: string) => text.split(/\s+/).filter(Boolean).length;
 
-/** The lines a job covers. A page starts at the selected line (or the chapter's
- * first) and runs for about 300 words. */
+/** The lines a job covers. A page starts at the selected line when it is in the
+ * shown chapter (otherwise the chapter's first) and runs for about 300 words. */
 export function scopeUnits(units: ProductionUnit[], scope: Scope, at: { chapter: number; selected?: string }): ProductionUnit[] {
   if (scope.kind === "all") return units;
   if (scope.kind === "chapter") return units.filter((u) => u.chapter === at.chapter);
@@ -21,7 +21,7 @@ export function scopeUnits(units: ProductionUnit[], scope: Scope, at: { chapter:
     const [a, b] = scope.from <= scope.to ? [scope.from, scope.to] : [scope.to, scope.from];
     return units.filter((u) => u.chapter >= a && u.chapter <= b);
   }
-  let start = units.findIndex((u) => u.id === at.selected);
+  let start = units.findIndex((u) => u.id === at.selected && u.chapter === at.chapter);
   if (start < 0) start = units.findIndex((u) => u.chapter === at.chapter);
   if (start < 0) return [];
   const page: ProductionUnit[] = [];

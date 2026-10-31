@@ -1,5 +1,6 @@
 // Performance defaults from a local look at this computer's graphics and
 // memory. Reading aloud always has priority over generated artwork.
+import { t } from "./i18n";
 import type { HardwareCheck, Preferences } from "./types";
 
 export type Gpu = {
@@ -59,8 +60,8 @@ export function hardwareSummary(profile: SystemProfile) {
         ? gpu.name
         : `${gpu.name} (${gigabytes(gpu.vramMb)})`
       : "",
-    profile.memoryMb ? gigabytes(profile.memoryMb) + " RAM" : "",
-    profile.laptop ? "Laptop" : "",
+    profile.memoryMb ? t("{size} RAM", { size: gigabytes(profile.memoryMb) }) : "",
+    profile.laptop ? t("Laptop") : "",
   ];
   return parts.filter(Boolean).join(" · ");
 }

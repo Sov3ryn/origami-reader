@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { CalendarDays, Check, FileText, Sparkles } from "lucide-react";
-import { t } from "../i18n";
+import { displayLocale, t } from "../i18n";
 import { agenda, dayKey, rhythm, type DatedTask } from "./schedule";
 import type { Note, StudyCard, StudyLog } from "./types";
 
@@ -31,7 +31,7 @@ export function SchedulePage({
       ? t("Today")
       : i === 1
         ? t("Tomorrow")
-        : new Date(key + "T12:00").toLocaleDateString([], { weekday: "long", day: "numeric", month: "short" });
+        : new Date(key + "T12:00").toLocaleDateString(displayLocale(), { weekday: "long", day: "numeric", month: "short" });
 
   return (
     <section className="work-page schedule-page">
@@ -57,7 +57,7 @@ export function SchedulePage({
             <span className="forecast-bar" style={{ height: `${Math.max(4, (d.cards / most) * 100)}%` }}>
               {d.cards > 0 && <em>{d.cards}</em>}
             </span>
-            <small>{new Date(d.key + "T12:00").toLocaleDateString([], { weekday: "narrow" })}</small>
+            <small>{new Date(d.key + "T12:00").toLocaleDateString(displayLocale(), { weekday: "narrow" })}</small>
           </div>
         ))}
       </div>

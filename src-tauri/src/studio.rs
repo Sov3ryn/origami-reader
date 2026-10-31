@@ -75,18 +75,26 @@ pub fn create(data: &Path, info: Value, units: Vec<Value>) -> Result<Value> {
         return Err("A production with this id already exists.".into());
     }
     std::fs::create_dir_all(dir.join("takes")).map_err(|e| e.to_string())?;
-    let mut db = open(&dir)?;
-    let tx = db.transaction().map_err(|e| e.to_string())?;
-    tx.execute("INSERT INTO info(key, value) VALUES('production', ?1)", params![info.to_string()])
-        .map_err(|e| e.to_string())?;
-    for (ord, unit) in units.iter().enumerate() {
-        tx.execute(
-            "INSERT INTO units(id, ord, chapter, data) VALUES(?1, ?2, ?3, ?4)",
-            params![unit["id"].as_str().unwrap_or_default(), ord as i64, unit["chapter"].as_i64().unwrap_or(0), unit.to_string()],
-        )
-        .map_err(|e| e.to_string())?;
+    // The connection is closed when the closure returns, so a failed fill can remove the folder.
+    let filled = (|| -> Result<()> {
+        let mut db = open(&dir)?;
+        let tx = db.transaction().map_err(|e| e.to_string())?;
+        tx.execute("INSERT INTO info(key, value) VALUES('production', ?1)", params![info.to_string()])
+            .map_err(|e| e.to_string())?;
+        for (ord, unit) in units.iter().enumerate() {
+            tx.execute(
+                "INSERT INTO units(id, ord, chapter, data) VALUES(?1, ?2, ?3, ?4)",
+                params![unit["id"].as_str().unwrap_or_default(), ord as i64, unit["chapter"].as_i64().unwrap_or(0), unit.to_string()],
+            )
+            .map_err(|e| e.to_string())?;
+        }
+        tx.commit().map_err(|e| e.to_string())
+    })();
+    if let Err(e) = filled {
+        // A production without its details never shows in the list, so it is not left behind.
+        let _ = std::fs::remove_dir_all(&dir);
+        return Err(e);
     }
-    tx.commit().map_err(|e| e.to_string())?;
     Ok(info)
 }
 
@@ -101,16 +109,23 @@ pub fn restore(data: &Path, info: Value, units: Vec<Value>, takes: &[Value]) -> 
     let id = info["id"].as_str().unwrap_or_default().to_string();
     create(data, info, units)?;
     let dir = folder(data, &id)?;
-    let mut db = open(&dir)?;
-    let tx = db.transaction().map_err(|e| e.to_string())?;
-    for take in takes {
-        tx.execute(
-            "INSERT OR REPLACE INTO takes(id, unit, data) VALUES(?1, ?2, ?3)",
-            params![take["id"].as_str().unwrap_or_default(), take["unit"].as_str().unwrap_or_default(), take.to_string()],
-        )
-        .map_err(|e| e.to_string())?;
+    let filled = (|| -> Result<()> {
+        let mut db = open(&dir)?;
+        let tx = db.transaction().map_err(|e| e.to_string())?;
+        for take in takes {
+            tx.execute(
+                "INSERT OR REPLACE INTO takes(id, unit, data) VALUES(?1, ?2, ?3)",
+                params![take["id"].as_str().unwrap_or_default(), take["unit"].as_str().unwrap_or_default(), take.to_string()],
+            )
+            .map_err(|e| e.to_string())?;
+        }
+        tx.commit().map_err(|e| e.to_string())
+    })();
+    if let Err(e) = filled {
+        // This call made the folder, so it is removed rather than left half restored.
+        let _ = std::fs::remove_dir_all(&dir);
+        return Err(e);
     }
-    tx.commit().map_err(|e| e.to_string())?;
     Ok(dir.join("takes"))
 }
 
@@ -263,9 +278,14 @@ pub fn update_takes(data: &Path, id: &str, takes: &[Value]) -> Result<()> {
     tx.commit().map_err(|e| e.to_string())
 }
 
+/// Whether a take's file name stays inside the takes folder (no folders, drives or streams).
+pub fn take_file_ok(file: &str) -> bool {
+    !file.is_empty() && !file.contains(['/', '\\', ':']) && !file.contains("..")
+}
+
 /// A take's audio file, read for playback.
 pub fn take_audio(data: &Path, id: &str, file: &str) -> Result<Vec<u8>> {
-    if !(file.ends_with(".wav") || file.ends_with(".flac")) || file.contains(['/', '\\']) || file.contains("..") {
+    if !(file.ends_with(".wav") || file.ends_with(".flac")) || !take_file_ok(file) {
         return Err("Unknown take.".into());
     }
     std::fs::read(takes_dir(data, id)?.join(file)).map_err(|e| e.to_string())
@@ -316,6 +336,16 @@ mod tests {
     use super::*;
 
     #[test]
+    fn take_file_names_stay_in_the_takes_folder() {
+        assert!(take_file_ok("t1.flac"));
+        assert!(!take_file_ok(""));
+        assert!(!take_file_ok("../x.flac"));
+        assert!(!take_file_ok("C:x.wav"));
+        assert!(!take_file_ok("C:\\Users\\a.wav"));
+        assert!(!take_file_ok("sub/a.wav"));
+    }
+
+    #[test]
     fn create_list_read_delete() {
         let data = std::env::temp_dir().join(format!("origami-studio-test-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&data);
@@ -333,6 +363,10 @@ mod tests {
         assert!(read(&data, "../x").is_err());
         delete(&data, "prod-1").unwrap();
         assert!(list(&data).unwrap().is_empty());
+        // Two units with one id cannot be saved; no half-made folder is left behind.
+        let twice = vec![json!({ "id": "u", "chapter": 0 }), json!({ "id": "u", "chapter": 0 })];
+        assert!(create(&data, json!({ "id": "prod-2" }), twice).is_err());
+        assert!(!exists(&data, "prod-2"));
         let _ = std::fs::remove_dir_all(&data);
     }
 

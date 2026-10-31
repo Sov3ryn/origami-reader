@@ -428,6 +428,18 @@ export function darkReadingRoom(theme: (typeof themes)[number]): Record<string, 
     "--line": `color-mix(in srgb, ${theme.accent} 25%, #46414c)`,
     "--accent": accent,
     "--accent-ink": "#18161c",
+    colorScheme: "dark",
   };
+}
+
+// "light" or "dark" for native controls (time pickers, select arrows,
+// scrollbars), with the same brightness test as darkReadingRoom.
+export function themeScheme(bg: string): "light" | "dark" {
+  let hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(bg)?.[1];
+  if (!hex) return "dark";
+  if (hex.length === 3) hex = hex.replace(/./g, "$&$&");
+  const six = hex;
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(six.slice(i, i + 2), 16));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b >= 140 ? "light" : "dark";
 }
 

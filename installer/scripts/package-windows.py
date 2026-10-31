@@ -13,7 +13,7 @@ import zipfile
 REPO = Path(__file__).resolve().parents[2]
 
 
-VERSION = "0.1.0-beta.19"
+VERSION = "0.1.0-beta.20"
 
 
 def runtime_files(site_packages):
@@ -109,7 +109,7 @@ def main():
     for profile_file in sorted(args.voices_dir.glob("designed-vd-*.json")):
         voice = json.loads(profile_file.read_text(encoding="utf-8"))
         audio = profile_file.with_suffix(".wav")
-        if voice.get("origin") != "qwen-voice-design" or not audio.is_file() or not voice.get("reference_text"):
+        if voice.get("origin") not in ("qwen-voice-design", "origami-included") or not audio.is_file() or not voice.get("reference_text"):
             raise SystemExit(f"Not a complete designed voice: {profile_file.name}")
         code = language_codes[voice["language"]]
         if code not in args.languages:
@@ -136,7 +136,7 @@ def main():
         raise ValueError("Image model does not match the reviewed release")
     add(REPO / "docs/licenses/DreamShaper-OpenRAIL-M.txt", "models/CreativeML-OpenRAIL-M.txt", "images")
     notice = kit / "MODEL-NOTICE.txt"
-    notice.write_text("DreamShaper 8 LCM by Lykon. Unmodified checkpoint, Civitai version 252914.\nhttps://huggingface.co/Lykon/dreamshaper-8-lcm\nhttps://civitai.com/models/4384?modelVersionId=252914\nSHA-256: " + image_hash + "\nWeights retain CreativeML OpenRAIL-M. This is a free private beta bundle.\n", encoding="utf-8")
+    notice.write_text("DreamShaper 8 LCM by Lykon. Unmodified checkpoint, Civitai version 252914.\nhttps://huggingface.co/Lykon/dreamshaper-8-lcm\nhttps://civitai.com/models/4384?modelVersionId=252914\nSHA-256: " + image_hash + "\nWeights retain CreativeML OpenRAIL-M. This is a free public beta bundle.\n", encoding="utf-8")
     add(notice, "models/MODEL-NOTICE.txt", "images")
     notice.unlink()
     # Preserve the model license and upstream attribution with the weights.

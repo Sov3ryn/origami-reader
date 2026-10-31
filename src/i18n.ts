@@ -118,3 +118,11 @@ export function t(text: string, values?: Record<string, string | number>) {
 export function formatNumber(n: number) {
   return n.toLocaleString(state.current);
 }
+
+// Locale for dates, times and numbers: the interface language, with the
+// system's regional format when it is the same language (en-GB dates for an
+// English interface on a British system, not the American default).
+export function displayLocale() {
+  const system = typeof navigator === "undefined" ? "" : navigator.language || "";
+  return system && system.split("-")[0].toLowerCase() === state.current.split("-")[0].toLowerCase() ? system : state.current;
+}

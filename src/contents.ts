@@ -2,6 +2,7 @@ import { sentencePieces } from "./sentenceSplit";
 import { t } from "./i18n";
 import type { Paragraph } from "./types";
 import { romanValue } from "./spokenText";
+import { countWords } from "./documents";
 
 // label is the full text ("I · Marseilles, The Arrival"); number and title
 // are its parts for the contents list ("I" and "Marseilles, The Arrival").
@@ -88,7 +89,9 @@ export function formatDuration(minutes: number) {
   if (!h) return t("{m} min", { m });
   return m ? t("{h} h {m} min", { h, m }) : t("{h} h", { h });
 }
-const wordsIn = (text: string) => text.split(/\s+/).filter(Boolean).length;
+// Counts words in scripts written without spaces too (Chinese, Japanese, Thai).
+export { countWords };
+const wordsIn = countWords;
 // Words from `position` to the end of its chapter.
 export function wordsLeftInChapter(paragraphs: Paragraph[], position: number) {
   const chapter = paragraphs[position]?.chapter;

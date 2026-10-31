@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { BookOpen, CheckCircle2, FileAudio, FolderOpen, Headphones, X, XCircle } from "lucide-react";
 import { t } from "../i18n";
 import type { Book } from "../types";
 import { StudioSetup } from "./StudioSetup";
+import { useModal } from "../components/useModal";
 import {
   aiLine,
   cancelExport,
@@ -33,6 +34,20 @@ const TRIMS: [string, [number, number]][] = [
   ["6 x 9 in", [6, 9]],
 ];
 
+// Export steps the back end sends as untranslated keys. Never called: it lists
+// the literals so scripts/extract-strings.mjs finds them.
+export const EXPORT_STEPS = () => [
+  t("Recording the opening credits"),
+  t("Preparing the background sound"),
+  t("Writing the stems of {title}"),
+  t("Mastering {title}"),
+  t("Finishing the audiobook"),
+  t("Writing the read-along ebook"),
+  t("Writing the ebook"),
+  t("Typesetting the print book"),
+  t("Writing the Word manuscript"),
+];
+
 export function ExportDialog({
   production,
   book,
@@ -45,7 +60,9 @@ export function ExportDialog({
   onClose: () => void;
 }) {
   const { info, units } = production;
-  const [m4b, setM4b] = useState(true);
+  // Audio needs at least one line with a take (the export uses any take, approved or not).
+  const heard = units.some((u) => u.take);
+  const [m4b, setM4b] = useState(heard);
   const [mp3, setMp3] = useState(false);
   const [epub, setEpub] = useState(false);
   const [pdf, setPdf] = useState(false);
@@ -73,6 +90,10 @@ export function ExportDialog({
   const [value, setValue] = useState(0);
   const [done, setDone] = useState<ExportDone | null>(null);
   const [error, setError] = useState("");
+  const scrim = useRef<HTMLDivElement>(null);
+  useModal(scrim);
+  // Counts preview requests, so a typesetting that ends after the options changed is dropped.
+  const previewRun = useRef(0);
 
   const missing = units.filter((u) => !u.take).length;
   const unapproved = units.filter((u) => u.take && u.status !== "approved").length;
@@ -82,7 +103,7 @@ export function ExportDialog({
     const off = [
       listen<ExportProgress>("studio-export-progress", (e) => {
         if (e.payload.id !== info.id) return;
-        setStep(e.payload.step);
+        setStep(e.payload.key ? t(e.payload.key, { title: e.payload.title ?? "" }) : e.payload.step);
         setValue(e.payload.value);
       }),
       listen<ExportDone>("studio-export-done", (e) => {
@@ -98,6 +119,12 @@ export function ExportDialog({
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   }, [running, onClose]);
+  // A preview typeset with other options no longer shows what will be exported.
+  useEffect(() => {
+    previewRun.current++;
+    setPreview(null);
+    setPreviewing(false);
+  }, [trim, font, large, bleed, theme, pdf, matter, rights]);
   const cover = useMemo(() => {
     const c = book?.meta.coverImage || "";
     const m = c.match(/^data:image\/[a-z+]+;base64,(.+)$/);
@@ -111,16 +138,17 @@ export function ExportDialog({
     return { ...m, ...matter, theme, also_by: matter.also_by.split("\n").map((l) => l.trim()).filter(Boolean) };
   }
   async function showPages(first: number) {
+    const run = ++previewRun.current;
     setPreviewing(true);
     setError("");
     try {
       // Book spreads: the first page alone on the right, then even pages on the left.
       const r = await previewPrint(bookData(), { trim: TRIMS[trim][1], font, bleed, large }, first, first === 0 ? 1 : 2);
-      setPreview({ ...r, first });
+      if (run === previewRun.current) setPreview({ ...r, first });
     } catch (e) {
-      setError(String(e));
+      if (run === previewRun.current) setError(String(e));
     } finally {
-      setPreviewing(false);
+      if (run === previewRun.current) setPreviewing(false);
     }
   }
   async function start() {
@@ -161,7 +189,7 @@ export function ExportDialog({
 
   const nothing = !m4b && !mp3 && !epub && !pdf && !docx && !readalong && !stems && !sample;
   return (
-    <div className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && !running && onClose()}>
+    <div ref={scrim} className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && !running && onClose()}>
       <section className="studio-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-export-title">
         <header>
           <h2 id="studio-export-title">{t("Export")}</h2>
@@ -185,6 +213,7 @@ export function ExportDialog({
                 </li>
               ))}
             </ul>
+            {done.result.sampleMissing && <p className="studio-warn">{t("No chapter has a minute of lines yet, so no retail sample was made.")}</p>}
             {done.result.report.length > 0 && (
               <>
                 <h3>{t("Levels")}</h3>
@@ -217,19 +246,21 @@ export function ExportDialog({
               {t("Export id {id}. Exported files are yours: deleting the production never removes them.", { id: done.result.exportId })}
             </p>
             <div className="studio-row end">
-              <button className="primary" onClick={onClose}>
+              <button className="primary" autoFocus onClick={onClose}>
                 {t("Done")}
               </button>
             </div>
           </div>
         ) : running ? (
           <div className="studio-export-running">
-            <p>{step}</p>
-            <span className="studio-progress" aria-hidden="true">
+            <p role="status">{step}</p>
+            <span className="studio-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value * 100)} aria-label={t("Export")}>
               <i style={{ width: `${Math.round(value * 100)}%` }} />
             </span>
             <div className="studio-row end">
-              <button onClick={() => void cancelExport()}>{t("Cancel")}</button>
+              <button autoFocus onClick={() => void cancelExport()}>
+                {t("Cancel")}
+              </button>
             </div>
           </div>
         ) : (
@@ -237,13 +268,14 @@ export function ExportDialog({
             <label className="studio-field">
               <span>{t("Where will it go?")}</span>
               <select
+                data-autofocus
                 value={store}
                 onChange={(e) => {
                   const next = storeProfiles.find((s) => s.id === e.target.value) || storeProfiles[0];
                   setStore(next.id);
                   setNarrator(t(next.narrator));
-                  setM4b(next.m4b);
-                  setMp3(next.mp3);
+                  setM4b(heard && next.m4b);
+                  setMp3(heard && next.mp3);
                 }}
               >
                 {storeProfiles.map((s) => (
@@ -262,34 +294,35 @@ export function ExportDialog({
                   <Headphones size={15} /> {t("Audiobook")}
                 </legend>
                 <label className="studio-check">
-                  <input type="checkbox" checked={m4b} onChange={(e) => setM4b(e.target.checked)} disabled={wmReady === false} />
+                  <input type="checkbox" checked={m4b} onChange={(e) => setM4b(e.target.checked)} disabled={wmReady === false || !heard} />
                   <span>
                     {t("M4B with chapters")}
                     <small>{t("One file, for audiobook apps and most stores.")}</small>
                   </span>
                 </label>
                 <label className="studio-check">
-                  <input type="checkbox" checked={mp3} onChange={(e) => setMp3(e.target.checked)} disabled={wmReady === false} />
+                  <input type="checkbox" checked={mp3} onChange={(e) => setMp3(e.target.checked)} disabled={wmReady === false || !heard} />
                   <span>
                     {t("MP3, one file per chapter")}
                     <small>{t("128 kbps with Windows' own encoder.")}</small>
                   </span>
                 </label>
                 <label className="studio-check">
-                  <input type="checkbox" checked={sample} onChange={(e) => setSample(e.target.checked)} disabled={wmReady === false} />
+                  <input type="checkbox" checked={sample} onChange={(e) => setSample(e.target.checked)} disabled={wmReady === false || !heard} />
                   <span>
                     {t("Retail sample")}
                     <small>{t("Up to five minutes from the start of the story, without the credits, for a store page.")}</small>
                   </span>
                 </label>
                 <label className="studio-check">
-                  <input type="checkbox" checked={stems} onChange={(e) => setStems(e.target.checked)} disabled={wmReady === false} />
+                  <input type="checkbox" checked={stems} onChange={(e) => setStems(e.target.checked)} disabled={wmReady === false || !heard} />
                   <span>
                     {t("Stems, one WAV per speaker")}
                     <small>{t("For a sound editor: every chapter as one track per speaker, lined up, unlimited 32-bit WAV.")}</small>
                   </span>
                 </label>
-                {wmReady === false && (
+                {!heard && <p className="studio-hint">{t("No line has audio yet, so only the book can be exported.")}</p>}
+                {heard && wmReady === false && (
                   <>
                     <p className="studio-warn">{t("The watermark model is not installed, so audio cannot be exported yet.")}</p>
                     <StudioSetup only={["watermark"]} onChange={() => void watermarkReady().then(setWmReady)} />
@@ -319,7 +352,7 @@ export function ExportDialog({
                   </span>
                 </label>
                 <label className="studio-check">
-                  <input type="checkbox" checked={readalong} onChange={(e) => setReadalong(e.target.checked)} disabled={wmReady === false} />
+                  <input type="checkbox" checked={readalong} onChange={(e) => setReadalong(e.target.checked)} disabled={wmReady === false || !heard} />
                   <span>
                     {t("Read-along EPUB")}
                     <small>{t("The ebook with the narration: each line lights up as it is read, in readers that support it.")}</small>

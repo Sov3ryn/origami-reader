@@ -185,6 +185,12 @@ impl Store {
             serde_json::json!({"meta":meta,"paragraphs":serde_json::from_str::<Value>(&body).map_err(|e|e.to_string())?}),
         )
     }
+    /// Whether a book with this id is stored, whatever the state of its vault.
+    pub fn has_book(&self, id: &str) -> bool {
+        self.connection
+            .query_row("SELECT EXISTS(SELECT 1 FROM books WHERE id=?1)", [id], |r| r.get::<_, bool>(0))
+            .unwrap_or(false)
+    }
     pub fn metadata(&self, id: &str) -> Result<Value> {
         let data: String = self
             .connection
@@ -901,6 +907,15 @@ fn valid_id(v: &Value) -> Result<&str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn has_book_answers_without_reading_the_book() {
+        let d = tempfile::tempdir().unwrap();
+        let s = Store::open(&d.path().join("has.db")).unwrap();
+        assert!(!s.has_book("b1"));
+        s.save(serde_json::json!({"meta":{"id":"b1","title":"T"},"paragraphs":[{"id":"p1","text":"x"}]})).unwrap();
+        assert!(s.has_book("b1"));
+        assert!(!s.has_book("b2"));
+    }
     #[test]
     fn timed_purge_keeps_indefinite_active_and_legacy_entries_and_removes_expired_notes() {
         let d = tempfile::tempdir().unwrap();

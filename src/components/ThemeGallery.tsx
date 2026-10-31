@@ -79,20 +79,26 @@ export function ThemeGallery({
   const titleId = useId();
   const stats = readingStats(prefs.readingStats);
   const finished = books.filter(bookFinished).length;
+  // Where focus was before the gallery opened, to return to on close.
+  const opener = useRef(document.activeElement);
   useEffect(() => {
     const scrim = dialog.current?.parentElement;
     dialog.current?.querySelector<HTMLElement>("[aria-pressed='true'], button")?.focus();
     const siblings = Array.from(scrim?.parentElement?.children || []).filter(
-      (el): el is HTMLElement => el instanceof HTMLElement && el !== scrim,
+      (el): el is HTMLElement => el instanceof HTMLElement && el !== scrim && !el.classList.contains("toast-region"),
     );
     const previous = siblings.map((el) => el.inert);
     siblings.forEach((el) => {
       el.inert = true;
     });
-    return () =>
+    return () => {
       siblings.forEach((el, i) => {
         el.inert = previous[i];
       });
+      const back = opener.current;
+      if (back instanceof HTMLElement && back.isConnected)
+        requestAnimationFrame(() => back.focus());
+    };
   }, []);
   const tile = (
     key: string,
@@ -157,7 +163,10 @@ export function ThemeGallery({
       t(place.event),
       { url: place.image },
       prefs.scene === placeSceneId(place.id),
-      () => onChange({ scene: placeSceneId(place.id), backgroundMode: "manual" }),
+      () => {
+        recordFeat("restyle");
+        onChange({ scene: placeSceneId(place.id), backgroundMode: "manual" });
+      },
       { locked: placeOpen(place.id, stats) ? undefined : place },
     );
   const group = (category: Place["category"]) => places.filter((p) => p.category === category);

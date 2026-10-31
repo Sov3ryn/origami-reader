@@ -16,7 +16,7 @@ import {
   Undo2,
   Wand2,
 } from "lucide-react";
-import { t } from "../i18n";
+import { displayLocale, t } from "../i18n";
 import { MathText } from "./FormulaDialog";
 import type { Match } from "./text";
 import type { LinkBatch, Note, StudyCard } from "./types";
@@ -237,7 +237,7 @@ export function Connections({
                     ? t("New")
                     : c.schedule.due <= Date.now()
                       ? t("Due now")
-                      : t("Next {date}", { date: new Date(c.schedule.due).toLocaleDateString() })}
+                      : t("Next {date}", { date: new Date(c.schedule.due).toLocaleDateString(displayLocale()) })}
                 </small>
               </div>
             ))}
@@ -282,7 +282,7 @@ function Suggestion({
                 : d.subtitle}
           </small>
         </span>
-        <span className="strength-dot" title={t(s.strength === "strong" ? "Strong match" : s.strength === "likely" ? "Likely match" : "Loose match")} />
+        <span className="strength-dot" title={s.strength === "strong" ? t("Strong match") : s.strength === "likely" ? t("Likely match") : t("Loose match")} />
         <ChevronDown size={14} className="chev" />
       </button>
       {open && (

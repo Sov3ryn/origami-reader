@@ -1,11 +1,16 @@
 import { t } from "../i18n";
-import { useEffect, useRef, useState } from "react";
-import { ImagePlus, RefreshCw, X, LoaderCircle } from "lucide-react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { ImagePlus, RefreshCw, X, LoaderCircle, Trash2 } from "lucide-react";
 import type { BookMeta } from "../types";
-import { Cover } from "./Primitives";
+import { Cover, CoverTextContext, hasCoverText } from "./Primitives";
 import { coverImage } from "../covers";
 import { autoTitleStyle, titleInks, titleStyles } from "../coverTitles";
 import { recordFeat } from "../feats";
+
+// Thrown messages are catalog keys; t() keeps any other text as it is.
+const errorText = (e: unknown) => t(e instanceof Error ? e.message : String(e));
+// Cancelling a generation is the reader's own choice, not an error.
+const cancelled = (e: unknown) => String(e).includes("cancelled");
 
 export function CoverDialog({
   book,
@@ -23,6 +28,7 @@ export function CoverDialog({
   onImage,
   onGenerate,
   onCancel,
+  onRemove,
 }: {
   book: BookMeta;
   prompt: string;
@@ -39,12 +45,18 @@ export function CoverDialog({
   onImage: (image: string) => Promise<void>;
   onGenerate: (prompt: string) => Promise<void>;
   onCancel: () => Promise<void>;
+  // Back to the plain cover; the button shows only when this is given.
+  onRemove?: () => Promise<void>;
 }) {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const close = useRef<HTMLButtonElement>(null);
+  const choose = useRef<HTMLButtonElement>(null);
+  // Title style and lettering colour only show when the cover shows its text.
+  const showsText = useContext(CoverTextContext);
+  const lettering = hasCoverText(book, showsText);
   useEffect(() => {
     close.current?.focus();
     const modal = close.current?.closest(".modal-scrim");
@@ -127,6 +139,7 @@ export function CoverDialog({
             <label>
               {t("Title style")}
               <select
+                disabled={!lettering}
                 value={book.titleStyle || "auto"}
                 onChange={(e) =>
                   onLettering({
@@ -147,6 +160,7 @@ export function CoverDialog({
             <label>
               {t("Lettering colour")}
               <select
+                disabled={!lettering}
                 value={book.titleInk || "auto"}
                 onChange={(e) =>
                   onLettering({
@@ -163,7 +177,11 @@ export function CoverDialog({
               </select>
             </label>
             <p className="hint">
-              {t("Automatic picks the lettering from the book's genres.")}
+              {!showsText
+                ? t("Title and author are turned off for all covers in Settings.")
+                : !lettering
+                  ? t("Lettering shows when the cover shows the title and author.")
+                  : t("Automatic picks the lettering from the book's genres.")}
             </p>
             <input
               ref={input}
@@ -178,7 +196,7 @@ export function CoverDialog({
                 setError("");
                 void coverImage(file)
                   .then(onImage)
-                  .catch((e) => setError(String(e)))
+                  .catch((e) => setError(errorText(e)))
                   .finally(() => {
                     setSaving(false);
                     if (input.current) input.current.value = "";
@@ -186,12 +204,30 @@ export function CoverDialog({
               }}
             />
             <button
+              ref={choose}
               disabled={busy || saving}
               onClick={() => input.current?.click()}
             >
               <ImagePlus size={17} />
               {t("Choose image")}
             </button>
+            {onRemove && book.coverImage && !active && (
+              <button
+                disabled={saving}
+                onClick={() => {
+                  setSaving(true);
+                  setError("");
+                  void onRemove()
+                    // This button goes away with the image; keep focus in the dialog.
+                    .then(() => requestAnimationFrame(() => choose.current?.focus()))
+                    .catch((e) => setError(errorText(e)))
+                    .finally(() => setSaving(false));
+                }}
+              >
+                <Trash2 size={17} />
+                {t("Delete cover")}
+              </button>
+            )}
             <p className="hint">
               {t("PNG, JPEG or WebP. The image is copied into your library.")}
             </p>
@@ -232,7 +268,9 @@ export function CoverDialog({
                 onClick={() => {
                   setError("");
                   recordFeat("cover");
-                  void onGenerate(prompt).catch((e) => setError(String(e)));
+                  void onGenerate(prompt).catch((e) => {
+                    if (!cancelled(e)) setError(errorText(e));
+                  });
                 }}
               >
                 {active ? (

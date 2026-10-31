@@ -53,7 +53,8 @@ export function SheetPage({
   onEditChart: (id: string) => void;
   onDeleteChart: (id: string) => void;
   onInsertChart: (id: string) => void;
-  onExport: (format: "xlsx" | "csv") => void;
+  // data: the workbook as it is now, including edits not saved yet.
+  onExport: (format: "xlsx" | "csv", data?: WorkbookData) => void;
   onDelete: () => void;
   extra?: React.ReactNode;
 }) {
@@ -87,11 +88,11 @@ export function SheetPage({
           <ChartColumn size={15} />
           {t("Chart from selection")}
         </button>
-        <button onClick={() => onExport("xlsx")} title={t("Export as Excel")}>
+        <button onClick={() => onExport("xlsx", api.current?.snapshot() ?? undefined)} title={t("Export as Excel")}>
           <FileDown size={15} />
           .xlsx
         </button>
-        <button onClick={() => onExport("csv")} title={t("Export as CSV")}>
+        <button onClick={() => onExport("csv", api.current?.snapshot() ?? undefined)} title={t("Export as CSV")}>
           <Download size={15} />
           .csv
         </button>

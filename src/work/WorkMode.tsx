@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { PanelResizer, rememberWidth, rememberedWidth } from "./PanelResizer";
 import {
   BookOpen,
@@ -42,7 +42,7 @@ import {
   X,
   ImagePlus,
 } from "lucide-react";
-import { currentLanguage, t } from "../i18n";
+import { currentLanguage, displayLocale, t } from "../i18n";
 import type { Annotation, BookMeta } from "../types";
 import { CardComposer, type CardDraft } from "./CardComposer";
 import { makeCard, reviewedToday, syncNoteCards, todaysQueue } from "./cards";
@@ -101,6 +101,7 @@ import {
   workbookText,
   type CellValue,
   type SheetDoc,
+  type WorkbookData,
 } from "./sheets/model";
 import { readCsv, readXlsx, writeCsv, writeXlsx } from "./sheets/excel";
 import { SheetPage } from "./sheets/SheetPage";
@@ -200,6 +201,8 @@ const LIST_OF: Record<WorkItem["kind"], keyof WorkData> = {
 };
 const WELCOME_KEY = "origami-work-welcomed";
 const SECONDS_PER_CARD = 9;
+// The key of the loose notes list in the sidebar's "show all" set (never a subject id).
+const LOOSE = " loose";
 
 const remembered = (key: string, fallback: boolean) => {
   try {
@@ -361,7 +364,36 @@ export function WorkMode({
   useEffect(() => remember("origami.workConnections", connectionsOpen), [connectionsOpen]);
   const [newSubject, setNewSubject] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // Sidebar lists shown in full (a subject id, or LOOSE for loose notes).
+  const [allDocs, setAllDocs] = useState<Set<string>>(new Set());
   const [menu, setMenu] = useState(false);
+  const moreBtn = useRef<HTMLButtonElement>(null);
+  const moreMenu = useRef<HTMLDivElement>(null);
+  // The More menu takes the focus when it opens and closes on a click outside it.
+  useEffect(() => {
+    if (!menu) return;
+    requestAnimationFrame(() => moreMenu.current?.querySelector<HTMLElement>("[role=menuitem]")?.focus({ preventScroll: true }));
+    const outside = (e: PointerEvent) => {
+      if (!moreRef.current?.contains(e.target as Node)) setMenu(false);
+    };
+    window.addEventListener("pointerdown", outside);
+    return () => window.removeEventListener("pointerdown", outside);
+  }, [menu]);
+  function moreKeys(e: React.KeyboardEvent) {
+    const items = Array.from(moreMenu.current?.querySelectorAll<HTMLElement>("[role=menuitem],[role=radio]") || []);
+    if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      setMenu(false);
+      moreBtn.current?.focus();
+    } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!items.length) return;
+      const at = items.indexOf(document.activeElement as HTMLElement);
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      items[(at + step + items.length) % items.length]?.focus();
+    } else if (e.key === "Tab") setMenu(false);
+  }
   const [welcomed, setWelcomed] = useState(() => {
     try {
       return localStorage.getItem(WELCOME_KEY) === "1";
@@ -530,7 +562,9 @@ export function WorkMode({
     lastNote.current = current?.id || null;
     if (!prev || prev === current?.id) return;
     const n = dataRef.current?.notes.find((x) => x.id === prev);
-    if (n && !n.title.trim() && !noteText(n.html).trim() && !dataRef.current?.cards.some((c) => c.noteId === n.id)) {
+    // Blocks without text (plans, charts, pictures, drawings, diagrams, embeds, voice notes) still count as content.
+    const blank = !(n?.html || "").replace(/<(p|h[1-6])\b[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/\1>/gi, "").trim();
+    if (n && !n.title.trim() && blank && !noteText(n.html).trim() && !dataRef.current?.cards.some((c) => c.noteId === n.id)) {
       void put([], [n.id]);
       void pruneVersions(n.id, 0).catch(() => undefined);
     }
@@ -836,7 +870,13 @@ export function WorkMode({
     setView(note.subjectId ? { kind: "subject", id: note.subjectId } : { kind: "today" });
   }
   // Renaming a note keeps the links to it working.
-  const titleAtFocus = useRef("");
+  const titleAtFocus = useRef<{ id: string; title: string } | null>(null);
+  const titleBox = useRef<HTMLTextAreaElement>(null);
+  function titleDone() {
+    const f = titleAtFocus.current;
+    titleAtFocus.current = null;
+    if (f) renamed(f.id, f.title);
+  }
   function renamed(id: string, before: string) {
     const d = dataRef.current;
     const note = d?.notes.find((n) => n.id === id);
@@ -848,6 +888,15 @@ export function WorkMode({
     void put(changed);
     changed.forEach((n) => bump(n.id));
   }
+  // Switching notes while the title keeps focus (Ctrl+N) finishes the rename of the note that was edited.
+  useEffect(() => {
+    const f = titleAtFocus.current;
+    if (!f || f.id === current?.id) return;
+    titleDone();
+    if (current && titleBox.current && document.activeElement === titleBox.current)
+      titleAtFocus.current = { id: current.id, title: current.title };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current?.id]);
   function noteByTitle(title: string) {
     return notes.find((n) => same(n.title.trim(), title.trim()));
   }
@@ -936,7 +985,9 @@ export function WorkMode({
     return `<img src="${image}" alt="${escapeHtml(t("Photo of handwriting"))}">${read}`;
   }
   // Reading a note aloud, and importing a folder of notes.
-  const aloud = useNoteReader(speak);
+  const aloud = useNoteReader(speak, (e) =>
+    notify(t("Could not read this note aloud: {error}", { error: e instanceof Error ? e.message : String(e) })),
+  );
   useEffect(() => aloud.stop(), [current?.id, aloud.stop]);
   const folderInput = useRef<HTMLInputElement>(null);
   async function importFolder(list: File[]) {
@@ -1131,10 +1182,10 @@ export function WorkMode({
       .then((ok) => ok && notify(t("Saved.")))
       .catch(fail);
   }
-  async function exportSheet(sheet: SheetDoc, format: "xlsx" | "csv") {
+  async function exportSheet(sheet: SheetDoc, format: "xlsx" | "csv", data: WorkbookData = sheet.data) {
     try {
-      if (format === "csv") saveFile(sheet.title || "sheet", writeCsv(sheet.data), "csv");
-      else saveFile(sheet.title || "sheet", bytesToBase64(await writeXlsx(sheet.data)), "xlsx");
+      if (format === "csv") saveFile(sheet.title || "sheet", writeCsv(data), "csv");
+      else saveFile(sheet.title || "sheet", bytesToBase64(await writeXlsx(data)), "xlsx");
     } catch (e) {
       fail(e);
     }
@@ -1478,7 +1529,10 @@ export function WorkMode({
     setLinkForMe(false);
     notify(t("{count} links added. You can undo the whole batch from the Connections panel.", { count: accepted.length }));
   }
-  const lastBatch = (data?.batches || []).filter((b) => !b.undone).sort((a, b) => b.created - a.created)[0];
+  // Batches are not scoped to a workspace: offer only one whose notes are open here.
+  const lastBatch = (data?.batches || [])
+    .filter((b) => !b.undone && b.links.some((l) => notes.some((n) => n.id === l.noteId)))
+    .sort((a, b) => b.created - a.created)[0];
   async function undoBatch() {
     const d = dataRef.current;
     if (!d || !lastBatch) return;
@@ -1487,6 +1541,7 @@ export function WorkMode({
       const n = noteNow(l.noteId);
       if (n) changed.push({ ...n, html: removeRelated(n.html, l.targets, relatedHeading), updated: Date.now() });
     }
+    if (!changed.length) return;
     await put([...changed, { ...lastBatch, undone: true }]);
     changed.forEach((n) => bump(n.id));
     notify(t("Batch undone."));
@@ -1663,6 +1718,15 @@ export function WorkMode({
     if (!open) return;
     function key(e: KeyboardEvent) {
       const ctrl = e.ctrlKey || e.metaKey;
+      // Escape closes the note pickers and the naming form, like the other dialogs.
+      if (e.key === "Escape" && (planPick || planTarget || chartTarget || naming)) {
+        e.preventDefault();
+        setPlanPick(false);
+        setPlanTarget(null);
+        setChartTarget(null);
+        setNaming(null);
+        return;
+      }
       if (ctrl && !e.altKey && e.code === "Backslash") {
         e.preventDefault();
         if (e.shiftKey) setConnectionsOpen((v) => !v);
@@ -1769,8 +1833,35 @@ export function WorkMode({
           </button>
         </div>
         {isOpen && depth < 1 && children.map((c) => subjectRow(c, depth + 1))}
-        {isOpen && inside.slice(0, 14).map((d) => <DocRow key={d.id} doc={d} />)}
+        {isOpen && docList(s.id, inside, 14)}
       </div>
+    );
+  }
+  // The first documents of a list, with a button to show the rest.
+  function docList(key: string, list: Doc[], limit: number): React.ReactNode {
+    const all = allDocs.has(key);
+    return (
+      <>
+        {(all ? list : list.slice(0, limit)).map((d) => (
+          <DocRow key={d.id} doc={d} />
+        ))}
+        {list.length > limit && (
+          <button
+            className="text-button doc-more"
+            aria-expanded={all}
+            onClick={() =>
+              setAllDocs((old) => {
+                const n = new Set(old);
+                if (n.has(key)) n.delete(key);
+                else n.add(key);
+                return n;
+              })
+            }
+          >
+            {all ? t("Show fewer") : t("Show {count} more", { count: list.length - limit })}
+          </button>
+        )}
+      </>
     );
   }
   function DocRow({ doc }: { doc: Doc }) {
@@ -1834,7 +1925,7 @@ export function WorkMode({
       )}
       <nav className="work-sidebar" aria-label={t("Work navigation")} hidden={!sidebarOpen}>
         {modeHeader(
-          <button className="icon-only sidebar-toggle" data-tip={t("Hide sidebar")} data-keys={shortcuts.sidebar} onClick={() => setSidebarOpen(false)}>
+          <button className="icon-only sidebar-toggle" data-tip={t("Hide sidebar")} aria-label={t("Hide sidebar")} data-keys={shortcuts.sidebar} onClick={() => setSidebarOpen(false)}>
             <PanelLeftClose size={16} />
           </button>,
         )}
@@ -1979,11 +2070,7 @@ export function WorkMode({
           {docsIn(undefined).length > 0 && (
             <div className="subject-row-wrap">
               <div className="work-group-sub">{t("Loose notes")}</div>
-              {docsIn(undefined)
-                .slice(0, 10)
-                .map((d) => (
-                  <DocRow key={d.id} doc={d} />
-                ))}
+              {docList(LOOSE, docsIn(undefined), 10)}
             </div>
           )}
         </div>
@@ -2044,11 +2131,11 @@ export function WorkMode({
             <Presentation size={16} />
           </button>
           <div className="work-more" ref={moreRef}>
-            <button className="icon-only" aria-label={t("More")} aria-expanded={menu} onClick={() => setMenu(!menu)}>
+            <button ref={moreBtn} className="icon-only" aria-label={t("More")} aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu(!menu)}>
               <MoreHorizontal size={17} />
             </button>
             {menu && (
-              <div className="work-menu" role="menu" style={menuPlace()} onMouseLeave={() => setMenu(false)}>
+              <div ref={moreMenu} className="work-menu" role="menu" style={menuPlace()} onMouseLeave={() => setMenu(false)} onKeyDown={moreKeys}>
                 <button role="menuitem" onClick={() => (setMenu(false), void createPlan())}>
                   <DraftingCompass size={15} />
                   {t("New plan (precise drawing)")}
@@ -2124,7 +2211,7 @@ export function WorkMode({
       <VoiceContext value={voiceWorld}>
       <PictureContext value={pictureMap}>
       {!sidebarOpen && (
-        <button className="icon-only sidebar-reopen" data-tip={t("Show sidebar")} data-keys={shortcuts.sidebar} onClick={() => setSidebarOpen(true)}>
+        <button className="icon-only sidebar-reopen" data-tip={t("Show sidebar")} aria-label={t("Show sidebar")} data-keys={shortcuts.sidebar} onClick={() => setSidebarOpen(true)}>
           <PanelLeftOpen size={17} />
         </button>
       )}
@@ -2222,6 +2309,10 @@ export function WorkMode({
             sheets={sheets.filter((x) => x.subjectId === view.id).sort((a, b) => b.updated - a.updated)}
             onOpenSheet={(id) => setView({ kind: "sheet", id })}
             onNewSheet={() => void createSheet({ subjectId: view.id })}
+            boards={boards.filter((x) => x.subjectId === view.id).sort((a, b) => b.updated - a.updated)}
+            plans={plans.filter((x) => x.subjectId === view.id).sort((a, b) => b.updated - a.updated)}
+            onOpenBoard={(id) => setView({ kind: "board", id })}
+            onOpenPlan={(id) => setView({ kind: "plan", id })}
             onExam={(exam) => void put([{ ...subjectOf(view.id)!, exam: exam || undefined }])}
             onPageSize={(size) => {
               const { pageSize: _s, ...rest } = subjectOf(view.id)!;
@@ -2345,11 +2436,11 @@ export function WorkMode({
                       {t("Not saved: this note is over 4 MB. Move some of it to another note.")}
                     </small>
                   ) : (
-                    <small>{t("Saved {time}", { time: new Date(current.updated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })}</small>
+                    <small>{t("Saved {time}", { time: new Date(current.updated).toLocaleTimeString(displayLocale(), { hour: "2-digit", minute: "2-digit" }) })}</small>
                   )}
                 </div>
                 <div className="note-head-actions">
-                  <button className="icon-only" data-tip={t("Sticky note")} data-keys={shortcuts.sticky} onClick={() => addSticky(current)}>
+                  <button className="icon-only" data-tip={t("Sticky note")} aria-label={t("Sticky note")} data-keys={shortcuts.sticky} onClick={() => addSticky(current)}>
                     <StickyIcon size={16} />
                   </button>
                   <VaultMenu vaults={vaults} onUnlock={onUnlockVault} current={current.vault} onChoose={(v) => void vaultDoc(current, v)} />
@@ -2357,12 +2448,13 @@ export function WorkMode({
                     <button
                       className={"icon-only" + (aloud.reading ? " active" : "")}
                       data-tip={aloud.reading ? t("Stop reading ({index} of {total})", { index: aloud.reading.index + 1, total: aloud.reading.total }) : t("Read aloud")}
+                      aria-label={aloud.reading ? t("Stop reading ({index} of {total})", { index: aloud.reading.index + 1, total: aloud.reading.total }) : t("Read aloud")}
                       onClick={() => (aloud.reading ? aloud.stop() : void aloud.start([current.title, ...noteText(current.html).split("\n")]))}
                     >
                       {aloud.reading ? <Square size={15} /> : <Volume2 size={16} />}
                     </button>
                   )}
-                  <button className="icon-only" data-tip={t("History")} onClick={() => setHistory(true)}>
+                  <button className="icon-only" data-tip={t("History")} aria-label={t("History")} onClick={() => setHistory(true)}>
                     <History size={16} />
                   </button>
                   <button className="icon-only" aria-label={t("Delete note")} onClick={() => void deleteNote(current)}>
@@ -2371,6 +2463,8 @@ export function WorkMode({
                   <button
                     className="icon-only"
                     data-tip={connectionsOpen ? t("Hide connections") : t("Show connections")}
+                    aria-label={connectionsOpen ? t("Hide connections") : t("Show connections")}
+                    aria-expanded={connectionsOpen}
                     data-keys={shortcuts.connections}
                     onClick={() => setConnectionsOpen(!connectionsOpen)}
                   >
@@ -2392,6 +2486,7 @@ export function WorkMode({
                   onChange={(patch) => changeNote(current.id, patch)}
                 >
                 <textarea
+                  ref={titleBox}
                   className="note-title"
                   rows={1}
                   aria-label={t("Title")}
@@ -2401,12 +2496,12 @@ export function WorkMode({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      (e.currentTarget.parentElement?.querySelector(".note-prose") as HTMLElement | null)?.focus();
+                      noteEditor.current?.commands.focus("start");
                     }
                   }}
-                  onFocus={() => (titleAtFocus.current = current.title)}
+                  onFocus={() => (titleAtFocus.current = { id: current.id, title: current.title })}
                   onChange={(e) => changeNote(current.id, { title: e.target.value.replace(/\s*\n\s*/g, " ") })}
-                  onBlur={() => renamed(current.id, titleAtFocus.current)}
+                  onBlur={titleDone}
                 />
                 </NoteHeader>
                 <NoteEditor
@@ -2470,7 +2565,7 @@ export function WorkMode({
               onAddToNote={() => setPlanTarget(currentPlan.id)}
               extra={
                 <>
-                  <button className="icon-only" data-tip={t("Sticky note")} data-keys={shortcuts.sticky} onClick={() => addSticky(currentPlan)}>
+                  <button className="icon-only" data-tip={t("Sticky note")} aria-label={t("Sticky note")} data-keys={shortcuts.sticky} onClick={() => addSticky(currentPlan)}>
                     <StickyIcon size={16} />
                   </button>
                   <VaultMenu vaults={vaults} onUnlock={onUnlockVault} current={currentPlan.vault} onChoose={(v) => void vaultDoc(currentPlan, v)} />
@@ -2498,7 +2593,7 @@ export function WorkMode({
               onDelete={() => void deleteBoard(currentBoard)}
               extra={
                 <>
-                  <button className="icon-only" data-tip={t("Sticky note")} data-keys={shortcuts.sticky} onClick={() => addSticky(currentBoard)}>
+                  <button className="icon-only" data-tip={t("Sticky note")} aria-label={t("Sticky note")} data-keys={shortcuts.sticky} onClick={() => addSticky(currentBoard)}>
                     <StickyIcon size={16} />
                   </button>
                   <VaultMenu vaults={vaults} onUnlock={onUnlockVault} current={currentBoard.vault} onChoose={(v) => void vaultDoc(currentBoard, v)} />
@@ -2533,11 +2628,11 @@ export function WorkMode({
                 if (window.confirm(t("Delete this chart? Notes that show it will say it is no longer available."))) void put([], [id]);
               }}
               onInsertChart={(id) => setChartTarget(id)}
-              onExport={(format) => void exportSheet(currentSheet, format)}
+              onExport={(format, data) => void exportSheet(currentSheet, format, data)}
               onDelete={() => void deleteSheet(currentSheet)}
               extra={
                 <>
-                  <button className="icon-only" data-tip={t("Sticky note")} data-keys={shortcuts.sticky} onClick={() => addSticky(currentSheet)}>
+                  <button className="icon-only" data-tip={t("Sticky note")} aria-label={t("Sticky note")} data-keys={shortcuts.sticky} onClick={() => addSticky(currentSheet)}>
                     <StickyIcon size={16} />
                   </button>
                   <VaultMenu vaults={vaults} onUnlock={onUnlockVault} current={currentSheet.vault} onChoose={(v) => void vaultDoc(currentSheet, v)} />
@@ -2937,7 +3032,7 @@ function Today({
     <section className="work-page today">
       <header className="work-page-head">
         <div>
-          <span className="eyebrow">{new Date().toLocaleDateString([], { weekday: "long", day: "numeric", month: "long" })}</span>
+          <span className="eyebrow">{new Date().toLocaleDateString(displayLocale(), { weekday: "long", day: "numeric", month: "long" })}</span>
           <h1>{greeting()}</h1>
         </div>
       </header>
@@ -3024,7 +3119,7 @@ function Today({
                 )}
                 <strong>{n.title || t("Untitled")}</strong>
                 <span>{noteExcerpt(n.html, 140)}</span>
-                <small>{new Date(n.updated).toLocaleDateString()}</small>
+                <small>{new Date(n.updated).toLocaleDateString(displayLocale())}</small>
               </button>
             ))}
           </div>
@@ -3060,6 +3155,10 @@ function SubjectPage({
   sheets,
   onOpenSheet,
   onNewSheet,
+  boards,
+  plans,
+  onOpenBoard,
+  onOpenPlan,
   onExam,
   onPageSize,
   onPractise,
@@ -3079,6 +3178,10 @@ function SubjectPage({
   sheets: SheetDoc[];
   onOpenSheet: (id: string) => void;
   onNewSheet: () => void;
+  boards: BoardDoc[];
+  plans: PlanDoc[];
+  onOpenBoard: (id: string) => void;
+  onOpenPlan: (id: string) => void;
   notes: Note[];
   due: StudyCard[];
   onOpen: (id: string) => void;
@@ -3115,7 +3218,7 @@ function SubjectPage({
             <ClipboardCheck size={15} />
             {t("Practice test")}
           </button>
-          <button className="icon-only" disabled={!cardCount} data-tip={t("Share these cards as a file")} onClick={onShare}>
+          <button className="icon-only" disabled={!cardCount} data-tip={t("Share these cards as a file")} aria-label={t("Share these cards as a file")} onClick={onShare}>
             <Share2 size={16} />
           </button>
           <select className="subject-parent" value={subject.parent || ""} aria-label={t("Inside")} data-tip={t("Put this subject inside another")} onChange={(e) => onParent(e.target.value)}>
@@ -3162,7 +3265,7 @@ function SubjectPage({
                 <FileSpreadsheet size={18} className="sheet-glyph" />
                 <strong>{x.title || t("Untitled")}</strong>
                 <SheetCorner data={x.data} />
-                <small>{new Date(x.updated).toLocaleDateString()}</small>
+                <small>{new Date(x.updated).toLocaleDateString(displayLocale())}</small>
               </button>
             ))}
             <button className="note-tile new-tile" onClick={onNewSheet}>
@@ -3170,9 +3273,37 @@ function SubjectPage({
               <strong>{t("New sheet")}</strong>
             </button>
           </div>
-          <h2 className="work-subhead">{t("Notes")}</h2>
         </>
       )}
+      {boards.length > 0 && (
+        <>
+          <h2 className="work-subhead">{t("Boards")}</h2>
+          <div className="note-grid sheet-tiles">
+            {boards.map((x) => (
+              <button key={x.id} className="note-tile sheet-tile" onClick={() => onOpenBoard(x.id)}>
+                <Presentation size={18} className="board-glyph" />
+                <strong>{x.title || t("Untitled")}</strong>
+                <small>{new Date(x.updated).toLocaleDateString(displayLocale())}</small>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {plans.length > 0 && (
+        <>
+          <h2 className="work-subhead">{t("Plans")}</h2>
+          <div className="note-grid sheet-tiles">
+            {plans.map((x) => (
+              <button key={x.id} className="note-tile sheet-tile" onClick={() => onOpenPlan(x.id)}>
+                <DraftingCompass size={18} className="plan-glyph" />
+                <strong>{x.title || t("Untitled")}</strong>
+                <small>{new Date(x.updated).toLocaleDateString(displayLocale())}</small>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {(sheets.length > 0 || boards.length > 0 || plans.length > 0) && <h2 className="work-subhead">{t("Notes")}</h2>}
       {notes.length === 0 ? (
         <EmptyState icon={<FileText size={30} />} title={t("No notes here yet")} text={t("Start one, or drag a highlight from a book into a note.")} />
       ) : (
@@ -3181,7 +3312,7 @@ function SubjectPage({
             <button key={n.id} className="note-tile" onClick={() => onOpen(n.id)}>
               <strong>{n.title || t("Untitled")}</strong>
               <span>{noteExcerpt(n.html, 160)}</span>
-              <small>{new Date(n.updated).toLocaleDateString()}</small>
+              <small>{new Date(n.updated).toLocaleDateString(displayLocale())}</small>
             </button>
           ))}
         </div>
@@ -3302,7 +3433,7 @@ function CardsPage({
               <small>
                 {c.source?.title || subjects.find((s) => s.id === c.subjectId)?.name || ""}
                 {" · "}
-                {c.schedule.reps === 0 ? t("New") : t("Next {date}", { date: new Date(c.schedule.due).toLocaleDateString() })}
+                {c.schedule.reps === 0 ? t("New") : t("Next {date}", { date: new Date(c.schedule.due).toLocaleDateString(displayLocale()) })}
               </small>
               <div className="mini-card-actions">
                 {c.picture && (
@@ -3361,12 +3492,13 @@ function Palette({
 }) {
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
+  const listId = useId();
   const results = useMemo(() => {
     const s = q.trim().toLowerCase();
     type R = { key: string; label: string; hint: string; icon: React.ReactNode; run: () => void };
     const out: R[] = [];
     const match = (x: string) => !s || x.toLowerCase().includes(s);
-    for (const c of commands) if (match(c.label)) out.push({ key: "c" + c.id, label: c.label, hint: t("Action"), icon: <ChevronRight size={14} />, run: c.run });
+    const cmdRows: R[] = commands.filter((c) => match(c.label)).map((c) => ({ key: "c" + c.id, label: c.label, hint: t("Action"), icon: <ChevronRight size={14} />, run: c.run }));
     const ranked = notes
       .map((n) => {
         const title = n.title.toLowerCase();
@@ -3384,8 +3516,10 @@ function Palette({
       .filter((x) => x.score >= 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, 8);
-    for (const { n } of ranked)
-      out.push({ key: "n" + n.id, label: n.title || t("Untitled"), hint: t("Note"), icon: <FileText size={14} />, run: () => onNote(n.id) });
+    const noteRows: R[] = ranked.map(({ n }) => ({ key: "n" + n.id, label: n.title || t("Untitled"), hint: t("Note"), icon: <FileText size={14} />, run: () => onNote(n.id) }));
+    // Before anything is typed, the recent notes come first, then the actions.
+    if (s) out.push(...cmdRows, ...noteRows);
+    else out.push(...noteRows, ...cmdRows);
     for (const sh of sheets.filter((x) => s && (match(x.title) || workbookText(x.data, 2000).toLowerCase().includes(s))).slice(0, 5))
       out.push({ key: "x" + sh.id, label: sh.title || t("Untitled"), hint: t("Sheet"), icon: <FileSpreadsheet size={14} />, run: () => onSheet(sh.id) });
     for (const pl of plans.filter((x) => s && (match(x.title) || planText(x).toLowerCase().includes(s))).slice(0, 5))
@@ -3410,6 +3544,12 @@ function Palette({
           <input
             autoFocus
             value={q}
+            role="combobox"
+            aria-expanded={results.length > 0}
+            aria-controls={listId}
+            aria-autocomplete="list"
+            aria-activedescendant={results[active] ? `${listId}-${active}` : undefined}
+            aria-label={t("Search")}
             placeholder={t("Search notes, subjects, books or actions")}
             onChange={(e) => {
               setQ(e.target.value);
@@ -3426,9 +3566,9 @@ function Palette({
             <X size={16} />
           </button>
         </div>
-        <div className="palette-results" role="listbox">
+        <div className="palette-results" role="listbox" id={listId}>
           {results.map((r, i) => (
-            <button key={r.key} role="option" aria-selected={i === active} className={i === active ? "active" : ""} onMouseEnter={() => setActive(i)} onClick={() => pick(i)}>
+            <button key={r.key} id={`${listId}-${i}`} tabIndex={-1} role="option" aria-selected={i === active} className={i === active ? "active" : ""} onMouseEnter={() => setActive(i)} onClick={() => pick(i)}>
               {r.icon}
               <span>{r.label}</span>
               <small>{r.hint}</small>

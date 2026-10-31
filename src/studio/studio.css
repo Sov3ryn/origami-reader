@@ -1147,39 +1147,6 @@
   }
 }
 @media (max-width: 860px) {
-  .studio-editor,
-  .studio-editor.no-left,
-  .studio-editor.no-right,
-  .studio-editor.no-left.no-right {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "top"
-      "doc"
-      "player";
-  }
-  /* Over the script, in its own grid area, so they start below the top bar
-     however many rows it takes. */
-  .studio-side,
-  .studio-inspector {
-    grid-area: doc;
-    align-self: stretch;
-    position: relative;
-    z-index: 12;
-    width: min(320px, calc(100% - 40px));
-    background: var(--panel);
-    box-shadow: 0 12px 34px rgb(0 0 0 / 0.45);
-    overflow: auto;
-  }
-  .studio-side {
-    justify-self: start;
-  }
-  .studio-inspector {
-    justify-self: end;
-  }
-  .studio-editor.no-left .studio-side,
-  .studio-editor.no-right .studio-inspector {
-    display: none;
-  }
   .studio-new-grid,
   .studio-export-grid {
     grid-template-columns: 1fr;
@@ -1727,7 +1694,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .studio-job-track::after,
-  .studio-line.voicing {
+  .studio-line.voicing,
+  .studio-pulse {
     animation: none;
   }
 }
@@ -2126,6 +2094,45 @@
   overflow: hidden;
   border-left: 1px solid var(--line);
   background: var(--shell-side, color-mix(in srgb, var(--bg) 94%, transparent));
+}
+/* Narrow windows: the panels lie over the script, below the top bar. This
+   comes after the editor layout above so it wins over it. */
+@media (max-width: 860px) {
+  .studio-editor,
+  .studio-editor.no-left,
+  .studio-editor.no-right,
+  .studio-editor.no-left.no-right {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "desk";
+  }
+  .studio-side {
+    grid-area: desk;
+    justify-self: start;
+    align-self: stretch;
+    position: relative;
+    z-index: 12;
+    width: min(320px, calc(100% - 40px));
+    background: var(--panel);
+    box-shadow: 0 12px 34px rgb(0 0 0 / 0.45);
+  }
+  .studio-desk,
+  .studio-desk.no-right {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "top"
+      "doc"
+      "player";
+  }
+  .studio-inspector {
+    grid-area: doc;
+    justify-self: end;
+    align-self: stretch;
+    position: relative;
+    z-index: 12;
+    width: min(320px, calc(100% - 40px));
+    background: var(--panel);
+    box-shadow: 0 12px 34px rgb(0 0 0 / 0.45);
+  }
 }
 .studio-inspector .inspector-tabs button {
   align-items: center;

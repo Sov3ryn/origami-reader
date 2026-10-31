@@ -25,24 +25,7 @@ import { emptyVoiceFilters, filterVoices, type VoiceFilters } from "../voiceCata
 import "./voiceLibrary.css";
 import { recordFeat } from "../feats";
 
-// A sentence each voice says when previewed, in its own language.
-const previewLines: Record<string, string> = {
-  English: "Hello, I'm {name}. Shall we read a few pages together?",
-  French: "Bonjour, je suis {name}. On lit quelques pages ensemble ?",
-  German: "Hallo, ich bin {name}. Wollen wir ein paar Seiten zusammen lesen?",
-  Spanish: "Hola, soy {name}. ¿Leemos unas páginas juntos?",
-  Italian: "Ciao, sono {name}. Leggiamo qualche pagina insieme?",
-  Portuguese: "Olá, eu sou {name}. Vamos ler algumas páginas juntos?",
-  Russian: "Здравствуйте, я {name}. Почитаем вместе несколько страниц?",
-  Japanese: "こんにちは、{name}です。一緒に少し読みましょうか。",
-  Korean: "안녕하세요, {name}입니다. 함께 몇 페이지 읽어 볼까요?",
-  Chinese: "你好，我是{name}。我们一起读几页吧？",
-};
-export const previewLine = (v: Voice) =>
-  (previewLines[v.languages[0]] || previewLines.English).replace(
-    "{name}",
-    v.name,
-  );
+export { previewLine } from "../voicePreview";
 
 type Props = {
   voices: Voice[];
@@ -67,6 +50,8 @@ type Props = {
   // A voice from the library was installed: reload the voice list.
   onInstalled?: () => Promise<void> | void;
   onDownloads?: () => void;
+  // Bumped when the reader asks for more voices: show the download list.
+  storeRequest?: number;
   onCreate: () => void;
   onDelete: (ids: string[]) => Promise<void>;
 };
@@ -95,10 +80,20 @@ export function VoiceLibrary(props: Props) {
   const audio = useRef<HTMLAudioElement | null>(null);
   // The preview still wanted when its audio arrives.
   const wanted = useRef("");
-  useEffect(() => () => audio.current?.pause(), []);
+  useEffect(() => () => { wanted.current = ""; audio.current?.pause(); }, []);
+  // Reading aloud or voice creation has priority: drop any preview in progress.
+  useEffect(() => {
+    if (props.canPreview) return;
+    wanted.current = "";
+    audio.current?.pause();
+    setPreviewing("");
+    setLoadingPreview("");
+  }, [props.canPreview]);
   // Voices in the library that are not installed: listed after the others,
   // with Preview and Download (their own recordings, checked before use).
   const [library, setLibrary] = useState<Voice[]>([]);
+  // The languages the published library has, installed here or not.
+  const [published, setPublished] = useState<string[]>([]);
   const [fetching, setFetching] = useState("");
   // The library could not be reached (offline): said once, under the list.
   const [libraryOffline, setLibraryOffline] = useState(false);
@@ -114,9 +109,42 @@ export function VoiceLibrary(props: Props) {
         setLibraryOffline(true);
       });
   }, [voices.length]);
+  // Asked for more voices: leave the created-only and delete views so the
+  // download list (or the offline note) is shown. Once per request, so a later
+  // list reload does not close Manage while voices are being deleted.
+  const handledStoreRequest = useRef(0);
+  useEffect(() => {
+    if (!props.storeRequest || props.storeRequest === handledStoreRequest.current) return;
+    if (!library.length && !libraryOffline) return;
+    handledStoreRequest.current = props.storeRequest;
+    setCreatedOnly(false);
+    setManage(false);
+    setChosen(new Set());
+  }, [props.storeRequest, library.length, libraryOffline]);
+  useEffect(() => {
+    void store.voiceStoreLanguages().then(setPublished).catch(() => setPublished([]));
+  }, []);
+  // The library has its own language choice: the languages it publishes,
+  // including those whose voices are all installed already. It starts on the
+  // page's language.
+  const libraryLanguages = useMemo(
+    () => (published.length ? published : [...new Set(library.flatMap((v) => v.languages))].sort()),
+    [published, library],
+  );
+  const [libraryChoice, setLibraryChoice] = useState("");
+  const libraryLanguage = libraryLanguages.includes(libraryChoice)
+    ? libraryChoice
+    : libraryLanguages.includes(filters.language)
+      ? filters.language
+      : libraryLanguages.includes(props.language)
+        ? props.language
+        : (libraryLanguages[0] ?? "all");
   const shownLibrary = useMemo(
-    () => (createdOnly ? [] : filterVoices(library, { ...filters, model: "all" }, favorites)),
-    [library, filters, favorites, createdOnly],
+    () =>
+      createdOnly
+        ? []
+        : filterVoices(library, { ...filters, model: "all", language: libraryLanguage }, favorites),
+    [library, filters, favorites, createdOnly, libraryLanguage],
   );
   async function previewLibrary(v: Voice) {
     audio.current?.pause();
@@ -136,13 +164,17 @@ export function VoiceLibrary(props: Props) {
       const a = new Audio("data:audio/wav;base64," + data);
       audio.current = a;
       a.onended = () => setPreviewing("");
+      setLoadingPreview("");
       setPreviewing(v.id);
       await a.play();
     } catch (e) {
-      setProblem(String(e));
-      setPreviewing("");
-    } finally {
-      setLoadingPreview("");
+      // A preview stopped (or replaced) while it was starting is not a
+      // problem, and must not touch the newer preview's state.
+      if (wanted.current === v.id) {
+        setLoadingPreview("");
+        setPreviewing("");
+        setProblem(String(e));
+      }
     }
   }
   async function download(v: Voice) {
@@ -285,7 +317,7 @@ export function VoiceLibrary(props: Props) {
       <section className="vl-hero" aria-label={t("Voice in use")}>
         <div className="vl-hero-portrait">
           {current ? (
-            <VoicePortrait voice={current} large />
+            <VoicePortrait voice={current} large tilt />
           ) : (
             <AudioLines size={40} />
           )}
@@ -360,7 +392,7 @@ export function VoiceLibrary(props: Props) {
         >
           <option value="all">{t("All languages")}</option>
           {languages.map((l) => (
-            <option key={l}>{l}</option>
+            <option key={l} value={l}>{t(l)}</option>
           ))}
         </select>
         <select
@@ -548,7 +580,7 @@ export function VoiceLibrary(props: Props) {
               )}
               <div className="vl-card-top">
                 <div className="vl-card-portrait">
-                  <VoicePortrait voice={v} />
+                  <VoicePortrait voice={v} tilt />
                   {props.portraitActive === v.id && (
                     <LoaderCircle className="spin vl-portrait-busy" size={18} />
                   )}
@@ -642,22 +674,57 @@ export function VoiceLibrary(props: Props) {
           );
         })}
       </div>
+      {!visible.length && (
+        <div className="vl-empty">
+          <AudioLines size={36} />
+          <h3>{voices.length ? t("No matching voices") : t("No local voices configured")}</h3>
+          <p>
+            {voices.length
+              ? t("Change the filters or clear the search.")
+              : shownLibrary.length > 0 && !manage
+                ? t("Create a voice, or download one from the list below.")
+                : t("Create a voice, or install voices to fill this page.")}
+          </p>
+        </div>
+      )}
       {libraryOffline && !manage && !createdOnly && (
         <p className="hint vl-library-offline">{t("More voices can be downloaded when Origami is online.")}</p>
       )}
-      {shownLibrary.length > 0 && !manage && (
+      {library.length > 0 && !manage && !createdOnly && (
         <>
-          <h3 className="vl-library-title">{t("More voices to download")}</h3>
+          <div className="vl-library-head">
+            <h3 className="vl-library-title">{t("More voices to download")}</h3>
+            {libraryLanguages.length > 1 && (
+              <select
+                aria-label={t("Language of the voices to download")}
+                value={libraryLanguage}
+                onChange={(e) => setLibraryChoice(e.target.value)}
+              >
+                {libraryLanguages.map((l) => (
+                  <option key={l} value={l}>
+                    {t(l)}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           <p className="hint">{t("Hover a voice to hear it or download it. Each voice is a small download, checked before it is used.")}</p>
           {shownLibrary.some((v) => v.needsQwen) && (
             <p className="hint">{t("These voices are read by Qwen3-TTS. Download it in Settings, Models.")}</p>
           )}
           <div className="vl-grid">
             {shownLibrary.map((v) => (
-              <article key={v.id} className="vl-card store" tabIndex={0}>
+              <article
+                key={v.id}
+                className={
+                  "vl-card store" +
+                  (fetching === v.id || previewing === v.id || loadingPreview === v.id ? " busy" : "")
+                }
+                tabIndex={0}
+              >
                 <div className="vl-card-top">
                   <div className="vl-card-portrait">
-                    <VoicePortrait voice={v} />
+                    <VoicePortrait voice={v} tilt />
                   </div>
                   <div className="vl-card-name">
                     <strong>{v.name}</strong>
@@ -693,18 +760,10 @@ export function VoiceLibrary(props: Props) {
               </article>
             ))}
           </div>
+          {!shownLibrary.length && (
+            <p className="hint">{t("No other voices to download for this language and these filters.")}</p>
+          )}
         </>
-      )}
-      {!visible.length && (
-        <div className="vl-empty">
-          <AudioLines size={36} />
-          <h3>{voices.length ? t("No matching voices") : t("No local voices configured")}</h3>
-          <p>
-            {voices.length
-              ? t("Change the filters or clear the search.")
-              : t("Create a voice, or install voices to fill this page.")}
-          </p>
-        </div>
       )}
       <p className="hint vl-footnote">
         {props.documentScope

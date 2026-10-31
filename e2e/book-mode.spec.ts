@@ -10,7 +10,7 @@ test("book mode opens from the cover, turns pages and remembers the spread", asy
   await page.getByRole("button", { name: "Reading comfort" }).click();
   await page.locator(".reading-layouts button", { hasText: "Book" }).click();
   await expect(
-    page.getByRole("checkbox", { name: "Open new books from the cover" }),
+    page.getByRole("checkbox", { name: "Open books from the cover" }),
   ).toBeChecked();
   await page.keyboard.press("Escape");
 

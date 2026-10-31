@@ -24,7 +24,10 @@ export function PracticeTest({
   const [setup, setSetup] = useState<{ count: number; mode: PracticeMode } | null>(null);
   const [round, setRound] = useState(0);
   const [pool, setPool] = useState(cards);
-  const questions = useMemo(() => (setup ? buildTest(pool, setup.count, setup.mode) : []), [setup, pool, round]);
+  // The whole set, kept from the start like the pool, so wrong options for a
+  // retest of missed cards come from every answer and a re-render never reshuffles.
+  const [whole] = useState(cards);
+  const questions = useMemo(() => (setup ? buildTest(pool, setup.count, setup.mode, Math.random, whole) : []), [setup, pool, round, whole]);
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [typed, setTyped] = useState("");
   const [shown, setShown] = useState<Answer | null>(null);
@@ -60,8 +63,8 @@ export function PracticeTest({
     setAnswers([]);
     setShown(null);
     setTyped("");
+    // setup.count keeps the chosen length: buildTest already stops at the pool size.
     setRound((r) => r + 1);
-    if (setup) setSetup({ ...setup, count: Math.min(setup.count, cardsAgain.length) });
   };
 
   if (!setup)

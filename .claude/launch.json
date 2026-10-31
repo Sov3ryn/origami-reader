@@ -4,8 +4,52 @@
     {
       "name": "origami-web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 1420
+    },
+    {
+      "name": "origami-setup",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "installer",
+        "run",
+        "dev"
+      ],
+      "port": 1432
+    },
+    {
+      "name": "origami-backgrounds",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8091",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        ".local/origami-backgrounds"
+      ],
+      "port": 8091
+    },
+    {
+      "name": "launch-film-sound-editor",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "../work/launch-film/editor/server.mjs"
+      ],
+      "port": 4517
+    },
+    {
+      "name": "launch-film-cutter",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "../work/launch-film/cutter/server.mjs"
+      ],
+      "port": 4518
     }
   ]
 }

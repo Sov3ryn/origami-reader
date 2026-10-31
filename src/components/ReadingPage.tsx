@@ -145,21 +145,29 @@ export const ReadingPage = memo(function ReadingPage({
                   <CircleAlert size={17} />
                 </button>
               )}
-              {marks.filter((a) => a.kind !== "sticky").slice(0, 3).map((a) => (
-                <button
-                  key={a.id}
-                  title={a.text || a.kind}
-                  aria-label={t("Open {kind}", { kind: a.kind })}
-                  style={{ color: colorOf(a.color) }}
-                  onClick={() => actions.openAnnotation(a)}
-                >
-                  {a.kind === "bookmark" ? (
-                    <Bookmark size={17} />
-                  ) : (
-                    <MessageSquare size={17} />
-                  )}
-                </button>
-              ))}
+              {marks.filter((a) => a.kind !== "sticky").slice(0, 3).map((a) => {
+                const label =
+                  a.kind === "bookmark"
+                    ? t("Open bookmark")
+                    : a.kind === "underline"
+                      ? t("Open underline")
+                      : t("Open note");
+                return (
+                  <button
+                    key={a.id}
+                    title={a.text || label}
+                    aria-label={label}
+                    style={{ color: colorOf(a.color) }}
+                    onClick={() => actions.openAnnotation(a)}
+                  >
+                    {a.kind === "bookmark" ? (
+                      <Bookmark size={17} />
+                    ) : (
+                      <MessageSquare size={17} />
+                    )}
+                  </button>
+                );
+              })}
             </div>
             {marks
               .filter((a) => a.kind === "sticky")

@@ -94,8 +94,19 @@ export function SourcePane({
 
   if (failed)
     return (
-      <section className="source-pane">
-        <p className="conn-empty">{failed}</p>
+      <section className="source-pane" aria-label={t("Source")}>
+        <header className="source-head">
+          <BookOpen size={15} />
+          <strong>{t("Source")}</strong>
+          <button className="icon-only" aria-label={t("Close source")} onClick={onClose}>
+            <X size={16} />
+          </button>
+        </header>
+        <p className="conn-empty">
+          {t("This book could not be opened.")}
+          <br />
+          <small>{failed}</small>
+        </p>
       </section>
     );
   if (!book)

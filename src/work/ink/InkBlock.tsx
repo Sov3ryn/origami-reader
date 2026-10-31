@@ -64,7 +64,7 @@ export function InkToolbar({
   return (
     <div className="ink-toolbar" role="toolbar" aria-label={t("Pen")} onPointerDown={(e) => e.stopPropagation()}>
       {tools.map(([id, label, icon]) => (
-        <button key={id} type="button" className={"ink-tool" + (settings.tool === id ? " active" : "")} aria-pressed={settings.tool === id} data-tip={label} onClick={() => set({ tool: id })}>
+        <button key={id} type="button" className={"ink-tool" + (settings.tool === id ? " active" : "")} aria-pressed={settings.tool === id} aria-label={label} data-tip={label} onClick={() => set({ tool: id })}>
           {icon}
         </button>
       ))}
@@ -92,6 +92,7 @@ export function InkToolbar({
               type="button"
               className={"ink-size" + (settings.size === size ? " active" : "")}
               aria-pressed={settings.size === size}
+              aria-label={name === "fine" ? t("Fine") : name === "medium" ? t("Medium") : t("Bold")}
               data-tip={name === "fine" ? t("Fine") : name === "medium" ? t("Medium") : t("Bold")}
               onClick={() => set({ size })}
             >
@@ -105,18 +106,19 @@ export function InkToolbar({
         type="button"
         className={"ink-tool" + (settings.finger ? " active" : "")}
         aria-pressed={settings.finger}
+        aria-label={settings.finger ? t("Finger draws (touch to write)") : t("Finger scrolls (pen and mouse write)")}
         data-tip={settings.finger ? t("Finger draws (touch to write)") : t("Finger scrolls (pen and mouse write)")}
         onClick={() => set({ finger: !settings.finger })}
       >
         <Hand size={15} />
       </button>
       {onUndo && (
-        <button type="button" className="ink-tool" data-tip={t("Undo stroke")} onClick={onUndo}>
+        <button type="button" className="ink-tool" aria-label={t("Undo stroke")} data-tip={t("Undo stroke")} onClick={onUndo}>
           <Undo2 size={15} />
         </button>
       )}
       {onClear && (
-        <button type="button" className="ink-tool" data-tip={t("Clear")} onClick={onClear}>
+        <button type="button" className="ink-tool" aria-label={t("Clear")} data-tip={t("Clear")} onClick={onClear}>
           <Trash2 size={15} />
         </button>
       )}
@@ -205,7 +207,7 @@ function InkView({ node, updateAttributes, deleteNode, editor, getPos }: ReactNo
             <>
               <span className="ink-spacer" />
               {canRead && (
-                <button type="button" className="ink-tool" onClick={() => void read()} disabled={reading === "busy"} data-tip={t("Read handwriting")}>
+                <button type="button" className="ink-tool" onClick={() => void read()} disabled={reading === "busy"} aria-label={t("Read handwriting")} data-tip={t("Read handwriting")}>
                   {reading === "busy" ? <LoaderCircle size={15} className="spin" /> : <ScanText size={15} />}
                 </button>
               )}

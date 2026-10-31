@@ -68,7 +68,9 @@ export type PreviewTarget =
   | { kind: "passage"; bookId: string; paragraphId: string };
 export type LinkPreview = { title: string; icon?: string; meta?: string; text: string };
 
-// The headings of a long note, beside it on wide screens.
+// The headings of a long note, in the free space beside it. Placed from the
+// Work area's own edge, so it follows resized panels, and hidden when the
+// note leaves too little room.
 function Outline({ editor }: { editor: Editor }) {
   const items: { level: number; text: string; pos: number }[] = [];
   editor.state.doc.descendants((node, pos) => {
@@ -76,9 +78,39 @@ function Outline({ editor }: { editor: Editor }) {
       items.push({ level: node.attrs.level, text: node.textContent, pos });
     return node.type.name !== "heading";
   });
-  if (items.length < 3) return null;
+  const ref = useRef<HTMLElement>(null);
+  const [place, setPlace] = useState<{ left: number; top: number } | null>(null);
+  const shown = items.length >= 3;
+  useEffect(() => {
+    if (!shown) return;
+    const main = ref.current?.closest(".work-main");
+    const page = editor.view.dom;
+    if (!main) return;
+    const measure = () => {
+      const area = main.getBoundingClientRect();
+      const text = page.getBoundingClientRect();
+      const room = text.left - area.left >= 168 + 56 && !main.classList.contains("split");
+      setPlace(room ? { left: area.left + 24, top: area.top + 96 } : null);
+    };
+    measure();
+    const watch = new ResizeObserver(measure);
+    watch.observe(main);
+    watch.observe(page);
+    window.addEventListener("resize", measure);
+    return () => {
+      watch.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [editor, shown]);
+  if (!shown) return null;
   return (
-    <nav className="note-outline" aria-label={t("Outline")}>
+    <nav
+      ref={ref}
+      className="note-outline"
+      aria-label={t("Outline")}
+      style={place ? { left: place.left, top: place.top } : { visibility: "hidden" }}
+    >
+      <span className="note-outline-title">{t("Outline")}</span>
       {items.map((h) => (
         <button
           key={h.pos}
@@ -540,6 +572,30 @@ export function NoteEditor({
   }, [editor, trigger, titles, note.title, commands]);
   choicesRef.current = trigger ? choices : [];
 
+  // The colour popover closes on a click outside it (the Colours button
+  // toggles it itself) and on Escape.
+  const colorsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!colors) return;
+    const outside = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (colorsRef.current?.contains(target)) return;
+      if (target.closest?.(".note-toolbar button")?.querySelector(".toolbar-colors")) return;
+      setColors(false);
+    };
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setColors(false);
+      editor?.commands.focus();
+    };
+    window.addEventListener("mousedown", outside);
+    window.addEventListener("keydown", key);
+    return () => {
+      window.removeEventListener("mousedown", outside);
+      window.removeEventListener("keydown", key);
+    };
+  }, [colors, editor]);
+
   const selectedText = () => {
     if (!editor) return "";
     const { from, to } = editor.state.selection;
@@ -642,7 +698,7 @@ export function NoteEditor({
         </div>
       )}
       {colors && editor && (
-        <div className="toolbar-color-pop" onMouseLeave={() => setColors(false)}>
+        <div ref={colorsRef} className="toolbar-color-pop" onMouseLeave={() => setColors(false)}>
           <small>{t("Highlight")}</small>
           <ColorRow kind="highlight" editor={editor} onDone={() => setColors(false)} />
           <small>{t("Underline colour")}</small>

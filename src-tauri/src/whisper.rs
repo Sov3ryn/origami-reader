@@ -9,8 +9,6 @@
 // clamped to 8 below the peak, scaled), encoded once per window and decoded
 // greedily.
 use serde_json::{json, Value};
-use sha2::{Digest, Sha256};
-use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
@@ -151,41 +149,9 @@ impl Transcriber {
         for (remote, local, size, sha) in s.files {
             let part = dir.join(format!("{local}.part"));
             let url = format!("https://huggingface.co/{}/resolve/{}/{remote}", s.repo, s.revision);
-            let response = ureq::get(&url).call().map_err(|e| format!("Download failed: {e}"))?;
-            let mut body = response.into_body().into_reader();
-            let mut out = std::fs::File::create(&part).map_err(|e| e.to_string())?;
-            let mut hash = Sha256::new();
-            let mut buf = vec![0u8; 1 << 20];
-            let mut got = 0u64;
-            let mut last = std::time::Instant::now();
-            loop {
-                if self.cancel.load(Ordering::SeqCst) {
-                    drop(out);
-                    let _ = std::fs::remove_file(&part);
-                    return Err("Download cancelled.".into());
-                }
-                let n = body.read(&mut buf).map_err(|e| format!("Download failed: {e}"))?;
-                if n == 0 {
-                    break;
-                }
-                out.write_all(&buf[..n]).map_err(|e| e.to_string())?;
-                hash.update(&buf[..n]);
-                got += n as u64;
-                if got > size {
-                    break;
-                }
-                if last.elapsed().as_millis() > 250 {
-                    last = std::time::Instant::now();
-                    let _ = app.emit("whisper-download", json!({"id": s.id, "received": done + got, "total": total}));
-                }
-            }
-            out.flush().map_err(|e| e.to_string())?;
-            drop(out);
-            let digest: String = hash.finalize().iter().map(|b| format!("{b:02x}")).collect();
-            if got != size || digest != sha {
-                let _ = std::fs::remove_file(&part);
-                return Err("The download did not match the published file. Try again.".into());
-            }
+            let got = crate::verified_download::fetch(&url, &part, size, sha, &self.cancel, &mut |got| {
+                let _ = app.emit("whisper-download", json!({"id": s.id, "received": done + got, "total": total}));
+            })?;
             std::fs::rename(&part, dir.join(local)).map_err(|e| e.to_string())?;
             done += got;
             verified.push_str(&format!("{sha} {local}\n"));
@@ -199,10 +165,15 @@ impl Transcriber {
     }
     pub fn remove(&self, app: &AppHandle, id: &str) -> Result<()> {
         let s = spec(id)?;
-        if let Ok(mut m) = self.model.lock() {
-            if m.as_ref().map(|x| x.id) == Some(s.id) {
-                *m = None;
+        // Never wait for a transcription here (this runs on the window's thread).
+        match self.model.try_lock() {
+            Ok(mut m) => {
+                if m.as_ref().map(|x| x.id) == Some(s.id) {
+                    *m = None;
+                }
             }
+            Err(std::sync::TryLockError::WouldBlock) => return Err("This model is in use. Try again when it finishes.".into()),
+            Err(std::sync::TryLockError::Poisoned(_)) => {}
         }
         let dir = folder(app, s)?;
         if dir.exists() {
@@ -233,6 +204,9 @@ impl Transcriber {
         let windows = split(samples);
         let mut text = Vec::new();
         let mut used = language.to_string();
+        if !used.is_empty() && !model.languages.iter().any(|l| l.0 == used) {
+            used.clear(); // a code Whisper does not know: detect the spoken language instead
+        }
         for (i, (start, end)) in windows.iter().enumerate() {
             let _ = app.emit("transcribe-progress", json!({"done": i, "total": windows.len()}));
             let piece = &samples[*start..*end];

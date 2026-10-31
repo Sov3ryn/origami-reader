@@ -54,6 +54,9 @@ export function ChartView({
   const box = useRef<HTMLDivElement>(null);
   const chart = useRef<import("echarts").ECharts | null>(null);
   const [error, setError] = useState("");
+  // The current props, for the handle and the first draw, which are made once.
+  const latest = useRef({ spec, rows, locale, height });
+  latest.current = { spec, rows, locale, height };
 
   useEffect(() => {
     let disposed = false;
@@ -67,6 +70,7 @@ export function ChartView({
       onReady?.({
         png: () => chart.current?.getDataURL({ type: "png", pixelRatio: 2, backgroundColor: lookFrom(box.current).dark ? "#16181d" : "#ffffff" }) ?? null,
         svg: async () => {
+          const { spec, rows, locale, height } = latest.current;
           const look = lookFrom(box.current, locale);
           const holder = document.createElement("div");
           const svgChart = echarts.init(holder, undefined, { renderer: "svg", ssr: true, width: box.current?.clientWidth || 720, height });
@@ -88,6 +92,7 @@ export function ChartView({
 
   function draw() {
     if (!chart.current) return;
+    const { spec, rows, locale } = latest.current;
     try {
       chart.current.setOption(buildOption(spec, rows, lookFrom(box.current, locale)), true);
       setError("");

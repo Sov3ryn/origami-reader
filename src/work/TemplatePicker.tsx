@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BookMarked, BriefcaseBusiness, CalendarCheck, FileText, GraduationCap, Languages, LayoutPanelLeft, Microscope, NotebookPen, Users, X } from "lucide-react";
+import { useModal } from "../components/useModal";
 import { t } from "../i18n";
 import { templates, type Template } from "./templates";
 
@@ -18,18 +19,35 @@ const icons: Record<string, React.ReactNode> = {
 export function TemplatePicker({ onPick, onClose }: { onPick: (tpl: Template | null) => void; onClose: () => void }) {
   const list = useMemo(templates, []);
   const [active, setActive] = useState(0);
+  const grid = useRef<HTMLDivElement>(null);
+  const scrim = useRef<HTMLDivElement>(null);
+  useModal(scrim);
+  const focusAt = (i: number) => grid.current?.querySelectorAll<HTMLButtonElement>("[role=option]")[i]?.focus();
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-      else if (e.key === "ArrowRight" || e.key === "ArrowDown") setActive((a) => Math.min(list.length, a + 1));
-      else if (e.key === "ArrowLeft" || e.key === "ArrowUp") setActive((a) => Math.max(0, a - 1));
-      else if (e.key === "Enter") onPick(active === 0 ? null : list[active - 1]);
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [active, list, onClose, onPick]);
+  }, [onClose]);
+  // Focus moves into the picker so keys no longer edit the note underneath;
+  // Enter and Space then activate the focused button itself.
+  useEffect(() => {
+    grid.current?.querySelector<HTMLButtonElement>("[role=option]")?.focus();
+  }, []);
+  function arrows(e: React.KeyboardEvent) {
+    const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    // Step from the focused option (the highlight may follow the mouse instead).
+    const options = Array.from(grid.current?.querySelectorAll("[role=option]") || []);
+    const from = options.indexOf(document.activeElement as Element);
+    const next = Math.min(list.length, Math.max(0, (from < 0 ? active : from) + step));
+    setActive(next);
+    focusAt(next);
+  }
   return (
-    <div className="modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div ref={scrim} className="modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <section className="template-dialog" role="dialog" aria-modal="true" aria-labelledby="template-title">
         <header>
           <h2 id="template-title">{t("New note")}</h2>
@@ -38,8 +56,16 @@ export function TemplatePicker({ onPick, onClose }: { onPick: (tpl: Template | n
             <X size={18} />
           </button>
         </header>
-        <div className="template-grid" role="listbox" aria-label={t("Templates")}>
-          <button role="option" aria-selected={active === 0} className={active === 0 ? "active" : ""} onMouseEnter={() => setActive(0)} onClick={() => onPick(null)}>
+        <div className="template-grid" role="listbox" aria-label={t("Templates")} ref={grid} onKeyDown={arrows}>
+          <button
+            role="option"
+            aria-selected={active === 0}
+            data-autofocus
+            className={active === 0 ? "active" : ""}
+            onMouseEnter={() => setActive(0)}
+            onFocus={() => setActive(0)}
+            onClick={() => onPick(null)}
+          >
             <FileText size={18} />
             <strong>{t("Blank note")}</strong>
             <small>{t("Start from an empty page.")}</small>
@@ -51,6 +77,7 @@ export function TemplatePicker({ onPick, onClose }: { onPick: (tpl: Template | n
               aria-selected={active === i + 1}
               className={active === i + 1 ? "active" : ""}
               onMouseEnter={() => setActive(i + 1)}
+              onFocus={() => setActive(i + 1)}
               onClick={() => onPick(tpl)}
             >
               {icons[tpl.id]}

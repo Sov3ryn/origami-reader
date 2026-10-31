@@ -26,6 +26,26 @@
 @keyframes bookmark-settle { from { opacity:0; filter:drop-shadow(7px 16px 8px #0003); } to { opacity:1; } }
 @media(prefers-reduced-motion:reduce) { .physical-bookmark { animation:none!important; transition:none!important; } }
 
+/* Beside the book the bookmark tilts toward the pointer with a soft light
+   masked to its artwork (useCoverTilt sets the variables). */
+.physical-bookmark { perspective:900px; user-select:none; -webkit-user-select:none; touch-action:pan-y; }
+.bookmark-tilt { position:absolute; inset:0; transform-origin:50% 40%; }
+.physical-bookmark.colored .bookmark-tilt { display:grid; place-items:center; }
+.physical-bookmark.beside .bookmark-tilt { transform:rotateX(calc(var(--pointer-y, 0) * -7deg)) rotateY(calc(var(--pointer-x, 0) * 14deg)) translateZ(calc(var(--sheen, 0) * 10px)); transition:transform 360ms cubic-bezier(.2,.7,.2,1); }
+.physical-bookmark.beside .bookmark-tilt[data-pointer-near] { will-change:transform; transition-duration:160ms; }
+.bookmark-sheen { position:absolute; inset:0; pointer-events:none; mask-size:100% 100%; mask-repeat:no-repeat; -webkit-mask-size:100% 100%; -webkit-mask-repeat:no-repeat; mix-blend-mode:screen; opacity:var(--sheen, 0); transition:opacity 360ms ease-out;
+  background:radial-gradient(circle at calc((var(--sheen-x, 50%) - var(--art-left, 0) * 1%) * 100 / var(--art-width, 100)) calc((var(--sheen-y, 40%) - var(--art-top, 0) * 1%) * 100 / var(--art-height, 100)), #ffffff4d, #ffffff14 30%, transparent 58%); }
+.physical-bookmark.colored .bookmark-sheen { clip-path:polygon(0 0,100% 0,100% 100%,50% 88%,0 100%); }
+/* Dragged away to the right, it follows the pointer and fades; past the
+   removal distance it slides off and is deleted. */
+.physical-bookmark.beside { transition:transform 750ms cubic-bezier(.22,.75,.22,1),left 750ms cubic-bezier(.22,.75,.22,1),top 750ms cubic-bezier(.22,.75,.22,1),filter 750ms,translate 280ms cubic-bezier(.2,.7,.2,1),opacity 220ms ease-out; }
+.physical-bookmark.dragging { translate:var(--drag-x, 0) 0; opacity:calc(1 - var(--drag-p, 0) * .55); transition:none; cursor:grabbing; }
+.physical-bookmark.removing { translate:calc(var(--drag-x, 0px) + 140px) 0; opacity:0; pointer-events:none; }
+@media(prefers-reduced-motion:reduce) {
+  .physical-bookmark.beside .bookmark-tilt { transform:none; }
+  .bookmark-sheen { display:none; }
+}
+
 .sleeping-cat-art { overflow:visible; }
 .animal-bookmark-art { overflow:visible; }
 .animal-bookmark-animation { position:absolute; inset:0; width:100%; height:100%; overflow:visible; display:none; }

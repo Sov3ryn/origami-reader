@@ -391,6 +391,14 @@ body.resizing-panel {
 .source-row {
   padding-left: 10px;
 }
+.sheet-tile .board-glyph,
+.sheet-tile .plan-glyph {
+  margin-bottom: 2px;
+}
+.work-mode .doc-more {
+  padding: 4px 10px 6px 32px;
+  font-size: var(--fs-caption);
+}
 .work-sidebar-foot {
   margin-top: auto;
   display: flex;

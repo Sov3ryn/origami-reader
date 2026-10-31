@@ -191,7 +191,7 @@ class Progress:
         (t0, d0), (t1, d1) = self.samples[0], self.samples[-1]
         return (d1 - d0) / max(t1 - t0, 1e-3)
 
-    def add(self, amount, message, file="", downloading=False):
+    def add(self, amount, message, file="", downloading=False, pausable=True):
         with self.lock:
             self.done += amount
             now = time.monotonic()
@@ -205,7 +205,7 @@ class Progress:
                 if downloading and self.speed() > 0:
                     label += f" \u00b7 {self.speed() / 1e6:.1f} MB/s"
                 send(event="progress", percent=min(self.done / self.total * 94, 94), bytesDone=int(self.done),
-                     bytesTotal=self.total, message=message, file=label)
+                     bytesTotal=self.total, message=message, file=label, pausable=pausable)
                 self.last = now
 
 
@@ -431,6 +431,8 @@ def pip_install(py, args, progress, message, weight, count, waiting=None):
     once unpacked) never looks frozen. Until pip says anything, `waiting`
     is shown instead: Windows security may scan a large new file for minutes
     before pip can open it."""
+    # A pause asked for just before pip starts is honoured here.
+    checkpoint()
     command = [str(py), "-m", "pip", "install", "--no-deps", "--require-hashes", "--disable-pip-version-check",
                "--no-warn-script-location", "--progress-bar", "off", "--cache-dir", str(CACHE / "pip"), *args]
     # Unbuffered, so pip's lines arrive as they happen.
@@ -439,13 +441,18 @@ def pip_install(py, args, progress, message, weight, count, waiting=None):
     step, seen, output = weight / max(count, 1), 0, []
     current = {"name": "", "since": time.monotonic(), "message": waiting or message}
     started = time.monotonic()
-    progress.add(0, current["message"], "")
+    # pip cannot be paused; the screen says so. A cancel stops it at once,
+    # even during a long unpack when pip prints nothing.
+    progress.add(0, current["message"], "", pausable=False)
 
     def heartbeat():
         while process.poll() is None:
+            if cancelled.is_set():
+                process.kill()
+                return
             minutes, seconds = divmod(int(time.monotonic() - started), 60)
             label = (current["name"] + " · " if current["name"] else "") + f"{minutes}:{seconds:02d}"
-            progress.add(0, current["message"], label)
+            progress.add(0, current["message"], label, pausable=False)
             time.sleep(1)
 
     threading.Thread(target=heartbeat, daemon=True).start()
@@ -462,16 +469,18 @@ def pip_install(py, args, progress, message, weight, count, waiting=None):
                 # the path may hold spaces, so take everything before " (from".
                 target = line.split(None, 1)[1].split(" (from")[0].strip() if len(words) > 1 else ""
                 current["name"] = target.replace("\\", "/").split("/")[-1][:60]
-                progress.add(step, message, current["name"])
+                progress.add(step, message, current["name"], pausable=False)
             elif line.startswith("Installing collected packages"):
                 current["name"] = "unpacking"
+        if cancelled.is_set():
+            raise RuntimeError(CANCELLED)
         if process.wait():
             raise RuntimeError(message + f" failed. Check the internet connection and {AGAIN}. "
                                + "".join(output[-6:])[-500:])
     finally:
         if process.poll() is None:
             process.kill()
-    progress.add(max(0.0, weight - seen * step), message)
+    progress.add(max(0.0, weight - seen * step), message, pausable=False)
 
 
 def lock_count(path):
@@ -634,7 +643,8 @@ def run_online(base, dest, py, steps, device, progress, downloads):
             cached = fetch(item, progress, "Downloading " + label)
             out = contained(dest, item["output"])
             out.parent.mkdir(parents=True, exist_ok=True)
-            send(event="progress", percent=min(progress.done / progress.total * 94, 94), message="Preparing " + label)
+            send(event="progress", percent=min(progress.done / progress.total * 94, 94), message="Preparing " + label,
+                 pausable=False)
             runtime = dest / ("image-runtime/sd-cli.exe" if sys.platform == "win32" else "image-runtime/sd-cli")
             subprocess.run([str(runtime), "-M", "convert", "-m", str(cached), "-o", str(out), "--type", "f16"],
                            check=True, capture_output=True, timeout=3600, cwd=runtime.parent, **HIDDEN)
@@ -826,6 +836,11 @@ def kept_voices(previous, voices):
     return kept
 
 
+# A protected folder such as C:\Program Files: setup runs without
+# administrator rights.
+NOT_WRITABLE = "Setup cannot write to this folder. Choose another folder, such as the default location."
+
+
 def install(base, options):
     manifest = json.loads((base / "payload/manifest.json").read_text(encoding="utf-8"))
     platform = {"win32": "windows", "linux": "linux", "darwin": "macos"}[sys.platform]
@@ -881,7 +896,10 @@ def install(base, options):
     files = [f for f in manifest["files"] if f["group"] in groups]
     total = sum(f["size"] for f in files)
     parent = dest.parent
-    parent.mkdir(parents=True, exist_ok=True)
+    try:
+        parent.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        raise ValueError(NOT_WRITABLE) from None
     downloads = manifest.get("downloads")
     steps, download_bytes, device = online_plan(downloads, groups, options) if downloads else ([], 0, "cpu")
     # The earlier version stays until the new one is in place, so its room is
@@ -898,7 +916,10 @@ def install(base, options):
     done, last = 0, 0
     try:
         moved_configs = set_aside_configs(config)
-        stage = Path(tempfile.mkdtemp(prefix=".origami-install-", dir=parent))
+        try:
+            stage = Path(tempfile.mkdtemp(prefix=".origami-install-", dir=parent))
+        except PermissionError:
+            raise ValueError(NOT_WRITABLE) from None
         for item in files:
             checkpoint()
             source = contained(base / "payload/files", item["path"])
@@ -927,6 +948,9 @@ def install(base, options):
         py = dest / ("python/python.exe" if platform == "windows" else "python/bin/python3")
         if steps:
             run_online(base, dest, py, steps, device, progress, downloads)
+        # The last point a pause or cancel is honoured: from 95% setup
+        # finishes on its own (the screen no longer offers either).
+        checkpoint()
         send(event="progress", percent=95, message="Applying your preferences")
         voices = {}
         models = {}

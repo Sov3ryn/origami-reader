@@ -3,16 +3,27 @@ import { useEffect, useRef, useState } from "react";
 import { ImagePlus, LoaderCircle, RefreshCw, X } from "lucide-react";
 import { coverImage } from "../covers";
 import { VOICE_PORTRAIT_SIZE, voicePortraitPrompt } from "../voicePortraits";
+import { useCoverTilt } from "../useCoverTilt";
 import type { Voice } from "../types";
+
+// Thrown messages are catalog keys; t() keeps any other text as it is.
+const errorText = (e: unknown) => t(e instanceof Error ? e.message : String(e));
+// Cancelling a generation is the reader's own choice, not an error.
+const cancelled = (e: unknown) => String(e).includes("cancelled");
 
 export function VoicePortrait({
   voice,
   large = false,
+  tilt = false,
 }: {
   voice: Voice;
   large?: boolean;
+  // Tilts toward the pointer like the Library covers.
+  tilt?: boolean;
 }) {
-  return (
+  const tiltRoot = useRef<HTMLSpanElement>(null);
+  useCoverTilt(tiltRoot, tilt, ".voice-portrait", undefined, large ? 40 : 24);
+  const portrait = (
     <span className={"voice-portrait " + (large ? "large" : "")}>
       {voice.portrait ? (
         <img
@@ -25,6 +36,13 @@ export function VoicePortrait({
         <span aria-hidden="true">{voice.name[0]}</span>
       )}
     </span>
+  );
+  return tilt ? (
+    <span ref={tiltRoot} className="voice-portrait-tilt">
+      {portrait}
+    </span>
+  ) : (
+    portrait
   );
 }
 
@@ -137,7 +155,7 @@ export function VoicePortraitDialog({
                 setError("");
                 void coverImage(file, VOICE_PORTRAIT_SIZE)
                   .then(onImage)
-                  .catch((e) => setError(String(e)))
+                  .catch((e) => setError(errorText(e)))
                   .finally(() => {
                     setSaving(false);
                     if (input.current) input.current.value = "";
@@ -174,7 +192,9 @@ export function VoicePortraitDialog({
                 }
                 onClick={() => {
                   setError("");
-                  void onGenerate(prompt).catch((e) => setError(String(e)));
+                  void onGenerate(prompt).catch((e) => {
+                    if (!cancelled(e)) setError(errorText(e));
+                  });
                 }}
               >
                 {active ? (
@@ -189,7 +209,7 @@ export function VoicePortraitDialog({
               {active && (
                 <button
                   onClick={() => {
-                    void onCancel().catch((e) => setError(String(e)));
+                    void onCancel().catch((e) => setError(errorText(e)));
                   }}
                 >
                   {t("Cancel generation")}

@@ -229,6 +229,10 @@ impl Covers {
         self.closing.store(true, Ordering::SeqCst);
         self.cancel()
     }
+    /// Lets the worker start again after a temporary stop (an update that did not restart the app).
+    pub fn resume(&self) {
+        self.closing.store(false, Ordering::SeqCst);
+    }
     pub fn generate(
         &self,
         app: AppHandle,

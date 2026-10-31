@@ -663,6 +663,7 @@ export function PlanEditor({ plan, onChange }: { plan: PlanDoc; onChange: (shape
             key={id}
             className={"ink-tool" + (tool === id ? " active" : "")}
             aria-pressed={tool === id}
+            aria-label={name}
             data-tip={name}
             data-keys={keyName}
             onClick={() => {
@@ -676,13 +677,13 @@ export function PlanEditor({ plan, onChange }: { plan: PlanDoc; onChange: (shape
           </button>
         ))}
         <span className="ink-sep" />
-        <button className="ink-tool" data-tip={t("Undo")} data-keys="Ctrl+Z" disabled={!past.current.length} onClick={undo}>
+        <button className="ink-tool" aria-label={t("Undo")} data-tip={t("Undo")} data-keys="Ctrl+Z" disabled={!past.current.length} onClick={undo}>
           <Undo2 size={16} />
         </button>
-        <button className="ink-tool" data-tip={t("Redo")} data-keys="Ctrl+Y" disabled={!future.current.length} onClick={redo}>
+        <button className="ink-tool" aria-label={t("Redo")} data-tip={t("Redo")} data-keys="Ctrl+Y" disabled={!future.current.length} onClick={redo}>
           <Redo2 size={16} />
         </button>
-        <button className="ink-tool" data-tip={t("Fit the drawing")} data-keys="F" onClick={() => fit()}>
+        <button className="ink-tool" aria-label={t("Fit the drawing")} data-tip={t("Fit the drawing")} data-keys="F" onClick={() => fit()}>
           <Maximize size={16} />
         </button>
       </div>
@@ -767,7 +768,7 @@ export function PlanEditor({ plan, onChange }: { plan: PlanDoc; onChange: (shape
       </footer>
       <aside className="plan-panel" aria-label={t("Properties")}>
         {single ? (
-          <ShapePanel shape={single} units={plan.units} fmt={fmt} len={len} onChange={(p) => update(single.id, p)} />
+          <ShapePanel key={single.id} shape={single} units={plan.units} fmt={fmt} len={len} onChange={(p) => update(single.id, p)} />
         ) : selected.size > 1 ? (
           <p className="hint">{t("{count} shapes selected", { count: selected.size })}</p>
         ) : (

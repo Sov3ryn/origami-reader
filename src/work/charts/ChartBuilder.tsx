@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChartArea,
   ChartBar,
@@ -27,6 +27,7 @@ import {
   X,
 } from "lucide-react";
 import { t } from "../../i18n";
+import { useModal } from "../../components/useModal";
 import { parseCell, parseRange, readRange, usedRange, findSheet, rangeText, type CellValue } from "../sheets/model";
 import type { SheetDoc } from "../sheets/model";
 import { ChartView, type ChartHandle } from "./ChartView";
@@ -121,6 +122,8 @@ export function ChartBuilder({
   const [spec, setSpec] = useState<ChartSpec>(initial);
   const [grid, setGrid] = useState<CellValue[][]>(initial.source.kind === "data" && initial.source.rows.length ? initial.source.rows : sample);
   const handle = useRef<ChartHandle | null>(null);
+  const scrimRef = useRef<HTMLDivElement>(null);
+  useModal(scrimRef);
   // Bumped when the whole grid is replaced, so the inputs show the new values.
   const [gridVersion, setGridVersion] = useState(0);
   const patch = (p: Partial<ChartSpec>) => setSpec((s) => ({ ...s, ...p }));
@@ -143,8 +146,18 @@ export function ChartBuilder({
   }
   const preview = useMemo(() => ({ ...spec, source: spec.source.kind === "data" ? { kind: "data" as const, rows: grid } : spec.source }), [spec, grid]);
 
+  // Escape closes the builder only while nothing has been changed, so a stray
+  // key never throws away a chart being edited.
+  const startGrid = useRef(grid).current;
+  useEffect(() => {
+    if (spec !== initial || grid !== startGrid) return;
+    const key = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [spec, grid, initial, startGrid, onClose]);
+
   return (
-    <div className="modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="modal-scrim" ref={scrimRef} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <section className="chart-builder" role="dialog" aria-modal="true" aria-label={t("Chart")}>
         <header className="cb-head">
           <h2>{initial.created === initial.updated && !initial.title ? t("New chart") : t("Edit chart")}</h2>
@@ -318,7 +331,7 @@ export function ChartBuilder({
             <h3>{t("Style")}</h3>
             <div className="cb-palettes" role="radiogroup" aria-label={t("Colours")}>
               {Object.entries(palettes).map(([id, colors]) => (
-                <button key={id} role="radio" aria-checked={spec.palette === id} title={id} onClick={() => patch({ palette: id })}>
+                <button key={id} role="radio" aria-checked={spec.palette === id} aria-label={id} title={id} onClick={() => patch({ palette: id })}>
                   {colors.slice(0, 5).map((c) => (
                     <span key={c} style={{ background: c }} />
                   ))}

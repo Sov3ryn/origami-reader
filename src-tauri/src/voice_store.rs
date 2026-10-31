@@ -59,9 +59,33 @@ fn catalog(app: &AppHandle) -> Result<Value> {
     }
 }
 
+/// The languages the library has voices in, installed here or not.
+pub fn languages(app: &AppHandle) -> Result<Vec<String>> {
+    let mut out: Vec<String> = catalog(app)?["voices"]
+        .as_object()
+        .into_iter()
+        .flatten()
+        .filter_map(|(_, v)| v["language"].as_str().map(str::to_string))
+        .collect();
+    out.sort();
+    out.dedup();
+    Ok(out)
+}
+
 /// The library's voices that are not on this computer yet, shaped like installed voices.
 pub fn list(app: &AppHandle) -> Result<Vec<Value>> {
     let installed: Vec<String> = crate::speech::voices(app).iter().filter_map(|v| v["id"].as_str().map(str::to_string)).collect();
+    // The same recording installed under another ID (a voice made on this
+    // computer that was later published, for example) is not offered again.
+    let mut config = crate::speech::config(app).unwrap_or(json!({"voices": {}}));
+    crate::voice_studio::merge_profiles(app, &mut config);
+    let installed_audio: std::collections::HashSet<String> = config["voices"]
+        .as_object()
+        .into_iter()
+        .flatten()
+        .filter_map(|(_, v)| std::fs::read(v["reference"].as_str()?).ok())
+        .map(|data| format!("{:x}", Sha256::digest(&data)))
+        .collect();
     let c = catalog(app)?;
     // The library's voices are read by Qwen3-TTS: without it, the app says where to get it.
     let config = crate::models::read(app, "reader").unwrap_or(json!({}));
@@ -70,7 +94,7 @@ pub fn list(app: &AppHandle) -> Result<Vec<Value>> {
     });
     let mut out = Vec::new();
     for (id, v) in c["voices"].as_object().into_iter().flatten() {
-        if installed.contains(id) || !valid_id(id) {
+        if installed.contains(id) || !valid_id(id) || v["sha256"].as_str().is_some_and(|s| installed_audio.contains(s)) {
             continue;
         }
         out.push(json!({

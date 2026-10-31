@@ -296,6 +296,10 @@ impl Speech {
         self.closing.store(true, Ordering::SeqCst);
         self.cancel()
     }
+    /// Lets the worker start again after a temporary stop (an update that did not restart the app).
+    pub fn resume(&self) {
+        self.closing.store(false, Ordering::SeqCst);
+    }
     pub fn prepare(&self, app: AppHandle, voice: String, model: Option<String>) -> Result<Value> {
         self.request(
             app,
@@ -617,5 +621,14 @@ mod tests {
         assert!(child.lock().unwrap().try_wait().unwrap().is_some());
         speech.shutdown().unwrap();
         std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn resume_after_a_temporary_stop_allows_work_again() {
+        let speech = Speech::default();
+        speech.shutdown().unwrap();
+        assert!(speech.closing.load(Ordering::SeqCst));
+        speech.resume();
+        assert!(!speech.closing.load(Ordering::SeqCst));
     }
 }

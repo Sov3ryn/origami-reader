@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Check, Download, LoaderCircle, Trash2, X } from "lucide-react";
-import { t } from "../../i18n";
+import { displayLocale, t } from "../../i18n";
 import {
   cancelHandwritingDownload,
   downloadHandwritingModel,
@@ -14,7 +14,7 @@ import {
   type HandwritingModelStatus,
 } from "./ink";
 
-const mb = (bytes: number) => Math.round(bytes / 1_000_000).toLocaleString();
+const mb = (bytes: number) => Math.round(bytes / 1_000_000).toLocaleString(displayLocale());
 
 // Settings, Work mode, Handwriting: which reader turns ink into text, and
 // Origami's own model (Microsoft TrOCR, MIT), downloaded only on request.

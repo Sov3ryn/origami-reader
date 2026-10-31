@@ -48,6 +48,8 @@ function VoiceView({ node, updateAttributes, deleteNode, editor, getPos, selecte
   const [status, setStatus] = useState<VoiceStatus | null>(null);
   const [downloading, setDownloading] = useState<null | number>(null);
   const [editing, setEditing] = useState(false);
+  // A recording whose save failed: kept here so it can be played, transcribed and saved again.
+  const [unsaved, setUnsaved] = useState<{ blob: Blob; seconds: number } | null>(null);
   const recorder = useRef<Recorder | null>(null);
   const editable = editor.isEditable;
 
@@ -81,6 +83,10 @@ function VoiceView({ node, updateAttributes, deleteNode, editor, getPos, selecte
     return () => clearInterval(timer);
   }, [phase]);
   useEffect(() => () => recorder.current?.cancel(), []);
+  // A player address made here for an unsaved recording (saved ones are freed above).
+  useEffect(() => () => {
+    if (!id && url) URL.revokeObjectURL(url);
+  }, [id, url]);
 
   const model = pickModel(status);
 
@@ -101,11 +107,26 @@ function VoiceView({ node, updateAttributes, deleteNode, editor, getPos, selecte
     recorder.current = null;
     setPhase("saving");
     const { blob: recorded, duration: seconds } = await r.stop();
-    const newId = crypto.randomUUID();
-    await world.save({ id: newId, kind: "audio", mime: recorded.type || "audio/webm", data: await blobToBase64(recorded), duration: seconds, created: Date.now() });
-    updateAttributes({ id: newId, duration: Math.round(seconds) });
-    setPhase("ready");
+    await persist(recorded, seconds);
+    // Transcribed even when the save failed, so the words are kept.
     if (autoTranscribe() && model) void runTranscribe(recorded);
+  }
+  // Never leaves the block on "Saving": a failed save keeps the audio here to try again.
+  async function persist(recorded: Blob, seconds: number) {
+    if (!world) return;
+    setPhase("saving");
+    try {
+      const newId = crypto.randomUUID();
+      await world.save({ id: newId, kind: "audio", mime: recorded.type || "audio/webm", data: await blobToBase64(recorded), duration: seconds, created: Date.now() });
+      setUnsaved(null);
+      updateAttributes({ id: newId, duration: Math.round(seconds) });
+    } catch (e) {
+      world.notify(t("The recording could not be saved: {error}", { error: String(e).replace(/^Error: /, "") }));
+      setUnsaved({ blob: recorded, seconds });
+      setBlob(recorded);
+      setUrl((old) => old || URL.createObjectURL(recorded));
+    }
+    setPhase("ready");
   }
   function cancel() {
     recorder.current?.cancel();
@@ -146,7 +167,7 @@ function VoiceView({ node, updateAttributes, deleteNode, editor, getPos, selecte
     editor.chain().focus().insertContentAt(pos + node.nodeSize, { type: "paragraph", content: [{ type: "text", text: transcript }] }).run();
   }
   function remove() {
-    if (id && !window.confirm(t("Delete this voice note and its recording?"))) return;
+    if ((id || unsaved) && !window.confirm(t("Delete this voice note and its recording?"))) return;
     if (id) world?.remove(id);
     deleteNode();
   }
@@ -156,7 +177,7 @@ function VoiceView({ node, updateAttributes, deleteNode, editor, getPos, selecte
       <div className="voice-bar">
         <Mic size={14} />
         <strong>{t("Voice note")}</strong>
-        {phase === "ready" && <span className="voice-meta">{formatDuration(duration)}{language ? ` · ${language.toUpperCase()}` : ""}</span>}
+        {phase === "ready" && <span className="voice-meta">{formatDuration(unsaved?.seconds ?? duration)}{language ? ` · ${language.toUpperCase()}` : ""}</span>}
         <span className="voice-spacer" />
         {editable && phase === "ready" && (
           <button className="mini quiet" aria-label={t("Delete voice note")} data-tip={t("Delete voice note")} onClick={remove}>
@@ -239,8 +260,14 @@ function VoiceView({ node, updateAttributes, deleteNode, editor, getPos, selecte
               {transcript}
             </p>
           ) : null}
+          {unsaved && !id && <p className="hint">{t("This recording is not saved yet.")}</p>}
           {editable && !working && (
             <div className="voice-actions">
+              {unsaved && !id && (
+                <button className="mini primary" onClick={() => void persist(unsaved.blob, unsaved.seconds)}>
+                  {t("Try saving again")}
+                </button>
+              )}
               {model ? (
                 <button className="mini" disabled={!blob} onClick={() => void runTranscribe()}>
                   {transcript ? <RotateCcw size={13} /> : <FileText size={13} />}

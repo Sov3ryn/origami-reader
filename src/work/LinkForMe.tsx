@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, FileText, Link2, LoaderCircle, Wand2, X } from "lucide-react";
+import { useModal } from "../components/useModal";
 import { t } from "../i18n";
 import type { Match } from "./text";
 import type { Note } from "./types";
@@ -27,6 +28,14 @@ export function LinkForMe({
   const [filter, setFilter] = useState<Filter>("likely");
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
+  const scrim = useRef<HTMLDivElement>(null);
+  useModal(scrim);
+  // Escape closes, except while links are being added.
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => e.key === "Escape" && !busy && onClose();
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [busy, onClose]);
 
   function start(s: LinkScope) {
     setScope(s);
@@ -53,7 +62,7 @@ export function LinkForMe({
   const notes = new Set(proposals.filter((p) => ticked.has(p.key)).map((p) => p.from.id)).size;
 
   return (
-    <div className="modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && !busy && onClose()}>
+    <div ref={scrim} className="modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && !busy && onClose()}>
       <section role="dialog" aria-modal="true" aria-labelledby="link-for-me-title" className="quick-dialog link-for-me-dialog">
         <header className="lfm-head">
           <Wand2 size={18} />
@@ -140,7 +149,7 @@ export function LinkForMe({
                           <small>
                             {p.reason || (p.shared.length ? t("Both mention {words}", { words: p.shared.join(", ") }) : p.semantic ? t("Similar meaning") : "")}
                             {" · "}
-                            {t(p.strength === "strong" ? "Strong match" : p.strength === "likely" ? "Likely match" : "Loose match")}
+                            {p.strength === "strong" ? t("Strong match") : p.strength === "likely" ? t("Likely match") : t("Loose match")}
                           </small>
                         </span>
                       </label>

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { meterAudio } from "./audioMeter";
+import { meterAudio, primeMeter } from "./audioMeter";
 import { invoke } from "@tauri-apps/api/core";
 import type { Production } from "./studio/production";
 import { studioUnits } from "./studioNarration";
@@ -204,6 +204,8 @@ export function usePlayer(
     offset = 0,
     characterOffset = 0,
   ) {
+    // Every reading starts from a click: start the visualizer's audio context here too.
+    primeMeter();
     const previous = session.current;
     const token = await stop();
     if (generation.current !== token) return;
@@ -447,7 +449,12 @@ export function usePlayer(
               if (generation.current === token && !paused.current)
                 setStatus("playing");
             })
-            .catch(reject);
+            .catch((e) => {
+              // Pausing (or stopping) before playback begins interrupts play();
+              // onended, toggle's resume or stop() settles this sentence instead.
+              if (e?.name === "AbortError") return;
+              reject(e);
+            });
         });
         URL.revokeObjectURL(url);
         urls.current.delete(url);
@@ -489,7 +496,9 @@ export function usePlayer(
         void a
           .play()
           .then(() => setStatus("playing"))
-          .catch((e) => report(String(e)));
+          .catch((e) => {
+            if (e?.name !== "AbortError") report(String(e));
+          });
       } else setStatus("generating");
       // With nothing to resume (paused while the next sentence was still being
       // made), the loop sets "playing" itself once that sentence starts.

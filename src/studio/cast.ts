@@ -464,7 +464,8 @@ export function castUnits(
         }
         n++;
         const speaker = who?.speaker || undefined;
-        const voice = speaker ? voiceOf.get(speaker) : undefined;
+        // A line given another voice (a mood version) keeps it while its speaker stays.
+        const voice = same?.voice && (same.speaker || "") === (speaker || "") ? same.voice : speaker ? voiceOf.get(speaker) : undefined;
         const unit: ProductionUnit = { ...base, speaker, speech: seg.speech?.id, confidence: seg.speech ? who?.confidence ?? 0 : undefined, voice };
         // A take made with another voice no longer fits.
         if (same && (same.voice || "") !== (voice || "") && same.status !== "approved" && same.take) unit.status = "pending";

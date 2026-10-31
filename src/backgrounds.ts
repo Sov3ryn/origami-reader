@@ -1,6 +1,7 @@
 import type { Preferences, SceneAppearance } from "./types";
 import { defaultPreferences } from "./types";
-import { placeSceneId, places, type Place } from "./places";
+import { placeSceneId, places, readingStats, type Place } from "./places";
+import { isOpen } from "./rewards";
 
 export const effectLabels = {
   mist: "Drifting mist",
@@ -368,6 +369,18 @@ export function defaultSceneAppearance(scene: string): SceneAppearance {
   };
 }
 
+// A scene's default theme is used only when the reader may choose it;
+// otherwise the current theme stays, so scene changes never unlock themes.
+export function openSceneDefaults(
+  scene: string,
+  prefs: Preferences,
+): SceneAppearance {
+  const defaults = defaultSceneAppearance(scene);
+  return isOpen("theme", defaults.theme, readingStats(prefs.readingStats))
+    ? defaults
+    : { ...defaults, theme: prefs.theme };
+}
+
 export function switchBackground(
   prefs: Preferences,
   scene: string,
@@ -381,7 +394,7 @@ export function switchBackground(
   return {
     ...prefs,
     ...(sceneDefaults[target] || getBackground(target).location === "garden"
-      ? defaultSceneAppearance(target)
+      ? openSceneDefaults(target, prefs)
       : sceneAppearance(prefs)),
     ...scenePreferences[target],
     scene: target,

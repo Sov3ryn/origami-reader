@@ -104,7 +104,7 @@
   padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--input, color-mix(in srgb, var(--panel, #25232b) 80%, #000));
+  background: var(--panel);
   color: var(--muted);
   margin: 0;
 }
@@ -238,7 +238,7 @@
 }
 .vl-problem {
   margin: 0;
-  color: #e0705a;
+  color: color-mix(in srgb, #d0503c 75%, var(--ink));
 }
 
 /* Voice cards. */
@@ -364,7 +364,7 @@
   background: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 .vl-tag.created {
-  color: #e9c46a;
+  color: color-mix(in srgb, #d9a441 50%, var(--ink));
   border-color: color-mix(in srgb, #e9c46a 45%, transparent);
 }
 .vl-tag.model {
@@ -420,7 +420,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  color: #f0a093;
+  color: color-mix(in srgb, #c8584a 70%, var(--ink));
   border-color: color-mix(in srgb, #c8584a 55%, var(--line));
 }
 .vl-empty {
@@ -472,8 +472,15 @@
 
 /* The voice library: voices not installed yet. Their actions show on hover
    (and on keyboard focus), so the list stays calm. */
-.vl-library-title {
+.vl-library-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   margin: 28px 0 4px;
+}
+.vl-library-title {
+  margin: 0;
   font-size: var(--fs-section, 18px);
 }
 .vl-card.store {
@@ -491,6 +498,10 @@
 .vl-card.store:hover .vl-store-actions,
 .vl-card.store:focus-within .vl-store-actions,
 .vl-card.store:focus .vl-store-actions {
+  opacity: 1;
+}
+.vl-card.store.busy,
+.vl-card.store.busy .vl-store-actions {
   opacity: 1;
 }
 @media (hover: none) {

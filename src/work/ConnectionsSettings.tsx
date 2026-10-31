@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Check, Download, LoaderCircle, Trash2, X } from "lucide-react";
-import { t } from "../i18n";
+import { displayLocale, t } from "../i18n";
 import {
   cancelDownload,
   downloadModel,
@@ -10,7 +10,7 @@ import {
   type EmbeddingStatus,
 } from "./semantic";
 
-const mb = (bytes: number) => Math.round(bytes / 1_000_000).toLocaleString();
+const mb = (bytes: number) => Math.round(bytes / 1_000_000).toLocaleString(displayLocale());
 
 // Settings, Work mode: choose and install the model behind Related.
 export function ConnectionsSettings({

@@ -75,7 +75,7 @@ export function TextMenu({
           background: surface.swatch,
           color:
             prefs.textTone === "contrast"
-              ? surface.id === "dark"
+              ? surface.id === "dark" || surface.id === "blueprint"
                 ? "#fff"
                 : "#000"
               : prefs.textTone === "soft"
@@ -125,7 +125,7 @@ export function TextMenu({
               checked={prefs.bookOpening}
               onChange={(e) => onChange({ bookOpening: e.target.checked })}
             />
-            {t("Open new books from the cover")}
+            {t("Open books from the cover")}
           </label>
           <label className="check-label">
             <input
@@ -315,17 +315,23 @@ export function TextMenu({
             ))}
           </div>
           <p className="hint">
-            {prefs.focusTool === "line"
-              ? t("Highlights the line under the pointer.")
-              : prefs.focusTool === "strip"
-                ? t(
-                    "A reading strip follows the pointer and dims the text around it.",
-                  )
-                : prefs.focusTool === "paragraph"
+            {layout === "book" &&
+            bookFits &&
+            (prefs.focusTool === "line" || prefs.focusTool === "strip")
+              ? t(
+                  "Not available in Book layout. Paragraph focus works in every layout.",
+                )
+              : prefs.focusTool === "line"
+                ? t("Highlights the line under the pointer.")
+                : prefs.focusTool === "strip"
                   ? t(
-                      "Dims every paragraph except the one you point at or hear.",
+                      "A reading strip follows the pointer and dims the text around it.",
                     )
-                  : t("Helps keep your place while reading.")}
+                  : prefs.focusTool === "paragraph"
+                    ? t(
+                        "Dims every paragraph except the one you point at or hear.",
+                      )
+                    : t("Helps keep your place while reading.")}
           </p>
         </div>
         <div className="text-menu-row">

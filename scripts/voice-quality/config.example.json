@@ -1,0 +1,16 @@
+{
+  "plan": "C:/Projects/Origami/scripts/voice-quality/cast.json",
+  "output": "C:/VoiceCasting/English-review",
+  "design_model": "C:/Models/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+  "worker_config": "C:/Projects/Origami/.local/worker.json",
+  "worker": "C:/Projects/Origami/workers/tts_worker.py",
+  "generation_python": "C:/VoiceTools/generation/Scripts/python.exe",
+  "qc_python": "C:/VoiceTools/evaluation/Scripts/python.exe",
+  "asr_cache": "C:/Models/whisper",
+  "dnsmos": "C:/Models/dnsmos",
+  "identity_encoder_source": "C:/VoiceTools/chatterbox/src/chatterbox/models/voice_encoder",
+  "identity_encoder_weights": "C:/Models/chatterbox-turbo/ve.safetensors",
+  "baseline_pack": "C:/VoiceCasting/Previous-English/CreatedVoices",
+  "takes": 4,
+  "seed": 30102026
+}

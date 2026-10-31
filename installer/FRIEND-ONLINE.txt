@@ -1,4 +1,4 @@
-ORIGAMI READER 0.1.0 BETA 19, WINDOWS
+ORIGAMI READER 0.1.0 BETA 20, WINDOWS
 
 This is a free public beta. Download it only from the official Origami Reader
 page on GitHub, and please do not re-upload it elsewhere.
@@ -17,8 +17,9 @@ INSTALL
    allows signed apps and this free beta is not signed. Please do not reset
    your computer for it.
 3. Choose a new installation folder, your languages, the language of your
-   starter books and appearance. Setup picks the models for your computer
-   and four voices per language, to keep the download small. Every other
+   starter books and appearance. Setup picks the models for your computer.
+   Listen to a few seconds of each voice and tick the ones you want; a few
+   are ticked to start, to keep the download small. Every other
    voice and model can be downloaded later in the app (Voices, and
    Settings, Models).
    The review page shows how much setup will download. Only what you choose

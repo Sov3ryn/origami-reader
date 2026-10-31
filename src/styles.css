@@ -78,7 +78,6 @@ textarea {
 }
 select {
   cursor: pointer;
-  color-scheme: dark;
 }
 option {
   background: var(--panel);
@@ -955,7 +954,6 @@ p {
   background: none;
   padding: 7px 9px;
   font-size: var(--fs-caption);
-  text-transform: capitalize;
   flex: 1;
 }
 .segmented button.active {
@@ -1950,7 +1948,7 @@ progress::-webkit-progress-value {
   border: 0;
   background: none;
 }
-.surface-dark .margin-tools {
+:is(.surface-dark, .surface-blueprint) .margin-tools {
   filter: brightness(1.55);
 }
 .page-footer {
@@ -2112,7 +2110,7 @@ progress::-webkit-progress-value {
 .annotation-filters select:last-child {
   grid-column: 1 / -1;
 }
-.annotation-filters select[aria-label="Annotation scope"] {
+.annotation-filters select.annotation-scope {
   grid-column: 1 / -1;
 }
 .annotation-count,
@@ -2322,7 +2320,7 @@ progress::-webkit-progress-value {
   bottom: 104px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 30;
+  z-index: 50;
   background: var(--panel);
   border: 1px solid var(--line);
   box-shadow: 0 7px 28px #00000044;
@@ -2336,8 +2334,63 @@ progress::-webkit-progress-value {
   max-width: 700px;
   width: max-content;
 }
+/* Achievement earned: bottom left, just above the player bar. */
+.achievement-pop {
+  position: absolute;
+  left: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: min(360px, calc(100% - 36px));
+  padding: 13px 10px 13px 15px;
+  background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: 11px;
+  box-shadow: 0 10px 30px #00000055;
+  animation: achievement-pop-in 0.25s ease-out;
+}
+.achievement-pop-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--accent);
+}
+.achievement-pop-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.achievement-pop-body > small {
+  color: var(--muted);
+  font-size: var(--fs-caption);
+}
+.achievement-pop-body > strong {
+  font-size: var(--fs-body);
+}
+.achievement-pop .achievement-rewards {
+  margin: 2px 0;
+}
+.achievement-pop-open {
+  align-self: flex-start;
+  padding: 5px 10px;
+  font-size: var(--fs-small);
+}
+@keyframes achievement-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .achievement-pop {
+    animation: none;
+  }
+}
 .toast > span {
   max-width: 550px;
+  max-height: 40vh;
+  overflow-y: auto;
 }
 .toast button {
   flex-shrink: 0;
@@ -2538,7 +2591,8 @@ progress::-webkit-progress-value {
   }
 }
 
-.texture-off {
+/* Math grid and Blueprint lines are the paper itself, not grain. */
+.texture-off:not(.surface-grid, .surface-blueprint) {
   background-image: none !important;
 }
 html[data-hidden="true"] .ambient-layer {
@@ -2628,6 +2682,47 @@ html[data-hidden="true"] .ambient-layer {
   border-radius: 16px;
   flex-shrink: 0;
   font-size: 56px;
+}
+/* Portraits on the Voices page tilt toward the pointer (useCoverTilt). */
+.voice-portrait-tilt {
+  display: block;
+  perspective: 500px;
+}
+.voice-portrait-tilt > .voice-portrait {
+  position: relative;
+  transform: rotateX(calc(var(--pointer-y, 0) * -10deg))
+    rotateY(calc(var(--pointer-x, 0) * 12deg))
+    translateZ(calc(var(--sheen, 0) * 6px));
+  transition: transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.voice-portrait-tilt > .voice-portrait[data-pointer-near] {
+  will-change: transform;
+  transition-duration: 160ms;
+}
+.voice-portrait-tilt > .voice-portrait::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at var(--sheen-x, 50%) var(--sheen-y, 50%),
+    #ffffff45,
+    #ffffff12 35%,
+    transparent 65%
+  );
+  mix-blend-mode: screen;
+  opacity: var(--sheen, 0);
+  transition: opacity 320ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .voice-portrait-tilt > .voice-portrait {
+    transform: none;
+    transition: none;
+  }
+  .voice-portrait-tilt > .voice-portrait::after {
+    display: none;
+  }
 }
 .portrait-select {
   display: block;
@@ -2938,6 +3033,10 @@ html[data-hidden="true"] .ambient-layer {
 .sleep-menu button[aria-checked="true"] {
   background: color-mix(in srgb, var(--accent) 18%, transparent);
 }
+/* An open sleep menu rises above the overlay inspector and its scrim in narrow windows. */
+.player:has(.sleep-menu) {
+  z-index: 23;
+}
 
 /* Keyboard shortcuts */
 .shortcuts-dialog {
@@ -3225,6 +3324,17 @@ html[data-hidden="true"] .previous-still {
 }
 .privacy-note p {
   margin: 0;
+}
+.contact-note {
+  align-items: center;
+  margin-top: 10px;
+}
+.contact-note p {
+  flex: 1;
+}
+.contact-address {
+  user-select: all;
+  overflow-wrap: anywhere;
 }
 
 /* Support: Settings card and the one-time dialog */
@@ -3614,6 +3724,10 @@ html[data-hidden="true"] .previous-still {
   border-radius: 11px;
   background: var(--panel);
   box-shadow: 0 14px 38px #0007;
+  overflow-y: auto;
+}
+.book-menu-popup > * {
+  flex-shrink: 0;
 }
 .book-menu-popup button {
   justify-content: flex-start;
@@ -4289,10 +4403,10 @@ html[data-hidden="true"] .previous-still {
 .reading-page.tone-soft .passage {
   color: color-mix(in srgb, currentColor 78%, transparent);
 }
-.reading-page.tone-contrast:not(.surface-dark) {
+.reading-page.tone-contrast:not(.surface-dark, .surface-blueprint) {
   color: #000;
 }
-.reading-page.tone-contrast.surface-dark {
+.reading-page.tone-contrast:is(.surface-dark, .surface-blueprint) {
   color: #fff;
 }
 
@@ -5765,7 +5879,7 @@ html[data-hidden="true"] .previous-still {
 .book-page.empty {
   visibility: hidden;
 }
-.book-page.texture-off {
+.book-page.texture-off:not(.surface-grid, .surface-blueprint) {
   background-image: none;
 }
 /* The fold: shade and a faint highlight where the pages curve into the spine. */
@@ -5897,10 +6011,10 @@ html[data-hidden="true"] .previous-still {
 .book-page.tone-soft .passage {
   color: color-mix(in srgb, currentColor 78%, transparent);
 }
-.book-page.tone-contrast:not(.surface-dark) {
+.book-page.tone-contrast:not(.surface-dark, .surface-blueprint) {
   color: #000;
 }
-.book-page.tone-contrast.surface-dark {
+.book-page.tone-contrast:is(.surface-dark, .surface-blueprint) {
   color: #fff;
 }
 /* Chapter openings: sunk heading, a short rule and a drop cap. */
@@ -6310,6 +6424,11 @@ html[data-hidden="true"] .previous-still {
   --curl-a: #e6d6b2;
   --curl-b: #f3e6c8;
   --curl-c: #d2bf97;
+}
+.book-stage[data-surface="blueprint"] {
+  --curl-a: #23548f;
+  --curl-b: #2b62a3;
+  --curl-c: #1a426f;
 }
 .book-stage[data-surface="dark"] .book-stack {
   background: repeating-linear-gradient(90deg, #34343a 0 1px, #222227 1px 2px);
@@ -6971,7 +7090,7 @@ html[data-hidden="true"] .previous-still {
     sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #f2c879;
+  color: color-mix(in srgb, #d9a441 50%, var(--ink));
   background: color-mix(in srgb, #f2c879 14%, transparent);
   border: 1px solid color-mix(in srgb, #f2c879 45%, transparent);
   white-space: nowrap;
@@ -7038,7 +7157,7 @@ html[data-hidden="true"] .previous-still {
 }
 .beta-notice h4 {
   margin: 0 0 6px;
-  color: #f2c879;
+  color: color-mix(in srgb, #d9a441 50%, var(--ink));
 }
 .beta-notice p {
   margin: 0 0 6px;
@@ -7399,7 +7518,7 @@ html[data-hidden="true"] .garden-effects * {
   gap: 10px;
 }
 .pin-problem {
-  color: #e0705a;
+  color: color-mix(in srgb, #d0503c 75%, var(--ink));
 }
 .vault-row .collection-title {
   display: flex;
@@ -7437,7 +7556,7 @@ html[data-hidden="true"] .garden-effects * {
 }
 .voice-tags .voice-model-tag {
   border-color: color-mix(in srgb, var(--accent, #b58cf0) 55%, var(--line));
-  color: var(--text);
+  color: var(--ink);
 }
 .model-switch-dialog {
   width: 520px;
@@ -7659,7 +7778,7 @@ html[data-hidden="true"] .garden-effects * {
   line-height: 1.45;
 }
 .update-toast-problem {
-  color: var(--danger, #e57373) !important;
+  color: color-mix(in srgb, #d0503c 75%, var(--ink)) !important;
 }
 .update-toast-actions {
   display: flex;
@@ -7917,7 +8036,7 @@ html[data-hidden="true"] .garden-effects * {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  color: var(--contrast);
+  color: var(--accent-ink);
   background: var(--accent);
 }
 .gallery-tile .draft-chip {
@@ -8686,7 +8805,7 @@ html[data-hidden="true"] .garden-effects * {
   background: color-mix(in srgb, var(--ink) 8%, transparent);
 }
 .achievement.earned .achievement-mark {
-  color: var(--contrast);
+  color: var(--accent-ink);
   background: var(--accent);
 }
 .achievement-progress {

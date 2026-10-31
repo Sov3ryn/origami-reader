@@ -64,11 +64,13 @@ function shuffle<T>(list: T[], random = Math.random) {
 }
 
 // Questions from cards; multiple choice uses other cards' answers as the
-// wrong options (at least three different ones are needed).
-export function buildTest(cards: StudyCard[], count: number, mode: PracticeMode, random = Math.random): Question[] {
+// wrong options (at least three different ones are needed). The wrong options
+// come from `distractors`, the whole set by default, so a retest of a few
+// missed cards still gets multiple choice.
+export function buildTest(cards: StudyCard[], count: number, mode: PracticeMode, random = Math.random, distractors: StudyCard[] = cards): Question[] {
   const usable = cards.filter((c) => !c.suspended && questionFor(c).answer.trim());
   const picked = shuffle(usable, random).slice(0, count);
-  const answers = [...new Set(usable.map((c) => questionFor(c).answer.trim()))];
+  const answers = [...new Set(distractors.filter((c) => !c.suspended && questionFor(c).answer.trim()).map((c) => questionFor(c).answer.trim()))];
   return picked.map((card, i) => {
     const q = { card, ...questionFor(card) };
     const others = shuffle(answers.filter((a) => a.toLowerCase() !== q.answer.trim().toLowerCase()), random).slice(0, 3);

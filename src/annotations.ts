@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import type { Annotation, Book, BookMeta } from "./types";
 export type AnnotationOrder =
   "book-asc" | "book-desc" | "text-asc" | "text-desc" | "newest";
@@ -46,11 +47,11 @@ export function annotationViews(
     const context = paragraph?.text || annotation.quote;
     return {
       annotation,
-      title: metadata.get(annotation.bookId)?.title || "Unavailable book",
+      title: metadata.get(annotation.bookId)?.title || t("Unavailable book"),
       paragraph: paragraph?.index ?? -1,
       chapter: paragraph?.chapter ?? 0,
       heading: paragraph?.heading || "",
-      line: annotation.quote || context || "Saved reading position",
+      line: annotation.quote || context || t("Saved reading position"),
       context,
     };
   });

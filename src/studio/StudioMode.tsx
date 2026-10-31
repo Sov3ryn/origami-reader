@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AudioLines, BookOpen, Clapperboard, FolderOpen, Headphones, Mic2, PanelLeftClose, PanelLeftOpen, Play, Plus, Search, ShieldCheck, Square, Wand2, Wrench, X } from "lucide-react";
-import { t } from "../i18n";
+import { displayLocale, t } from "../i18n";
 import { Cover, IconButton } from "../components/Primitives";
 import { Section } from "../components/Section";
 import * as store from "../storage";
@@ -9,6 +9,7 @@ import { chosenTake, createProduction, deleteProduction, listProductions, newPro
 import { ProductionView } from "./ProductionView";
 import { RecordingDialog } from "./RecordingDialog";
 import { StudioSetup } from "./StudioSetup";
+import { useModal } from "../components/useModal";
 import { studioDemo, studioDemoWanted } from "./devPreview";
 import { PanelResizer } from "../work/PanelResizer";
 import type { SideWidth } from "../components/ModeHeader";
@@ -41,11 +42,16 @@ export function StudioMode({ open, books, voices, prefs, modeHeader, side }: Pro
     const start = (e: Event) => {
       const id = (e as CustomEvent<{ id: string }>).detail?.id;
       if (!id) return;
+      // Leave an open production so the New production dialog shows on the Productions page.
+      setCurrent(null);
+      void refresh();
       setStartWith(id);
       setCreating(true);
     };
     window.addEventListener("origami:studio-book", start);
     return () => window.removeEventListener("origami:studio-book", start);
+    // refresh only uses state setters and the demoRef object, so the first render's copy is safe.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [verifying, setVerifying] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -297,11 +303,9 @@ export function StudioMode({ open, books, voices, prefs, modeHeader, side }: Pro
               {error}
             </p>
           )}
-          {notice && (
-            <p className="studio-notice" role="status">
-              {notice}
-            </p>
-          )}
+          <p className={notice ? "studio-notice" : "sr-only"} role="status" aria-live="polite">
+            {notice}
+          </p>
           <StudioSetup />
           {list && !list.length && (
             <section className="continue-section">
@@ -466,6 +470,8 @@ function NewProduction({
   const [error, setError] = useState("");
   const [listening, setListening] = useState(false);
   const audio = useRef<HTMLAudioElement | null>(null);
+  const scrim = useRef<HTMLDivElement>(null);
+  useModal(scrim);
   const shown = sorted.filter((b) => !query || (b.title + " " + b.author).toLowerCase().includes(query.toLowerCase()));
   const chosen = books.find((b) => b.id === bookId);
   const language = languageName(chosen?.language);
@@ -510,7 +516,7 @@ function NewProduction({
   }
   const sortedVoices = [...voices].sort((a, b) => Number(fits(b)) - Number(fits(a)) || a.name.localeCompare(b.name));
   return (
-    <div className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && !busy && onCancel()}>
+    <div ref={scrim} className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && !busy && onCancel()}>
       <form
         className="studio-dialog studio-new"
         role="dialog"
@@ -539,7 +545,7 @@ function NewProduction({
           <div className="studio-book-pick">
             <label className="studio-search">
               <Search size={15} />
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("Search your library")} aria-label={t("Search your library")} />
+              <input data-autofocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("Search your library")} aria-label={t("Search your library")} />
             </label>
             <ul role="listbox" aria-label={t("Book")}>
               {shown.map((b) => (
@@ -562,7 +568,7 @@ function NewProduction({
                 <span className="studio-cover" style={chosen.coverImage ? { backgroundImage: `url("${chosen.coverImage}")` } : undefined} />
                 <strong>{chosen.title}</strong>
                 <span className="muted">{chosen.author}</span>
-                <span className="muted small">{t("{n} words", { n: chosen.wordCount.toLocaleString() })}</span>
+                <span className="muted small">{t("{n} words", { n: chosen.wordCount.toLocaleString(displayLocale()) })}</span>
               </div>
             )}
             <label className="studio-field">
@@ -607,8 +613,15 @@ function NewProduction({
 function VerifyResult({ result, onClose }: { result: Verification; onClose: () => void }) {
   const w = result.watermark;
   const labels = Object.entries(result.labels || {});
+  const scrim = useRef<HTMLDivElement>(null);
+  useModal(scrim);
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [onClose]);
   return (
-    <div className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div ref={scrim} className="studio-dialog-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <section className="studio-dialog studio-verify" role="dialog" aria-modal="true" aria-labelledby="studio-verify-title">
         <header>
           <h2 id="studio-verify-title">{t("Verify a file")}</h2>
@@ -629,7 +642,7 @@ function VerifyResult({ result, onClose }: { result: Verification; onClose: () =
               <p>{t("This audio carries the Origami Reader watermark: it was narrated with AI-generated voices.")}</p>
               {w.match ? (
                 <p className="muted small">
-                  {t("Export {id} of {title}, {date}.", { id: w.match.export, title: w.match.title, date: new Date(w.match.date).toLocaleDateString() })}
+                  {t("Export {id} of {title}, {date}.", { id: w.match.export, title: w.match.title, date: new Date(w.match.date).toLocaleDateString(displayLocale()) })}
                 </p>
               ) : (
                 <p className="muted small">{t("Made on another computer (mark {m}).", { m: w.message || "" })}</p>
@@ -656,7 +669,7 @@ function VerifyResult({ result, onClose }: { result: Verification; onClose: () =
           </>
         )}
         <div className="studio-row end">
-          <button className="primary" onClick={onClose}>
+          <button className="primary" data-autofocus onClick={onClose}>
             {t("Done")}
           </button>
         </div>

@@ -43,6 +43,12 @@ export const shortcuts: { keys: string[]; action: string; group: string }[] = [
   { group: "Reading", keys: ["Ctrl", "="], action: "Larger text" },
   { group: "Reading", keys: ["Ctrl", "-"], action: "Smaller text" },
   { group: "Reading", keys: ["Ctrl", "Shift", "F"], action: "Focus mode" },
+  { group: "Reading", keys: ["Ctrl", "Shift", "C"], action: "Make a study card" },
+  {
+    group: "Workspace",
+    keys: ["Ctrl", "Shift", "W"],
+    action: "Switch between Read, Work and Studio",
+  },
   {
     group: "Workspace",
     keys: ["Ctrl", "Shift", "L"],
@@ -63,12 +69,12 @@ export const shortcuts: { keys: string[]; action: string; group: string }[] = [
   },
 ];
 
-// Keys typed into fields, menus and editable text are never shortcuts.
+// Keys typed into fields, menus, dialogs and editable text are never shortcuts.
 export function shortcutTarget(event: KeyboardEvent) {
   const el = event.target as HTMLElement | null;
   if (!el || !el.closest) return true;
   return !el.closest(
-    'input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),textarea,select,[contenteditable="true"],[role="dialog"] button',
+    'input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),textarea,select,[contenteditable="true"],[role="dialog"]',
   );
 }
 

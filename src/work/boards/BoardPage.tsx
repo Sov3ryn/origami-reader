@@ -92,7 +92,7 @@ export function BoardPage({
           <FileDown size={15} />
           .svg
         </button>
-        <button onClick={() => onSave(board.title || "board", toExcalidrawFile(board), "excalidraw")} data-tip={t("Opens in Excalidraw and Obsidian")}>
+        <button onClick={() => onSave(board.title || "board", toExcalidrawFile({ ...board, scene: api.current?.scene() ?? board.scene }), "excalidraw")} data-tip={t("Opens in Excalidraw and Obsidian")}>
           <Download size={15} />
           .excalidraw
         </button>

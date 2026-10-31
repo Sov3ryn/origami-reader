@@ -45,7 +45,18 @@ export function FormulaDialog({
   const save = () => latex.trim() && !preview.error && onSave(latex.trim(), block);
   return (
     <div className="modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <section className="quick-dialog formula-dialog" role="dialog" aria-modal="true" aria-labelledby="formula-title">
+      <section
+        className="quick-dialog formula-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="formula-title"
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.stopPropagation();
+            onClose();
+          }
+        }}
+      >
         <h2 id="formula-title">{editing ? t("Edit formula") : t("Insert formula")}</h2>
         <div className={"formula-preview" + (block ? " block" : "")} aria-live="polite">
           {preview.error ? (
@@ -69,7 +80,7 @@ export function FormulaDialog({
               if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 save();
-              } else if (e.key === "Escape") onClose();
+              }
             }}
           />
         </label>

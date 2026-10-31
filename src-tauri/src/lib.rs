@@ -1,4 +1,5 @@
 mod covers;
+mod supporter;
 mod embed;
 mod handwriting;
 mod whisper;
@@ -20,6 +21,7 @@ mod studio_archive;
 mod voice_store;
 mod model_download;
 mod update;
+mod verified_download;
 mod vault;
 mod voice_studio;
 use voice_studio::{voice_studio_state, design_voice, cancel_voice_design, voice_preview_audio, update_voice_preview, delete_voice_preview, save_designed_voice, export_voice_preview};
@@ -730,7 +732,11 @@ fn studio_check_takes(app: tauri::AppHandle, job: State<CheckJob>, id: String, u
                 }
                 let Some(unit) = all.iter().find(|u| u["id"].as_str() == Some(unit_id)) else { continue };
                 let Some(mut take) = unit["take"].as_str().and_then(|t| takes.get(t)).cloned() else { continue };
-                let (x, sr) = studio_audio::decode(&dir.join(take["file"].as_str().unwrap_or_default()))?;
+                let file = take["file"].as_str().unwrap_or_default();
+                if !studio::take_file_ok(file) {
+                    continue;
+                }
+                let (x, sr) = studio_audio::decode(&dir.join(file))?;
                 let x16 = studio_audio::resample(&x, sr, 16_000)?;
                 let heard = app.state::<whisper::Transcriber>().transcribe(&app, &model, &x16, &language)?;
                 let text = heard["text"].as_str().unwrap_or_default().to_string();
@@ -895,7 +901,11 @@ async fn studio_recording_readalong(files: Vec<String>, chapters: Vec<Value>, me
         };
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
         let path = studio_audio::free_path(&folder, &format!("{} (read-along)", studio_audio::safe_name(&title)), "epub");
-        studio_book::readalong_epub(&read, &out, None, &format!("REC-{now:x}"), &path)?;
+        if let Err(e) = studio_book::readalong_epub(&read, &out, None, &format!("REC-{now:x}"), &path) {
+            // A half-written ebook is not left beside the reader's files.
+            let _ = std::fs::remove_file(&path);
+            return Err(e);
+        }
         Ok(Some(path.to_string_lossy().into_owned()))
     })
     .await
@@ -950,6 +960,8 @@ async fn studio_save_portable(app: tauri::AppHandle, id: String, path: Option<St
     use tauri::Emitter;
     let data = data_root(&app)?;
     let p = studio::read(&data, &id)?;
+    // A delete waits until the copy is written (studio::delete refuses busy productions).
+    let _busy = studio::busy(&id);
     let name = format!("{}.{}", studio_audio::safe_name(p["info"]["title"].as_str().unwrap_or("Production")), studio_archive::EXTENSION);
     let picked = tauri::async_runtime::spawn_blocking(move || {
         if let Some(p) = path {
@@ -1010,25 +1022,47 @@ async fn studio_open_portable(app: tauri::AppHandle, path: Option<String>) -> Re
         info["id"] = serde_json::json!(id);
         info["updated"] = serde_json::json!(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as f64).unwrap_or(0.0));
         let units = opened.production["units"].as_array().cloned().unwrap_or_default();
-        let takes = opened.production["takes"].as_array().cloned().unwrap_or_default();
+        // Take rows are data from the archive: keep only plain take file names.
+        let takes: Vec<Value> = opened.production["takes"]
+            .as_array()
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|t| t["file"].as_str().is_some_and(studio_archive::take_name_ok))
+            .collect();
+        // Takes and the bed are stored uncompressed, so they never add up to more than the archive.
+        let limit = std::fs::metadata(&path).map_err(|e| e.to_string())?.len();
         let takes_dir = studio::restore(&data, info, units, &takes)?;
-        let extracted = studio_archive::extract_takes(&mut opened.zip, &takes_dir, &|v| {
-            let _ = app.emit("studio-portable-progress", v);
-        });
-        if let Err(e) = extracted {
-            let _ = studio::delete(&data, &id);
-            return Err(e);
-        }
-        let added = studio_archive::extract_voices(&mut opened.zip, &voice_studio::created_root(&app)?)?;
-        let mut book_added = false;
-        if let Some(book) = opened.book.take() {
-            let db = app.state::<Database>();
-            let db = db.0.lock().map_err(|_| "Database busy")?;
-            if db.read(book["id"].as_str().unwrap_or_default()).is_err() {
-                db.save(book)?;
-                book_added = true;
+        // From here the id is this import's: any failure removes the half-made production,
+        // so a retry does not add a second copy.
+        let finished = (|| -> Result<(Vec<String>, bool)> {
+            studio_archive::extract_takes(&mut opened.zip, &takes_dir, limit, &|v| {
+                let _ = app.emit("studio-portable-progress", v);
+            })?;
+            let added = studio_archive::extract_voices(&mut opened.zip, &voice_studio::created_root(&app)?)?;
+            let mut book_added = false;
+            if let Some(mut book) = opened.book.take() {
+                let db = app.state::<Database>();
+                let db = db.0.lock().map_err(|_| "Database busy")?;
+                let bid = book["meta"]["id"].as_str().unwrap_or_default().to_string();
+                // A book already here (even in a locked vault) is never overwritten. A vault from
+                // another computer does not exist here, so the book arrives as a library book.
+                if !bid.is_empty() && !db.has_book(&bid) {
+                    if let Some(m) = book["meta"].as_object_mut() {
+                        m.remove("vault");
+                    }
+                    book_added = db.save(book).is_ok();
+                }
             }
-        }
+            Ok((added, book_added))
+        })();
+        let (added, book_added) = match finished {
+            Ok(v) => v,
+            Err(e) => {
+                let _ = studio::delete(&data, &id);
+                return Err(e);
+            }
+        };
         let have: Vec<String> = speech::voices(&app).iter().filter_map(|v| v["id"].as_str().map(str::to_string)).collect();
         let missing: Vec<String> = studio_archive::voices_used(&opened.production).into_iter().filter(|v| !have.contains(v)).collect();
         Ok(Some(serde_json::json!({ "id": id, "voicesAdded": added, "missingVoices": missing, "bookAdded": book_added })))
@@ -1112,6 +1146,10 @@ async fn voice_store_list(app: tauri::AppHandle) -> Result<Vec<Value>> {
     tauri::async_runtime::spawn_blocking(move || voice_store::list(&app)).await.map_err(|e| e.to_string())?
 }
 #[tauri::command]
+async fn voice_store_languages(app: tauri::AppHandle) -> Result<Vec<String>> {
+    tauri::async_runtime::spawn_blocking(move || voice_store::languages(&app)).await.map_err(|e| e.to_string())?
+}
+#[tauri::command]
 async fn voice_store_preview(app: tauri::AppHandle, id: String) -> Result<String> {
     tauri::async_runtime::spawn_blocking(move || voice_store::preview(&app, &id).map(|d| STANDARD.encode(d)))
         .await
@@ -1182,8 +1220,11 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
     std::thread::spawn(move || {
         let _busy = busy;
         let job = app.state::<ExportJob>();
-        let progress = |step: String, value: f64| {
-            let _ = app.emit("studio-export-progress", serde_json::json!({"id": id, "step": step, "value": value}));
+        // "key" is the untranslated step for the page to translate, with "title" for its
+        // {title} placeholder; "step" stays the English text for older pages.
+        let progress = |key: &str, title: &str, value: f64| {
+            let step = key.replace("{title}", title);
+            let _ = app.emit("studio-export-progress", serde_json::json!({"id": id, "step": step, "key": key, "title": title, "value": value}));
         };
         let cancelled = || job.cancel.load(Ordering::SeqCst);
         let outcome = (|| -> Result<Value> {
@@ -1209,6 +1250,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
             let out = staging.dir.clone();
             let mut files: Vec<std::path::PathBuf> = Vec::new();
             let mut report = Vec::new();
+            let mut sample_missing = false;
             if flag("m4b") || flag("mp3") || flag("readalong") || flag("stems") || flag("sample") {
                 let wm_dir = watermark_dir(&app)?;
                 if !wm_dir.join("audioseal_generator_5s.onnx").is_file() {
@@ -1241,7 +1283,11 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                         current = Some(chapter);
                     }
                     let Some(take) = u["take"].as_str().and_then(|t| takes.get(t)) else { continue };
-                    let path = takes_dir.join(take["file"].as_str().unwrap_or_default());
+                    let file = take["file"].as_str().unwrap_or_default();
+                    if !studio::take_file_ok(file) {
+                        continue;
+                    }
+                    let path = takes_dir.join(file);
                     if !path.is_file() {
                         continue;
                     }
@@ -1266,7 +1312,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                 // Opening credits, spoken by the narrator: title, author, the AI disclosure and the credit.
                 // Recorded in the staging folder, so the take goes when the export ends.
                 {
-                    progress("Recording the opening credits".into(), 0.01);
+                    progress("Recording the opening credits", "", 0.01);
                     let voice = p["info"]["voice"].as_str().unwrap_or_default().to_string();
                     let item = serde_json::json!([{"id": "credit", "text": credit, "seed": 7, "take": format!("credit-{now}")}]);
                     let speech = app.state::<speech::Speech>();
@@ -1301,7 +1347,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                     sample: flag("sample"),
                     bed: match p["info"]["bed"]["file"].as_str().filter(|f| f.starts_with("bed.") && !f.contains(['/', '\\'])) {
                         Some(file) => {
-                            progress("Preparing the background sound".into(), 0.02);
+                            progress("Preparing the background sound", "", 0.02);
                             let (x, rate) = studio_verify::decode_range(&production_dir(&data, &id)?.join(file), 0.0, 3600.0)?;
                             let level = match p["info"]["bed"]["level"].as_str() {
                                 Some("medium") => -27.0,
@@ -1315,13 +1361,15 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                     comment: format!("{} {}", text(&options["aiLine"]), credit).trim().to_string(),
                     watermark: Some(watermark),
                     message,
-                    progress: &|s, v| progress(s, v * 0.85),
+                    progress: &|s, t, v| progress(s, t, v * 0.85),
                     cancelled: &cancelled,
                 })?;
+                // No sample is cut when no chapter has a minute of lines yet.
+                sample_missing = flag("sample") && !written.iter().any(|f| f.file_name().is_some_and(|n| n.to_string_lossy().ends_with("(retail sample).mp3")));
                 files.extend(written);
                 report = levels;
                 if let Some(dir) = readalong_dir {
-                    progress("Writing the read-along ebook".into(), 0.86);
+                    progress("Writing the read-along ebook", "", 0.86);
                     let by_id: std::collections::HashMap<&str, &Value> = units.iter().map(|u| (u["id"].as_str().unwrap_or_default(), u)).collect();
                     let chapters: Vec<studio_book::ReadChapter> = timings
                         .into_iter()
@@ -1367,7 +1415,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                 let manuscript: studio_book::Manuscript = serde_json::from_value(options["manuscript"].clone()).map_err(|e| format!("The book could not be read: {e}"))?;
                 let stem = studio_audio::safe_name(&title);
                 if flag("epub") {
-                    progress("Writing the ebook".into(), 0.88);
+                    progress("Writing the ebook", "", 0.88);
                     let cover = cover_raw.as_deref().and_then(|c| studio_audio::jpeg(c).ok());
                     let path = studio_audio::free_path(&out, &stem, "epub");
                     studio_book::epub(&manuscript, cover.as_deref(), &export_id, &path)?;
@@ -1377,7 +1425,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                     return Err("cancelled".into());
                 }
                 if flag("pdf") {
-                    progress("Typesetting the print book".into(), 0.92);
+                    progress("Typesetting the print book", "", 0.92);
                     let print: studio_book::PrintOptions = serde_json::from_value(options["print"].clone())
                         .unwrap_or(studio_book::PrintOptions { trim: (5.5, 8.5), font: "EB Garamond".into(), bleed: false, large: false });
                     let path = studio_audio::free_path(&out, &format!("{stem} (print)"), "pdf");
@@ -1385,7 +1433,7 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
                     files.push(path);
                 }
                 if flag("docx") {
-                    progress("Writing the Word manuscript".into(), 0.97);
+                    progress("Writing the Word manuscript", "", 0.97);
                     let path = studio_audio::free_path(&out, &format!("{stem} (manuscript)"), "docx");
                     studio_book::docx(&manuscript, &export_id, &path)?;
                     files.push(path);
@@ -1394,10 +1442,13 @@ fn studio_export(app: tauri::AppHandle, job: State<ExportJob>, id: String, optio
             if cancelled() {
                 return Err("cancelled".into());
             }
+            if files.is_empty() && sample_missing {
+                return Err("No chapter has a minute of lines yet, so no retail sample was made.".into());
+            }
             let files = staging.finish(&files)?;
             // Kept with the production so "Verify a file" can recognise the watermark later.
             studio::add_export(&data, &id, serde_json::json!({"id": export_id, "message": message, "date": now as f64, "files": files.iter().map(|f| f.to_string_lossy()).collect::<Vec<_>>()}))?;
-            Ok(serde_json::json!({"files": files.iter().map(|f| f.to_string_lossy()).collect::<Vec<_>>(), "report": report, "exportId": export_id}))
+            Ok(serde_json::json!({"files": files.iter().map(|f| f.to_string_lossy()).collect::<Vec<_>>(), "report": report, "exportId": export_id, "sampleMissing": sample_missing}))
         })();
         job.running.store(false, Ordering::SeqCst);
         let _ = app.emit("studio-export-done", match outcome {
@@ -1867,13 +1918,35 @@ async fn install_update(app: tauri::AppHandle, pending: State<'_, PendingUpdate>
     // Workers may be replaced: stop them first (they start again when needed).
     let _ = app.state::<speech::Speech>().shutdown();
     let _ = app.state::<covers::Covers>().shutdown();
-    let root = data_root(&app)?;
     let handle = app.clone();
-    tauri::async_runtime::spawn_blocking(move || update::install(&handle, &root, &found)).await.map_err(|e| e.to_string())?
+    let result = match data_root(&app) {
+        Ok(root) => tauri::async_runtime::spawn_blocking(move || update::install(&handle, &root, &found))
+            .await
+            .map_err(|e| e.to_string())
+            .and_then(|r| r),
+        Err(e) => Err(e),
+    };
+    // Workers start again on the next request, from the new files if any were replaced.
+    app.state::<speech::Speech>().resume();
+    app.state::<covers::Covers>().resume();
+    result
 }
 #[tauri::command]
 fn restart_app(app: tauri::AppHandle) {
     app.restart();
+}
+/// Tells the user why the app cannot start, with the library file to keep. English only:
+/// the language setting is stored in the database that did not open.
+fn startup_failed(error: &str, file: &std::path::Path) {
+    rfd::MessageDialog::new()
+        .set_level(rfd::MessageLevel::Error)
+        .set_title("Origami Reader could not open your library")
+        .set_description(format!(
+            "The library file could not be opened: {error}\n\nFile: {}\n\nIt may be damaged or in use by another program. Keep a copy of this file before trying again.",
+            file.display()
+        ))
+        .set_buttons(rfd::MessageButtons::Ok)
+        .show();
 }
 pub fn run() {
     tauri::Builder::default()
@@ -1895,8 +1968,18 @@ pub fn run() {
         })
         .setup(|app| {
             let path = data_root(app.handle()).map_err(std::io::Error::other)?;
-            std::fs::create_dir_all(&path)?;
-            let db = Store::open(&path.join("origami.sqlite3")).map_err(std::io::Error::other)?;
+            let file = path.join("origami.sqlite3");
+            if let Err(e) = std::fs::create_dir_all(&path) {
+                startup_failed(&e.to_string(), &file);
+                return Err(e.into());
+            }
+            let db = match Store::open(&file) {
+                Ok(db) => db,
+                Err(e) => {
+                    startup_failed(&e, &file);
+                    return Err(std::io::Error::other(e).into());
+                }
+            };
             app.manage(Database(Mutex::new(db)));
             app.manage(speech::Speech::default());
             app.manage(StudioJob::default());
@@ -1915,6 +1998,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            supporter::supporter_status, supporter::supporter_activate, supporter::supporter_import, supporter::supporter_export,
             voice_studio_state, design_voice, cancel_voice_design, voice_preview_audio, update_voice_preview, delete_voice_preview, save_designed_voice, export_voice_preview,
             list_books,
             list_productions, create_production, read_production, save_production_info, save_production_units, delete_production, studio_render, studio_cancel_render, studio_render_running, studio_take_audio,
@@ -1923,7 +2007,7 @@ pub fn run() {
             studio_verify_file, studio_check_takes, studio_cancel_check,
             studio_asr_ready, studio_pick_recordings, studio_transcribe, studio_cancel_transcribe, studio_preview_print,
             studio_save_portable, studio_open_portable, studio_recording_clip, studio_choose_bed, studio_clear_bed,
-            voice_store_list, voice_store_preview, voice_store_install, model_download, model_download_cancel, studio_recording_readalong,
+            voice_store_list, voice_store_languages, voice_store_preview, voice_store_install, model_download, model_download_cancel, studio_recording_readalong,
             studio_setup_status, studio_setup_download, studio_setup_cancel,
             starter_library_installed,
             install_starter_library,

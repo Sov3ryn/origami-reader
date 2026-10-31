@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { BookMarked, Check, LockKeyhole, X } from "lucide-react";
 import { t } from "../i18n";
@@ -9,6 +9,7 @@ import { isOpen, rewardHint } from "../rewards";
 import { UnlockNote } from "./ThemeGallery";
 import type { BookMeta, Preferences } from "../types";
 import { BookmarkAppearance } from "./BookmarkAppearance";
+import { useModal } from "./useModal";
 import "./bookmarks.css";
 import { recordFeat } from "../feats";
 import { coverPattern, coverPatterns } from "../coverGilding";
@@ -33,11 +34,10 @@ export function BindingMenu({
   onClose: () => void;
 }) {
   const [scope, setScope] = useState<"book" | "all">(book ? "book" : "all");
-  const dialog = useRef<HTMLElement>(null);
+  const scrim = useRef<HTMLDivElement>(null);
   const titleId = useId();
-  useEffect(() => {
-    dialog.current?.querySelector<HTMLElement>("[aria-pressed='true'], button")?.focus();
-  }, []);
+  // Focus starts on the current binding, stays inside and returns on close.
+  useModal(scrim);
   const stats = readingStats(prefs.readingStats);
   const forBook = scope === "book" && book;
   const shown = bindingOf(prefs.binding, forBook ? book.binding : undefined);
@@ -56,9 +56,8 @@ export function BindingMenu({
     ["cover", t("Cover"), t("A gilded frame with corner rosettes, or the cover as it is.")],
   ];
   const content = (
-    <div className="modal-scrim gallery-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div ref={scrim} className="modal-scrim gallery-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <section
-        ref={dialog}
         className="quick-dialog theme-gallery binding-menu"
         role="dialog"
         aria-modal="true"
@@ -117,6 +116,7 @@ export function BindingMenu({
                         key={f.id}
                         className={"edge-tile binding-" + part + (chosen ? " chosen" : "") + (locked ? " locked" : "")}
                         aria-pressed={locked ? undefined : chosen}
+                        data-autofocus={chosen || undefined}
                         aria-disabled={locked ? true : undefined}
                         aria-describedby={locked ? `binding-hint-${part}-${f.id}` : undefined}
                         onClick={() => !locked && choose(part, f.id)}

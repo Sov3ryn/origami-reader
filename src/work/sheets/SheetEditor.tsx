@@ -123,7 +123,13 @@ export default function SheetEditor({
         const name = workbook.getActiveSheet().getSheetName();
         return `${/[^A-Za-z0-9_]/.test(name) ? `'${name}'` : name}!${r.getA1Notation()}`;
       },
-      snapshot: () => workbook.save() as unknown as WorkbookData,
+      snapshot: () => {
+        try {
+          return workbook.save() as unknown as WorkbookData;
+        } catch {
+          return null;
+        }
+      },
     });
     return () => {
       if (timer) save();

@@ -317,14 +317,14 @@ export type Manuscript = {
   theme?: string;
   chapters: { title: string | null; blocks: { text: string; quote?: boolean; center?: boolean }[] }[];
 };
-export type ExportProgress = { id: string; step: string; value: number };
+export type ExportProgress = { id: string; step: string; key?: string; title?: string; value: number };
 export type LevelReport = { title: string; rms: number; peak: number; floor: number; seconds: number; pass: boolean };
 export type ExportDone = {
   id: string;
   ok: boolean;
   cancelled?: boolean;
   message?: string;
-  result?: { files: string[]; report: LevelReport[]; exportId: string };
+  result?: { files: string[]; report: LevelReport[]; exportId: string; sampleMissing?: boolean };
 };
 export const exportProduction = (id: string, options: ExportOptions) => invoke<void>("studio_export", { id, options });
 export const cancelExport = () => invoke<void>("studio_cancel_export");

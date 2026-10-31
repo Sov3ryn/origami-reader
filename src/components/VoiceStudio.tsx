@@ -40,7 +40,7 @@ import {
   type VoiceDesign,
   type VoiceTake,
 } from "../voiceDesign";
-import { t } from "../i18n";
+import { displayLocale, t } from "../i18n";
 import "./voiceStudio.css";
 import { recordFeat } from "../feats";
 
@@ -124,6 +124,47 @@ export function VoiceStudio({
     if (!active) audio.current?.pause();
   }, [active]);
   const error = designError(spec);
+  // Display names for the guided builder and design languages. The stored
+  // values stay English; each label is a literal so it can be translated.
+  const choiceLabel: Record<string, string> = {
+    "young adult": t("Young adult"),
+    adult: t("Adult"),
+    "middle-aged": t("Middle-aged"),
+    older: t("Older"),
+    low: t("Low"),
+    medium: t("Medium"),
+    high: t("High"),
+    slow: t("Slow"),
+    natural: t("Natural"),
+    brisk: t("Brisk"),
+    storytelling: t("Storytelling"),
+    conversational: t("Conversational"),
+    dramatic: t("Dramatic"),
+    documentary: t("Documentary"),
+    soothing: t("Soothing"),
+    warm: t("Warm"),
+    calm: t("Calm"),
+    bright: t("Bright"),
+    gravelly: t("Gravelly"),
+    breathy: t("Breathy"),
+    crisp: t("Crisp"),
+    smoky: t("Smoky"),
+    gentle: t("Gentle"),
+    rich: t("Rich"),
+    playful: t("Playful"),
+  };
+  const languageLabel: Record<string, string> = {
+    English: t("English"),
+    Chinese: t("Chinese"),
+    Japanese: t("Japanese"),
+    Korean: t("Korean"),
+    French: t("French"),
+    German: t("German"),
+    Spanish: t("Spanish"),
+    Portuguese: t("Portuguese"),
+    Italian: t("Italian"),
+    Russian: t("Russian"),
+  };
   async function refresh() {
     if (!desktop) return;
     const next = await invoke<StudioState>("voice_studio_state");
@@ -328,11 +369,9 @@ export function VoiceStudio({
         <div className="studio-notice">
           <div>
             <strong>
-              {t(
-                desktop
-                  ? "Qwen VoiceDesign is required"
-                  : "Voice creation runs in the desktop app",
-              )}
+              {desktop
+                ? t("Qwen VoiceDesign is required")
+                : t("Voice creation runs in the desktop app")}
             </strong>
             <p>
               {t(
@@ -393,7 +432,9 @@ export function VoiceStudio({
                   }}
                 >
                   {designLanguages.map((l) => (
-                    <option key={l}>{l}</option>
+                    <option key={l} value={l}>
+                      {languageLabel[l] ?? l}
+                    </option>
                   ))}
                 </select>
               </label>
@@ -504,7 +545,7 @@ export function VoiceStudio({
                             setBuilder((b) => ({ ...b, [key]: o }))
                           }
                         >
-                          {t(o[0].toUpperCase() + o.slice(1))}
+                          {choiceLabel[o] ?? o}
                         </button>
                       ))}
                     </div>
@@ -530,7 +571,7 @@ export function VoiceStudio({
                             }))
                           }
                         >
-                          {t(o[0].toUpperCase() + o.slice(1))}
+                          {choiceLabel[o] ?? o}
                         </button>
                       );
                     })}
@@ -613,7 +654,23 @@ export function VoiceStudio({
                   maxLength={100}
                   list="studio-accents"
                   placeholder={t("For example, Scottish")}
-                  onChange={(e) => patch({ accent: e.target.value })}
+                  onChange={(e) => {
+                    const accent = e.target.value;
+                    // Presets include the accent label, so keep the
+                    // "Speak in ..." sentence in step with it.
+                    patch({
+                      accent,
+                      ...(mode === "preset"
+                        ? {
+                            prompt: spec.prompt.replace(
+                              /Speak in (\w+)(?: with an? .+? accent)?\./,
+                              (_m, lang: string) =>
+                                `Speak in ${lang}${accent.trim() ? ` with a ${accent.trim()} accent` : ""}.`,
+                            ),
+                          }
+                        : {}),
+                    });
+                  }}
                 />
                 <datalist id="studio-accents">
                   {commonAccents.map((a) => (
@@ -858,18 +915,16 @@ export function VoiceStudio({
             <div className="studio-empty">
               <AudioLines size={44} />
               <h3>
-                {t(
-                  state.previews.length
-                    ? "No matching takes"
-                    : "No voice takes yet",
-                )}
+                {state.previews.length
+                  ? t("No matching takes")
+                  : t("No voice takes yet")}
               </h3>
               <p>
-                {t(
-                  state.previews.length
-                    ? "Try another search or turn off the favorites filter."
-                    : "Choose a direction and generate a few takes. Compare them here before saving one to your voice library.",
-                )}
+                {state.previews.length
+                  ? t("Try another search or turn off the favorites filter.")
+                  : t(
+                      "Choose a direction and generate a few takes. Compare them here before saving one to your voice library.",
+                    )}
               </p>
             </div>
           ) : (
@@ -884,6 +939,8 @@ export function VoiceStudio({
                   tabIndex={0}
                   onClick={() => setSelected(v.id)}
                   onKeyDown={(e) => {
+                    // Keys on the inner Play button keep their own activation.
+                    if (e.target !== e.currentTarget) return;
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       setSelected(v.id);
@@ -920,7 +977,7 @@ export function VoiceStudio({
                     </strong>
                     <small>
                       {v.spec.language} · {seconds(v.duration)} ·{" "}
-                      {new Date(v.createdAt).toLocaleDateString()}
+                      {new Date(v.createdAt).toLocaleDateString(displayLocale())}
                     </small>
                   </div>
                   {v.favorite && <Heart size={14} fill="currentColor" />}
@@ -939,9 +996,11 @@ export function VoiceStudio({
                 <button
                   disabled={mutation}
                   className="icon-button"
-                  aria-label={t(
-                    take.favorite ? "Remove favorite" : "Favorite take",
-                  )}
+                  aria-label={
+                    take.favorite
+                      ? t("Remove from favorites")
+                      : t("Add to favorites")
+                  }
                   onClick={() =>
                     void action(() =>
                       invoke("update_voice_preview", {
@@ -1003,7 +1062,7 @@ export function VoiceStudio({
               <div className="studio-player">
                 <button
                   className="primary"
-                  aria-label={t(playing ? "Pause take" : "Play take")}
+                  aria-label={playing ? t("Pause take") : t("Play take")}
                   disabled={!source || busy}
                   onClick={() => void play()}
                 >
@@ -1219,7 +1278,7 @@ export function VoiceStudio({
                           reviewed,
                         });
                         audio.current?.pause();
-                        setSelected("");
+                        // The take stays selected so "Use this voice now" shows.
                         await callbacks.current.onSaved();
                         setMessage(
                           t(

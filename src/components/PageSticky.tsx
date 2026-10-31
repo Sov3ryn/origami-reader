@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronsDownUp, Trash2 } from "lucide-react";
 import { t } from "../i18n";
-import { stickyColors } from "../work/stickies/Stickies";
+import { colorNames, stickyColors } from "../work/stickies/Stickies";
 import type { Annotation } from "../types";
 
 // A sticky note on a book page: a coloured tab in the margin beside its
@@ -29,6 +29,7 @@ export function PageSticky({
   }, [open, autoOpen]);
   useEffect(() => () => window.clearTimeout(timer.current), []);
   const color = stickyColors[note.color] || stickyColors.yellow;
+  const names = colorNames();
   const save = (value: string) => {
     window.clearTimeout(timer.current);
     if (value !== note.text) onChange({ text: value });
@@ -53,15 +54,17 @@ export function PageSticky({
             key={name}
             className={"sticky-color" + (note.color === name ? " active" : "")}
             style={{ background: c.bg, borderColor: c.edge }}
-            aria-label={name}
+            type="button"
+            aria-label={names[name] || name}
+            aria-pressed={note.color === name}
             onClick={() => onChange({ color: name })}
           />
         ))}
         <span className="sticky-spacer" />
-        <button className="sticky-tool" data-tip={t("Fold")} onClick={() => (save(text), setOpen(false))}>
+        <button className="sticky-tool" data-tip={t("Fold")} aria-label={t("Fold")} onClick={() => (save(text), setOpen(false))}>
           <ChevronsDownUp size={13} />
         </button>
-        <button className="sticky-tool" data-tip={t("Remove sticky note")} onClick={onDelete}>
+        <button className="sticky-tool" data-tip={t("Remove sticky note")} aria-label={t("Remove sticky note")} onClick={onDelete}>
           <Trash2 size={13} />
         </button>
       </header>

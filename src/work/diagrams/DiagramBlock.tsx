@@ -18,6 +18,8 @@ async function loadMermaid(dark: boolean): Promise<Mermaid> {
     mermaid.initialize({
       startOnLoad: false,
       securityLevel: "strict",
+      // Throw on bad text instead of leaving a "Syntax error" drawing in <body>.
+      suppressErrorRendering: true,
       theme,
       fontFamily: "Inter, Segoe UI, system-ui, sans-serif",
       htmlLabels: false,
@@ -164,10 +166,10 @@ function DiagramView({ node, updateAttributes, deleteNode, editor }: ReactNodeVi
             </button>
             {svg && (
               <>
-                <button type="button" className="mini quiet" data-tip={t("Copy the diagram's text")} onClick={() => void navigator.clipboard.writeText(code).catch(() => {})}>
+                <button type="button" className="mini quiet" aria-label={t("Copy the diagram's text")} data-tip={t("Copy the diagram's text")} onClick={() => void navigator.clipboard.writeText(code).catch(() => {})}>
                   <Copy size={13} />
                 </button>
-                <button type="button" className="mini quiet" data-tip={t("Save as SVG")} onClick={exportSvg}>
+                <button type="button" className="mini quiet" aria-label={t("Save as SVG")} data-tip={t("Save as SVG")} onClick={exportSvg}>
                   <Download size={13} />
                 </button>
               </>

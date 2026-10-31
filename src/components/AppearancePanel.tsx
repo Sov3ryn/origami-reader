@@ -14,9 +14,9 @@ import { ThemeGallery } from "./ThemeGallery";
 import { themes } from "../themes";
 import {
   backgroundImage,
-  defaultSceneAppearance,
   effectLabels,
   getBackground,
+  openSceneDefaults,
   sceneFor,
   sceneTime,
   seasons,
@@ -230,11 +230,9 @@ export function AppearancePanel({
                   checked={prefs[key]}
                   onChange={(e) => onChange({ [key]: e.target.checked })}
                 />
-                {t(
-                  key === "cabinLights" && background.location === "garden"
-                    ? "Stone lantern"
-                    : effectLabels[key],
-                )}
+                {key === "cabinLights" && background.location === "garden"
+                  ? t("Stone lantern")
+                  : t(effectLabels[key])}
               </label>
             ))}
           </div>
@@ -356,7 +354,7 @@ export function AppearancePanel({
         )}
         <button
           className="text-button scene-reset"
-          onClick={() => onChange(defaultSceneAppearance(prefs.scene))}
+          onClick={() => onChange(openSceneDefaults(prefs.scene, prefs))}
         >
           {t("Reset scene defaults")}
         </button>

@@ -49,11 +49,21 @@ const dataFiles = {
   // Mood labels: ["id", "Label", "prompt for the voice designer"].
   // Store profiles: name, credited narrator and note, and the stores that refuse.
   "studio/production.ts": [/\bname: "((?:[^"\\]|\\.)*)"/g, /\bnarrator: "((?:[^"\\]|\\.)*)"/g, /\bnote: "((?:[^"\\]|\\.)*)"/g, /refusingStores = "((?:[^"\\]|\\.)*)"/g],
-  "studio/cast.ts": [/\["[a-z]+", "([A-Z][a-z]+)", "[A-Z][^"]{20,}"\]/g],
+  // Cast analysis steps: progress("Step", fraction).
+  "studio/cast.ts": [/\["[a-z]+", "([A-Z][a-z]+)", "[A-Z][^"]{20,}"\]/g, /\bprogress\(\s*"([^"]+)"/g],
   // Cover title styles and inks: ["id", "Label"].
   "coverTitles.ts": [/\["[a-z]+", "([A-Z][^"]+)"\]/g],
+  // Bookmark designs and cover patterns: ["id", "Label"].
+  "bookmarks.ts": [/\["[a-z-]+", "([A-Z][^"]+)"\]/g],
+  "coverGilding.ts": [/\["[a-z-]+", "([A-Z][^"]+)"\]/g],
   // Achievement names and goals, and the chapter titles: ["id", "Title"].
   "achievements.ts": [/\bname: "([^"]+)"/g, /\bgoal: "([^"]+)"/g, /\["[a-z]+", "([A-Z][^"]+)"\]/g],
+  // Voice note spoken languages: ["code", "Label"].
+  "work/voice/voice.ts": [/\["[a-z]*", "([^"]+)"\]/g],
+  // Model descriptions and hardware notes, shown on the Models page.
+  "modelCatalog.ts": [/\bdescription:\s*"([^"]+)"/g, /\bhardware:\s*"([^"]+)"/g],
+  // Voice designer presets (name and style) and designError messages.
+  "voiceDesign.ts": [/\bname: "([^"]+)"/g, /\bstyle: "([^"]+)"/g, /return "([^"]+)";/g],
 };
 // Single-quoted messages, used when the text itself contains double quotes.
 const single = String.raw`'((?:[^'\\]|\\.)*)'`;
@@ -82,6 +92,15 @@ for (const file of files) {
       text.indexOf("} as const"),
     );
     for (const m of block.matchAll(/: "([^"]+)"/g)) strings.add(unescape(m[1]));
+  }
+  // Take review issues live in one record in production.ts. Only that block is
+  // read, so the per-language credit table further down is left out.
+  if (rel === "studio/production.ts") {
+    const start = text.indexOf("issueText: Record<Issue, string> = {");
+    if (start >= 0) {
+      const block = text.slice(start, text.indexOf("};", start));
+      for (const m of block.matchAll(/: "([^"]+)"/g)) strings.add(unescape(m[1]));
+    }
   }
   for (const pattern of dataFiles[rel] || [])
     for (const m of text.matchAll(pattern)) strings.add(unescape(m[1]).replace(/\\(["\\])/g, "$1"));

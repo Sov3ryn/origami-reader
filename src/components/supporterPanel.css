@@ -1,0 +1,16 @@
+.supporter-panel {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+.supporter-panel textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 5rem;
+  margin: .75rem 0;
+  font-family: monospace;
+  overflow-wrap: anywhere;
+}
+.supporter-panel .donate-actions { flex-wrap: wrap; }

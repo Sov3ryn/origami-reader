@@ -43,7 +43,7 @@ function EmbedView({ node, deleteNode, selected }: ReactNodeViewProps) {
       <span className="embed-url" title={url}>
         {url.replace(/^https?:\/\/(www\.)?/, "")}
       </span>
-      <button className="mini" onClick={() => world?.openExternal(url)} data-tip={t("Open in your browser")}>
+      <button className="mini" onClick={() => world?.openExternal(url)} aria-label={t("Open in your browser")} data-tip={t("Open in your browser")}>
         <ExternalLink size={13} />
       </button>
       <button className="mini quiet" onClick={deleteNode} aria-label={t("Remove from note")}>

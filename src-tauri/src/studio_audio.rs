@@ -461,28 +461,38 @@ fn set_m4b_brand(path: &Path) -> Result<()> {
 
 /// mp4ameta writes the Nero chapter list as version 0; most readers want version 1
 /// (4 reserved bytes before the count). Rewritten only when moov is the last atom,
-/// so no sample offsets move. The new file is written beside it and then takes its
-/// place, so a failure never leaves half a file.
+/// so no sample offsets move. Only moov is read and rewritten in place; the file is
+/// in the export's staging folder, so a failed write is discarded with it.
 fn chpl_to_v1(path: &Path) -> Result<()> {
-    let mut data = std::fs::read(path).map_err(|e| e.to_string())?;
-    let be32 = |d: &[u8], p: usize| u32::from_be_bytes([d[p], d[p + 1], d[p + 2], d[p + 3]]) as usize;
-    let mut pos = 0usize;
+    use std::io::{Read, Seek, SeekFrom, Write};
+    let err = |e: std::io::Error| e.to_string();
+    let mut f = std::fs::OpenOptions::new().read(true).write(true).open(path).map_err(err)?;
+    let len = f.metadata().map_err(err)?.len();
+    let mut pos = 0u64;
     let mut moov = None;
-    while pos + 8 <= data.len() {
-        let size = be32(&data, pos);
+    while pos + 8 <= len {
+        let mut head = [0u8; 8];
+        f.seek(SeekFrom::Start(pos)).map_err(err)?;
+        f.read_exact(&mut head).map_err(err)?;
+        let size = u32::from_be_bytes([head[0], head[1], head[2], head[3]]) as u64;
         if size < 8 {
             return Ok(());
         }
-        if &data[pos + 4..pos + 8] == b"moov" {
+        if &head[4..8] == b"moov" {
             moov = Some((pos, size));
         }
         pos += size;
     }
     let Some((mpos, msize)) = moov else { return Ok(()) };
-    if mpos + msize != data.len() {
+    if mpos + msize != len {
         return Ok(());
     }
+    let mut data = vec![0u8; msize as usize];
+    f.seek(SeekFrom::Start(mpos)).map_err(err)?;
+    f.read_exact(&mut data).map_err(err)?;
+    let msize = msize as usize;
     let find = |d: &[u8], start: usize, end: usize, name: &[u8; 4]| -> Option<(usize, usize)> {
+        let end = end.min(d.len());
         let mut p = start;
         while p + 8 <= end {
             let s = u32::from_be_bytes([d[p], d[p + 1], d[p + 2], d[p + 3]]) as usize;
@@ -496,9 +506,10 @@ fn chpl_to_v1(path: &Path) -> Result<()> {
         }
         None
     };
-    let Some((upos, usz)) = find(&data, mpos + 8, mpos + msize, b"udta") else { return Ok(()) };
+    // Offsets below are inside moov, which starts at 0 in this buffer.
+    let Some((upos, usz)) = find(&data, 8, msize, b"udta") else { return Ok(()) };
     let Some((cpos, csize)) = find(&data, upos + 8, upos + usz, b"chpl") else { return Ok(()) };
-    if data[cpos + 8] != 0 {
+    if csize < 12 || cpos + csize > data.len() || data[cpos + 8] != 0 {
         return Ok(());
     }
     let mut chpl = Vec::with_capacity(csize + 4);
@@ -508,15 +519,11 @@ fn chpl_to_v1(path: &Path) -> Result<()> {
     chpl.extend_from_slice(&data[cpos + 12..cpos + csize]);
     data.splice(cpos..cpos + csize, chpl);
     data[upos..upos + 4].copy_from_slice(&((usz + 4) as u32).to_be_bytes());
-    data[mpos..mpos + 4].copy_from_slice(&((msize + 4) as u32).to_be_bytes());
-    let mut temp = path.as_os_str().to_owned();
-    temp.push(".tmp");
-    let temp = PathBuf::from(temp);
-    if let Err(e) = std::fs::write(&temp, &data).and_then(|_| std::fs::rename(&temp, path)) {
-        let _ = std::fs::remove_file(&temp);
-        return Err(e.to_string());
-    }
-    Ok(())
+    data[0..4].copy_from_slice(&((msize + 4) as u32).to_be_bytes());
+    // The file grows by the 4 bytes at its end.
+    f.seek(SeekFrom::Start(mpos)).map_err(err)?;
+    f.write_all(&data).map_err(err)?;
+    f.flush().map_err(err)
 }
 
 // --- Encoding (Windows Media Foundation) --------------------------------------------------------
@@ -697,7 +704,8 @@ pub struct AudioJob<'a> {
     pub bed: Option<Bed>,
     pub watermark: Option<Watermark>,
     pub message: u16,
-    pub progress: &'a dyn Fn(String, f64),
+    /// Untranslated step (with a {title} placeholder or not), chapter title, share done.
+    pub progress: &'a dyn Fn(&str, &str, f64),
     pub cancelled: &'a dyn Fn() -> bool,
 }
 
@@ -1096,7 +1104,7 @@ pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTim
             }
             track += 1;
             if let Some(dir) = &job.stems {
-                (job.progress)(format!("Writing the stems of {}", ch.title), i as f64 / total);
+                (job.progress)("Writing the stems of {title}", &ch.title, i as f64 / total);
                 let bed = job.bed.as_ref().filter(|_| !ch.takes.iter().any(|t| t.unit == "credit")).map(|b| (b, bed_at));
                 write_stems(ch, track, dir, job.watermark.as_mut(), job.message, &job.meta, &job.comment, bed)?;
                 stems_written = true;
@@ -1104,7 +1112,7 @@ pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTim
             if m4b.is_none() && !job.mp3 && job.readalong.is_none() && !sample_left {
                 continue;
             }
-            (job.progress)(format!("Mastering {}", ch.title), i as f64 / total);
+            (job.progress)("Mastering {title}", &ch.title, i as f64 / total);
             let bed = job.bed.as_ref().filter(|_| !ch.takes.iter().any(|t| t.unit == "credit")).map(|b| (b, bed_at));
             let (audio, lines) = master_chapter(ch, 0x5eed + i as u64, job.watermark.as_mut(), job.message, bed)?;
             if audio.is_empty() {
@@ -1150,7 +1158,7 @@ pub fn export(job: AudioJob) -> Result<(Vec<PathBuf>, Vec<Value>, Vec<ChapterTim
             files.push(dir.clone());
         }
         if let (Some(enc), Some(path)) = (m4b, m4b_path) {
-            (job.progress)("Finishing the audiobook".into(), 0.97);
+            (job.progress)("Finishing the audiobook", "", 0.97);
             enc.finish()?;
             tag_m4b(&path, &job.meta, &marks, job.cover.as_deref())?;
             files.insert(0, path);
@@ -1175,6 +1183,41 @@ mod tests {
         assert!(l["peak"].as_f64().unwrap() <= -3.0, "{l}");
         assert!((l["rms"].as_f64().unwrap() + 20.0).abs() < 1.0, "{l}");
         assert!(l["floor"].as_f64().unwrap() <= -60.0, "{l}");
+    }
+
+    #[test]
+    fn chapter_list_becomes_version_one_in_place() {
+        let atom = |name: &[u8; 4], body: &[u8]| -> Vec<u8> {
+            let mut a = ((body.len() + 8) as u32).to_be_bytes().to_vec();
+            a.extend_from_slice(name);
+            a.extend_from_slice(body);
+            a
+        };
+        // A version 0 chpl: version and flags, then a count of one and one chapter.
+        let chpl = atom(b"chpl", &[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, b'A']);
+        let udta = atom(b"udta", &chpl);
+        let moov = atom(b"moov", &udta);
+        let mut file = atom(b"ftyp", b"M4A \0\0\0\0");
+        file.extend(atom(b"mdat", b"audio"));
+        let head = file.len();
+        file.extend(&moov);
+        let dir = std::env::temp_dir().join(format!("origami-chpl-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("a.m4b");
+        std::fs::write(&path, &file).unwrap();
+        chpl_to_v1(&path).unwrap();
+        let out = std::fs::read(&path).unwrap();
+        assert_eq!(out.len(), file.len() + 4);
+        assert_eq!(&out[..head], &file[..head]);
+        assert_eq!(u32::from_be_bytes(out[head..head + 4].try_into().unwrap()) as usize, moov.len() + 4);
+        let c = head + 16;
+        assert_eq!(&out[c + 4..c + 8], b"chpl");
+        assert_eq!(&out[c + 8..c + 16], &[1, 0, 0, 0, 0, 0, 0, 0]);
+        assert_eq!(&out[c + 16..], &[1, 0, 0, 0, 0, 0, 0, 0, 0, 1, b'A']);
+        // Already version 1: left as it is.
+        chpl_to_v1(&path).unwrap();
+        assert_eq!(std::fs::read(&path).unwrap(), out);
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Check, Download, LoaderCircle, Trash2, X } from "lucide-react";
-import { t } from "../../i18n";
+import { displayLocale, t } from "../../i18n";
 import {
   autoTranscribe,
   cancelVoiceDownload,
@@ -17,7 +17,7 @@ import {
   type VoiceStatus,
 } from "./voice";
 
-const mb = (bytes: number) => Math.round(bytes / 1_000_000).toLocaleString();
+const mb = (bytes: number) => Math.round(bytes / 1_000_000).toLocaleString(displayLocale());
 const describe = (id: string) =>
   id === "small"
     ? t("Most accurate, including French and accents. About a third of real time on a recent processor.")

@@ -20,19 +20,31 @@ export function UpdatesPanel({
   version,
   auto,
   onAuto,
+  offered,
+  onInstalled,
 }: {
   version: string;
   auto: boolean;
   onAuto: (on: boolean) => void;
+  // An update already found elsewhere (the update card's "Details").
+  offered?: UpdateFound | null;
+  onInstalled?: () => void;
 }) {
   const [status, setStatus] = useState<UpdateStatus | null>(null);
-  const [found, setFound] = useState<UpdateFound | null>(null);
+  const [found, setFound] = useState<UpdateFound | null>(offered ?? null);
   const [state, setState] = useState<"idle" | "checking" | "installing" | "restart" | "current">("idle");
   const [progress, setProgress] = useState(0);
   const [problem, setProblem] = useState("");
   useEffect(() => {
     void updateStatus().then(setStatus).catch(() => setStatus(null));
   }, []);
+  useEffect(() => {
+    if (offered) {
+      setFound(offered);
+      setState("idle");
+      setProblem("");
+    }
+  }, [offered]);
   useEffect(() => {
     if (state !== "installing") return;
     const off = onUpdateProgress((p) => setProgress(p.total ? p.received / p.total : 0));
@@ -59,6 +71,7 @@ export function UpdatesPanel({
     try {
       const restart = await installUpdate();
       setFound(null);
+      onInstalled?.();
       setState(restart ? "restart" : "current");
       setStatus(await updateStatus());
     } catch (e) {

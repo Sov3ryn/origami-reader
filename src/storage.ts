@@ -439,6 +439,9 @@ export async function deleteVoices(ids: string[]): Promise<string[]> {
 export async function voiceStoreList(): Promise<Voice[]> {
   return desktop ? invoke("voice_store_list") : [];
 }
+export async function voiceStoreLanguages(): Promise<string[]> {
+  return desktop ? invoke("voice_store_languages") : [];
+}
 export async function voiceStorePreview(id: string): Promise<string> {
   return invoke("voice_store_preview", { id });
 }

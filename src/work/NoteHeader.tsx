@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ImagePlus, NotebookText, RulerDimensionLine, Pin, PinOff, Plus, SmilePlus, Tag, X } from "lucide-react";
 import { pageSizeOf, pageSizes, papers, type PageSize } from "./papers";
-import { t } from "../i18n";
+import { displayLocale, t } from "../i18n";
 import type { Note } from "./types";
 
 // Covers are soft gradients drawn from the theme, so notes stay light and
@@ -37,6 +37,23 @@ export function NoteHeader({
 }) {
   const [picker, setPicker] = useState<"icon" | "cover" | "paper" | "size" | null>(null);
   const [tagDraft, setTagDraft] = useState<string | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  // An open picker closes on a click outside it and its buttons, and on Escape.
+  useEffect(() => {
+    if (!picker) return;
+    const outside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const keep = box.current?.querySelectorAll(".note-picker, .note-header-tools, .note-icon, .cover-change") || [];
+      if (!Array.from(keep).some((el) => el.contains(target))) setPicker(null);
+    };
+    const key = (e: KeyboardEvent) => e.key === "Escape" && setPicker(null);
+    window.addEventListener("mousedown", outside);
+    window.addEventListener("keydown", key);
+    return () => {
+      window.removeEventListener("mousedown", outside);
+      window.removeEventListener("keydown", key);
+    };
+  }, [picker]);
   const tags = note.tags || [];
   const addTag = (raw: string) => {
     const tag = raw.trim().replace(/^#/, "").slice(0, 32);
@@ -44,7 +61,7 @@ export function NoteHeader({
     if (tag && !tags.some((x) => x.toLowerCase() === tag.toLowerCase())) onChange({ tags: [...tags, tag] });
   };
   return (
-    <div className={"note-header" + (note.cover ? " with-cover" : "")}>
+    <div ref={box} className={"note-header" + (note.cover ? " with-cover" : "")}>
       {note.cover && covers[note.cover] && (
         <div className="note-cover" style={{ background: covers[note.cover] }}>
           <button className="cover-change" onClick={() => setPicker(picker === "cover" ? null : "cover")}>
@@ -222,7 +239,7 @@ export function NoteHeader({
           />
         )}
         <span className="note-meta">
-          {words === 1 ? t("1 word") : t("{count} words", { count: words.toLocaleString() })}
+          {words === 1 ? t("1 word") : t("{count} words", { count: words.toLocaleString(displayLocale()) })}
           {words > 120 && ` · ${t("{minutes} min read", { minutes: Math.max(1, Math.round(words / 230)) })}`}
         </span>
       </div>

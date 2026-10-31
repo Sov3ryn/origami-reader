@@ -44,6 +44,8 @@ export function ReaderMenu({
   onClose: () => void;
 }) {
   const menu = useRef<HTMLDivElement>(null);
+  // Where focus was when the menu opened, given back when it closes by key.
+  const opener = useRef(document.activeElement as HTMLElement | null);
   const [place, setPlace] = useState({ left: x, top: y });
   // Kept inside the window, opening upward or leftward near the edges.
   // A blurred or transformed ancestor makes "fixed" relative to itself, so the
@@ -99,6 +101,7 @@ export function ReaderMenu({
         if (e.key === "Escape" || e.key === "Tab") {
           e.preventDefault();
           onClose();
+          opener.current?.focus({ preventScroll: true });
         } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
           e.preventDefault();
           const step = e.key === "ArrowDown" ? 1 : -1;

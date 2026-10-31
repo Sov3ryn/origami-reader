@@ -14,15 +14,55 @@ pub fn decode_any(path: &Path) -> Result<(Vec<f32>, u32)> {
     decode_range(path, 0.0, 1200.0)
 }
 
-/// Up to `seconds` of mono audio from `start` (seconds) on, seeking in compressed
-/// files so a moment hours into an audiobook is read at once.
+/// Up to `seconds` of mono audio from `start` (seconds) on. WAV and compressed
+/// files seek, so a moment hours into an audiobook is read at once; FLAC is read
+/// up to the end of the range without keeping the audio before it.
 pub fn decode_range(path: &Path, start: f64, seconds: f64) -> Result<(Vec<f32>, u32)> {
     let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
-    if ext == "flac" || ext == "wav" {
-        let (x, rate) = crate::studio_audio::decode(path)?;
-        let a = ((start.max(0.0) * rate as f64) as usize).min(x.len());
-        let b = (a + (seconds * rate as f64) as usize).min(x.len());
-        return Ok((x[a..b].to_vec(), rate));
+    if ext == "wav" {
+        // First channel only, like studio_audio::decode.
+        let mut r = hound::WavReader::open(path).map_err(|e| e.to_string())?;
+        let spec = r.spec();
+        let (ch, rate) = ((spec.channels as usize).max(1), spec.sample_rate);
+        let frame = ((start.max(0.0) * rate as f64) as u64).min(r.duration() as u64) as u32;
+        r.seek(frame).map_err(|e| e.to_string())?;
+        let n = (seconds.max(0.0) * rate as f64) as usize;
+        let x: Vec<f32> = match spec.sample_format {
+            hound::SampleFormat::Float => r.samples::<f32>().take(n.saturating_mul(ch)).step_by(ch).filter_map(|s| s.ok()).collect(),
+            hound::SampleFormat::Int => {
+                let scale = 1.0 / (1i64 << (spec.bits_per_sample - 1)) as f32;
+                r.samples::<i32>().take(n.saturating_mul(ch)).step_by(ch).filter_map(|s| s.ok()).map(|s| s as f32 * scale).collect()
+            }
+        };
+        // A range past the end is simply empty, as before; an empty file is not.
+        if x.is_empty() && start <= 0.0 {
+            return Err("This file has no audio.".into());
+        }
+        return Ok((x, rate));
+    }
+    if ext == "flac" {
+        let mut r = claxon::FlacReader::open(path).map_err(|e| e.to_string())?;
+        let info = r.streaminfo();
+        let (ch, rate) = ((info.channels as usize).max(1), info.sample_rate);
+        let scale = 1.0 / (1i64 << (info.bits_per_sample - 1)) as f32;
+        let a = (start.max(0.0) * rate as f64) as usize;
+        let b = a.saturating_add((seconds.max(0.0) * rate as f64) as usize);
+        let mut x = Vec::with_capacity((b - a).min(rate as usize * 1200));
+        for (i, s) in r.samples().enumerate() {
+            let frame = i / ch;
+            if frame >= b {
+                break;
+            }
+            let s = s.map_err(|e| e.to_string())?;
+            if frame >= a && i % ch == 0 {
+                x.push(s as f32 * scale);
+            }
+        }
+        // A range past the end is simply empty, as before; an empty file is not.
+        if x.is_empty() && start <= 0.0 {
+            return Err("This file has no audio.".into());
+        }
+        return Ok((x, rate));
     }
     use symphonia::core::codecs::audio::AudioDecoderOptions;
     use symphonia::core::errors::Error;
@@ -225,4 +265,29 @@ fn wav_info(path: &Path) -> Vec<(String, String)> {
         }
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn wav_range_seeks_and_keeps_the_first_channel() {
+        let d = tempfile::tempdir().unwrap();
+        let path = d.path().join("range.wav");
+        let spec = hound::WavSpec { channels: 2, sample_rate: 1000, bits_per_sample: 16, sample_format: hound::SampleFormat::Int };
+        let mut w = hound::WavWriter::create(&path, spec).unwrap();
+        for i in 0..3000i32 {
+            w.write_sample((i % 1000) as i16).unwrap();
+            w.write_sample(-1i16).unwrap();
+        }
+        w.finalize().unwrap();
+        let (x, rate) = decode_range(&path, 1.5, 0.5).unwrap();
+        assert_eq!(rate, 1000);
+        assert_eq!(x.len(), 500);
+        assert!((x[0] - 500.0 / 32768.0).abs() < 1e-6);
+        let (tail, _) = decode_range(&path, 2.9, 5.0).unwrap();
+        assert_eq!(tail.len(), 100);
+        assert!(decode_range(&path, 10.0, 1.0).unwrap().0.is_empty());
+    }
 }

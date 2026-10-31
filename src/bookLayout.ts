@@ -9,6 +9,35 @@ export const BOOK_MIN_WIDTH = 900;
 // And the shortest: below it a page would be under 360 px tall (BookView), so
 // the book could never be set; the reader falls back to pages.
 export const BOOK_MIN_HEIGHT = 480;
+// Page width to page height.
+export const BOOK_PAGE_ASPECT = 0.7;
+
+// Height of one book page for a reading area, leaving room for an illustrated
+// bookmark beside the book (its width/height ratio), or none when no ratio.
+export function bookPageHeight(
+  width: number,
+  height: number,
+  bookmarkRatio?: number,
+) {
+  const lane =
+    bookmarkRatio === undefined ? 0 : (4 / 3) * (bookmarkRatio + 0.1);
+  return Math.floor(
+    Math.min(height - 110, (width - 150) / (2 * BOOK_PAGE_ASPECT + lane), 1150),
+  );
+}
+// Whether the book can be set in a reading area: below 360 px a page is too
+// short, so the reader falls back to pages.
+export function bookFits(
+  width: number,
+  height: number,
+  bookmarkRatio?: number,
+) {
+  return (
+    width >= BOOK_MIN_WIDTH &&
+    height >= BOOK_MIN_HEIGHT &&
+    bookPageHeight(width, height, bookmarkRatio) >= 360
+  );
+}
 
 export type BookSection = {
   start: number;

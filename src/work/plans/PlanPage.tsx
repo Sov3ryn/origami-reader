@@ -78,7 +78,7 @@ export function PlanPage({
             </option>
           ))}
         </select>
-        <button className={"ink-tool" + (plan.snap ? " active" : "")} aria-pressed={plan.snap} data-tip={t("Snap to grid")} onClick={() => onChange({ snap: !plan.snap })}>
+        <button className={"ink-tool" + (plan.snap ? " active" : "")} aria-pressed={plan.snap} aria-label={t("Snap to grid")} data-tip={t("Snap to grid")} onClick={() => onChange({ snap: !plan.snap })}>
           <Magnet size={16} />
         </button>
         <select aria-label={t("Paper")} value={plan.paper || "blueprint"} onChange={(e) => onChange({ paper: e.target.value as PlanDoc["paper"] })}>

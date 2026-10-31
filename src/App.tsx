@@ -1,4 +1,6 @@
 import { VoiceStudio } from "./components/VoiceStudio";
+import { SupporterPanel } from "./components/SupporterPanel";
+import { useSupporter } from "./supporter";
 import { VoiceLibrary, previewLine } from "./components/VoiceLibrary";
 import { LibraryRoom } from "./components/LibraryRoom";
 import { LibraryThemePicker } from "./components/LibraryThemePicker";
@@ -7,7 +9,7 @@ import { LibraryThemePicker } from "./components/LibraryThemePicker";
 const LIBRARY_ROOMS = false;
 import { libraryTheme } from "./libraryThemes";
 import { ModelManager } from "./components/ModelManager";
-import { detectLanguage, loadLanguage, t } from "./i18n";
+import { detectLanguage, displayLocale, loadLanguage, t } from "./i18n";
 import {
   IconButton,
   Cover,
@@ -37,10 +39,9 @@ import {
   languageName,
 } from "./bookLanguage";
 import { LanguageFlag } from "./components/LanguageFlag";
-import { VoiceDownloads } from "./components/VoiceDownloads";
 import { ReaderMenu, type ReaderMenuAction } from "./components/ReaderMenu";
 import { BookView, type BookNav } from "./components/BookView";
-import { BOOK_MIN_HEIGHT, BOOK_MIN_WIDTH } from "./bookLayout";
+import { bookFits } from "./bookLayout";
 import { BETA, BUILD_DATE, STUDIO_ENABLED, VERSION } from "./release";
 import type { AuthorNote } from "./authors";
 import { fillBookDetails, isUnknownAuthor, loadPack } from "./authorPack";
@@ -72,6 +73,7 @@ import {
   checkedCollectionName,
   collectionNames,
   builtInCollections,
+  collectionLabel,
 } from "./collections";
 import {
   AppearancePanel,
@@ -90,6 +92,7 @@ import {
 } from "./backgrounds";
 import {
   contentsEntries,
+  countWords,
   currentEntry,
   formatDuration,
   listeningMinutes,
@@ -168,6 +171,7 @@ import {
   GalleryVerticalEnd,
   PenLine as WorkIcon,
   ShieldCheck,
+  Mail,
   Gauge,
   Cpu,
   Image as ImageIcon,
@@ -206,7 +210,7 @@ import type {
   PronunciationRule,
 } from "./types";
 import { defaultPreferences } from "./types";
-import { themes, annotationColors, darkReadingRoom } from "./themes";
+import { themes, annotationColors, darkReadingRoom, themeScheme } from "./themes";
 import {
   cleanSpokenText,
   createBook,
@@ -247,7 +251,7 @@ import { CoverMotionContext } from "./useCoverTilt";
 import { BindingMenu } from "./components/BindingMenu";
 import { BookmarkAppearance } from "./components/BookmarkAppearance";
 import { PhysicalBookmark } from "./components/PhysicalBookmark";
-import { bookmarkLocation, bookmarkSentence } from "./bookmarks";
+import { bookmarkGeometry, bookmarkLocation, bookmarkSentence } from "./bookmarks";
 import { StudioMode } from "./studio/StudioMode";
 import { listProductions, readProduction, type ProductionInfo } from "./studio/production";
 import { HoverTips } from "./work/HoverTips";
@@ -255,6 +259,7 @@ import "./work/tips.css";
 import { CardComposer } from "./work/CardComposer";
 import { ConnectionsSettings } from "./work/ConnectionsSettings";
 import { makeCard } from "./work/cards";
+import { safeName } from "./work/transfer";
 import { followBooks, loadWork, saveWork } from "./work/store";
 import type { Subject as WorkSubject } from "./work/types";
 import { paintWord, playedFraction, rangesFor, wordAt } from "./spokenWord";
@@ -262,8 +267,9 @@ import { useMedia } from "./useMedia";
 import { shelfOf, type Shelf } from "./libraryShelf";
 import { useReadingStats } from "./useReadingStats";
 import { recordFeat } from "./feats";
-import { achieved, achievements } from "./achievements";
-import { AchievementsPage } from "./components/AchievementsPage";
+import { achievements } from "./achievements";
+import { achievementEarned } from "./rewards";
+import { AchievementsPage, Rewards as AchievementRewards } from "./components/AchievementsPage";
 import { places, readingStats } from "./places";
 type ReadingAnchor = {
   bookId: string;
@@ -272,7 +278,11 @@ type ReadingAnchor = {
   offset: number;
   title: string;
 };
+// The official address for questions and reports, shown in About and support.
+const CONTACT_EMAIL = "origami.reader.official@gmail.com";
+
 export default function App() {
+  const supporter = useSupporter();
   const [ready, setReady] = useState(false);
   // A startup failure stays on the loading screen (notices clear themselves).
   const [startupError, setStartupError] = useState("");
@@ -356,10 +366,13 @@ export default function App() {
   // The Binding and bookmarks window, for one book or for all books.
   const [bindingMenu, setBindingMenu] = useState<{ bookId?: string } | null>(null);
   const [quickText, setQuickText] = useState("");
-  const [quickTitle, setQuickTitle] = useState("Untitled text");
+  const [quickTitle, setQuickTitle] = useState("");
+  const [quickSaving, setQuickSaving] = useState(false);
   const [undo, setUndo] = useState<BookMeta[] | null>(null);
   // A note or bookmark just deleted, for the notice's Undo.
   const [undoNote, setUndoNote] = useState<Annotation | null>(null);
+  // The Trash notice that the book Undo belongs to.
+  const trashNotice = useRef("");
   // A shorter Trash retention waiting for the reader to confirm it.
   const [trashConfirm, setTrashConfirm] = useState<number | null>(null);
   const [readerPage, setReaderPage] = useState(0);
@@ -410,12 +423,16 @@ export default function App() {
     for (const list of map.values()) list.sort((x, y) => x.created - y.created);
     return map;
   }, [annotations]);
+  const physicalBookmark = book ? annotations.find((a) => a.kind === "bookmark" && a.bookId === book.meta.id && a.id === book.meta.bookmarkId)
+    ?? annotations.filter((a) => a.kind === "bookmark" && a.bookId === book.meta.id).sort((a,b) => b.created - a.created)[0] : undefined;
   // Book mode shows two pages; narrower windows read in the usual layout.
+  // A wide illustrated bookmark takes room beside the pages.
+  const bookmarkRatio = physicalBookmark ? bookmarkGeometry(physicalBookmark.design).ratio : undefined;
+  const bookRoom = bookFits(readerWidth, readerHeight, bookmarkRatio);
   const bookActive =
     page === "reader" &&
     prefs.readingMode === "book" &&
-    readerWidth >= BOOK_MIN_WIDTH &&
-    readerHeight >= BOOK_MIN_HEIGHT;
+    bookRoom;
   useLayoutEffect(() => {
     const el = readingScroll.current;
     if (!el) return;
@@ -534,7 +551,7 @@ export default function App() {
   const wordsBefore = useMemo(() => {
     const counts = [0];
     for (const p of book?.paragraphs || [])
-      counts.push(counts.at(-1)! + p.text.split(/\s+/).filter(Boolean).length);
+      counts.push(counts.at(-1)! + countWords(p.text));
     return counts;
   }, [book?.paragraphs]);
   const currentSection = book
@@ -658,8 +675,6 @@ export default function App() {
     ? { paragraph: book.meta.position, ...bookmarkSentence(book.paragraphs[book.meta.position]?.text || "", book.meta.positionOffset) }
     : null;
   const sentenceMark = player.status === "idle" ? savedSentence : prefs.highlight === "sentence" ? spokenRange : null;
-  const physicalBookmark = book ? annotations.find((a) => a.kind === "bookmark" && a.bookId === book.meta.id && a.id === book.meta.bookmarkId)
-    ?? annotations.filter((a) => a.kind === "bookmark" && a.bookId === book.meta.id).sort((a,b) => b.created - a.created)[0] : undefined;
   // A Studio production of the open book, which can read it aloud with its cast.
   const [bookProduction, setBookProduction] = useState<ProductionInfo | null>(null);
   const openBookId = book?.meta.id;
@@ -801,7 +816,17 @@ export default function App() {
     else patchPrefs({ leftOpen: open });
   };
   const inspectorOpen = inspectorAvailable && prefs.rightOpen && !focused;
+  // Focus mode hides both side panels. When they are already hidden (focus
+  // mode, or collapsed by hand), the same button brings them back.
+  const panelsHidden = page === "reader" && (focused || (!navigationOpen && !inspectorOpen));
+  function toggleFocus() {
+    if (!panelsHidden) return setFocusMode(true);
+    setFocusMode(false);
+    if (!focused || (!prefs.leftOpen && !prefs.rightOpen))
+      patchPrefs({ ...(overlayNavigation ? {} : { leftOpen: true }), rightOpen: true });
+  }
   const variables = {
+    colorScheme: themeScheme(theme.bg),
     "--bg": theme.bg,
     "--panel": theme.panel,
     "--ink": theme.ink,
@@ -890,8 +915,11 @@ export default function App() {
     setWorkVersion((v) => v + 1);
   }
   async function closeVaultBook(id?: string) {
-    if (book?.meta.vault && (!id || book.meta.vault === id)) {
+    // The live book: the idle lock calls this from an older render.
+    const current = bookRef.current;
+    if (current?.meta.vault && (!id || current.meta.vault === id)) {
       await player.stop();
+      bookRef.current = null;
       setBook(null);
       setPage("library");
     }
@@ -1132,6 +1160,8 @@ export default function App() {
   // Automatic update checks: once a day, only when turned on and configured.
   // An update shows as a small card in the corner with "Download now".
   const [updateOffer, setUpdateOffer] = useState<{ found: UpdateFound; managed: boolean } | null>(null);
+  // The update the card showed, kept for Settings when "Details" opens it.
+  const [updateDetails, setUpdateDetails] = useState<UpdateFound | null>(null);
   useEffect(() => {
     if (!ready || !prefs.autoUpdate || checkedToday()) return;
     const timer = window.setTimeout(() => {
@@ -1170,6 +1200,8 @@ export default function App() {
         });
         setDeleteCandidates((old) => old.filter((b) => !ids.has(b.id)));
         setReturnAnchor((old) => (old && ids.has(old.bookId) ? null : old));
+        if (returnRef.current && ids.has(returnRef.current.bookId))
+          returnRef.current = null;
         notify(
           t("{count} expired Trash items permanently deleted.", {
             count: removed.length,
@@ -1413,7 +1445,9 @@ export default function App() {
   }, []);
   useEffect(() => {
     // The note Undo belongs to its own notice only.
-    if (notice !== t("Annotation deleted.")) setUndoNote(null);
+    if (notice !== t("Annotation deleted.") && notice !== t("Bookmark removed.")) setUndoNote(null);
+    // The book Undo belongs to its own Trash notice only.
+    if (notice !== trashNotice.current) setUndo(null);
     if (notice) {
       const timer = setTimeout(() => setNotice(""), 9000);
       return () => clearTimeout(timer);
@@ -1502,6 +1536,17 @@ export default function App() {
       clearTimeout(fade);
     };
   }, [sleep]);
+  // Close the sleep timer menu on a click outside it.
+  useEffect(() => {
+    if (!sleepMenu) return;
+    const close = (e: PointerEvent) => {
+      if (e.target instanceof Element && e.target.closest(".sleep-control"))
+        return;
+      setSleepMenu(false);
+    };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [sleepMenu]);
   useEffect(() => {
     if (player.status === "idle" && sleep?.mode === "chapter") setSleep(null);
   }, [player.status]);
@@ -1564,7 +1609,6 @@ export default function App() {
   }, []);
   // Installed voices are remembered, so a removed one can be offered for
   // download again.
-  const [voiceDownloads, setVoiceDownloads] = useState(false);
   useEffect(() => {
     if (!ready) return;
     const unseen = voices.filter((v) => v.available && !prefs.seenVoices[v.id]);
@@ -1610,7 +1654,7 @@ export default function App() {
   async function openArtworkFolder() {
     await store.saveArtworkCopies([
       ...books
-        .filter((b) => b.coverImage && !b.deleted)
+        .filter((b) => b.coverImage && !b.deleted && !b.vault)
         .map((b) => ({
           folder: "covers" as const,
           name: isUnknownAuthor(b.author)
@@ -1679,7 +1723,7 @@ export default function App() {
       setCollectionName("");
       setCollectionError("");
     } catch (e) {
-      setCollectionError(e instanceof Error ? e.message : String(e));
+      setCollectionError(t(e instanceof Error ? e.message : String(e)));
     }
   }
   async function deleteCollection(name: string) {
@@ -1776,7 +1820,7 @@ export default function App() {
   // Back to 0%, as if the book had never been opened. Bookmarks, notes and
   // underlines stay; book mode opens it from the cover again.
   async function startOver(b: BookMeta) {
-    if (bookFinished(b)) recordFeat("full-circle");
+    const wasFinished = bookFinished(b);
     if (
       !window.confirm(
         t(
@@ -1790,6 +1834,8 @@ export default function App() {
       await player.stop();
     const current = (await store.readBook(b.id)).meta;
     await updateMeta({ ...current, position: 0, opened: 0, finished: false });
+    // Earned only once the book really starts over.
+    if (wasFinished) recordFeat("full-circle");
     if (bookRef.current?.meta.id === b.id) setReaderPage(0);
     notify(t("{title} starts from the beginning again.", { title: b.title }));
   }
@@ -1915,7 +1961,7 @@ export default function App() {
     );
   }
   async function openBook(id: string, position?: number) {
-    if (draft && !window.confirm("Discard the unfinished note?")) return false;
+    if (draft && !window.confirm(t("Discard the unfinished note?"))) return false;
     if (readerSaveTimer.current) clearTimeout(readerSaveTimer.current);
     cancelAnimationFrame(readerScrollFrame.current);
     await player.stop();
@@ -1924,6 +1970,12 @@ export default function App() {
     const b = await store.readBook(id);
     b.meta.opened = Date.now();
     if (position !== undefined) { b.meta.position = position; b.meta.positionOffset = undefined; }
+    // Counts stored by older versions split only on spaces.
+    const words = b.paragraphs.reduce((n, p) => n + countWords(p.text), 0);
+    if (words !== b.meta.wordCount) {
+      b.meta.wordCount = words;
+      setBooks((old) => old.map((m) => (m.id === b.meta.id ? { ...m, wordCount: words } : m)));
+    }
     await store.saveMeta(b.meta);
     bookRef.current = b;
     setBook(b);
@@ -1949,6 +2001,7 @@ export default function App() {
     );
     setPage("reader");
     setSelection(null);
+    setReaderCard(null);
     setDraft("");
     setEditing(null);
     setBookQuery("");
@@ -1961,6 +2014,8 @@ export default function App() {
     setBusy(true);
     let count = 0;
     const failures: string[] = [];
+    const dupes: string[] = [];
+    const trashed: string[] = [];
     try {
       let known = await store.listBooks();
       for (const file of Array.from(files)) {
@@ -1984,13 +2039,7 @@ export default function App() {
             continue;
           }
           if (existing) {
-            failures.push(
-              existing.deleted
-                ? t("{name}: already in library (in Trash)", {
-                    name: file.name,
-                  })
-                : t("{name}: already in library", { name: file.name }),
-            );
+            (existing.deleted ? trashed : dupes).push(file.name);
             continue;
           }
           await store.saveBook(b);
@@ -1998,16 +2047,41 @@ export default function App() {
           known = [...known, b.meta];
           count++;
         } catch (e) {
+          // Importer messages are catalog strings.
           failures.push(
-            file.name + ": " + String(e instanceof Error ? e.message : e),
+            file.name + ": " + t(e instanceof Error ? e.message : String(e)),
           );
         }
       }
       await refresh();
-      notify(
-        (count ? t("{count} imported. ", { count: count }) : "") +
-          failures.join(" "),
-      );
+      // One short notice, however many files were dropped.
+      const parts: string[] = [];
+      if (count) parts.push(t("{count} imported. ", { count: count }).trim());
+      if (dupes.length === 1)
+        parts.push(t("{name}: already in library", { name: dupes[0] }));
+      else if (dupes.length > 1)
+        parts.push(
+          t("{count} already in library.", { count: dupes.length }),
+        );
+      if (trashed.length === 1)
+        parts.push(
+          t("{name}: already in library (in Trash)", { name: trashed[0] }),
+        );
+      else if (trashed.length > 1)
+        parts.push(
+          t("{count} already in library (in Trash).", {
+            count: trashed.length,
+          }),
+        );
+      parts.push(...failures.slice(0, 3));
+      if (failures.length > 3)
+        parts.push(
+          t("{count} more could not be imported.", {
+            count: failures.length - 3,
+          }),
+        );
+      // Every part is translated already.
+      setNotice(parts.join(" "));
     } finally {
       setBusy(false);
       if (fileInput.current) fileInput.current.value = "";
@@ -2020,23 +2094,49 @@ export default function App() {
     if (pack) fillBookDetails(pack, b);
   }
   async function addQuick() {
+    // A second click while the first is saving would add the text twice.
+    if (quickSaving || !quickText.trim()) return;
     recordFeat("import");
-    if (!quickText.trim()) return;
-    const b = createBook(
-      quickTitle.trim() || "Untitled text",
-      paragraphsFromText(quickText),
-      "Text",
-    );
-    if (namedCollections.includes(collection)) b.meta.collection = collection;
-    if (vaultView) b.meta.vault = vaultView;
-    await fillDetails(b);
-    await store.saveBook(b);
-    covers.enqueue(b.meta);
-    setQuick(false);
-    setQuickText("");
-    await openBook(b.meta.id);
+    setQuickSaving(true);
+    try {
+      const b = createBook(
+        quickTitle.trim() || "Untitled text",
+        paragraphsFromText(quickText),
+        "Text",
+      );
+      if (namedCollections.includes(collection)) b.meta.collection = collection;
+      if (vaultView) b.meta.vault = vaultView;
+      // Added to the library on screen, like an import.
+      if (page === "library") b.meta.shelf = shelf;
+      await fillDetails(b);
+      // The English placeholder lets the author pack find a title; a text
+      // without one keeps it in the reader's language.
+      if (b.meta.title === "Untitled text") b.meta.title = t("Untitled text");
+      await store.saveBook(b);
+      covers.enqueue(b.meta);
+      setQuick(false);
+      setQuickText("");
+      setQuickTitle("");
+      await openBook(b.meta.id);
+    } finally {
+      setQuickSaving(false);
+    }
+  }
+  // "Return to reading" never points at a book in Trash or deleted; the ref
+  // goes too, or no later jump would record a new place.
+  function forgetReturnAnchor(ids: Set<string>) {
+    if (!returnRef.current || !ids.has(returnRef.current.bookId)) return;
+    returnRef.current = null;
+    setReturnAnchor(null);
   }
   async function moveToTrash(ids: Set<string>) {
+    // Vault books skip Trash (it never lists them); confirm permanent deletion instead.
+    const vaulted = books.filter((b) => ids.has(b.id) && b.vault && !b.deleted);
+    if (vaulted.length) {
+      setDeleteCandidates(vaulted);
+      ids = new Set([...ids].filter((id) => !vaulted.some((v) => v.id === id)));
+      if (!ids.size) return;
+    }
     const affected = books.filter((b) => ids.has(b.id));
     for (const b of affected)
       await store.saveMeta({
@@ -2044,20 +2144,21 @@ export default function App() {
         deleted: true,
         deletedAt: b.deleted ? (b.deletedAt ?? Date.now()) : Date.now(),
       });
+    forgetReturnAnchor(ids);
     if (book && ids.has(book.meta.id)) {
       await player.stop();
       setBook(null);
       setPage("library");
     }
-    setUndo(affected);
     setUndoNote(null);
     setSelected(new Set());
     await refresh();
-    notify(
-      t("{count} moved to Trash. Saved exports are untouched.", {
-        count: affected.length,
-      }),
-    );
+    const message = t("{count} moved to Trash. Saved exports are untouched.", {
+      count: affected.length,
+    });
+    trashNotice.current = message;
+    setUndo(affected);
+    setNotice(message);
   }
   async function restore(items: BookMeta[]) {
     for (const b of items)
@@ -2090,7 +2191,7 @@ export default function App() {
       setNoteBooks((old) =>
         Object.fromEntries(Object.entries(old).filter(([id]) => !ids.has(id))),
       );
-      if (returnAnchor && ids.has(returnAnchor.bookId)) setReturnAnchor(null);
+      forgetReturnAnchor(ids);
       setSelected(new Set());
       setUndo(null);
       setDeleteCandidates([]);
@@ -2111,6 +2212,11 @@ export default function App() {
   // a tab yourself forgets it.
   const autoTabFrom = useRef<InspectorTab | null>(null);
   function backToEarlierTab() {
+    // A note being written keeps its passage and its tab.
+    if (draft.trim() || editing) {
+      autoTabFrom.current = null;
+      return;
+    }
     const earlier = autoTabFrom.current;
     autoTabFrom.current = null;
     setSelection(null);
@@ -2188,7 +2294,7 @@ export default function App() {
   // already earned when it starts are not announced again.
   const earnedAchievements = useMemo(() => {
     const stats = readingStats(prefs.readingStats);
-    return achievements.filter((a) => achieved(a, stats, finishedBooks)).map((a) => a.id);
+    return achievements.filter((a) => achievementEarned(a, stats, finishedBooks)).map((a) => a.id);
   }, [prefs.readingStats, finishedBooks]);
   const knownAchievements = useRef<string[] | null>(null);
   useEffect(() => {
@@ -2198,12 +2304,22 @@ export default function App() {
       : [];
     knownAchievements.current = earnedAchievements;
     const first = achievements.find((a) => a.id === fresh[0]);
-    if (first)
-      setNotice(
-        t("Achievement unlocked: {name}. See what it opens in Achievements.", { name: t(first.name) }) +
-          (fresh.length > 1 ? " " + t("{count} more achievements too.", { count: fresh.length - 1 }) : ""),
-      );
+    if (first) setAchievementPop({ id: first.id, more: fresh.length - 1 });
   }, [ready, earnedAchievements]);
+  // The earned achievement's card, bottom left above the player bar (so it
+  // never covers Save place and close), with a preview of what it unlocks.
+  const [achievementPop, setAchievementPop] = useState<{ id: string; more: number } | null>(null);
+  useEffect(() => {
+    if (!achievementPop) return;
+    const timer = setTimeout(() => setAchievementPop(null), 10000);
+    return () => clearTimeout(timer);
+  }, [achievementPop]);
+  const [playerHeight, setPlayerHeight] = useState(0);
+  useEffect(() => {
+    if (!achievementPop) return;
+    const player = document.querySelector<HTMLElement>(".app > .player, footer.player");
+    setPlayerHeight(player?.offsetHeight || 0);
+  }, [achievementPop]);
   // On narrow windows only one panel is open at a time, and a click beside it closes it.
   const lastPanel = useRef<"left" | "right">("right");
   useEffect(() => {
@@ -2231,6 +2347,25 @@ export default function App() {
     return () => window.removeEventListener("origami:design-voice", open);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Show the voices that can be downloaded on the Voices page. The list
+  // loads after the page opens, so wait a few seconds for it to appear.
+  // Bumped to make the Voices page leave Created only and Manage, so the list shows.
+  const [voiceStoreRequest, setVoiceStoreRequest] = useState(0);
+  function openVoiceStore() {
+    setVoiceStoreRequest((n) => n + 1);
+    patchPrefs({ workMode: false, studioMode: false });
+    setPage("voices");
+    setVoiceSection("library");
+    const until = Date.now() + 8000;
+    const seek = () => {
+      const head = document.querySelector(
+        ".vl-library-head, .vl-library-offline",
+      );
+      if (head) head.scrollIntoView({ behavior: "smooth", block: "start" });
+      else if (Date.now() < until) window.setTimeout(seek, 150);
+    };
+    requestAnimationFrame(seek);
+  }
   // Studio added a book (a recording made into text): show it, and open it when asked.
   useEffect(() => {
     const changed = () => void store.listBooks().then(setBooks).catch(error);
@@ -2269,8 +2404,13 @@ export default function App() {
     patchPrefs({ workMode: false, studioMode: false });
     try {
       const b = await store.readBook(bookId);
-      const pos = Math.max(0, b.paragraphs.findIndex((p) => p.id === paragraphId));
-      if (!(await openBook(bookId, pos))) return;
+      const index = paragraphId ? b.paragraphs.findIndex((p) => p.id === paragraphId) : -1;
+      // No passage (or one that no longer exists): keep the saved reading place.
+      if (!(await openBook(bookId, index >= 0 ? index : undefined))) return;
+      if (paragraphId && index < 0) {
+        notify("This passage is no longer available. Your note is preserved.");
+        return;
+      }
       if (paragraphId)
         requestAnimationFrame(() =>
           requestAnimationFrame(() => {
@@ -2366,9 +2506,25 @@ export default function App() {
     kind: Annotation["kind"],
     currentPosition = false,
     // A passage other than the current selection, and a color other than
-    // the chosen one (both used by the reader's right-click menu).
-    options: { target?: TextSelection; color?: string } = {},
+    // the chosen one (both used by the reader's right-click menu). reveal:
+    // false saves without opening the Notes tab (Save and close).
+    options: { target?: TextSelection; color?: string; reveal?: boolean } = {},
   ) {
+    // An edit keeps its own book and passage, so it needs no open book and
+    // works from the Bookmarks page too.
+    if (kind === "note" && editing) {
+      const previous = annotations.find((n) => n.id === editing);
+      if (previous) {
+        const item = { ...previous, text: draft, color: options.color || colorRef.current, group: noteGroup.trim() };
+        await store.saveAnnotation(item);
+        setAnnotations((old) => [item, ...old.filter((n) => n.id !== item.id)]);
+        setDraft("");
+        setEditing(null);
+        notify("Note saved.");
+        if (page === "reader" && options.reveal !== false) revealNotes();
+        return;
+      }
+    }
     if (!book) return;
     // A bookmark's ribbon takes its own colour when one is chosen.
     const color = options.color || (kind === "bookmark" && prefs.ribbonColor) || colorRef.current;
@@ -2422,16 +2578,32 @@ export default function App() {
       setDraft("");
       setEditing(null);
     }
-    notify(
-      kind === "underline"
-        ? "Underline saved."
-        : kind === "bookmark"
-          ? "Bookmark saved."
-          : "Note saved.",
-    );
+    // One literal per call, so the strings are found for translation.
+    if (kind === "underline") notify("Underline saved.");
+    else if (kind === "bookmark") notify("Bookmark saved.");
+    else notify("Note saved.");
+    // Off the reader (the Bookmarks page), saving stays on the page.
+    if (page === "reader" && options.reveal !== false) revealNotes();
+  }
+  function revealNotes() {
     if (prefRef.current.inspector !== "notes")
       autoTabFrom.current ??= prefRef.current.inspector;
     chooseTab("notes");
+  }
+  // Closes the note editor without saving, whether it was adding or editing.
+  function cancelNote() {
+    // A sticky note made from the book view is saved before it is written;
+    // cancelling it while still empty removes it again.
+    const fresh = annotations.find((a) => a.id === editing);
+    if (fresh?.kind === "sticky" && !fresh.text && !draft.trim()) {
+      setAnnotations((old) => old.filter((a) => a.id !== fresh.id));
+      void store.deleteAnnotation(fresh.id).catch(error);
+    }
+    setEditing(null);
+    setDraft("");
+    setNoteGroup("");
+    if (selection) window.getSelection()?.removeAllRanges();
+    setSelection(null);
   }
   // One press for a sleepy reader: bookmark the place chosen in Settings
   // (by default the start of the chapter before the one being read, as the
@@ -2449,7 +2621,8 @@ export default function App() {
     await player.stop();
     let message = t("Bookmark saved.");
     if (where === "current-sentence") {
-      await addAnnotation("bookmark", true);
+      // The book is closing, so the Notes tab stays as the reader left it.
+      await addAnnotation("bookmark", true, { reveal: false });
       message = t("Place saved at the current sentence.");
     } else {
       const section = where === "current-start" ? currentSection : previous ?? currentSection;
@@ -2462,6 +2635,7 @@ export default function App() {
         const offset = atEnd ? paragraph.text.length : 0;
         await addAnnotation("bookmark", false, {
           target: { paragraphId: paragraph.id, start: offset, end: offset, text: paragraph.text },
+          reveal: false,
         });
       }
       if (section)
@@ -2526,10 +2700,21 @@ export default function App() {
           group: "",
           created: Date.now(),
         };
-        freshSticky.current = note.id;
+        // The book view shows no stickies, so there the note opens in the
+        // Notes panel instead.
+        const inBook = bookActive;
+        if (!inBook) freshSticky.current = note.id;
         void store
           .saveAnnotation(note)
-          .then(() => setAnnotations((old) => [note, ...old]))
+          .then(() => {
+            setAnnotations((old) => [note, ...old]);
+            if (inBook) {
+              chooseTab("notes");
+              setEditing(note.id);
+              setDraft("");
+              setNoteGroup("");
+            }
+          })
           .catch(error);
         break;
       }
@@ -2557,12 +2742,19 @@ export default function App() {
         break;
     }
   }
-  async function removeAnnotation(a: Annotation) {
+  // Undoable from the notice, so it asks for no confirmation.
+  async function removeAnnotation(a: Annotation, message = t("Annotation deleted.")) {
     await store.deleteAnnotation(a.id);
     setAnnotations((old) => old.filter((n) => n.id !== a.id));
+    // A deleted note closes its editor, so Save cannot bring it back elsewhere.
+    if (editing === a.id) {
+      setEditing(null);
+      setDraft("");
+      setNoteGroup("");
+    }
     setUndo(null);
     setUndoNote(a);
-    notify(t("Annotation deleted."));
+    notify(message);
   }
   const [flashAnnotation, setFlashAnnotation] = useState("");
   async function showBookmark(a: Annotation) {
@@ -2900,11 +3092,8 @@ export default function App() {
         delete next[key];
         return next;
       });
-      notify(
-        reset
-          ? "Saved replacement removed. Automatic speech rules apply."
-          : "Spoken version saved. Future readings will use it.",
-      );
+      if (reset) notify("Saved replacement removed. Automatic speech rules apply.");
+      else notify("Spoken version saved. Future readings will use it.");
     } finally {
       setSpokenBusy(false);
     }
@@ -3002,9 +3191,10 @@ export default function App() {
   const visible = sortLibrary(
     (vaultView
       ? books.filter(
+          // Vault books in Trash (from older versions) stay here, so they
+          // can be restored or deleted: the Trash view never lists them.
           (b) =>
             b.vault === vaultView &&
-            !b.deleted &&
             matchesLibraryFilters(b, libraryFilters),
         )
       : filteredBooks
@@ -3035,6 +3225,17 @@ export default function App() {
       ),
     sort,
   );
+  // A search narrows the selection to the books still on screen, like the
+  // filters do, so bulk actions never reach books the search hides.
+  useEffect(() => {
+    setSelected((old) => {
+      if (!old.size) return old;
+      const ids = new Set(visible.map((b) => b.id));
+      const kept = [...old].filter((id) => ids.has(id));
+      return kept.length === old.size ? old : new Set(kept);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
   // The last book opened in the library on screen.
   const latest = books
     .filter((b) => !b.deleted && !b.vault && b.opened > 0 && shelfOf(b) === shelf)
@@ -3042,7 +3243,8 @@ export default function App() {
   const noteMetadataKey = JSON.stringify(books.map((b) => [b.id, b.title]));
   const noteViews = useMemo(
     () => annotationViews(annotations, books, noteBooks, book),
-    [annotations, noteMetadataKey, noteBooks, book?.meta.id, book?.paragraphs],
+    // The language too: fallback titles are translated.
+    [annotations, noteMetadataKey, noteBooks, book?.meta.id, book?.paragraphs, prefs.uiLanguage],
   );
   const currentAnnotations = filterAnnotations(
     noteViews,
@@ -3106,6 +3308,7 @@ export default function App() {
           </div>
           <IconButton
             label={t("Export annotations")}
+            disabled={!currentAnnotations.length}
             onClick={() => {
               void store
                 .exportText(
@@ -3129,6 +3332,9 @@ export default function App() {
                     )
                     .join("\n\n"),
                 )
+                .then((saved) => {
+                  if (saved !== false) notify(t("Export saved."));
+                })
                 .catch(error);
             }}
           >
@@ -3149,6 +3355,7 @@ export default function App() {
           <div className="annotation-filters">
             {page !== "bookmarks" && (
               <select
+                className="annotation-scope"
                 aria-label={t("Annotation scope")}
                 value={noteScope}
                 onChange={(e) => setNoteScope(e.target.value)}
@@ -3215,22 +3422,27 @@ export default function App() {
               onChange={(e) => setNoteGroup(e.target.value)}
             />
             {colorPicker()}
-            <button
-              className="primary"
-              onClick={() => {
-                void addAnnotation("note").catch(error);
-              }}
-            >
-              <Check size={15} />
-              {t("Save note")}
-            </button>
+            <div className="button-row">
+              <button
+                className="primary"
+                onClick={() => {
+                  void addAnnotation("note").catch(error);
+                }}
+              >
+                <Check size={15} />
+                {t("Save note")}
+              </button>
+              <button onClick={cancelNote}>{t("Cancel")}</button>
+            </div>
           </div>
         )}
         {!currentAnnotations.length && (
           <p className="empty-copy">
-            {t(
-              "Select a passage to underline it or add a note. Bookmarks can also mark your current position.",
-            )}
+            {noteQuery.trim() || noteFilter !== "all" || noteColor !== "all"
+              ? t("No annotations match the search or filters.")
+              : t(
+                  "Select a passage to underline it or add a note. Bookmarks can also mark your current position.",
+                )}
           </p>
         )}
         {currentAnnotations.map(
@@ -3432,7 +3644,13 @@ export default function App() {
               <Underline size={17} />
               {t("Underline")}
             </button>
-            <button onClick={() => chooseTab("notes")}>
+            <button
+              onClick={() => {
+                // Chosen by the reader, so a plain click does not undo it.
+                autoTabFrom.current = null;
+                chooseTab("notes");
+              }}
+            >
               <MessageSquare size={17} />
               {t("Note")}
             </button>
@@ -3607,6 +3825,7 @@ export default function App() {
       page === "reader" && book?.meta.uniqueVoice ? book.meta : undefined;
     return (
       <VoiceLibrary
+        storeRequest={voiceStoreRequest || undefined}
         voices={voices}
         selected={own ? bookVoice(own, prefs) : prefs.voice}
         favorites={prefs.voiceFavorites}
@@ -3640,7 +3859,7 @@ export default function App() {
           void refreshVoices(true).catch(error);
         }}
         onInstalled={() => refreshVoices().catch(error)}
-        onDownloads={() => setVoiceDownloads(true)}
+        onDownloads={store.desktop ? openVoiceStore : undefined}
         onCreate={() => setVoiceSection("create")}
         onDelete={deleteVoices}
         extra={
@@ -3695,7 +3914,7 @@ export default function App() {
         onRefresh={() => {
           void refreshVoices(true).catch(error);
         }}
-        onDownloads={() => setVoiceDownloads(true)}
+        onDownloads={store.desktop ? openVoiceStore : undefined}
         portraitActive={covers.portraitActive}
         selected={own ? bookVoice(own, prefs) : prefs.voice}
         favorites={prefs.voiceFavorites}
@@ -3736,7 +3955,9 @@ export default function App() {
           {t("Voice variation")}{" "}
           <output>
             {temp.toFixed(2)}
-            {temp === defaultPreferences.voiceTemperature ? " (default)" : ""}
+            {temp === defaultPreferences.voiceTemperature
+              ? " " + t("(default)")
+              : ""}
           </output>
           <input
             aria-label={t("Voice variation")}
@@ -3893,7 +4114,7 @@ export default function App() {
             <small>
               {t("{format} · {words} words · {time} listening", {
                 format: meta.format,
-                words: meta.wordCount.toLocaleString(),
+                words: meta.wordCount.toLocaleString(displayLocale()),
                 time: formatDuration(
                   listeningMinutes(meta.wordCount, prefs.speed),
                 ),
@@ -3933,7 +4154,7 @@ export default function App() {
           id="document-details"
           title={t("Details")}
           icon={<FileText size={15} />}
-          meta={meta.collection}
+          meta={collectionLabel(meta.collection)}
         >
           <form
             key={
@@ -3981,7 +4202,9 @@ export default function App() {
                     meta.collection,
                   ]),
                 ].map((name) => (
-                  <option key={name}>{name}</option>
+                  <option key={name} value={name}>
+                    {collectionLabel(name)}
+                  </option>
                 ))}
               </select>
             </label>
@@ -4105,9 +4328,12 @@ export default function App() {
             onClick={() => {
               void store
                 .exportText(
-                  meta.title + ".txt",
+                  safeName(meta.title) + ".txt",
                   book.paragraphs.map((p) => p.text).join("\n\n"),
                 )
+                .then((saved) => {
+                  if (saved !== false) notify(t("Export saved."));
+                })
                 .catch(error);
             }}
           >
@@ -4118,7 +4344,7 @@ export default function App() {
             <dt>{t("Format")}</dt>
             <dd>{meta.format}</dd>
             <dt>{t("Words")}</dt>
-            <dd>{meta.wordCount.toLocaleString()}</dd>
+            <dd>{meta.wordCount.toLocaleString(displayLocale())}</dd>
             <dt>{t("Paragraphs")}</dt>
             <dd>{meta.paragraphCount}</dd>
           </dl>
@@ -4153,13 +4379,14 @@ export default function App() {
     setupTerms !== undefined &&
     setupTerms !== termsHash &&
     prefs.appTermsSha256 !== termsHash;
-  // Pay what you want: one polite request after a day of real use, never
+  // Optional donations: one polite request after a day of real use, never
   // shown to people who already support Origami or asked not to be asked.
   // Nothing in the app is ever locked behind a payment.
   const DAY = 86_400_000;
   const [supportNever, setSupportNever] = useState(false);
   const supportDue =
     ready &&
+    !supporter.active &&
     !termsDue &&
     prefs.supportPrompt !== "never" &&
     prefs.supportPromptAfter > 0 &&
@@ -4230,15 +4457,13 @@ export default function App() {
               ? shelf === "documents"
                 ? t("All documents")
                 : t("All stories")
-              : builtInCollections.includes(c)
-                ? t(c)
-                : c}
+              : collectionLabel(c)}
           </span>
           <span className="count">{count}</span>
         </button>
         {!builtInCollections.includes(c) && (
           <IconButton
-            label={t("Delete collection {name}", { name: c })}
+            label={t("Delete collection {name}", { name: collectionLabel(c) })}
             disabled={collectionBusy}
             onClick={() => {
               void deleteCollection(c).catch(error);
@@ -4847,6 +5072,7 @@ export default function App() {
     const generatedPortraits = portraits.filter(
       (v) => v.portraitOrigin === "generated",
     );
+    const createdVoices = voices.filter((v) => v.created);
     const sourceLabel = {
       generated: t("Generated"),
       custom: t("Your image"),
@@ -5006,14 +5232,46 @@ export default function App() {
           )}
         </Section>
         <Section id="settings-saved-voices" title={t("Created voices")}>
-          <p className="empty-copy">
-            {t(
-              "Voices you create will appear here, ready to rename or delete. Creating voices is coming in a later update.",
-            )}
-          </p>
-          <button onClick={() => setVoiceDownloads(true)}>
-            <Download size={15} />
-            {t("Download voices")}
+          {createdVoices.length ? (
+            <ul className="saved-art-grid portraits">
+              {createdVoices.map((v) => (
+                <li key={v.id}>
+                  {v.portrait ? (
+                    <img className="saved-portrait" src={v.portrait} alt="" />
+                  ) : null}
+                  <span className="saved-art-name">{v.name}</span>
+                  <button
+                    className="icon-button"
+                    aria-label={t("Delete {name}", { name: v.name })}
+                    title={t("Delete {name}", { name: v.name })}
+                    onClick={() => {
+                      if (
+                        !window.confirm(
+                          t("Delete {name}?", { name: v.name }) +
+                            "\n" +
+                            t("This cannot be undone."),
+                        )
+                      )
+                        return;
+                      void deleteVoices([v.id]).catch(error);
+                    }}
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="empty-copy">{t("No created voices yet.")}</p>
+          )}
+          <button
+            onClick={() => {
+              setPage("voices");
+              setVoiceSection("create");
+            }}
+          >
+            <Plus size={15} />
+            {t("Create a voice")}
           </button>
         </Section>
         {store.desktop && (
@@ -5315,23 +5573,27 @@ export default function App() {
               [
                 [
                   "skipCitations",
-                  "Footnote markers and numbered citations",
-                  "For example [12], [3-5], superscript numbers and † ‡ after a word.",
+                  t("Footnote markers and numbered citations"),
+                  t(
+                    "For example [12], [3-5], superscript numbers and † ‡ after a word.",
+                  ),
                 ],
                 [
                   "skipAuthorYear",
-                  "Author-year citations",
-                  "For example (Smith 2020) or (Lee and Park, 2019, p. 4). Useful for papers.",
+                  t("Author-year citations"),
+                  t(
+                    "For example (Smith 2020) or (Lee and Park, 2019, p. 4). Useful for papers.",
+                  ),
                 ],
                 [
                   "skipSpeechMarkup",
-                  "Skip links, markup and decorative symbols",
-                  "Keeps link labels, skips web addresses, code and formatting.",
+                  t("Skip links, markup and decorative symbols"),
+                  t("Keeps link labels, skips web addresses, code and formatting."),
                 ],
                 [
                   "romanNumeralHeadings",
-                  "Read Roman numerals as numbers in headings",
-                  "For example, Chapter XVI is read as Chapter 16.",
+                  t("Read Roman numerals as numbers in headings"),
+                  t("For example, Chapter XVI is read as Chapter 16."),
                 ],
               ] as const
             ).map(([key, label, hint]) => (
@@ -5350,9 +5612,9 @@ export default function App() {
                       patchPrefs({ [key]: e.target.checked });
                     }}
                   />
-                  {t(label)}
+                  {label}
                 </label>
-                <p className="hint">{t(hint)}</p>
+                <p className="hint">{hint}</p>
               </div>
             ))}
           </Section>
@@ -5476,7 +5738,7 @@ export default function App() {
             )}
             <p className="hint">
               {t(
-                "Larger models sound more natural and need a stronger graphics card. Lighter models start and speak faster on laptops. Extra versions can be added with the installer.",
+                "Larger models sound more natural and need a stronger graphics card. Lighter models start and speak faster on laptops. Extra versions can be downloaded in Settings, Models.",
               )}
             </p>
           </Section>
@@ -5639,7 +5901,7 @@ export default function App() {
               {covers.installed
                 ? t("{name} is installed.", { name: covers.engine.name })
                 : t(
-                    "Cover engine setup is required for local generation. See docs/COVER-GENERATION.md.",
+                    "No image model is installed. Download one in Settings, Models.",
                   )}{" "}
               {covers.engine.attribution}
             </p>
@@ -5839,7 +6101,13 @@ export default function App() {
           </section>
         )}
         <Section id="settings-updates" title={t("Updates")}>
-          <UpdatesPanel version={VERSION} auto={prefs.autoUpdate} onAuto={(autoUpdate) => patchPrefs({ autoUpdate })} />
+          <UpdatesPanel
+            version={VERSION}
+            auto={prefs.autoUpdate}
+            onAuto={(autoUpdate) => patchPrefs({ autoUpdate })}
+            offered={updateDetails}
+            onInstalled={() => setUpdateDetails(null)}
+          />
         </Section>
         <section className="donate-card" aria-labelledby="donate-title">
           <div className="donate-crane" aria-hidden="true">
@@ -5870,9 +6138,10 @@ export default function App() {
             </div>
             <small>
               {t(
-                "Pay what you want, any time. Origami Reader stays complete and free either way.",
+                "Donate what you want, any time. Origami Reader stays complete and free either way.",
               )}
             </small>
+            <SupporterPanel />
           </div>
         </section>
         <div className="privacy-note">
@@ -5882,6 +6151,25 @@ export default function App() {
               "Origami Reader works offline. It has no account, no ads, no analytics and no tracking, and it never sends your books, notes, recordings or settings anywhere on its own. It only goes online when you click a link, allow embeds in Work mode, download an optional model or voice, or check for updates. If a later version lets you connect an online service of your choice, such as an AI provider with your own key, it will ask before sending that service anything, and send only what you ask it to process.",
             )}
           </p>
+        </div>
+        <div className="privacy-note contact-note">
+          <Mail size={18} />
+          <p>
+            {t("Questions, bug reports or ideas? Write to Origami Reader:")}{" "}
+            <strong className="contact-address">{CONTACT_EMAIL}</strong>
+          </p>
+          <button
+            className="text-button"
+            onClick={() =>
+              void navigator.clipboard
+                .writeText(CONTACT_EMAIL)
+                .then(() => notify(t("Copied.")))
+                .catch(error)
+            }
+          >
+            <Copy size={15} aria-hidden="true" />
+            {t("Copy address")}
+          </button>
         </div>
         <Section
           id="settings-licenses"
@@ -6031,6 +6319,8 @@ export default function App() {
     );
   }
   function handleKey(e: KeyboardEvent) {
+    // No app shortcut runs until the license is accepted.
+    if (termsDue) return;
     const ctrl = e.ctrlKey || e.metaKey;
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     if (ctrl && e.shiftKey && key === "w") {
@@ -6077,19 +6367,24 @@ export default function App() {
     if (ctrl && key === "\\")
       return run(() => setLeftOpen(!navigationOpen));
     if (ctrl && e.shiftKey && key === "f" && page === "reader")
-      return run(() => setFocusMode(!focusMode));
+      return run(toggleFocus);
     if (ctrl && key === "f")
       return run(() => {
         if (page === "reader") {
           setFocusMode(false);
           setLeftOpen(true);
+          // A collapsed Contents section hides the search box.
+          setPrefs((old) => ({
+            ...old,
+            openSections: { ...old.openSections, "side-contents": true },
+          }));
         } else if (page !== "library") setPage("library");
         requestAnimationFrame(() =>
           document
             .querySelector<HTMLInputElement>(
               page === "reader"
-                ? 'input[aria-label="Search book"]'
-                : 'input[aria-label="Search library"]',
+                ? 'input[data-search="book"]'
+                : 'input[data-search="library"]',
             )
             ?.focus(),
         );
@@ -6185,19 +6480,28 @@ export default function App() {
           data-ui-scale={uiScale}
           style={variables}
           onDragOver={(e) => {
+            // Only files are dropped on the app itself; text and passages go
+            // to the field or editor under them.
+            if (!e.dataTransfer.types.includes("Files")) return;
             e.preventDefault();
-            if (e.dataTransfer.types.includes("Files") && !dragging)
-              setDragging(true);
+            if (!dragging) setDragging(true);
           }}
           onDragLeave={(e) => {
             if (!e.relatedTarget) setDragging(false);
           }}
           onDrop={(e) => {
-            e.preventDefault();
             setDragging(false);
+            // A child (picture drop zone, note editor) already handled it, or the
+            // drag carried no files (a passage, a moved block, dragged text).
+            if (
+              e.nativeEvent.defaultPrevented ||
+              !e.dataTransfer.types.includes("Files")
+            )
+              return;
+            e.preventDefault();
             void droppedFiles(e.dataTransfer)
               .then((files) => {
-                if (files.length) return importFiles(files);
+                if (files.length) return importFiles(files, appMode === "work");
                 notify(
                   t(
                     "No books or documents Origami can read were found in the drop.",
@@ -6426,11 +6730,26 @@ export default function App() {
                     <div className="search-field small-search">
                       <Search size={15} />
                       <input
+                        data-search="book"
                         aria-label={t("Search book")}
                         placeholder={t("Find in book")}
                         value={bookQuery}
                         onChange={(e) => setBookQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape" && bookQuery) {
+                            e.stopPropagation();
+                            setBookQuery("");
+                          }
+                        }}
                       />
+                      {bookQuery && (
+                        <IconButton
+                          label={t("Clear search")}
+                          onClick={() => setBookQuery("")}
+                        >
+                          <X size={14} />
+                        </IconButton>
+                      )}
                     </div>
                     {bookQuery.trim() ? (
                       <nav
@@ -6447,12 +6766,16 @@ export default function App() {
                           return (
                             <>
                               <span className="hint match-count" role="status">
-                                {matches.length
-                                  ? matches.length.toLocaleString() +
-                                    (matches.length === 1
-                                      ? " match"
-                                      : " matches")
-                                  : t("No matches")}
+                                {matches.length === 1
+                                  ? t("1 match")
+                                  : matches.length
+                                    ? t("{count} matches", {
+                                        count:
+                                          matches.length.toLocaleString(
+                                            displayLocale(),
+                                          ),
+                                      })
+                                    : t("No matches")}
                               </span>
                               {matches.slice(0, 200).map(({ p, index }) => {
                                 const s = searchSnippet(
@@ -6938,9 +7261,9 @@ export default function App() {
                 if (e.key === "ArrowRight" || e.key === "ArrowLeft")
                   patchPrefs({
                     leftWidth: Math.max(
-                      180,
+                      SIDE_MIN,
                       Math.min(
-                        330,
+                        SIDE_MAX,
                         prefs.leftWidth + (e.key === "ArrowRight" ? 10 : -10),
                       ),
                     ),
@@ -6966,8 +7289,10 @@ export default function App() {
                       : t("Expand navigation")
                   }
                   onClick={() => {
-                    if (focused) setFocusMode(false);
-                    else setLeftOpen(!navigationOpen);
+                    if (focused) {
+                      setFocusMode(false);
+                      setLeftOpen(true);
+                    } else setLeftOpen(!navigationOpen);
                   }}
                 >
                   {navigationOpen ? (
@@ -7047,11 +7372,11 @@ export default function App() {
                       <Bookmark size={18} />
                     </IconButton>
                     <IconButton
-                      label={focused ? t("Exit focus mode") : t("Focus mode")}
-                      active={focused}
-                      onClick={() => setFocusMode(!focusMode)}
+                      label={panelsHidden ? t("Exit focus mode") : t("Focus mode")}
+                      active={panelsHidden}
+                      onClick={toggleFocus}
                     >
-                      {focused ? (
+                      {panelsHidden ? (
                         <Minimize2 size={18} />
                       ) : (
                         <Maximize2 size={18} />
@@ -7066,7 +7391,7 @@ export default function App() {
                     onMore={() => chooseTab("appearance")}
                     book={page === "reader" ? book?.meta : undefined}
                     onBookComfort={setBookComfort}
-                    bookFits={readerWidth >= BOOK_MIN_WIDTH && readerHeight >= BOOK_MIN_HEIGHT}
+                    bookFits={bookRoom}
                   />
                 )}
                 <IconButton
@@ -7120,7 +7445,7 @@ export default function App() {
                       } else patchPrefs({ rightOpen: !prefs.rightOpen });
                     }}
                   >
-                    {prefs.rightOpen ? (
+                    {inspectorOpen ? (
                       <PanelRightClose size={19} />
                     ) : (
                       <PanelRightOpen size={19} />
@@ -7151,7 +7476,7 @@ export default function App() {
                             : vaultView
                               ? (vaults.find((v) => v.id === vaultView)
                                   ?.name ?? t("Vault"))
-                              : collection}
+                              : collectionLabel(collection)}
                         </h1>
                     </div>
                     {/* One toolbar: search, sort and view, then the page's
@@ -7160,6 +7485,7 @@ export default function App() {
                       <div className="search-field library-search">
                         <Search size={18} />
                         <input
+                          data-search="library"
                           aria-label={t("Search library")}
                           placeholder={t("Search title, author or collection")}
                           value={query}
@@ -7179,11 +7505,15 @@ export default function App() {
                         value={sort}
                         onChange={(e) => setSort(e.target.value)}
                       >
-                        <option value="recent">{t("Recently opened")}</option>
+                        <option value="recent">
+                          {t("Last read, newest first")}
+                        </option>
                         <option value="oldest-read">
                           {t("Last read, oldest first")}
                         </option>
-                        <option value="added">{t("Date added")}</option>
+                        <option value="added">
+                          {t("Added, newest first")}
+                        </option>
                         <option value="oldest-added">
                           {t("Added, oldest first")}
                         </option>
@@ -7599,7 +7929,9 @@ export default function App() {
                     <div className="section-row shelf-heading">
                       <h2>
                         {collection === "Trash"
-                          ? t("Deleted documents")
+                          ? shelf === "stories"
+                            ? t("Deleted stories")
+                            : t("Deleted documents")
                           : t("On your shelf")}
                       </h2>
                       <span className="hint">
@@ -7770,7 +8102,7 @@ export default function App() {
                                 </div>
                                 <small>
                                   {t("{words} words · {time} listening", {
-                                    words: b.wordCount.toLocaleString(),
+                                    words: b.wordCount.toLocaleString(displayLocale()),
                                     time: formatDuration(
                                       listeningMinutes(
                                         b.wordCount,
@@ -7797,7 +8129,7 @@ export default function App() {
                             ? shelf === "stories"
                               ? t("No matching stories")
                               : t("No matching documents")
-                            : filtersActive && collection !== "Trash"
+                            : filtersActive
                               ? t("No books match the filters")
                             : collection === "Trash"
                               ? t("Trash is empty")
@@ -7808,15 +8140,17 @@ export default function App() {
                         <p>
                           {query
                             ? t("Try another title or author.")
-                            : filtersActive && collection !== "Trash"
+                            : filtersActive
                               ? t("Some books are hidden by the filters in the navigation.")
+                            : collection === "Trash"
+                              ? t("Books you move to Trash stay here until you restore them or delete them permanently.")
                             : collection !== "All books"
                               ? t("Import a file or add text with Quick Read.")
                               : shelf === "stories"
                                 ? t("Novels, tales and plays: EPUB, Kindle and FB2 books, or any file you import here.")
                                 : t("PDFs, Word files, web pages, notes and course material. They stay apart from your stories, and Work mode can use them.")}
                         </p>
-                        {!query && filtersActive && collection !== "Trash" && (
+                        {!query && filtersActive && (
                           <button
                             onClick={() =>
                               patchPrefs({ libraryFilters: { author: "all", type: "all", status: "all", genre: "all" } })
@@ -7859,6 +8193,13 @@ export default function App() {
                       }
                       onKeyDown={(e) => {
                         if (bookActive) {
+                          // A focused button (close, bookmark, page zones)
+                          // keeps Space and Enter for itself.
+                          if (
+                            (e.key === " " || e.key === "Enter") &&
+                            (e.target as HTMLElement).closest("button")
+                          )
+                            return;
                           const field = (e.target as HTMLElement).closest(
                             "input, select, textarea, [role=menu]",
                           );
@@ -7914,13 +8255,35 @@ export default function App() {
                       }}
                       onKeyUp={captureSelection}
                       onContextMenu={(e) => {
-                        const target = (
-                          e.target as HTMLElement
-                        ).closest<HTMLElement>("[data-paragraph]");
+                        const s = window.getSelection();
+                        const region = e.currentTarget;
+                        const para = (n: Node | null | undefined) =>
+                          (n instanceof Element
+                            ? n
+                            : n?.parentElement
+                          )?.closest<HTMLElement>("[data-paragraph]") ?? null;
+                        let target = para(e.target as Node);
+                        // The menu key and Shift+F10 target the focused
+                        // region itself: use the selection, or the
+                        // paragraph at the reported point.
+                        if (!target && e.target === region) {
+                          target =
+                            (s && !s.isCollapsed && s.rangeCount
+                              ? para(s.getRangeAt(0).startContainer)
+                              : null) ??
+                            para(
+                              document.elementFromPoint(e.clientX, e.clientY),
+                            );
+                          if (
+                            target &&
+                            (!region.contains(target) ||
+                              target.closest(".book-measure"))
+                          )
+                            target = null;
+                        }
                         // The browser's own menu has nothing for a book.
                         e.preventDefault();
                         if (!target) return;
-                        const s = window.getSelection();
                         const selected = Boolean(
                           s &&
                           !s.isCollapsed &&
@@ -7928,9 +8291,16 @@ export default function App() {
                           s.getRangeAt(0).intersectsNode(target),
                         );
                         if (selected) captureSelection();
+                        let x = e.clientX;
+                        let y = e.clientY;
+                        if (!x && !y) {
+                          const box = target.getBoundingClientRect();
+                          x = box.left;
+                          y = box.top;
+                        }
                         setReaderMenu({
-                          x: e.clientX,
-                          y: e.clientY,
+                          x,
+                          y,
                           selected,
                           paragraphId: target.dataset.paragraph!,
                         });
@@ -7945,6 +8315,7 @@ export default function App() {
                           positionOffset={book.meta.positionOffset}
                           bookmark={physicalBookmark}
                           onBookmark={(mark) => void jumpAnnotation(mark).catch(error)}
+                          onRemoveBookmark={(mark) => void removeAnnotation(mark, t("Bookmark removed.")).catch(error)}
                           playing={player.status !== "idle"}
                           onPosition={(n) => {
                             const current = bookRef.current;
@@ -7996,7 +8367,7 @@ export default function App() {
                           }
                           aria-label={t("Reading pages")}
                         >
-                          {physicalBookmark && <div className="page-bookmark-dock"><PhysicalBookmark key={physicalBookmark.id} mark={physicalBookmark} onOpen={() => void jumpAnnotation(physicalBookmark).catch(error)} /></div>}
+                          {physicalBookmark && <div className="page-bookmark-dock"><PhysicalBookmark key={physicalBookmark.id} mark={physicalBookmark} onOpen={() => void jumpAnnotation(physicalBookmark).catch(error)} onRemove={() => void removeAnnotation(physicalBookmark, t("Bookmark removed.")).catch(error)} /></div>}
                           {spacers.top > 0 && (
                             <div
                               className="page-spacer"
@@ -8370,9 +8741,26 @@ export default function App() {
               managed={updateOffer.managed}
               onLater={() => setUpdateOffer(null)}
               onSettings={() => {
+                setUpdateDetails(updateOffer.found);
                 setUpdateOffer(null);
-                patchPrefs({ workMode: false, studioMode: false });
+                // Settings, About, with the Updates section open.
+                patchPrefs({
+                  workMode: false,
+                  studioMode: false,
+                  settingsCategory: "about",
+                  openSections: {
+                    ...prefs.openSections,
+                    "settings-updates": true,
+                  },
+                });
                 setPage("settings");
+                requestAnimationFrame(() =>
+                  requestAnimationFrame(() =>
+                    document
+                      .querySelector(".updates-panel")
+                      ?.scrollIntoView({ block: "center" }),
+                  ),
+                );
               }}
             />
           )}
@@ -8678,41 +9066,86 @@ export default function App() {
               />
             </div>
           </footer>
-          {notice && (
-            <div className="toast" role="status">
-              <span>{notice}</span>
-              {undo && (
-                <button
-                  onClick={() => {
-                    void restore(undo).catch(error);
-                  }}
+          {/* The live region stays mounted, so screen readers hear each new
+              notice; one that appears already filled is often not announced.
+              It covers the app box out of flow and lets clicks through. */}
+          <div
+            className="toast-region"
+            role="status"
+            aria-live="polite"
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 50,
+              pointerEvents: "none",
+            }}
+          >
+            {achievementPop && (() => {
+              const a = achievements.find((x) => x.id === achievementPop.id);
+              if (!a) return null;
+              return (
+                <div className="achievement-pop" style={{ pointerEvents: "auto", bottom: playerHeight + 14 }}>
+                  <Trophy size={20} aria-hidden="true" className="achievement-pop-icon" />
+                  <div className="achievement-pop-body">
+                    <small>{t("Achievement unlocked")}</small>
+                    <strong>{t(a.name)}</strong>
+                    <AchievementRewards a={a} />
+                    {achievementPop.more > 0 && (
+                      <small>{t("{count} more achievements too.", { count: achievementPop.more })}</small>
+                    )}
+                    <button
+                      className="achievement-pop-open"
+                      onClick={() => {
+                        setAchievementPop(null);
+                        patchPrefs({ workMode: false, studioMode: false });
+                        setPage("achievements");
+                      }}
+                    >
+                      {t("See in Achievements")}
+                    </button>
+                  </div>
+                  <IconButton label={t("Dismiss notice")} onClick={() => setAchievementPop(null)}>
+                    <X size={15} />
+                  </IconButton>
+                </div>
+              );
+            })()}
+            {notice && (
+              <div className="toast" style={{ pointerEvents: "auto" }}>
+                <span>{notice}</span>
+                {undo && (
+                  <button
+                    onClick={() => {
+                      void restore(undo).catch(error);
+                    }}
+                  >
+                    {t("Undo")}
+                  </button>
+                )}
+                {!undo && undoNote && (
+                  <button
+                    onClick={() => {
+                      const a = undoNote;
+                      setUndoNote(null);
+                      setNotice("");
+                      void store
+                        .saveAnnotation(a)
+                        .then(() => setAnnotations((old) => [a, ...old.filter((n) => n.id !== a.id)]))
+                        .catch(error);
+                    }}
+                  >
+                    {t("Undo")}
+                  </button>
+                )}
+                <IconButton
+                  label={t("Dismiss notice")}
+                  onClick={() => setNotice("")}
                 >
-                  {t("Undo")}
-                </button>
-              )}
-              {!undo && undoNote && (
-                <button
-                  onClick={() => {
-                    const a = undoNote;
-                    setUndoNote(null);
-                    setNotice("");
-                    void store
-                      .saveAnnotation(a)
-                      .then(() => setAnnotations((old) => [a, ...old.filter((n) => n.id !== a.id)]))
-                      .catch(error);
-                  }}
-                >
-                  {t("Undo")}
-                </button>
-              )}
-              <IconButton
-                label={t("Dismiss notice")}
-                onClick={() => setNotice("")}
-              >
-                <X size={15} />
-              </IconButton>
-            </div>
-          )}
+                  <X size={15} />
+                </IconButton>
+              </div>
+            )}
+          </div>
           {readerMenu && page === "reader" && (
             <ReaderMenu
               x={readerMenu.x}
@@ -8723,17 +9156,14 @@ export default function App() {
               onClose={closeReaderMenu}
             />
           )}
-          {voiceDownloads && (
-            <VoiceDownloads
-              voices={voices}
-              seen={prefs.seenVoices}
-              interfaceLanguage={prefs.uiLanguage}
-              onClose={() => setVoiceDownloads(false)}
-            />
-          )}
           {coverEditor && (
             <CoverDialog
               book={coverEditor.meta}
+              onRemove={async () => {
+                await deleteCover(coverEditor.meta);
+                const meta = (await store.readBook(coverEditor.meta.id)).meta;
+                setCoverEditor((old) => (old ? { ...old, meta } : old));
+              }}
               prompt={coverPrompt(coverEditor)}
               allowMature={prefs.allowMatureCovers}
               starter={starterCover(coverEditor.meta)}
@@ -8880,6 +9310,7 @@ export default function App() {
                 <label className="check-label">
                   <input
                     type="checkbox"
+                    autoFocus
                     checked={termsAgreed}
                     onChange={(e) => setTermsAgreed(e.target.checked)}
                   />
@@ -8954,7 +9385,16 @@ export default function App() {
                   </label>
                   <button
                     className="text-button"
-                    onClick={() => closeSupport("supported")}
+                    onClick={() => {
+                      closeSupport("supported");
+                      patchPrefs({ settingsCategory: "about" });
+                      setPage("settings");
+                      requestAnimationFrame(() => requestAnimationFrame(() => {
+                        const panel = document.querySelector<HTMLElement>(".supporter-panel");
+                        panel?.scrollIntoView({ block: "center" });
+                        panel?.querySelector<HTMLTextAreaElement>("textarea")?.focus({ preventScroll: true });
+                      }));
+                    }}
                   >
                     {t("I already support Origami")}
                   </button>
@@ -9034,6 +9474,7 @@ export default function App() {
                   <input
                     autoFocus
                     value={quickTitle}
+                    placeholder={t("Untitled text")}
                     onChange={(e) => setQuickTitle(e.target.value)}
                   />
                 </label>
@@ -9049,12 +9490,12 @@ export default function App() {
                 <div className="dialog-actions">
                   <span className="hint">
                     {t("{count} characters", {
-                      count: quickText.length.toLocaleString(),
+                      count: quickText.length.toLocaleString(displayLocale()),
                     })}
                   </span>
                   <button
                     className="primary"
-                    disabled={!quickText.trim()}
+                    disabled={quickSaving || !quickText.trim()}
                     onClick={() => {
                       void addQuick().catch(error);
                     }}

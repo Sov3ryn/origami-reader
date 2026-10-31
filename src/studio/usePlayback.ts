@@ -90,9 +90,12 @@ export function usePlayback(production: Production, units: ProductionUnit[], onL
     a.onended = () => {
       if (token !== run.current) return;
       if (single) return setPlaying(false);
-      const next = list[i + 1];
+      // Carry on from where this line sits now; it is gone when the chapter changed.
+      const at = latest.current.units.findIndex((u) => u.id === unit.id);
+      if (at < 0) return setPlaying(false);
+      const next = latest.current.units[at + 1];
       const gap = gapAfter(unit, next) / latest.current.rate;
-      timer.current = window.setTimeout(() => void playFrom(i + 1, token), gap * 1000);
+      timer.current = window.setTimeout(() => void playFrom(at + 1, token), gap * 1000);
     };
     // Load the next line while this one plays.
     const next = list.slice(i + 1).find((u) => chosenTake(p, u));

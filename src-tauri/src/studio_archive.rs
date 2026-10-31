@@ -22,7 +22,7 @@ pub struct VoiceFile {
     pub audio: PathBuf,
 }
 
-fn take_name_ok(name: &str) -> bool {
+pub fn take_name_ok(name: &str) -> bool {
     (name.ends_with(".flac") || name.ends_with(".wav")) && !name.contains(['/', '\\', ':']) && !name.contains("..") && name.len() < 200
 }
 
@@ -133,16 +133,19 @@ pub fn open(path: &Path) -> Result<Opened> {
     if !production["info"].is_object() || !production["units"].is_array() {
         return Err("This portable production is damaged.".into());
     }
-    let book = read_json(&mut zip, "book.json")?.filter(|b| b["id"].is_string());
+    let book = read_json(&mut zip, "book.json")?.filter(|b| b["meta"]["id"].is_string() && b["paragraphs"].is_array());
     Ok(Opened { zip, production, book })
 }
 
 /// Copies the take files into a production's takes folder. Only plain take names
-/// are accepted; anything else in the archive is ignored.
-pub fn extract_takes(zip: &mut zip::ZipArchive<std::fs::File>, takes_dir: &Path, progress: &dyn Fn(f64)) -> Result<usize> {
+/// are accepted; anything else in the archive is ignored. Takes and the bed are
+/// stored uncompressed, so together they are smaller than the archive: `limit`
+/// (the archive's size) caps the bytes written, and going past it means the file is damaged.
+pub fn extract_takes(zip: &mut zip::ZipArchive<std::fs::File>, takes_dir: &Path, limit: u64, progress: &dyn Fn(f64)) -> Result<usize> {
     std::fs::create_dir_all(takes_dir).map_err(|e| e.to_string())?;
     let total = zip.len().max(1) as f64;
     let mut count = 0;
+    let mut written: u64 = 0;
     for i in 0..zip.len() {
         let mut entry = zip.by_index(i).map_err(|e| e.to_string())?;
         // The background sound goes next to the takes folder.
@@ -150,7 +153,11 @@ pub fn extract_takes(zip: &mut zip::ZipArchive<std::fs::File>, takes_dir: &Path,
             if bed_name_ok(&bed) && entry.size() <= MAX_AUDIO {
                 if let Some(dir) = takes_dir.parent() {
                     let mut out = std::fs::File::create(dir.join(&bed)).map_err(|e| e.to_string())?;
-                    std::io::copy(&mut (&mut entry).take(MAX_AUDIO), &mut out).map_err(|e| e.to_string())?;
+                    let room = limit.saturating_sub(written).saturating_add(1);
+                    written += std::io::copy(&mut (&mut entry).take(MAX_AUDIO.min(room)), &mut out).map_err(|e| e.to_string())?;
+                    if written > limit {
+                        return Err("This portable production is damaged.".into());
+                    }
                 }
             }
             continue;
@@ -160,7 +167,11 @@ pub fn extract_takes(zip: &mut zip::ZipArchive<std::fs::File>, takes_dir: &Path,
             continue;
         }
         let mut out = std::fs::File::create(takes_dir.join(&name)).map_err(|e| e.to_string())?;
-        std::io::copy(&mut (&mut entry).take(MAX_AUDIO), &mut out).map_err(|e| e.to_string())?;
+        let room = limit.saturating_sub(written).saturating_add(1);
+        written += std::io::copy(&mut (&mut entry).take(MAX_AUDIO.min(room)), &mut out).map_err(|e| e.to_string())?;
+        if written > limit {
+            return Err("This portable production is damaged.".into());
+        }
         count += 1;
         if i % 50 == 0 {
             progress(i as f64 / total);
@@ -245,7 +256,7 @@ mod tests {
             "units": [{ "id": "u1", "take": "t1", "voice": "designed-vd-abc" }],
             "takes": [{ "id": "t1", "unit": "u1", "file": "t1.flac" }, { "id": "t2", "unit": "u1", "file": "../evil.flac" }],
         });
-        let book = json!({ "id": "book-1", "paragraphs": [] });
+        let book = json!({ "meta": { "id": "book-1", "title": "B" }, "paragraphs": [] });
         let archive = dir.join("p.origami-production");
         let v = VoiceFile { id: "designed-vd-abc".into(), profile: json!({ "name": "Amber", "reference": "C:/somewhere/v.wav" }), audio: voices.join("v.wav") };
         write(&archive, &production, Some(&book), &[v], &takes, &|_| {}).unwrap();
@@ -253,9 +264,12 @@ mod tests {
 
         let mut opened = open(&archive).unwrap();
         assert_eq!(opened.production["info"]["id"], "prod-1");
-        assert_eq!(opened.book.as_ref().unwrap()["id"], "book-1");
+        assert_eq!(opened.book.as_ref().unwrap()["meta"]["id"], "book-1");
         let out = dir.join("restored").join("takes");
-        assert_eq!(extract_takes(&mut opened.zip, &out, &|_| {}).unwrap(), 1);
+        let size = std::fs::metadata(&archive).unwrap().len();
+        assert_eq!(extract_takes(&mut opened.zip, &out, size, &|_| {}).unwrap(), 1);
+        // More audio than the archive itself could hold means it is damaged.
+        assert!(extract_takes(&mut open(&archive).unwrap().zip, &dir.join("capped").join("takes"), 12, &|_| {}).is_err());
         assert_eq!(std::fs::read(dir.join("restored").join("bed.mp3")).unwrap(), b"ID3 rain");
         assert_eq!(std::fs::read(out.join("t1.flac")).unwrap(), b"fLaC audio");
         let root = dir.join("CreatedVoices");

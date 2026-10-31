@@ -1,5 +1,6 @@
 import manifest from "../assets/starter-library/manifest.json";
 import translations from "../assets/starter-library/translations.json";
+import { starterCollection } from "./collections";
 import { importDocument } from "./documents";
 import type { Book, BookMeta } from "./types";
 
@@ -98,7 +99,7 @@ export async function prepareStarterBooks(
     });
     Object.assign(book.meta, {
       id: found?.id || edition.id,
-      collection: found?.collection || "Starter library",
+      collection: found?.collection || starterCollection,
       coverImage: image,
       coverOrigin: "generated",
       coverText: "show",
