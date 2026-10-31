@@ -1,4 +1,4 @@
-ORIGAMI READER 0.1.0 BETA 20, WINDOWS
+ORIGAMI READER 0.1.0 BETA 21, WINDOWS
 
 This is a free public beta. Download it only from the official Origami Reader
 page on GitHub, and please do not re-upload it elsewhere.

@@ -8,16 +8,16 @@ const reset = ({ target }: Entry) => {
   target.style.removeProperty("--pointer-x");
   target.style.removeProperty("--pointer-y");
   target.style.removeProperty("--foil-x");
-  target.style.removeProperty("--sheen-x");
-  target.style.removeProperty("--sheen-y");
-  target.style.removeProperty("--sheen");
+  target.style.removeProperty("--tilt-light-x");
+  target.style.removeProperty("--tilt-light-y");
+  target.style.removeProperty("--tilt-light");
   target.removeAttribute("data-pointer-near");
 };
 
 // One pointer listener and at most one frame per event, shared by all visible
 // tilting cards. The untransformed anchor avoids feedback from a tilting card.
 // Each card gets the pointer side as --pointer-x/y (-1 to 1, eased by
-// distance), the pointer position as --sheen-x/y and a light strength --sheen.
+// distance), the pointer position as --tilt-light-x/y and a light strength --tilt-light.
 function listen() {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const fine = matchMedia("(any-hover: hover) and (any-pointer: fine)");
@@ -42,9 +42,9 @@ function listen() {
       entry.target.style.setProperty("--pointer-x", x.toFixed(3));
       entry.target.style.setProperty("--pointer-y", y.toFixed(3));
       entry.target.style.setProperty("--foil-x", `${50 + x * 35}%`);
-      entry.target.style.setProperty("--sheen-x", `${(sx * 100).toFixed(1)}%`);
-      entry.target.style.setProperty("--sheen-y", `${(sy * 100).toFixed(1)}%`);
-      entry.target.style.setProperty("--sheen", strength.toFixed(3));
+      entry.target.style.setProperty("--tilt-light-x", `${(sx * 100).toFixed(1)}%`);
+      entry.target.style.setProperty("--tilt-light-y", `${(sy * 100).toFixed(1)}%`);
+      entry.target.style.setProperty("--tilt-light", strength.toFixed(3));
       entry.target.setAttribute("data-pointer-near", "true");
     }
   };

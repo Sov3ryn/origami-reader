@@ -34,7 +34,7 @@
    ease back flat when it leaves. useCoverTilt sets the variables. */
 .cover-tilt { perspective: 700px; }
 .cover-tilt > .cover, .cover-tilt > .cover-open > .cover {
-  transform: rotateX(calc(var(--pointer-y, 0) * -8deg)) rotateY(calc(var(--pointer-x, 0) * 10deg)) translateZ(calc(var(--sheen, 0) * 8px));
+  transform: rotateX(calc(var(--pointer-y, 0) * -8deg)) rotateY(calc(var(--pointer-x, 0) * 10deg)) translateZ(calc(var(--tilt-light, 0) * 8px));
   transition: transform 320ms cubic-bezier(.2,.7,.2,1);
 }
 .cover-tilt .cover[data-pointer-near] { will-change: transform; transition-duration: 160ms; }
@@ -45,9 +45,8 @@
   z-index: 3;
   pointer-events: none;
   border-radius: inherit;
-  background: radial-gradient(circle at var(--sheen-x, 50%) var(--sheen-y, 50%), #ffffff3d, #ffffff10 32%, transparent 62%);
-  mix-blend-mode: screen;
-  opacity: var(--sheen, 0);
+  background: radial-gradient(circle at var(--tilt-light-x, 50%) var(--tilt-light-y, 50%), #ffffff3d, #ffffff10 32%, transparent 62%);
+  opacity: var(--tilt-light, 0);
   transition: opacity 320ms ease-out;
 }
 .cover-tilt .cover[data-pointer-near].foil .cover-title > span {

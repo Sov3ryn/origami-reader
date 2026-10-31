@@ -987,6 +987,27 @@ export default function App() {
       },
     });
   }
+  // From Add collection: with no vault yet, Settings explains vaults and
+  // their PIN first; after that it creates one directly.
+  function vaultFromCollections() {
+    if (vaults.length) {
+      startVault();
+      return;
+    }
+    setAddingCollection(false);
+    patchPrefs({
+      settingsCategory: "privacy",
+      openSections: { ...prefs.openSections, "settings-vaults": true },
+    });
+    setPage("settings");
+    window.setTimeout(
+      () =>
+        document
+          .querySelector('[data-section="settings-vaults"]')
+          ?.scrollIntoView({ block: "start", behavior: "instant" }),
+      60,
+    );
+  }
   // Moves books into a vault (unlocking it first when needed), or out of
   // one with an empty id.
   async function moveToVault(metas: BookMeta[], id: string) {
@@ -7030,6 +7051,14 @@ export default function App() {
                           >
                             <Check size={16} />
                           </IconButton>
+                          {store.vaultsAvailable && (
+                            <IconButton
+                              label={t("Create a vault")}
+                              onClick={vaultFromCollections}
+                            >
+                              <VaultIcon size={16} />
+                            </IconButton>
+                          )}
                           <IconButton
                             label={t("Cancel adding collection")}
                             onClick={() => {
@@ -7049,7 +7078,7 @@ export default function App() {
                           <button
                             type="button"
                             className="text-button vault-link"
-                            onClick={startVault}
+                            onClick={vaultFromCollections}
                           >
                             <VaultIcon size={14} />
                             {t("Create a PIN-locked vault instead")}

@@ -1272,11 +1272,43 @@ p {
   width: 100%;
   align-items: center;
 }
+/* List covers are too small to hold buttons, and they tilt: the buttons sit
+   beside the cover's left edge instead, top and bottom, clear of the row's
+   own controls in the middle. Two bands behind them keep hover across the
+   gap without covering those controls. */
+.list-view .cover-control::before,
+.list-view .cover-control::after {
+  content: "";
+  position: absolute;
+  right: 100%;
+  width: 26px;
+  height: 22px;
+}
+.list-view .cover-control::before {
+  top: 0;
+}
+.list-view .cover-control::after {
+  bottom: 0;
+}
+.list-view .cover-edit,
+.list-view .cover-trash {
+  width: 22px;
+  height: 22px;
+  left: auto;
+  right: calc(100% + 3px);
+  border-radius: 6px;
+}
 .list-view .cover-edit {
-  width: 24px;
-  height: 24px;
-  left: 2px;
-  bottom: 3px;
+  top: 0;
+  bottom: auto;
+}
+.list-view .cover-trash {
+  bottom: 0;
+}
+.list-view .cover-edit svg,
+.list-view .cover-trash svg {
+  width: 13px;
+  height: 13px;
 }
 .book-grid {
   display: grid;
@@ -2692,7 +2724,7 @@ html[data-hidden="true"] .ambient-layer {
   position: relative;
   transform: rotateX(calc(var(--pointer-y, 0) * -10deg))
     rotateY(calc(var(--pointer-x, 0) * 12deg))
-    translateZ(calc(var(--sheen, 0) * 6px));
+    translateZ(calc(var(--tilt-light, 0) * 6px));
   transition: transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .voice-portrait-tilt > .voice-portrait[data-pointer-near] {
@@ -2706,13 +2738,12 @@ html[data-hidden="true"] .ambient-layer {
   pointer-events: none;
   border-radius: inherit;
   background: radial-gradient(
-    circle at var(--sheen-x, 50%) var(--sheen-y, 50%),
+    circle at var(--tilt-light-x, 50%) var(--tilt-light-y, 50%),
     #ffffff45,
     #ffffff12 35%,
     transparent 65%
   );
-  mix-blend-mode: screen;
-  opacity: var(--sheen, 0);
+  opacity: var(--tilt-light, 0);
   transition: opacity 320ms ease-out;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -8526,6 +8557,9 @@ html[data-hidden="true"] .garden-effects * {
 }
 .cover.small {
   --title-size: 10px;
+}
+.list-view .cover {
+  --title-size: 7px;
 }
 .cover.ink-gold {
   --ink: #ecc977;

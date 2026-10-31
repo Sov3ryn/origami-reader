@@ -31,10 +31,10 @@
 .physical-bookmark { perspective:900px; user-select:none; -webkit-user-select:none; touch-action:pan-y; }
 .bookmark-tilt { position:absolute; inset:0; transform-origin:50% 40%; }
 .physical-bookmark.colored .bookmark-tilt { display:grid; place-items:center; }
-.physical-bookmark.beside .bookmark-tilt { transform:rotateX(calc(var(--pointer-y, 0) * -7deg)) rotateY(calc(var(--pointer-x, 0) * 14deg)) translateZ(calc(var(--sheen, 0) * 10px)); transition:transform 360ms cubic-bezier(.2,.7,.2,1); }
-.physical-bookmark.beside .bookmark-tilt[data-pointer-near] { will-change:transform; transition-duration:160ms; }
-.bookmark-sheen { position:absolute; inset:0; pointer-events:none; mask-size:100% 100%; mask-repeat:no-repeat; -webkit-mask-size:100% 100%; -webkit-mask-repeat:no-repeat; mix-blend-mode:screen; opacity:var(--sheen, 0); transition:opacity 360ms ease-out;
-  background:radial-gradient(circle at calc((var(--sheen-x, 50%) - var(--art-left, 0) * 1%) * 100 / var(--art-width, 100)) calc((var(--sheen-y, 40%) - var(--art-top, 0) * 1%) * 100 / var(--art-height, 100)), #ffffff4d, #ffffff14 30%, transparent 58%); }
+.physical-bookmark.beside .bookmark-tilt { transform:rotateX(calc(var(--pointer-y, 0) * -7deg)) rotateY(calc(var(--pointer-x, 0) * 14deg)); transition:transform 360ms cubic-bezier(.2,.7,.2,1); }
+.physical-bookmark.beside .bookmark-tilt[data-pointer-near] { transition-duration:160ms; }
+.bookmark-sheen { position:absolute; inset:0; pointer-events:none; mask-size:100% 100%; mask-repeat:no-repeat; -webkit-mask-size:100% 100%; -webkit-mask-repeat:no-repeat; opacity:var(--tilt-light, 0); transition:opacity 360ms ease-out;
+  background:radial-gradient(circle at calc((var(--tilt-light-x, 50%) - var(--art-left, 0) * 1%) * 100 / var(--art-width, 100)) calc((var(--tilt-light-y, 40%) - var(--art-top, 0) * 1%) * 100 / var(--art-height, 100)), #ffffff4d, #ffffff14 30%, transparent 58%); }
 .physical-bookmark.colored .bookmark-sheen { clip-path:polygon(0 0,100% 0,100% 100%,50% 88%,0 100%); }
 /* Dragged away to the right, it follows the pointer and fades; past the
    removal distance it slides off and is deleted. */
@@ -162,7 +162,8 @@
 }
 .bookmark-detail-sheen { animation:bookmark-detail-sheen 16s ease-in-out infinite; }
 .bookmark-detail-ribbon-sheen { animation:bookmark-detail-ribbon-sheen 14s linear infinite; }
-.bookmark-foil { mix-blend-mode:screen; }
+/* Normal blending: a screen blend inside the SVG masks makes the whole bookmark blink in some Chromium GPU setups. */
+.bookmark-foil { opacity:.7; }
 .bookmark-foil-spectrum { animation:bookmark-foil-spectrum 13s ease-in-out infinite; transform-origin:512px 768px; }
 .bookmark-foil-flash { animation:bookmark-foil-flash 11s ease-in-out infinite; }
 .bookmark-foil-iridescent .bookmark-foil-spectrum { animation-duration:17s; animation-delay:-4s; opacity:.8; }
