@@ -17,6 +17,23 @@ fn package_info() -> Result<Value,String> {
     let manifest: Value = serde_json::from_slice(&std::fs::read(root()?.join("payload/manifest.json")).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
     Ok(manifest)
 }
+// A few seconds of a voice for the voice picker, from voice-previews/ in the
+// kit (written by make-online-windows.py), as a data URL the page can play.
+#[tauri::command]
+fn voice_preview(path: String) -> Result<String,String> {
+    let base = root()?.join("voice-previews").canonicalize().map_err(|_| "This package has no voice samples.".to_string())?;
+    let file = root()?.join(&path).canonicalize().map_err(|_| "Missing voice sample.".to_string())?;
+    if !file.starts_with(&base) || file.extension().and_then(|e| e.to_str()) != Some("wav") { return Err("Not a voice sample.".into()); }
+    let bytes = std::fs::read(&file).map_err(|e| e.to_string())?;
+    const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::with_capacity(bytes.len() * 4 / 3 + 32);
+    out.push_str("data:audio/wav;base64,");
+    for chunk in bytes.chunks(3) {
+        let n = (chunk[0] as u32) << 16 | (*chunk.get(1).unwrap_or(&0) as u32) << 8 | *chunk.get(2).unwrap_or(&0) as u32;
+        for i in 0..4 { out.push(if i <= chunk.len() { CHARS[(n >> (18 - 6 * i) & 63) as usize] as char } else { '=' }); }
+    }
+    Ok(out)
+}
 // What this computer is, so setup can recommend the matching speech engine
 // and, later, download the matching package. Read locally; nothing is sent.
 fn graphics_adapters() -> Vec<String> {
@@ -172,6 +189,6 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window,event| { if let tauri::WindowEvent::CloseRequested{api,..}=event { if window.state::<Session>().active.load(Ordering::SeqCst) { api.prevent_close(); let _=window.emit("install-close-requested",()); } } })
-        .invoke_handler(tauri::generate_handler![package_info, system_info, choose_folder, install, install_state, control_install, finish])
+        .invoke_handler(tauri::generate_handler![package_info, system_info, choose_folder, install, install_state, control_install, finish, voice_preview])
         .run(tauri::generate_context!()).expect("Cannot open Origami Reader Installer");
 }

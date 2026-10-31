@@ -3269,21 +3269,6 @@ html[data-hidden="true"] .previous-still {
   font-size: 14px;
   line-height: 1.55;
 }
-.donate-points {
-  margin: 0 0 14px;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.donate-points li {
-  font-size: var(--fs-small);
-  padding: 3px 9px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
-  color: var(--ink);
-}
 .donate-actions {
   display: flex;
   align-items: center;

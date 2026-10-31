@@ -712,11 +712,6 @@ def ensure_light_env(dest, py):
 
 
 CONFIG_FILES = ("worker.json", "cover-engine.json", "voice-design.json", "installation.json")
-# The voices a new installation starts with (two women's, two men's per language).
-STARTER_VOICES = {
-    "origami-en-f-01", "origami-en-f-03", "origami-en-m-01", "origami-en-m-05",
-    "origami-fr-f-01", "origami-fr-f-06", "origami-fr-m-01", "origami-fr-m-06",
-}
 
 
 def earlier_install(config, platform):
@@ -940,11 +935,18 @@ def install(base, options):
             catalog = {}
             for part in sorted(dest.glob("voice-catalog*.json")):
                 catalog.update(json.loads(part.read_text(encoding="utf-8")))
-            # A light start: two women's and two men's voices per language. The
-            # others stay in the app's voice library, to hear and download there.
+            # The voices chosen in setup's voice picker. Without a choice for a
+            # language (an offline kit, or an older setup screen), a light start:
+            # two women's and two men's voices. The others stay in the app's
+            # voice library, to hear and download there.
+            chosen = set(options.get("voices") or [])
             keep = set()
             for lang in options.get("languages", []):
-                listed = sorted((vid for vid, v in catalog.items() if v["pack"] == lang), key=lambda vid: (vid not in STARTER_VOICES, vid))
+                listed = sorted(vid for vid, v in catalog.items() if v["pack"] == lang)
+                picked = [vid for vid in listed if vid in chosen]
+                if picked:
+                    keep.update(picked)
+                    continue
                 for gender in ("female", "male"):
                     keep.update([vid for vid in listed if catalog[vid].get("gender") == gender][:2])
             for voice_id, voice in catalog.items():

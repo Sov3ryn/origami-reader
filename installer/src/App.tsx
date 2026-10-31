@@ -153,7 +153,9 @@ function setupMessage(message: string) {
   };
   return known[message] || message;
 }
-type DownloadGroup = { bytes?: number; voices?: number; estimate?: number | Record<string, number>; wheelBytes?: Record<string, number> };
+// A voice setup can install, with a few seconds of it (voice-previews/ in the kit).
+type VoiceOption = { id: string; name: string; gender: string; description: string; accent: string; preview: string };
+type DownloadGroup = { bytes?: number; voices?: number; voiceList?: VoiceOption[]; estimate?: number | Record<string, number>; wheelBytes?: Record<string, number> };
 export default function App() {
   const [options, setOptions] = useState<SetupOptions>(() => ({
     ...initialOptions(),
@@ -375,7 +377,43 @@ export default function App() {
   const selected = availableLanguages.filter((item) =>
     options.languages.includes(item.id),
   );
-  const voices = selected.reduce((sum, language) => sum + language.count, 0);
+  // Online kits list their voices: people pick the ones to install.
+  const voiceList = (code: string) => downloads?.[`voices-${code}`]?.voiceList ?? [];
+  const missingVoices = selected.some(
+    (language) => voiceList(language.id).length > 0 && !voiceList(language.id).some((v) => options.voices.includes(v.id)),
+  );
+  const voices = selected.reduce(
+    (sum, language) =>
+      sum + (voiceList(language.id).length ? voiceList(language.id).filter((v) => options.voices.includes(v.id)).length : language.count),
+    0,
+  );
+  // One sample plays at a time; the data URLs are kept once loaded.
+  const [playing, setPlaying] = useState("");
+  const sample = useRef<HTMLAudioElement | null>(null);
+  const samples = useRef<Record<string, string>>({});
+  async function playVoice(voice: VoiceOption) {
+    sample.current?.pause();
+    if (playing === voice.id) {
+      setPlaying("");
+      return;
+    }
+    try {
+      samples.current[voice.id] ??= await invoke<string>("voice_preview", { path: voice.preview });
+      const audio = new Audio(samples.current[voice.id]);
+      audio.onended = () => setPlaying((current) => (current === voice.id ? "" : current));
+      sample.current = audio;
+      setPlaying(voice.id);
+      await audio.play();
+    } catch {
+      setPlaying("");
+    }
+  }
+  function toggleVoice(id: string) {
+    setOptions((prev) => ({
+      ...prev,
+      voices: prev.voices.includes(id) ? prev.voices.filter((v) => v !== id) : [...prev.voices, id],
+    }));
+  }
   // Setup installs two women's and two men's voices per language; the others
   // stay in the voice library, to hear and download from the app.
   const starterVoices = selected.reduce((sum, language) => sum + Math.min(language.count, 4), 0);
@@ -464,11 +502,14 @@ export default function App() {
     }));
   }
   function toggleLanguage(id: string) {
+    const dropped = new Set(voiceList(id).map((v) => v.id));
     setOptions((prev) => ({
       ...prev,
       languages: prev.languages.includes(id)
         ? prev.languages.filter((item) => item !== id)
         : [...prev.languages, id],
+      // A language taken off also takes off its voices.
+      voices: prev.languages.includes(id) ? prev.voices.filter((v) => !dropped.has(v)) : prev.voices,
       speech: true,
     }));
   }
@@ -1188,9 +1229,11 @@ export default function App() {
                               <strong>{t(item.name)}</strong>
                               <small>
                                 {item.native} ·{" "}
-                                {t("4 voices to start, {count} in the app's library", {
-                                  count: item.count,
-                                })}
+                                {voiceList(item.id).length
+                                  ? t("{count} voices to choose from", { count: item.count })
+                                  : t("4 voices to start, {count} in the app's library", {
+                                      count: item.count,
+                                    })}
                                 {item.id === "hi"
                                   ? " · " + t("Experimental")
                                   : ""}
@@ -1212,6 +1255,61 @@ export default function App() {
                       <p className="empty-state">
                         {t("No matching language in this package.")}
                       </p>
+                    )}
+                    {selected.some((language) => voiceList(language.id).length > 0) && (
+                      <section className="voice-picker" aria-labelledby="voice-picker-title">
+                        <h3 id="voice-picker-title">{t("Choose your voices")}</h3>
+                        <p className="quiet-note">
+                          {t(
+                            "Listen to each voice and tick the ones to install. The others stay in the app's voice library, to download later.",
+                          )}
+                        </p>
+                        {selected
+                          .filter((language) => voiceList(language.id).length > 0)
+                          .map((language) => (
+                            <div key={language.id} className="voice-picker-language">
+                              <h4>{t(language.name)}</h4>
+                              <ul>
+                                {voiceList(language.id).map((voice) => (
+                                  <li key={voice.id} className={options.voices.includes(voice.id) ? "selected" : ""}>
+                                    <button
+                                      type="button"
+                                      className="voice-play"
+                                      aria-label={
+                                        playing === voice.id ? t("Stop") : t("Play {name}", { name: voice.name })
+                                      }
+                                      aria-pressed={playing === voice.id}
+                                      onClick={() => void playVoice(voice)}
+                                    >
+                                      {playing === voice.id ? <Pause size={14} /> : <Play size={14} />}
+                                    </button>
+                                    <label>
+                                      <input
+                                        type="checkbox"
+                                        checked={options.voices.includes(voice.id)}
+                                        onChange={() => toggleVoice(voice.id)}
+                                      />
+                                      <span>
+                                        <strong>{voice.name}</strong>
+                                        <small>
+                                          {[
+                                            voice.gender === "female" ? t("Female") : voice.gender === "male" ? t("Male") : "",
+                                            voice.description,
+                                          ]
+                                            .filter(Boolean)
+                                            .join(" · ")}
+                                        </small>
+                                      </span>
+                                    </label>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        {missingVoices && (
+                          <p className="quiet-note warning">{t("Choose at least one voice for each language.")}</p>
+                        )}
+                      </section>
                     )}
                     {options.languages.includes("hi") && (
                       <p className="quiet-note">
@@ -1733,6 +1831,7 @@ export default function App() {
                   disabled={
                     !packageReady ||
                     (step > 0 && !!error) ||
+                    (step === 2 && options.speech && missingVoices) ||
                     (native &&
                       step === 5 &&
                       (options.coverModel || options.portraitModel || (hasTurbo && options.turboModel)) &&

@@ -6,7 +6,7 @@
   "build": {"frontendDist": "../dist", "beforeBuildCommand": "npm run build"},
   "app": {
     "windows": [{"title": "Origami Reader Installer", "label": "main", "width": 1180, "height": 800, "minWidth": 820, "minHeight": 560, "backgroundColor": "#17121d"}],
-    "security": {"csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost; font-src 'self' data:"}
+    "security": {"csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost; font-src 'self' data:; media-src 'self' data:"}
   },
   "bundle": {"active": false, "copyright": "Copyright (c) 2026 Sov3ryn", "publisher": "Sov3ryn", "icon": ["../../src-tauri/icons/icon.ico", "../../src-tauri/icons/128x128.png"]}
 }

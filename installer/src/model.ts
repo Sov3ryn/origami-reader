@@ -26,6 +26,8 @@ export interface SetupOptions {
   scope: "user" | "system";
   installPath: string;
   languages: string[];
+  // The voices chosen in setup's voice picker (online kits list them).
+  voices: string[];
   theme: string;
   scene: boolean;
   motion: "system" | "reduced";
@@ -101,6 +103,7 @@ export function initialOptions(): SetupOptions {
     scope: "user",
     installPath: defaultPath(platform, "user"),
     languages: ["en"],
+    voices: [],
     ...presetOptions("lake"),
     motion: "system",
     textSize: "standard",

@@ -5852,11 +5852,6 @@ export default function App() {
                 "Origami Reader is free, offline and made by one independent developer. There are no ads, no subscriptions and no locked features. If it has become part of your reading, a small contribution helps keep it growing.",
               )}
             </p>
-            <ul className="donate-points">
-              <li>{t("New voices and languages")}</li>
-              <li>{t("Day and night scenes and new atmospheres")}</li>
-              <li>{t("Audiobook export and Studio")}</li>
-            </ul>
             <div className="donate-actions">
               <button className="donate-button" onClick={openSupport}>
                 <Heart size={17} fill="currentColor" />
@@ -5884,7 +5879,7 @@ export default function App() {
           <ShieldCheck size={18} />
           <p>
             {t(
-              "Origami Reader works offline. It has no account, no ads, no analytics and no tracking, and it never sends your books, notes, recordings or settings anywhere. It only goes online when you click a link, allow embeds in Work mode, download an optional model or check for updates.",
+              "Origami Reader works offline. It has no account, no ads, no analytics and no tracking, and it never sends your books, notes, recordings or settings anywhere on its own. It only goes online when you click a link, allow embeds in Work mode, download an optional model or voice, or check for updates. If a later version lets you connect an online service of your choice, such as an AI provider with your own key, it will ask before sending that service anything, and send only what you ask it to process.",
             )}
           </p>
         </div>

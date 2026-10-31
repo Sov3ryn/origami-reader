@@ -976,6 +976,79 @@ h1 {
   outline: 2px solid #dcc6ff;
   outline-offset: 3px;
 }
+/* Voice picker: a few seconds of each voice, ticked to install. */
+.voice-picker {
+  margin-top: 18px;
+}
+.voice-picker h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+}
+.voice-picker h4 {
+  margin: 14px 0 8px;
+  font-size: 14px;
+  color: #c9a9f0;
+}
+.voice-picker ul {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.voice-picker li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid #ffffff17;
+  border-radius: 10px;
+  background: #ffffff03;
+}
+.voice-picker li.selected {
+  border-color: #b895dd88;
+  background: #b895dd14;
+}
+.voice-picker label {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  cursor: pointer;
+}
+.voice-picker label span {
+  display: grid;
+  min-width: 0;
+}
+.voice-picker small {
+  color: #9e91ac;
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.voice-play {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid #ffffff22;
+  border-radius: 50%;
+  background: #b895dd18;
+  color: #dcc6ff;
+  cursor: pointer;
+}
+.voice-play[aria-pressed="true"] {
+  background: #b895dd44;
+}
+.voice-picker .warning {
+  margin-top: 10px;
+  color: #f2c879;
+}
 .language-glyph {
   display: grid;
   place-items: center;
