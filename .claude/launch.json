@@ -50,6 +50,34 @@
         "../work/launch-film/cutter/server.mjs"
       ],
       "port": 4518
+    },
+    {
+      "name": "website-mockup",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8093",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "../outputs/Origami-Website-Mockup"
+      ],
+      "port": 8093
+    },
+    {
+      "name": "website-built",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8094",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "../outputs/origamireader-site"
+      ],
+      "port": 8094
     }
   ]
 }

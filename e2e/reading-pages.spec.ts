@@ -23,8 +23,14 @@ async function openFixture(page: Page) {
       ),
     );
     book.meta.id = "page-navigation";
+    book.meta.shelf = "stories";
     await saveBook(book);
-    await saveSettings({ motion: false, rightOpen: false, leftOpen: true });
+    await saveSettings({
+      motion: false,
+      rightOpen: false,
+      leftOpen: true,
+      readingMode: "continuous",
+    });
   });
   await page.reload();
   await page
@@ -37,7 +43,7 @@ test("continuous pages, hover margin navigation, keyboard and expanding gutters"
   page,
 }) => {
   await openFixture(page);
-  const pages = page.locator(".reading-page");
+  const pages = page.locator(".reading-page:not(.reading-cover)");
   await pages.first().waitFor();
   const total = await pages.count();
   expect(total).toBeGreaterThan(10);
@@ -137,11 +143,18 @@ test("reading mode, page gap and footer preferences persist; paged and snap navi
   await gap.fill("0");
   await expect(page.locator(".reading-pages")).toHaveCSS("gap", "0px");
   await readingMode(page, "Pages");
-  await expect(page.locator(".reading-page")).toHaveCount(1);
+  await expect(page.locator(".reading-page:not(.reading-cover)")).toHaveCount(
+    1,
+  );
   await page
     .getByRole("button", { name: "Next reading page", exact: true })
     .click();
   await expect(page.locator(".page-footer")).toContainText("Page 2 of ");
+  // The next page starts at the top, without the cover's space above it.
+  await expect(page.locator(".page-spacer")).toHaveCount(0);
+  await expect
+    .poll(() => page.locator(".reading-scroll").evaluate((el) => el.scrollTop))
+    .toBe(0);
   await progress.selectOption("paragraphs");
   await expect(page.locator(".page-footer")).toContainText("Paragraphs ");
   await page.waitForTimeout(450);
@@ -150,7 +163,9 @@ test("reading mode, page gap and footer preferences persist; paged and snap navi
     .locator(".book-open")
     .filter({ hasText: "Page navigation test" })
     .click();
-  await expect(page.locator(".reading-page")).toHaveCount(1);
+  await expect(page.locator(".reading-page:not(.reading-cover)")).toHaveCount(
+    1,
+  );
   await expect(page.locator(".reading-scroll")).toHaveClass(/mode-paged/);
   await expect(page.locator(".page-footer")).toContainText("Paragraphs ");
   await page

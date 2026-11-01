@@ -3289,7 +3289,9 @@ export default function App() {
     ? spacerHeights(bookPages.length, pageWindow, pageHeight, prefs.pageGap)
     : { top: 0, bottom: 0 };
   // The cover page before page 1 keeps its space when scrolled out of view.
-  if (pageWindow.start > 0) spacers.top += coverPageHeight.current;
+  // Pages mode shows one page at a time, so nothing stands above it.
+  if (virtualPages && pageWindow.start > 0)
+    spacers.top += coverPageHeight.current;
   const inspectorTabs: { id: InspectorTab; label: string; icon: ReactNode }[] =
     [
       ...(selection
