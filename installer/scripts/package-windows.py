@@ -13,7 +13,7 @@ import zipfile
 REPO = Path(__file__).resolve().parents[2]
 
 
-VERSION = "0.1.0-beta.22"
+VERSION = "0.1.0-beta.22.1"
 
 
 def runtime_files(site_packages):

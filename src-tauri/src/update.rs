@@ -552,6 +552,10 @@ mod tests {
     fn versions_compare_like_releases() {
         assert!(newer("0.1.0-beta.4", "0.1.0-beta.3"));
         assert!(newer("0.1.0-beta.10", "0.1.0-beta.9"));
+        // Point releases: beta 22.1 follows beta 22 and comes before beta 23.
+        assert!(newer("0.1.0-beta.22.1", "0.1.0-beta.22"));
+        assert!(newer("0.1.0-beta.23", "0.1.0-beta.22.1"));
+        assert!(!newer("0.1.0-beta.22", "0.1.0-beta.22.1"));
         assert!(newer("0.1.0", "0.1.0-beta.9"));
         assert!(!newer("0.1.0-beta.9", "0.1.0"));
         assert!(newer("0.2.0", "0.1.9"));
